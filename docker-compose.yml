@@ -1,43 +1,43 @@
 services:
-  db19: # Cambiamos 'db' por 'db19' para que coincida con el HOST
+  db20: # Cambiamos 'db' por 'db20' para que coincida con el HOST
     image: pgvector/pgvector:pg15
-    container_name: odoo19-db
+    container_name: odoo20-db
     environment:
       - POSTGRES_USER=odoo
       - POSTGRES_PASSWORD=odoo
       - POSTGRES_DB=postgres
     volumes:
-      - ./odoo19-db-data:/var/lib/postgresql/data
+      - ./odoo20-db-data:/var/lib/postgresql/data
     networks:
-      - network_odoo_19
+      - network_odoo_20
     ports:
       - "5433:5432"
     restart: always
 
   odoo:
-    image: odoo:19.0
-    container_name: odoo19_jc_1
+    image: odoo:20.0
+    container_name: odoo20_jc_1
     depends_on:
-      - db19 # Debe apuntar al nombre exacto del servicio de arriba
+      - db20 # Debe apuntar al nombre exacto del servicio de arriba
     ports:
-      - "8070:8069"
+      - "8080:8069"
     environment:
-      - HOST=db19 # Ahora sí coincidirá
+      - HOST=db20 # Ahora sí coincidirá
       - USER=odoo
       - PASSWORD=odoo
       - PROXY_MODE=False
     volumes:
-      - ./enterprise-19.0:/mnt/enterprise-addons # Es común ver una carpeta para enterprise
+      - ./enterprise-20.0:/mnt/enterprise-addons # Es común ver una carpeta para enterprise
       - ./addons:/mnt/extra-addons
       - ./odoo.conf:/etc/odoo/odoo.conf
-      - odoo19_data:/var/lib/odoo
+      - odoo20_data:/var/lib/odoo
     networks:
-      - network_odoo_19
+      - network_odoo_20
     restart: always
 
 volumes:
-  odoo19-db-data:
-  odoo19_data:
+  odoo20-db-data:
+  odoo20_data:
 
 networks:
-  network_odoo_19:
+  network_odoo_20:

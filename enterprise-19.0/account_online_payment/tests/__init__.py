@@ -1,2 +1,0 @@
-from . import test_account_online_payment_activation
-from . import test_account_online_payment_webhook

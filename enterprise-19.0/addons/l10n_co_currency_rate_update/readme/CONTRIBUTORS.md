@@ -1,1 +1,0 @@
-- **Yan Chirino** - *Initial work* - [GitHub](https://github.com/yanchirino)

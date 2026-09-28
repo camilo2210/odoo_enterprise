@@ -1,6 +1,0 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
-
-from . import account_report
-from . import account_return
-from . import account_sales_report
-from . import res_config_settings
