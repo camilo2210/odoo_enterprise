@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="marketing_campaign_view_kanban" model="ir.ui.view">
+        <field name="name">marketing.campaign.view.kanban</field>
+        <field name="model">marketing.campaign</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" quick_create="false" sample="0">
+                <templates>
+                    <t t-name="card" class="o_marketing_automation_campaign_kanban">
+                        <span t-att-title="record.name.raw_value" class="o_ma_campaign_header text-primary text-truncate">
+                            <field name="name"/>
+                        </span>
+                        <div class="d-flex text-uppercase text-center mt8">
+                            <div class="d-flex flex-column flex-grow-1 text-muted o_ma_campaign_item">
+                                <span>Total</span>
+                                <field name="total_participant_count" class="fw-bolder mt4 h2"/>
+                            </div>
+                            <div class="d-flex flex-column flex-grow-1 text-primary o_ma_campaign_item">
+                                <span>Running</span>
+                                <field name="running_participant_count" class="fw-bolder mt4 h2"/>
+                            </div>
+                            <div class="d-flex flex-column flex-grow-1 text-primary o_ma_campaign_item">
+                                <span>Completed</span>
+                                <field name="completed_participant_count" class="fw-bolder mt4 h2"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="marketing_campaign_view_form" model="ir.ui.view">
+        <field name="name">marketing.campaign.view.form</field>
+        <field name="model">marketing.campaign</field>
+        <field name="arch" type="xml">
+            <form string="Campaign" js_class="marketing_campaign_form_view">
+                <div name="button_box">
+                    <button name="action_view_mailings" type="object" icon="mail" class="oe_stat_button">
+                        <field name="mass_mailing_count" widget="statinfo" string="Mailings"/>
+                    </button>
+                    <button name="action_view_tracker_statistics" type="object" icon="arrow_selector_tool_f" class="oe_stat_button"
+                        invisible="link_tracker_click_count == 0 and state == 'draft'">
+                        <field name="link_tracker_click_count" widget="statinfo" string="Clicks"/>
+                    </button>
+                    <button name="%(marketing_participant_action_campaign_test)d" type="action"
+                        icon="science" class="oe_stat_button" invisible="test_participant_count == 0">
+                        <field name="test_participant_count" widget="statinfo" string="Tests" />
+                    </button>
+                    <button name="%(marketing_participant_action_campaign)d" type="action"
+                        icon="fork_right" icon_class="oi-rotate-180 oi-flip-vertical" class="oe_stat_button"
+                        invisible="total_participant_count == 0 and state == 'draft'">
+                        <field name="total_participant_count" widget="statinfo" string="Participants" />
+                    </button>
+                </div>
+                <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                <div class="d-flex align-items-center gap-1 px-3 pt-1 pb-3 border-bottom bg-100">
+                    <div class="me-auto bg-view p-1 rounded border">
+                        <field name="title" class="text-break" widget="autosize_char" required="1" placeholder="e.g. eCommerce Offers Plan" />
+                        <field name="state" widget="badge" class="ps-1" invisible="not id"/>
+                    </div>
+                    <button name="action_start_campaign" type="object" class="btn-primary" string="Start" invisible="state == 'running' or not active" />
+                    <button name="action_stop_campaign" type="object" invisible="state != 'running'" class="btn-primary" string="Stop" />
+                    <button name="%(marketing_campaign_test_action)d" type="action" invisible="not marketing_activity_ids or state == 'stopped'" class="btn-secondary" string="Test" />
+                    <!-- Debug mode: -->
+                    <button name="action_execute_activities" type="object" invisible="state != 'running'" class="btn-secondary" string="Run" groups="base.group_no_one"
+                        confirm="Run the next scheduled activity for each participant of this campaign?"
+                        confirm-title="Run Activities" confirm-label="Run"/>
+                    <button name="action_synchronize_participants" type="object"
+                        invisible="state != 'running' or enroll_type == 'on_demand'"
+                        class="btn-secondary" string="Generate participants" groups="base.group_no_one"
+                        confirm="Are you sure you want to create a new participant for each matching record that has not been used yet?"
+                        confirm-title="Generate Participants" confirm-label="Generate Participants"/>
+                    <widget name="campaign_panel_buttons" class="d-print-none"/>
+                </div>
+                <field name="view_coordinates" invisible="1"/>
+                <field name="model_name" invisible="1"/>
+                <field name="marketing_activity_ids" widget="campaign_flow_view">
+                    <list>
+                        <field name="view_coordinates"/>
+                        <field name="campaign_id"/>
+                        <field name="activity_type"/>
+                        <field name="interval_type"/>
+                        <field name="interval_number"/>
+                        <field name="mass_mailing_id"/>
+                        <field name="mass_mailing_id_mailing_type"/>
+                        <field name="validity_duration"/>
+                        <field name="validity_duration_number"/>
+                        <field name="validity_duration_type"/>
+                        <field name="split_domain"/>
+                        <field name="wait_value_domain"/>
+                        <field name="activity_domain"/>
+                        <field name="model_id"/>
+                        <field name="model_name"/>
+                        <field name="total_sent"/>
+                        <field name="total_click"/>
+                        <field name="total_reply"/>
+                        <field name="total_open"/>
+                        <field name="trigger_type"/>
+                        <field name="trigger_type_ui"/>
+                        <field name="parent_id"/>
+                        <field name="child_ids"/>
+                        <field name="utm_campaign_id"/>
+                        <field name="subscribe_to_list_action"/>
+                        <field name="subscribe_to_list_id"/>
+                        <field name="log_note_body"/>
+                        <field name="is_split_no"/>
+                        <field name="triggering_activity_id"/>
+                        <field name="allowed_trigger_type_ui"/>
+                        <field name="description"/>
+                        <field name="trigger_type_category"/>
+                        <field name="name"/>
+                        <field name="server_action_id"/>
+                        <field name="server_action_state"/>
+                    </list>
+                </field>
+            </form>
+        </field>
+    </record>
+
+    <record id="marketing_campaign_view_form_trigger" model="ir.ui.view">
+        <field name="name">marketing.campaign.view.form.trigger</field>
+        <field name="model">marketing.campaign</field>
+        <field name="priority">64</field>
+        <field name="arch" type="xml">
+            <form string="Campaign" js_class="marketing_campaign_form_view">
+                <sheet>
+                    <h2>
+                        <field name="title" class="w-100" placeholder="e.g. &quot;eCommerce Welcome Flow&quot;" nolabel="1"/>
+                    </h2>
+                    <field name="active" invisible="1"/>
+                    <field name="model_name" invisible="1"/>
+                    <field name="utm_campaign_id" invisible="1"/>
+                    <notebook>
+                        <page string="Enrollment">
+                            <group>
+                                <field name="user_id" groups="base.group_no_one" widget="many2one_avatar_user" class="oe_inline"/>
+                                <field name="model_name" invisible="1"/>
+                                <field name="model_id" string="Target"
+                                    readonly="state != 'draft'"
+                                    options="{'no_create': True, 'no_open': True}"
+                                    context="{'list_view_ref': 'marketing_automation.ir_model_view_tree_marketing'}"/>
+                                <field name="blacklisted_enroll_type" invisible="1"/>
+                                <field name="enroll_type" widget="badges_selection" options="{'excluded_selection_field': 'blacklisted_enroll_type'}"/>
+                                <field name="enroll_action_type" widget="radio" string="Event Type" invisible="enroll_type != 'action'"/>
+                                <field name="enroll_date_field_id" invisible="enroll_type not in ['date', 'anniversary']" required="enroll_type in ['date', 'anniversary']"/>
+                                <label for="enroll_date_delay_number" string="Delay" invisible="enroll_type not in ['date', 'anniversary']"/>
+                                <div colspan="1" class="d-inline-flex gap-2" invisible="enroll_type not in ['date', 'anniversary']">
+                                    <field name="enroll_date_delay_number" nolabel="1" class="col"/>
+                                    <field name="enroll_date_delay_type" nolabel="1" class="col"/>
+                                    <field name="enroll_date_delay_order" nolabel="1" class="col"/>
+                                </div>
+                                <newline/>
+                                <field name="mailing_list_ids" widget="many2many_tags" invisible="enroll_type != 'action' or enroll_action_type != 'subscribe'"/>
+                                <label for="webhook_url" string="Webhook URL" invisible="enroll_type != 'webhook'"/>
+                                <div colspan="1" class="d-inline-flex gap-2 w-100" invisible="enroll_type != 'webhook'">
+                                    <field name="webhook_url" class="oe_inline mb-0" widget="CopyClipboardURL" invisible="not id"/>
+                                    <div groups="base.group_system" class="d-flex align-items-baseline" invisible="not is_admin_and_debug or not id">
+                                        <button groups="base.group_no_one"
+                                            type="object"
+                                            name="action_rotate_webhook_uuid"
+                                            class="oe_inline btn btn-link flex-shrink-0 px-1 py-0"
+                                            invisible="not is_admin_and_debug"
+                                            icon="refresh"
+                                            string="Renew"
+                                            help="If renewed, update the secret URL in the third-party app that calls this webhook."
+                                        />
+                                    </div>
+                                    <div class="oe_inline mb-0 text-muted" invisible="id">Save this Trigger to get your URL.</div>
+                                </div>
+                                <label for="webhook_allow_create" string="Allow Create" invisible="enroll_type != 'webhook'"/>
+                                <div invisible="enroll_type != 'webhook'">
+                                    <field name="webhook_allow_create" class="mb-2" widget="boolean_toggle" groups="base.group_system"/>
+                                    <field name="webhook_allow_create" class="mb-2" widget="boolean_toggle" readonly="1" groups="!base.group_system"/>
+                                    <div class="text-muted"><i class="oi" data-icon="info"/>
+                                        Sending requests to this webhook will allow you to add existing 
+                                        <span invisible="not webhook_allow_create">or new</span> resources to this campaign's participants.<br/>
+                                        Payload must be sent as a JSON object. Its contents may be:
+                                    </div>
+                                    <ul class="text-muted">
+                                        <li>
+                                            <code>search_domain</code>: an Odoo domain matching the records that should be added
+                                            <ul>
+                                                <li><code>[["email_normalized", "ilike", "%@odoo.com"], ["company_id", "=", 1]]</code></li>
+                                            </ul>
+                                        </li>
+                                        <li invisible="not webhook_allow_create">
+                                            <code>create_values</code>: the base values of the record that will be created should the search_domain fails to retrieve any
+                                            <ul>
+                                                <li><code>[{"name": "Camille Daffoldi", "email": "camilledaffoldi@gmail.com"}]</code></li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                    <div invisible="state != 'draft'" class="text-muted">
+                                        You can test your webhook by sending a request to the webhook URL appended with <code>/test</code>.
+                                        In draft mode, the fetched resource IDs will be included in the response.
+                                        You may also enable logging to always get full logs for every call.
+                                    </div>
+                                    <div invisible="state == 'running'" class="text-warning"><i class="oi" data-icon="warning"/>
+                                        You will not be able to add participants unless the campaign is running.
+                                    </div>
+                                </div>
+                                <label for="webhook_log_calls" string="Log Calls" invisible="enroll_type != 'webhook' or not is_admin_and_debug" groups="base.group_system"/>
+                                <div colspan="1" class="d-inline-flex gap-2" invisible="enroll_type != 'webhook' or not is_admin_and_debug" groups="base.group_system">
+                                    <field name="webhook_log_calls" widget="boolean_toggle" class="oe_inline mb-0 text-nowrap"/>
+                                    <button
+                                        type="object"
+                                        name="action_view_webhook_logs"
+                                        string="View Logs"
+                                        invisible="not webhook_log_calls"
+                                        class="btn btn-link oe_inline flex-shrink-0 ps-3 py-0"
+                                        icon="format_list_bulleted"
+                                    />
+                                </div>
+                                <separator string="Extra Filter" invisible="enroll_type == 'domain'"/>
+                                <field name="mailing_filter_ids"
+                                    widget="mailing_many2many_tags"
+                                    options="{'no_quick_create': True, 'on_tag_click': 'open_form', 'color_field': 'color'}"
+                                    context="{
+                                            'form_view_ref': 'mass_mailing.mailing_filter_view_form_simplified',
+                                            'default_mailing_model_id': model_id,
+                                        }"
+                                    placeholder="Select dynamic lists..." class="w-auto o_field_many2many_tags"/>
+                                <div
+                                    invisible="not mailing_filter_ids"
+                                    class="o_mass_mailing_recipients_count d-inline-flex align-items-baseline gap-1 text-nowrap ms-2 text-muted">
+                                    <field name="enroll_recipients_count" class="lh-1"/>
+                                    <span>Records</span>
+                                </div>
+                                <field name="enroll_domain" widget="domain_savable" options="{'model': 'model_name', 'model_id': 'model_id', 'in_dialog': True}" invisible="mailing_filter_ids"/>
+                            </group>
+                        </page>
+                        <page string="Options">
+                            <group>
+                                <field name="enroll_multiple" string="Participants can re-enroll" invisible="enroll_type not in ['action', 'anniversary', 'date', 'webhook']"/>
+                                <field name="enroll_unique_field_id" invisible="enroll_multiple" string="Deduplication via" placeholder="Record ID only" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="scheduling_calendar_id" string="Use Calendar" placeholder="Standard 7-day week"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="marketing_campaign_view_form_reply_trigger" model="ir.ui.view">
+        <field name="name">marketing.campaign.view.form.reply.trigger</field>
+        <field name="model">marketing.campaign</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <p>Trigger specific follow-up actions whenever a participant replies to an email.</p>
+                    <label for="collect_reply_early_end" class="me-2" string="Cancel main workflow when triggered?"/>
+                    <field name="collect_reply_early_end" widget="boolean_toggle" nolabel="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="marketing_campaign_view_tree" model="ir.ui.view">
+        <field name="name">marketing.campaign.view.list</field>
+        <field name="model">marketing.campaign</field>
+        <field name="arch" type="xml">
+            <list string="Campaign" sample="1">
+                <field name="name" string="Name"/>
+                <field name="model_id" string="Target" readonly="state != 'draft'"/>
+                <field name="mass_mailing_count" string="Mailings"/>
+                <field name="link_tracker_click_count" string="Clicks"/>
+                <field name="total_participant_count" string="Participants" width="100px"/>
+                <field name="state" readonly="True" decoration-info="state == 'draft'" decoration-success="state == 'running'" decoration-muted="state == 'stopped'" widget="badge"/>
+                <field name="cron_enroll_failure_dt" optional="hide"/>
+                <field name="cron_activities_failure_dt" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="marketing_campaign_view_search" model="ir.ui.view">
+        <field name="name">marketing.campaign.view.search</field>
+        <field name="model">marketing.campaign</field>
+        <field name="arch" type="xml">
+            <search string="Search Campaign">
+                <field name="name" string="Campaign"/>
+                <field name="model_id" string="Target"/>
+                <filter string="New" name="new" domain="[('state', '=', 'draft')]"/>
+                <filter string="Running" name="running" domain="[('state', '=', 'running')]"/>
+                <filter string="Stopped" name="stopped" domain="[('state', '=', 'stopped')]"/>
+                <separator/>
+                <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
+                <filter string="Failed Cron" name="filter_cron_failure" domain="[('cron_enroll_failure_dt', '!=', False), ('cron_activities_failure_dt', '!=', False)]"/>
+                <group>
+                    <filter name="group_by_model_id" string="Target" context="{'group_by': 'model_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="marketing_campaign_action" model="ir.actions.act_window">
+        <field name="name">Campaigns</field>
+        <field name="path">marketing-automation</field>
+        <field name="res_model">marketing.campaign</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <div class="o_view_nocontent o_ma_campaign_container">
+                <div class="container">
+                    <div class="o_activity_not_found o_nocontent_help container text-center">
+                        <p class="o_view_nocontent_smiling_face" >Create a Campaign</p>
+                        <p>Create one or load a template prepared by our experts.<br/>
+                            Then sit down and let Odoo handle the rest!</p>
+                    </div>
+                </div>
+            </div>
+        </field>
+    </record>
+
+    <record id="marketing_campaign_create_trigger" model="ir.actions.act_window">
+        <field name="name">Define a Trigger</field>
+        <field name="res_model">marketing.campaign</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="marketing_automation.marketing_campaign_view_form_trigger"/>
+        <field name="target">new</field>
+    </record>
+
+    <record id="marketing_campaign_create_reply_trigger" model="ir.actions.act_window">
+        <field name="target">new</field>
+        <field name="name">Configure Reply Path</field>
+        <field name="res_model">marketing.campaign</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="marketing_automation.marketing_campaign_view_form_reply_trigger"/>
+    </record>
+</odoo>

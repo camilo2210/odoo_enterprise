@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="appointment_leave_view_list" model="ir.ui.view">
+        <field name="name">appointment.leave.view.list</field>
+        <field name="model">appointment.leave</field>
+        <field name="arch" type="xml">
+            <list string="Closing Days">
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="leave_reason"/>
+                <field name="appointment_type_ids" widget="many2many_tags"/>
+                <field name="resource_ids" widget="many2many_tags"/>
+                <field name="user_ids" widget="many2many_avatar_user"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="appointment_leave_view_form" model="ir.ui.view">
+        <field name="name">appointment.leave.view.form</field>
+        <field name="model">appointment.leave</field>
+        <field name="arch" type="xml">
+            <form string="Closing Days">
+                <sheet>
+                    <div class="alert alert-info" role="alert" invisible="not has_appointment_type_tz_mismatch">
+                        <i class="oi me-2" data-icon="warning"/>
+                        Your current timezone will be used as a reference for the selected appointments' closing days.
+                        Exact timings might differ depending on the appointment timezone.
+                    </div>
+                    <group>
+                        <field name="leave_type" widget="appointment_leave_type_badges" class="mb-2"/>
+                        <group>
+                            <field name="leave_reason" placeholder="e.g. Inventory count and valuation"/>
+                            <field name="date_from" string="Dates" widget="daterange" options="{'end_date_field': 'date_to'}"/>
+                            <field name="date_to" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="resource_ids"
+                                widget="many2many_tags"
+                                placeholder="Choose resources"
+                                options="{'no_create': True}"
+                                domain="resource_domain"
+                                required="leave_type == 'resources'"
+                                invisible="leave_type != 'resources'"
+                            />
+                            <field name="user_ids"
+                                widget="many2many_avatar_user"
+                                placeholder="Choose users"
+                                options="{'no_create': True}"
+                                domain="user_domain"
+                                required="leave_type == 'users'"
+                                invisible="leave_type != 'users'"
+                            />
+                            <field name="appointment_type_ids"
+                                widget="many2many_tags"
+                                placeholder="All Appointments"
+                                options="{'no_create': True}"
+                                domain="appointment_type_domain"
+                            />
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="appointment_leave_view_search" model="ir.ui.view">
+        <field name="name">appointment.leave.view.search</field>
+        <field name="model">appointment.leave</field>
+        <field name="arch" type="xml">
+            <search string="Closing Days">
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="appointment_type_ids"/>
+                <field name="resource_ids"/>
+                <field name="user_ids"/>
+                <filter string="Appointments" name="filter_leave_type_appointments" domain="[('leave_type', '=', 'appointments')]"/>
+                <filter string="Resources" name="filter_leave_type_resources" domain="[('leave_type', '=', 'resources')]"/>
+                <filter string="Users" name="filter_leave_type_users" domain="[('leave_type', '=', 'users')]"/>
+                <separator/>
+                <filter string="Start Date" name="filter_date_from" date="date_from"/>
+                <group>
+                    <filter string="Type" name="group_by_leave_type" context="{'group_by': 'leave_type'}"/>
+                    <filter string="Appointments" name="group_by_appointment_type_ids" context="{'group_by': 'appointment_type_ids'}"/>
+                    <filter string="Resources" name="group_by_resource_ids" context="{'group_by': 'resource_ids'}"/>
+                    <filter string="Users" name="group_by_user_ids" context="{'group_by': 'user_ids'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="appointment_leave_action" model="ir.actions.act_window">
+        <field name="name">Closing Days</field>
+        <field name="res_model">appointment.leave</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

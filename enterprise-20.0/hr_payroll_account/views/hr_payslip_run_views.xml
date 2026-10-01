@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_payrun_payslip_kanban_card_view" model="ir.ui.view">
+        <field name="name">hr.payslip.run.inherit.kanban</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="inherit_id" ref="hr_payroll.hr_payrun_payslip_kanban_card_view"/>
+        <field name="arch" type="xml">
+            <t t-name='payrun_menu' position="inside">
+                <button name="action_open_move" class="oe_stat_button" icon="attach_money"
+                        type="object" help="Generated Journal Entries" invisible="not move_id"
+                        groups="account.group_account_readonly" options="{'is_smart_button': 1}">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">
+                            Journal Entry <br/>
+                            <t invisible="move_state != 'draft'">(Draft)</t>
+                            <t invisible="move_state != 'posted'">(Posted)</t>
+                            <t invisible="move_state != 'cancel'">(Canceled)</t>
+                        </span>
+                    </div>
+                </button>
+                <button name="%(action_open_payrun_move_preview)d" class="oe_stat_button" icon="attach_money"
+                        type="action" help="Generate Draft Journal Entries" invisible="state != '01_ready' or move_id or not batch_payroll_move_lines"
+                        options="{'is_smart_button': 1}"
+                        context="{'payrun_id': id}">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">
+                            Journal Entry <br/> (Preview)
+                        </span>
+                    </div>
+                </button>
+            </t>
+        </field>
+    </record>
+</odoo>

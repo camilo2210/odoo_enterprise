@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="worksheet_custom_page" inherit_id="planning_field_service.worksheet_custom_page">
+        <div name="intervention_timesheet_section" position="inside">
+            <t t-if="doc.sale_order_id and not doc.under_warranty and not doc._has_no_billable_products()">
+                <h2>Time &amp; Materials</h2>
+                <t t-call="planning_field_service_sale_timesheet.worksheet_time_and_material"/>
+                <br/>
+            </t>
+            <t t-set='is_uom_day' t-value='doc.intervention_timesheet_ids._is_timesheet_encode_uom_day()'/>
+            <t t-if="doc.allow_timesheets and doc.intervention_timesheet_ids">
+                <h2>Timesheets</h2>
+                <div t-att-class="'table-responsive-sm' if report_type != 'pdf' else ''">
+                    <table class="table o_main_table table-borderless">
+                        <thead>
+                            <tr>
+                                <th class="text-start">Date</th>
+                                <th class="text-start">Technician</th>
+                                <th class="text-start">Description</th>
+                                <th class="text-end">Time Spent</th>
+                            </tr>
+                        </thead>
+                        <tbody class="sale_tbody">
+                            <t t-foreach="doc.intervention_timesheet_ids" t-as="line">
+                                <tr t-att-style="'background-color: #F1F1F1;' if line_index % 2 == 0 else ''">
+                                    <td>
+                                        <span t-field="line.date">2023-01-01</span>
+                                    </td>
+                                    <td>
+                                        <span t-field="line.employee_id.name">Jane Technician</span>
+                                    </td>
+                                    <td class="text-start">
+                                        <span t-field="line.name">Manage SME</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <span t-if="is_uom_day" t-out="line._convert_hours_to_days(line.unit_amount)" t-options='{"widget": "timesheet_uom"}'>5 days</span>
+                                        <span t-else="" t-out="line.unit_amount" t-options="{'widget': 'float_time'}">10:00</span>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                    <div class="row justify-content-end">
+                        <div t-att-class="'col-sm-2' if report_type == 'pdf' else 'col-auto'">
+                            <table class="table table-borderless">
+                                <tr class="o_total">
+                                    <td colspan="4" class="text-end">
+                                        <strong class="me-2">Total</strong>
+                                        <span t-if="is_uom_day" t-out="line._convert_hours_to_days(doc.intervention_effective_hours)">10 days</span>
+                                        <span t-else="" t-field="doc.intervention_effective_hours" t-options='{"widget": "float_time"}'>10:00</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </template>
+</odoo>

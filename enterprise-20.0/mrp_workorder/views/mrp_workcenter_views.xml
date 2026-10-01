@@ -1,0 +1,125 @@
+<odoo>
+    <record id="mrp_workcenter_view_kanban_inherit_workorder" model="ir.ui.view">
+        <field name="name">mrp.workcenter.view.kanban.inherit.mrp.workorder</field>
+        <field name="model">mrp.workcenter</field>
+        <field name="inherit_id" ref="mrp.mrp_workcenter_kanban"/>
+        <field name="arch" type="xml">
+            <!-- Desktop view -->
+            <xpath expr="//div[@name='o_wo']" position="inside">
+                <button class="btn btn-secondary oi" data-icon="desktop_windows" name="action_work_order" type="object" title="Shop Floor" aria-label="Shop Floor"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="mrp_workcenter_form_view_inherit" model="ir.ui.view">
+        <field name="name">mrp.workcenter.form.view.inherit</field>
+        <field name="model">mrp.workcenter</field>
+        <field name="inherit_id" ref="mrp.mrp_workcenter_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='costing']" position='after'>
+                <group string="Operations" name="workorder_employee">
+                    <field name="barcode"/>
+                    <field name="employee_ids" widget="many2many_tags"
+                        string="Allowed Employees"
+                        domain="[('company_id', '=', company_id)]"
+                        placeholder="Everyone"
+                        />
+                </group>
+            </xpath>
+            <xpath expr="//div[@id='costs_hour']" position='after'>
+                <label for="employee_costs_hour" string=""/>
+                <div>
+                    <field name="employee_costs_hour" class="oe_inline"/>per employee
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="mrp_workcenter_workorders_tree_view" model="ir.ui.view">
+        <field name="name">mrp.workcenter.workorders.tree.view</field>
+        <field name="model">mrp.workorder</field>
+        <field name="arch" type="xml">
+            <list multi_edit="1">
+                <header>
+                    <button name="action_plan" type="object" string="Plan"/>
+                </header>
+                <field name="name" string="Operation" readonly="state in ['cancel', 'done']"/>
+                <field name="workcenter_id" readonly="state in ['cancel', 'done', 'progress']"/>
+                <field name="production_id"/>
+                <field name="product_id" optional="show"/>
+                <field name="qty_ready" optional="hide" groups="base.group_no_one"/>
+                <field name="date_start" optional="hide" readonly="state in ['progress', 'done', 'cancel']"/>
+                <field name="date_finished" optional="hide" readonly="state in ['progress', 'done', 'cancel']"/>
+                <field name="duration_expected" widget="float_time" options="{'unit': 'minutes', 'show_seconds': true}" sum="expected duration" readonly="state in ['cancel', 'done']"/>
+                <field name="state" widget="badge" decoration-info="state == 'progress'" decoration-success="state == 'done'" decoration-danger="state == 'cancel'" decoration-warning="state == 'blocked'" decoration-muted="state == 'ready'"
+                  invisible="production_state == 'draft'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="oee_graph_view_inherit" model="ir.ui.view">
+        <field name="name">mrp.workcenter.productivity.graph.inherit</field>
+        <field name="model">mrp.workcenter.productivity</field>
+        <field name="inherit_id" ref="mrp.oee_graph_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='duration']" position='after'>
+                <field name="employee_cost" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="oee_pivot_view_inherit" model="ir.ui.view">
+        <field name="name">mrp.workcenter.productivity.pivot.inherit</field>
+        <field name="model">mrp.workcenter.productivity</field>
+        <field name="inherit_id" ref="mrp.oee_pivot_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='duration']" position='after'>
+                <field name="employee_cost" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="mrp.action_work_orders" model="ir.actions.act_window">
+        <field name="view_mode">list,kanban,form,gantt,pivot,graph,calendar</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_workorder">
+            No Work Orders to do!
+          </p><p>
+            Work orders are operations to do as part of a manufacturing order.<br/>
+            Operations are defined in the bills of materials or added in the manufacturing order directly.
+            In both cases, instructions, worksheets and quality checks can be added.
+          </p><p>
+            You can process work orders here, or use the dedicated Shop Floor application.
+          </p><p>
+            <a type="action" name="mrp.action_mrp_production_form" role="button" class="btn btn-primary btn-large">Create a manufacturing order</a>
+          </p>
+        </field>
+    </record>
+
+    <record id="mrp.mrp_workorder_workcenter_report" model="ir.actions.act_window">
+        <field name="view_mode">graph,pivot,list,form,gantt</field>
+    </record>
+
+    <record id="mrp.mrp_workorder_report" model="ir.actions.act_window">
+        <field name="view_mode">graph,pivot,list,form,gantt</field>
+    </record>
+
+    <record id="mrp_workcenter_workorders_gantt" model="ir.actions.act_window">
+        <field name="name">Work Orders</field>
+        <field name="res_model">mrp.workorder</field>
+        <field name="domain">[('state', 'not in', ('draft', 'done', 'cancel'))]</field>
+        <field name="view_id" ref="mrp_workcenter_workorders_tree_view"/>
+        <field name="search_view_id" ref="mrp.view_mrp_production_workorder_form_view_filter"/>
+        <field name="context">{'search_default_ready': True,
+                               'search_default_blocked': True,
+                               'search_default_filter_to_plan': True}</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_mrp_dashboard"
+      name="Overview"
+      action="mrp.mrp_workcenter_kanban_action"
+      groups="mrp.group_mrp_routings"
+      parent="mrp.menu_mrp_root"
+      sequence="5"/>
+</odoo>

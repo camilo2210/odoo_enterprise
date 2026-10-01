@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_label_layout_form_inherit_pricer" model="ir.ui.view">
+        <field name="name">product.label.layout.form.inherit.pricer</field>
+        <field name="model">product.label.layout</field>
+        <field name="inherit_id" ref="product.product_label_layout_form"/>
+        <field name="arch" type="xml">
+            <!-- Change button string if "pricer tags" is selected -->
+            <xpath expr="//button[@name='process']" position="attributes">
+                <attribute name="invisible">print_format == 'pricer_tags'</attribute>
+            </xpath>
+            <xpath expr="//footer/button" position="before">
+                <button name="process" string="Update Tags" type="object" class="btn-primary" invisible="print_format != 'pricer_tags'"/>
+            </xpath>
+            <!-- Filter only allowed price lists -->
+            <xpath expr="//field[@name='pricelist_id']" position="attributes">
+                <attribute name="invisible">print_format == 'pricer_tags'</attribute>
+            </xpath>
+            <xpath expr="//form/group/group[last()]" position="inside">
+                <field name="pricer_tags_pricelist_id" widget="many2one" options="{'no_create':True}" invisible="print_format != 'pricer_tags'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

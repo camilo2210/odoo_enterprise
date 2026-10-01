@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id='control_statement_export_template'>
+        <KVDPH_2025 xmlns="https://ekr.financnasprava.sk/Formulare/XSD/kv_dph_2025.xsd">
+            <Identifikacia>
+                <IcDphPlatitela><t t-out="identification['ic_dph_platitela']"/></IcDphPlatitela>
+                <Druh><t t-out="identification['druh']"/></Druh>
+                <Obdobie>
+                    <Rok><t t-out="identification['rok']"/></Rok>
+                    <Mesiac t-if="identification.get('mesiac')"><t t-out="identification['mesiac']"/></Mesiac>
+                    <Stvrtrok t-if="identification.get('stvrtrok')"><t t-out="identification['stvrtrok']"/></Stvrtrok>
+                </Obdobie>
+                <Nazov><t t-out="identification['nazov']"/></Nazov>
+                <Stat><t t-out="identification['stat']"/></Stat>
+                <Obec><t t-out="identification['obec']"/></Obec>
+                <PSC t-if="identification.get('psc')"><t t-out="identification['psc']"/></PSC>
+                <Ulica t-if="identification.get('ulica')"><t t-out="identification['ulica']"/></Ulica>
+                <Cislo t-if="identification.get('cislo')"><t t-out="identification['cislo']"/></Cislo>
+                <Tel t-if="identification.get('tel')"><t t-out="identification['tel']"/></Tel>
+                <Email t-if="identification.get('email')"><t t-out="identification['email']"/></Email>
+            </Identifikacia>
+            <Transakcie>
+                <t t-foreach="a1_lines" t-as="line">
+                    <A1
+                        t-att-Odb="line.get('vat_number') or None"
+                        t-att-F="line['invoice_number']"
+                        t-att-Den="line['taxable_supply_date']"
+                        t-att-Z="line['tax_base']"
+                        t-att-D="line['tax_amount']"
+                        t-att-S="line['tax_rate']"/>
+                </t>
+                <t t-foreach="a2_lines" t-as="line">
+                    <A2
+                        t-att-Odb="line['vat_number']"
+                        t-att-F="line['invoice_number']"
+                        t-att-Den="line['taxable_supply_date']"
+                        t-att-Z="line['tax_base']"
+                        t-att-TK="line.get('goods_code') or None"
+                        t-att-TD="line.get('goods_type') or None"
+                        t-att-Mn="line.get('quantity') or None"
+                        t-att-MJ="line.get('uom') or None"/>
+                </t>
+                <t t-foreach="b1_lines" t-as="line">
+                    <B1
+                        t-att-Dod="line.get('vat_number') or None"
+                        t-att-F="line['invoice_number']"
+                        t-att-Den="line['taxable_supply_date']"
+                        t-att-Z="line['tax_base']"
+                        t-att-D="line['tax_amount']"
+                        t-att-S="line['tax_rate']"
+                        t-att-O="line['deducted_amount']"/>
+                </t>
+                <t t-foreach="b2_lines" t-as="line">
+                    <B2
+                        t-att-Dod="line['vat_number']"
+                        t-att-F="line['invoice_number']"
+                        t-att-Den="line['taxable_supply_date']"
+                        t-att-Z="line['tax_base']"
+                        t-att-D="line['tax_amount']"
+                        t-att-S="line['tax_rate']"
+                        t-att-O="line['deducted_amount']"/>
+                </t>
+                <t t-foreach="b31_lines" t-as="line">
+                    <B31
+                        t-att-Z="line['tax_base']"
+                        t-att-D="line['tax_amount']"
+                        t-att-O="line['deducted_amount']"/>
+                </t>
+                <t t-foreach="b32_lines" t-as="line">
+                    <B32
+                        t-att-Dod="line['vat_number']"
+                        t-att-Z="line['tax_base']"
+                        t-att-D="line['tax_amount']"
+                        t-att-O="line['deducted_amount']"/>
+                </t>
+                <t t-foreach="c1_lines" t-as="line">
+                    <C1
+                        t-att-Odb="line.get('vat_number') or None"
+                        t-att-FO="line['corrective_invoice']"
+                        t-att-FP="line['original_invoice']"
+                        t-att-ZR="line['tax_base_diff']"
+                        t-att-DR="line['tax_diff']"
+                        t-att-S="line.get('tax_rate') or None"
+                        t-att-TK="line.get('goods_code') or None"
+                        t-att-TD="line.get('goods_type') or None"
+                        t-att-Mn="line.get('quantity') or None"
+                        t-att-MJ="line.get('uom') or None"
+                        t-att-ONP="'x' if line.get('is_bad_debt') else None"/>
+                </t>
+                <t t-foreach="c2_lines" t-as="line">
+                    <C2
+                        t-att-Dod="line.get('vat_number') or None"
+                        t-att-FO="line['corrective_invoice']"
+                        t-att-FP="line['original_invoice']"
+                        t-att-ZR="line['tax_base_diff']"
+                        t-att-DR="line['tax_diff']"
+                        t-att-S="line['tax_rate']"
+                        t-att-OR="line['deducted_diff']"
+                        t-att-ONP="'x' if line.get('is_bad_debt') else None"/>
+                </t>
+                <t t-if="d1_data">
+                    <D1
+                        t-att-SumaObratov="d1_data.get('total_turnover', 0)"
+                        t-att-Z="d1_data.get('tax_base_basic', 0)"
+                        t-att-D="d1_data.get('tax_amount_basic', 0)"
+                        t-att-ZZn="d1_data.get('tax_base_reduced', 0)"
+                        t-att-DZn="d1_data.get('tax_amount_reduced', 0)"/>
+                </t>
+                <t t-if="d2_data">
+                    <D2
+                        t-att-Z="d2_data.get('tax_base_basic', 0)"
+                        t-att-D="d2_data.get('tax_amount_basic', 0)"
+                        t-att-ZZn="d2_data.get('tax_base_reduced', 0)"
+                        t-att-DZn="d2_data.get('tax_amount_reduced', 0)"/>
+                </t>
+            </Transakcie>
+        </KVDPH_2025>
+    </template>
+</odoo>

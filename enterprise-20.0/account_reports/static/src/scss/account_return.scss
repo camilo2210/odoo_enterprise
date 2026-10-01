@@ -1,0 +1,167 @@
+
+@mixin o-account-return-card-compact {
+    grid-template-columns: 1fr auto;
+
+    > .o_account_return_buttons {
+        grid-area: 1 / 2;
+        align-self: start;
+    }
+
+    // Everything under the title (amount, states bar, …) keeps full width
+    > :not(.o_account_return_title, .o_account_return_buttons) {
+        grid-column: 1 / -1;
+    }
+}
+
+.kanban_return_card, .o_account-return-kanban {
+    --columns: 1;
+
+    .account_tax_return_amount:empty {
+        display: none !important;
+    }
+}
+
+@mixin o-account-return-card-layout($-breakpoint) {
+    @include media-breakpoint-down($-breakpoint) {
+        .o_account_return_padding {
+            @include o-account-return-card-compact;
+        }
+    }
+
+    @include media-breakpoint-up($-breakpoint) {
+        --columns: 3;
+
+        &:has(.account_tax_return_amount) {
+            --columns: 7;
+
+            // Each cell is placed explicitly rather than spanned: the amount is
+            // absent on audit returns and on those with nothing to pay, auto-placement would
+            // misalign all cards content when amount is displayed on some cards.
+            .o_account_return_padding {
+                > .o_account_return_title    { grid-column: 1 / span 2; }
+                > .account_tax_return_amount { grid-column: 3; }
+                > .o_account_return_state    { grid-column: 4 / span 2; }
+                > .o_account_return_buttons  { grid-column: 6 / span 2; }
+            }
+        }
+    }
+}
+
+.o_account-return-kanban {
+    @include o-account-return-card-layout(lg);
+
+    .o_kanban_record:not(:last-child) {
+        margin-bottom: map-get($spacers, 1);
+    }
+}
+
+.kanban_return_card {
+    @include o-account-return-card-layout(xxl);
+}
+
+.o_account_return_state {
+    --columns: var(--kanban-max-states, var(--state-count, 1));
+
+    .state-container:where(:not(:first-child))::after {
+        @include o-position-absolute(map-get($spacers, 1), $left: -50%);
+
+        width: 100%;
+        height: $border-width;
+        background-color: var(--AccountReturn-states-bar-bg-active, var(--AccountReturn-states-bar-bg, #{$gray-300}));
+        content: '';
+    }
+
+    .state-bubble {
+        width: map-get($spacers, 2);
+        height: map-get($spacers, 2);
+        background-color: var(--AccountReturn-states-bar-bg-active, $o-view-background-color);
+        border: $border-width solid var(--AccountReturn-states-bar-bg-active, var(--AccountReturn-states-bar-bg, #{$gray-400}));
+    }
+
+    .active {
+        --AccountReturn-states-bar-bg-active: #{$success};
+    }
+}
+
+.o_account_return_buttons {
+    @include media-breakpoint-down(lg) {
+        button {
+            padding: 5px !important;
+            font-size: 0.875rem;
+        }
+    }
+}
+
+.o_account_return_amount {
+    white-space: nowrap;
+}
+
+.kanban_checks_view {
+    .kanban_return_and_checks_cards {
+        .kanban_return_card .o_widget_web_ribbon {
+            z-index: 5;
+        }
+
+        .kanban_checks_cards {
+            > article {
+                margin-bottom: map-get($spacers, 2);
+            }
+
+            // the check description is an html field: kill the default <p> margins
+            .o_return_check_kanban_card p {
+                margin-bottom: 0;
+            }
+
+            @each $-variant, $-color in ("green": $success, "gray": $gray-500, "red": $danger) {
+                .o_return_check_kanban_card:has(.return-check-card-#{$-variant}) {
+                    border-left: 6px solid $-color;
+                }
+
+                .o_return_check_kanban_card.cursor-pointer:hover .return-check-card-#{$-variant} {
+                    outline: $border-width solid $-color;
+                    z-index: 1;
+                }
+            }
+        }
+    }
+
+    .o_account_return_chatter {
+        border-left: $border-width solid var(--border-color);
+        max-width: calc(#{$o-mail-Chatter-minWidth} + 20px + var(--Chatter-asideExtraWidth));
+
+        .o-mail-Chatter-topbar {
+            padding-top: map-get($spacers, 1);
+        }
+
+        .o-mail-ActivityList {
+            padding-left: map-get($spacers, 1);
+        }
+
+        .o-mail-AttachmentList {
+            margin-left: 10px;
+        }
+    }
+}
+
+.o_kanban_renderer .o_audit_kanban_record {
+    min-width: 300px !important;
+    height: 250px !important;
+
+    .audit_return_progressbar {
+        position: relative;
+        .o_progressbar {
+            --ProgressBarField-width: 100%;
+            --ProgressBarField-height: 30px;
+            padding: 0 !important;
+        }
+
+        .o_progressbar_value {
+            position: absolute;
+            left: 10px;
+        }
+    }
+}
+
+.o_account_return_padding {
+    padding: 0 var(--KanbanGroup-padding-h) var(--KanbanGroup-padding-bottom);
+}

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates>
+    <t t-name="account_reports.JournalReportLine" t-inherit="account_reports.AccountReportLineCustomizable">
+        <xpath expr="//tr[@data-id='line']" position="attributes">
+            <attribute name="t-if">!this.props.line.is_tax_section_line?.()</attribute>
+        </xpath>
+
+        <xpath expr="//tr[@data-id='line']" position="after">
+            <t t-else="">
+                <tr class="empty" t-if="!this.shouldHide()"/>
+                <tr id="line" class="subtable" t-att-class="this.lineClasses + (this.shouldHide() ? ' o_hidden' : '')">
+                    <td t-att-colspan="this.props.line.colspan()" style="--table-bg-state: auto;">
+                        <div class="d-flex align-items-start">
+                            <t t-if="this.hasTaxReportLines()">
+                                <t t-set="taxesByCountry" t-value="this.props.line.tax_report_lines"/>
+                                <t t-set="extraColumns" t-value="this.props.line.extra_columns?.()"/>
+
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th t-att-colspan="(this.hasTaxesSeveralCountries() ? 4 : 3) + extraColumns">
+                                                Taxes Applied
+                                                <t t-if="this.controller.userGroups.account_user">
+                                                    <a
+                                                        class="btn btn_action"
+                                                        t-on-click="(ev) => this.openTaxJournalItems(ev, 'Taxes Applied', 'tax')"
+                                                    >
+                                                        Audit
+                                                    </a>
+                                                </t>
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <t t-if="this.hasTaxesSeveralCountries()">
+                                                <th></th>  <!-- country -->
+                                            </t>
+                                            <th>Name</th>
+                                            <th class="text-end">Base Amount</th>
+                                            <th class="text-end">Tax Amount</th>
+                                            <th t-if="this.props.line.tax_non_deductible_column()" class="text-end">Non-Deductible</th>
+                                            <th t-if="this.props.line.tax_deductible_column()" class="text-end">Deductible</th>
+                                            <th t-if="this.props.line.tax_due_column()" class="text-end">Due</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="taxesByCountry" t-as="country" t-key="country_index">
+                                            <t t-foreach="taxesByCountry[country]" t-as="tax" t-key="tax_index">
+                                                <tr>
+                                                    <t t-if="this.hasTaxesSeveralCountries()">
+                                                        <td t-out="(tax_index == 0) ? country : ''"/>
+                                                    </t>
+
+                                                    <td class="name">
+                                                        <a class="link cursor-pointer"
+                                                            t-on-click="(ev) => this.controller.reportAction(ev,
+                                                                'journal_report_action_dropdown_audit_default_tax_report', { line_id: tax.line_id() }
+                                                            )"
+                                                            t-att-title="tax.name()"
+                                                        >
+                                                            <t t-out="tax.name()"/>
+                                                        </a>
+                                                    </td>
+
+                                                    <td class="text-end" t-out="tax.base_amount()"/>
+                                                    <td class="text-end" t-out="tax.tax_amount()"/>
+                                                    <td t-if="this.props.line.tax_non_deductible_column()" class="text-end" t-out="tax.tax_non_deductible()"/>
+                                                    <td t-if="this.props.line.tax_deductible_column()" class="text-end" t-out="tax.tax_deductible()"/>
+                                                    <td t-if="this.props.line.tax_due_column()" class="text-end" t-out="tax.tax_due()"/>
+                                                </tr>
+                                            </t>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <t t-set="taxGrids" t-value="this.props.line.tax_grid_summary_lines"/>
+
+                            <t t-if="this.hasTaxGrids()">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th t-att-colspan="(this.hasTaxGridsSeveralCountries()) ? 5 : 4">
+                                                Impacted Tax Grids
+                                                <t t-if="this.controller.userGroups.account_user">
+                                                    <a
+                                                        class="btn btn_action"
+                                                        t-on-click="(ev) => this.openTaxJournalItems(ev, 'Impacted Tax Grids', 'tag')"
+                                                    >
+                                                        Audit
+                                                    </a>
+                                                </t>
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <t t-if="this.hasTaxGridsSeveralCountries()">
+                                                <th>Country</th>
+                                            </t>
+                                            <th>Grid</th>
+                                            <th class="text-end">+</th>
+                                            <th class="text-end">-</th>
+                                            <th class="text-end">Impact On Grid</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="taxGrids" t-as="country" t-key="country_index">
+                                            <t t-foreach="taxGrids[country]" t-as="grid" t-key="grid_index">
+                                                <tr>
+                                                    <t t-if="this.hasTaxGridsSeveralCountries()">
+                                                        <td t-out="(grid_index == 0) ? country : ''"/>
+                                                    </t>
+
+                                                    <td>
+                                                        <a class="link cursor-pointer"
+                                                            t-on-click="(ev) => this.controller.reportAction(ev,
+                                                                'journal_report_tax_tag_template_open_aml', { tag_ids: taxGrids[country][grid]['tag_ids'].map(t => t()) }
+                                                            )"
+                                                        >
+                                                            <t t-out="grid"/>
+                                                        </a>
+                                                    </td>
+
+                                                    <td class="text-end" t-out="taxGrids[country][grid]['+']() || 0"/>
+                                                    <td class="text-end" t-out="taxGrids[country][grid]['-']() || 0"/>
+                                                    <td class="text-end" t-out="taxGrids[country][grid]['impact']()"/>
+                                                </tr>
+                                            </t>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="empty" t-if="!this.shouldHide()"/>
+            </t>
+        </xpath>
+    </t>
+</templates>

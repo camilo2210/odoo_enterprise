@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <t t-name="room.RoomBookingForm">
+        <div class="o_room_scheduler d-flex flex-column h-100 bg-light" t-ref="this.rootRef">
+            <div class="bg-white z-1 shadow-sm">
+                <div class="d-flex flex-column-reverse flex-sm-row justify-content-between align-items-center gap-3 p-3 pb-0">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="oi" data-icon="sticky_note_2"/>
+                        </span>
+                        <input t-model.proxy.lazy.trim="this.state.bookingName" placeholder="Booking Name" class="form-control flex-grow-1"/>
+                    </div>
+                    <span class="flex-shrink-0" t-out="this.formattedMonth"/>
+                </div>
+                <div class="d-flex gap-1 border-bottom p-3 overflow-auto">
+                    <button t-on-click="this.onPreviousWeekClick" class="btn btn-sm btn-secondary py-1 px-2"
+                        t-att-disabled="this.today > this.weekInterval.start">
+                        <i class="oi" data-icon="chevron_backward" title="Previous Week"/>
+                    </button>
+                    <t t-foreach="this.weekIntervalDays" t-as="day" t-key="day.start.toFormat('d')">
+                        <button class="btn btn-sm flex-grow-1 py-1 px-2"
+                            t-att-class="{
+                                'btn-primary': day.start.equals(this.state.selectedDay),
+                                'btn-secondary': !day.start.equals(this.state.selectedDay),
+                                'opacity-25': this.today > day.start
+                            }"
+                            t-att-disabled="this.today > day.start"
+                            t-on-click="() => this.state.selectedDay = day.start">
+                            <t t-out="day.start.toLocaleString(this.dayFormat)"/>
+                        </button>
+                    </t>
+                    <button t-on-click="this.onNextWeekClick" class="btn btn-sm btn-secondary py-1 px-2">
+                        <i class="oi oi-lg my-auto" data-icon="chevron_forward" title="Next Week"/>
+                    </button>
+                </div>
+            </div>
+            <div class="d-flex flex-column flex-fill bg-100 overflow-auto">
+                <div class="container-fluid flex-grow-1 p-3 overflow-auto">
+                    <div class="o_room_scheduler_slots row row-cols-4 row-cols-lg-6 flex-grow-1 g-1">
+                        <!-- Use ISOTime as key to preserve uniqueness of these keys even the day of switching to winter time
+                        (in that case we could have two slots with the same hour, so we need a formatting that
+                        takes this edge case into account) -->
+                        <t t-foreach="this.slots" t-as="slot" t-key="slot.start.toISOTime()">
+                            <div class="col d-flex position-relative"
+                                 t-att-id="'slot' + slot.start.toFormat('HHmm')"
+                                 t-on-click="() => this.onSlotClick(slot)">
+                                <div class="d-flex flex-column justify-content-center align-items-center w-100 rounded bg-gradient" t-att-class="slot.isInSelectedInterval ? 'text-bg-primary' : slot.canBeEndDate ? 'text-bg-success  bg-opacity-50' : slot.isBooked ? 'bg-300 text-muted opacity-25' : 'bg-success bg-opacity-25 text-success'">
+                                    <div t-out="slot.start.toLocaleString(this.timeFormat)"/>
+                                    <div t-if="slot.description" class="badge position-absolute bottom-0 start-50 translate-middle rounded-pill bg-dark">
+                                        <i class="oi me-1" data-icon="schedule"/>
+                                        <span t-out="slot.description"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-3 border-top border-bottom p-3 bg-white">
+                <button class="btn btn-secondary btn-lg flex-grow-1" t-on-click="this.props.cancel">
+                    Discard
+                </button>
+                <button t-if="this.state.bookingEnd" class="btn btn-primary btn-lg flex-grow-1" t-on-click="this.confirm">
+                    <t t-if="this.props.bookingToEdit">
+                        Update Meeting
+                    </t>
+                    <t t-else="">
+                        Add
+                    </t>
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

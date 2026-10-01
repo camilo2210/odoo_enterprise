@@ -1,0 +1,48 @@
+<templates>
+    <t t-name="voip.ActionList">
+        <t t-set="viewActions" t-value="this.getActions('view')"/>
+        <t t-call="voip.ActionList.createActions"/>
+        <t t-if="viewActions.length">
+            <t t-set="nonSendActions" t-value="viewActions.filter(action => action.type !== 'send')"/>
+            <t t-set="sendActions" t-value="viewActions.filter(action => action.type === 'send')"/>
+            <Dropdown state="this.viewActionsDropdownState">
+                <ActionButton name.translate="Go to" icon="'more_vert'" isOpen="this.viewActionsDropdownState.isOpen"/>
+                <t t-set-slot="content">
+                    <t t-foreach="nonSendActions" t-as="actionItem" t-key="actionItem.name">
+                        <DropdownItem onSelected="actionItem.onClick">
+                            <i class="oi oi-fw me-2" t-att-class="actionItem.iconClass" t-att-data-icon="actionItem.icon" aria-hidden="true"/>
+                            <span class="text-center" t-out="actionItem.name"/>
+                        </DropdownItem>
+                    </t>
+                    <t t-if="sendActions.length">
+                        <div role="separator" class="dropdown-divider"/>
+                    </t>
+                    <t t-foreach="sendActions" t-as="actionItem" t-key="actionItem.name">
+                        <DropdownItem onSelected="actionItem.onClick">
+                            <i class="oi oi-fw me-2" t-att-class="actionItem.iconClass" t-att-data-icon="actionItem.icon" aria-hidden="true"/>
+                            <span class="text-center" t-out="actionItem.name"/>
+                        </DropdownItem>
+                    </t>
+                </t>
+            </Dropdown>
+        </t>
+    </t>
+    <t t-name="voip.ActionList.createActions">
+        <t t-set="createActions" t-value="this.getActions('create')"/>
+        <Dropdown t-if="createActions.length" state="this.createActionsDropdownState">
+            <ActionButton
+                name.translate="Create"
+                icon="'add'"
+                isOpen="this.createActionsDropdownState.isOpen"
+            />
+            <t t-set-slot="content">
+                <t t-foreach="createActions" t-as="actionItem" t-key="actionItem.name">
+                    <DropdownItem onSelected="actionItem.onClick">
+                        <i class="oi oi-fw me-2" t-att-class="actionItem.iconClass" t-att-data-icon="actionItem.icon" aria-hidden="true"/>
+                        <span class="text-center" t-out="actionItem.name"/>
+                    </DropdownItem>
+                </t>
+            </t>
+        </Dropdown>
+    </t>
+</templates>

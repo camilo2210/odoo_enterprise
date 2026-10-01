@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="pos_enterprise.Category">
+        <t t-set="showCateg" t-value="this.shouldShowCategory"/>
+        <section class="o_pdis_category">
+            <section
+                class="o_pdis_name_quantity d-flex justify-content-between mt-3 pt-2 pb-1 fs-5 fw-bold"
+                t-att-class="{ 'category-selected sidebar-btn rounded-3 bg-opacity-25 px-2 me-n2': this.prepDisplay.selectedCategoryIds.has(this.props.category.id)}"
+                t-on-click="() => this.prepDisplay.toggleCategory(this.props.category)"
+            >
+                <span class="name category-name" t-out="this.props.category.display_name"/>
+                <span class="count" t-out="this.productCount"/>
+            </section>
+            <hr class="mt-1 mb-2 me-n2"/>
+            <t t-foreach="this.products" t-as="product" t-key="product.id">
+                <div
+                    class="product d-flex justify-content-between p-1 my-1 cursor-pointer"
+                    t-att-class="{ 'product-selected sidebar-btn rounded-3 px-2 me-n1': this.prepDisplay.selectedProductIds.has(product.id)}"
+                    t-on-click="() => this.prepDisplay.toggleProduct(product)"
+                >
+                    <div class="product-name pe-2 text-truncate">
+                        <span class="pe-2" t-out="product.name" />
+                    </div>
+                    <div>
+                        <span t-att-class="{ 'cancelled-quantity text-decoration-line-through': product.cancelled > 0 }" t-out="product.quantity" />
+                        <span t-if="product.cancelled > 0" class="cancelled-product text-danger" t-out="` (${product.todoQuantity})`" />
+                    </div>
+                </div>
+            </t>
+        </section>
+    </t>
+</templates>

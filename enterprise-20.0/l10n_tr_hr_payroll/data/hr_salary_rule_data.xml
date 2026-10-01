@@ -1,0 +1,631 @@
+<odoo>
+    <data>
+        <record id="hr_payroll_structure_tr_employee_salary_ytdgross" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_tr_hr_payroll.l10n_tr_category_ntg_calculation')])]"/>
+            <field name="name">Previous Months Gross</field>
+            <field name="sequence">1</field>
+            <field name="code">YTDGROSS</field>
+            <field name="appears_on_employee_cost_dashboard" eval="False"/>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = payslip.l10n_tr_ytd_gross
+            </field>
+            <field name="appears_on_payslip">never</field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="l10n_tr_hr_payroll_structure_tr_employee_salary_year_to_date_deducted_tax_amount_salary_rule" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_salary_rule_category_ytd_gross_tax')])]"/>
+            <field name="name">Previous Months Paid Tax</field>
+            <field name="sequence">2</field>
+            <field name="code">ACTD</field>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = payslip.l10n_tr_ytd_tax
+            </field>
+            <field name="appears_on_payslip">never</field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="hr_payroll_structure_tr_employee_salary_gross_from_net" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_tr_hr_payroll.l10n_tr_category_ntg_calculation')])]"/>
+            <field name="name">Gross From Net</field>
+            <field name="sequence">3</field>
+            <field name="code">GFNET</field>
+            <field name="appears_on_employee_cost_dashboard" eval="False"/>
+            <field name="condition_select">python</field>
+            <field name="condition_python">
+result = version.l10n_tr_is_net_to_gross
+            </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = payslip.l10n_tr_current_month_gross
+            </field>
+            <field name="appears_on_payslip">never</field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="l10n_tr_hr_payroll_structure_tr_employee_salary_basic_salary_rule" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.BASIC')])]"/>
+            <field name="name">Basic Salary</field>
+            <field name="sequence">7</field>
+            <field name="code">BASIC</field>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = GFNET if version.l10n_tr_is_net_to_gross else payslip._get_basic_salary()
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="turkey_salary_rule_ssie" model="hr.salary.rule">
+            <field name="name">SSI Employee Contribution</field>
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_tr_hr_payroll.hr_salary_rule_category_tr_ssid')])]"/>
+            <field name="code">SSIEDED</field>
+            <field name="sequence">10</field>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+base = min(
+    max(categories['BASIC'], payslip._rule_parameter('l10n_tr_ssi_base_minimum')),
+    payslip._rule_parameter('l10n_tr_ssi_base_ceiling'),
+)
+employee_rate = (
+    payslip._rule_parameter('l10n_tr_ssi_employee_disability_rate')
+    + payslip._rule_parameter('l10n_tr_ssi_employee_health_rate')
+    + payslip._rule_parameter('l10n_tr_ssi_employee_short_term_rate')
+    + payslip._rule_parameter('l10n_tr_ssi_employee_unemployment_rate')
+)
+result = -base
+result_rate = employee_rate
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="turkey_ssi_company_contribution" model="hr.salary.rule">
+            <field name="name">SSI Company Contribution</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+            <field name="code">SSICDED</field>
+            <field name="sequence">30</field>
+            <field name="amount_select">code</field>
+            <field name="condition_select">none</field>
+            <field name="amount_python_compute">
+company_incentive = int(payslip.company_id.l10n_tr_incentive_tier or '0')
+base = min(
+    max(categories['BASIC'], payslip._rule_parameter('l10n_tr_ssi_base_minimum')),
+    payslip._rule_parameter('l10n_tr_ssi_base_ceiling'),
+)
+company_rate = (
+    payslip._rule_parameter('l10n_tr_ssi_company_disability_rate')
+    + payslip._rule_parameter('l10n_tr_ssi_company_health_rate')
+    + payslip._rule_parameter('l10n_tr_ssi_company_short_term_rate')
+    + payslip._rule_parameter('l10n_tr_ssi_company_unemployment_rate')
+)
+adjusted_rate = max(
+    company_rate - company_incentive,
+    0.0,
+)
+result = base
+result_rate = adjusted_rate
+            </field>
+            <field name="appears_on_payslip">never</field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="l10n_tr_hr_payroll_structure_tr_employee_salary_gross_salary_rule" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.GROSS')])]"/>
+            <field name="name">Taxable Salary</field>
+            <field name="sequence">60</field>
+            <field name="code">GROSS</field>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = categories['BASIC'] + categories['ALW'] + categories['SSID'] + YTDGROSS
+            </field>
+            <field name="appears_on_payslip">never</field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="hr_payroll_structure_tr_employee_salary_curtaxable" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.NET')])]"/>
+            <field name="name">Current Month Taxable Salary</field>
+            <field name="sequence">70</field>
+            <field name="code">CURTAXABLE</field>
+            <field name="appears_on_employee_cost_dashboard" eval="True"/>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = categories['BASIC'] + categories['SSID']
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="turkey_tax_bracket_base" model="hr.salary.rule">
+            <field name="name">Tax Bracket Base</field>
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_tr_hr_payroll.hr_salary_rule_category_tr_taxbase')])]"/>
+            <field name="code">TAXB</field>
+            <field name="sequence">80</field>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = GROSS
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="turkey_tax_bracket_total" model="hr.salary.rule">
+            <field name="name">TAX Bracket Deduction</field>
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_tr_hr_payroll.hr_salary_rule_category_tr_taxded')])]"/>
+            <field name="code">TOTTB</field>
+            <field name="sequence">90</field>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = payslip._l10n_tr_get_tax(TAXB)
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="l10n_tr_hr_payroll_structure_tr_employee_salary_attachment_of_salary_rule" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+            <field name="name">Attachment of Salary</field>
+            <field name="sequence">100</field>
+            <field name="code">ATTACH_SALARY</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = 'ATTACH_SALARY' in inputs</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = -inputs['ATTACH_SALARY'].amount
+result_name = inputs['ATTACH_SALARY'].name
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="l10n_tr_hr_payroll_structure_tr_employee_salary_assignment_of_salary_rule" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+            <field name="name">Assignment of Salary</field>
+            <field name="sequence">110</field>
+            <field name="code">ASSIG_SALARY</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = 'ASSIG_SALARY' in inputs</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = -inputs['ASSIG_SALARY'].amount
+result_name = inputs['ASSIG_SALARY'].name
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="l10n_tr_hr_payroll_structure_tr_employee_salary_child_support" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+            <field name="name">Child Support</field>
+            <field name="code">CHILD_SUPPORT</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="amount_select">code</field>
+            <field name="sequence">120</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = 'CHILD_SUPPORT' in inputs</field>
+            <field name="amount_python_compute">
+result = -inputs['CHILD_SUPPORT'].amount
+result_name = inputs['CHILD_SUPPORT'].name
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="turkey_net_tax_btaxnet_deduction" model="hr.salary.rule">
+            <field name="name">Current Month Actual Deducted Tax (Pre Exempt)</field>
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_tr_hr_payroll.hr_salary_rule_category_tr_net_taxded')])]"/>
+            <field name="code">BTAXNET</field>
+            <field name="sequence">130</field>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = result_rules['TOTTB']['total'] - result_rules['ACTD']['total']
+            </field>
+            <field name="appears_on_payslip">never</field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="turkey_net_tax_deduction" model="hr.salary.rule">
+            <field name="name">Current Month Actual Deducted Tax (Post Exempt)</field>
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_tr_hr_payroll.hr_salary_rule_category_tr_net_taxded')])]"/>
+            <field name="code">BTNET</field>
+            <field name="sequence">135</field>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+tax_exemption = payslip._rule_parameter('l10n_tr_tax_exempt')
+pre_exempt_tax = result_rules['BTAXNET']['total']
+post_exempt_tax = max(pre_exempt_tax - tax_exemption, 0.0)
+if version.l10n_tr_is_rd_incentive:
+    wage = categories['BASIC']
+    relief_ceiling = 40 * payslip._rule_parameter('l10n_tr_min_gross_wage')
+    relief_tax = pre_exempt_tax
+    if wage &gt; relief_ceiling:
+        relief_tax = payslip._l10n_tr_get_tax(YTDGROSS + relief_ceiling) - payslip._l10n_tr_get_tax(YTDGROSS)
+    relief_rates = {'doctor': 0.95, 'l10n_tr_7_doctorate': 0.95, 'master': 0.90, 'l10n_tr_6_master_degree': 0.90}
+    relief_rate = relief_rates.get(employee.certificate, 0.80)
+    relief = max(relief_tax - tax_exemption, 0.0) * relief_rate
+    result = -max(post_exempt_tax - relief, 0.0)
+else:
+    result = -post_exempt_tax
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="l10n_tr_hr_payroll_structure_tr_employee_salary_deduction_salary_rule" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+            <field name="name">Deduction</field>
+            <field name="sequence">150</field>
+            <field name="code">DEDUCTION</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = 'DEDUCTION' in inputs</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = -inputs['DEDUCTION'].amount
+result_name = inputs['DEDUCTION'].name
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="l10n_tr_hr_payroll_structure_tr_employee_salary_reimbursement_salary_rule" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+            <field name="name">Reimbursement</field>
+            <field name="sequence">155</field>
+            <field name="code">REIMBURSEMENT</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = 'REIMBURSEMENT' in inputs</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = inputs['REIMBURSEMENT'].amount
+result_name = inputs['REIMBURSEMENT'].name
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="l10n_tr_hr_payroll_structure_tr_employee_salary_severance_provision_rule" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+            <field name="name">Severance Provision</field>
+            <field name="sequence">157</field>
+            <field name="code">SEVPROV</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = not (employee.departure_date and employee.departure_reason_id)</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = 0
+ceiling_amount = payslip._rule_parameter('l10n_tr_severance_pay_ceiling')
+total_number_of_days = (payslip.date_to - payslip.date_from).days + 1
+provision_month = version.wage / 12
+paid_days = sum(payslip.worked_days_line_ids.filtered(lambda wd: wd.is_paid).mapped('number_of_days'))
+if version.has_static_work_entries():
+    result = min(provision_month, ceiling_amount)
+else:
+    result = min(provision_month * (paid_days / total_number_of_days), ceiling_amount)
+            </field>
+            <field name="appears_on_payslip">never</field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="l10n_tr_hr_payroll_structure_tr_employee_salary_severance_pay_rule" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_tr_hr_payroll.l10n_tr_category_severance_pay')])]"/>
+            <field name="name">Severance Pay</field>
+            <field name="sequence">158</field>
+            <field name="code">SEVPAY</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = employee.departure_date and employee.departure_reason_id</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+years, months, days = employee._l10n_tr_get_worked_duration()
+worked_years = years + (months / 12.0) + (days / 365.0)
+if worked_years &lt; 1:
+    result = 0
+else:
+    salary = version.wage
+    ceiling_amount = payslip._rule_parameter('l10n_tr_severance_pay_ceiling')
+    capped_salary = min(salary, ceiling_amount)
+    result = capped_salary * worked_years
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="l10n_tr_salary_rule_annual_leave_compensation" model="hr.salary.rule">
+            <field name="name">Annual Leave Compensation</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+            <field name="code">ANNUALCOMP</field>
+            <field name="sequence">8</field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="condition_select">python</field>
+            <field name="condition_python">
+result = employee.departure_date and employee.departure_reason_id and employee._l10n_tr_get_annual_remaining_leaves()[employee.id] &gt; 0
+            </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+daily_salary = version.wage / 30
+result = daily_salary * employee._l10n_tr_get_annual_remaining_leaves()[employee.id]
+            </field>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="turkey_stamp_tax_deduction" model="hr.salary.rule">
+            <field name="name">Stamp Tax Deduction</field>
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_tr_hr_payroll.hr_salary_rule_category_tr_stamp_tax')])]"/>
+            <field name="code">STAX</field>
+            <field name="sequence">160</field>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+wage_base = categories['BASIC'] + categories['SEVPAY'] + categories['ANNUALCOMP']
+stamp_tax_pcnt = payslip._rule_parameter('l10n_tr_stamp_tax_pcnt')
+if version.l10n_tr_is_rd_incentive:
+    taxable_wage = max(wage_base - 40 * payslip._rule_parameter('l10n_tr_min_gross_wage'), 0.0)
+    result = -taxable_wage * stamp_tax_pcnt
+else:
+    tax_exemption = payslip._rule_parameter('l10n_tr_stamp_tax_exempt')
+    result = -max(wage_base * stamp_tax_pcnt - tax_exemption, 0.0)
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="turkey_tax_deduction_net" model="hr.salary.rule">
+            <field name="name">Tax Deduction Net</field>
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_tr_hr_payroll.hr_salary_rule_category_tax_deduction_net')])]"/>
+            <field name="code">NETTAX</field>
+            <field name="sequence">165</field>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = categories['STAXD'] + result_rules['BTNET']['total']
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="l10n_tr_hr_payroll_structure_tr_employee_salary_expected_net_salary" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.NET')])]"/>
+            <field name="name">Expected Net Salary</field>
+            <field name="sequence">200</field>
+            <field name="code">EXPNET</field>
+            <field name="appears_on_employee_cost_dashboard" eval="True"/>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = categories['BASIC'] + categories['ALW'] + categories['DED'] + categories['SEVPAY']
+            </field>
+            <field name="appears_on_payslip">never</field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="hr_payroll_structure_tr_employee_salary_salary_advance_recovery" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_tr_hr_payroll.l10n_tr_category_other_deductions')])]"/>
+            <field name="name">Salary Advance Recovery</field>
+            <field name="sequence">210</field>
+            <field name="code">SALARYADVREC</field>
+            <field name="condition_select">property_input</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="input_section" ref="hr_payroll.default_salary_rule_section"/>
+            <field name="amount_select">property_input</field>
+            <field name="appears_on_payslip">non_zero</field>
+            <field name="input_usage_employee" eval="False"/>
+            <field name="input_default_value" eval="0.0"/>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="l10n_tr_hr_payroll_structure_tr_employee_salary_manual_deduction" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_tr_category_other_deductions')])]"/>
+            <field name="name">Other Deductions</field>
+            <field name="sequence">210</field>
+            <field name="code">MANDED</field>
+            <field name="condition_select">property_input</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="amount_select">property_input</field>
+            <field name="input_section" ref="hr_payroll.default_salary_rule_section"/>
+            <field name="input_usage_employee" eval="False"/>
+            <field name="input_default_value" eval="0.0"/>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="l10n_tr_hr_payroll_structure_tr_employee_salary_manual_addition" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_tr_category_other_allowance')])]"/>
+            <field name="name">Other Allowances</field>
+            <field name="sequence">220</field>
+            <field name="code">MANADD</field>
+            <field name="condition_select">property_input</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="amount_select">property_input</field>
+            <field name="input_section" ref="hr_payroll.default_salary_rule_section"/>
+            <field name="input_usage_employee" eval="False"/>
+            <field name="input_default_value" eval="0.0"/>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="l10n_tr_hr_payroll_structure_tr_employee_salary_expenses_reimbursement" model="hr.salary.rule">
+            <field name="name">Expenses Reimbursement</field>
+            <field name="code">EXPENSES</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+            <field name="sequence">299</field>
+            <field name="condition_select">property_input</field>
+            <field name="amount_select">property_input</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="appears_on_payslip">non_zero</field>
+            <field name="input_usage_employee" eval="False"/>
+            <field name="input_default_value" eval="0.0"/>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="l10n_tr_hr_payroll_structure_tr_employee_salary_net_salary" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.NET')])]"/>
+            <field name="name">Net Salary</field>
+            <field name="sequence">300</field>
+            <field name="code">NET</field>
+            <field name="appears_on_employee_cost_dashboard" eval="True"/>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = EXPNET - categories['OTHERDED'] + categories['OTHERALW']
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="l10n_tr_hr_payroll_structure_tr_employee_salary_food_allowance" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_tr_hr_payroll.l10n_tr_category_other_allowance')])]"/>
+            <field name="name">Food Allowance</field>
+            <field name="sequence">220</field>
+            <field name="code">FDALW</field>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = version.l10n_tr_food_allowance
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+
+        <record id="turkey_annual_leave_provision_salary_rule" model="hr.salary.rule">
+            <field name="name">Annual Leave Provision</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+            <field name="code">ALP</field>
+            <field name="sequence">220</field>
+            <field name="appears_on_payslip">never</field>
+            <field name="amount_select">code</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">
+first_employee_version_date = payslip.employee_id._get_first_version_date()
+result = employee.active and first_employee_version_date and payslip.date_from &gt;= first_employee_version_date + relativedelta(years=1)
+            </field>
+            <field name="amount_python_compute">
+first_employee_version_date = payslip.employee_id._get_first_version_date()
+number_of_years_in_work = relativedelta(payslip.date_from, first_employee_version_date).years
+if 1 &lt;= number_of_years_in_work &lt;= 5:
+    number_of_leave_days = 14
+elif 5 &lt; number_of_years_in_work &lt;= 15:
+    number_of_leave_days = 20
+elif number_of_years_in_work &gt; 15:
+    number_of_leave_days = 26
+else:
+    number_of_leave_days = 0
+number_of_working_days = sum(payslip.worked_days_line_ids.mapped('number_of_days'))
+result = ((version.wage / number_of_working_days) * number_of_leave_days / 12) if number_of_working_days else 0
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_tr_employee_salary'),
+                ref('l10n_tr_hr_payroll.hr_payroll_structure_type_self_employed_tr'),
+            ])]"/>
+            <field name="country_id" ref="base.tr"/>
+        </record>
+    </data>
+</odoo>

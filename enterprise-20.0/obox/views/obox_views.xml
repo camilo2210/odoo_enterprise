@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_discover_obox" model="ir.actions.client">
+        <field name="name">Discover Obox</field>
+        <field name="tag">discover_obox</field>
+    </record>
+
+    <record id="action_obox_offline_connect_offline" model="ir.actions.act_window">
+        <field name="name">We couldn't automatically pair your Obox</field>
+        <field name="res_model">obox.offline.connect.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="obox_view_kanban" model="ir.ui.view">
+        <field name="name">obox.obox.view.kanban</field>
+        <field name="model">obox.obox</field>
+        <field name="arch" type="xml">
+            <kanban create="false">
+                <field name="external_websocket_channel" invisible="1" />  <!-- Used to have the token in the widget -->
+                <field name="internal_websocket_channel" invisible="1" />  <!-- Used to have the token in the widget -->
+                <header>
+                    <button name="obox.action_discover_obox" type="action" string="Connect" class="btn-primary" display="always" />
+                </header>
+                <templates>
+                    <t t-name="card" class="p-0">
+                        <div id="card" class="p-3">
+                            <div class="d-flex flex-column">
+                                <div class="d-flex justify-content-between">
+                                    <field class="text-truncate fw-bold" name="name"/>
+                                    <div class="d-flex align-items-center gap-2 small">
+                                        <widget name="obox_status"/>
+                                        <span><i class="oi" data-icon="power" title="Devices"/> <field name="device_count"/></span>
+                                    </div>
+                                </div>
+                                <field name="local_ip" readonly="true" class="text-muted small"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="obox_form" model="ir.ui.view">
+        <field name="name">obox.obox.form</field>
+        <field name="model">obox.obox</field>
+        <field name="arch" type="xml">
+            <form string="Obox" create="false">
+                <field name="external_websocket_channel" invisible="1" />  <!-- Used to have the token in the widget -->
+                <field name="internal_websocket_channel" invisible="1" />  <!-- Used to have the token in the widget -->
+                <field name="remote_debug_enabled" invisible="1" />  <!-- Used for remote debug widget -->
+                <header>
+                    <widget name="obox_action_button" function="action_discover_devices" class="btn-primary btn-toolbar" />
+                    <widget name="obox_action_button" function="action_check_websocket" class="btn-secondary btn-toolbar" />
+                    <widget name="obox_action_button" function="action_restart_obox" class="btn-secondary btn-toolbar" />
+                    <widget name="obox_remote_debug" class="btn-secondary btn-toolbar" />
+                    <field name="state" widget="statusbar" />
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_queue"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="hourglass_bottom">
+                            <field string="Action Queue" name="pending_queue_count" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <div class="oe_title">
+                            <label for="name"/>
+                            <h1><field name="name"/></h1>
+                        </div>
+                        <widget name="obox_status" />
+                    </div>
+                    <group class="w-100">
+                        <field name="serial_number" readonly="true" />
+                        <field name="local_ip" readonly="true" widget="url" />
+                        <field name="services" groups="base.group_no_one" readonly="true" widget="json_tags" />
+                    </group>
+                    <notebook>
+                        <page string="Devices" name="devices">
+                            <field name="device_ids">
+                                <list create="False" default_order="connection_type desc, type, name">
+                                    <field name="name"/>
+                                    <field name="identifier"/>
+                                    <field name="connection_type"/>
+                                    <field name="type"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="obox_list" model="ir.ui.view">
+        <field name="name">obox.obox.list</field>
+        <field name="model">obox.obox</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false">
+                <header>
+                    <button name="obox.action_discover_obox" type="action" string="Connect" class="btn-primary" display="always" />
+                </header>
+                <field name="name" />
+                <field name="serial_number" />
+                <field name="local_ip" />
+                <field name="pending_queue_count" />
+            </list>
+        </field>
+    </record>
+
+    <record id="action_obox_list" model="ir.actions.act_window">
+        <field name="name">Obox</field>
+        <field name="path">device</field>
+        <field name="res_model">obox.obox</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain"/>
+        <field name="search_view_id" ref="obox_list" />
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">No Obox device found</p>
+        </field>
+    </record>
+</odoo>

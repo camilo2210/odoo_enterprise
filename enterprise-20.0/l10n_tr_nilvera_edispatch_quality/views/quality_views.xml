@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="quality_point_view_form_inherit_l10n_tr_nilvera_edispatch_quality" model="ir.ui.view">
+        <field name="name">quality.point.view.form.inherit.l10n.tr.nilvera.edispatch.quality</field>
+        <field name="model">quality.point</field>
+        <field name="inherit_id" ref="quality.quality_point_view_form"/>
+        <field name="arch" type="xml">
+            <field name="test_type_id" position="attributes">
+                <attribute name="domain">[] if l10n_tr_show_unit_count else [('technical_name', '!=', 'unit_count')]</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="quality_check_view_form_inherit_l10n_tr_nilvera_edispatch_quality" model="ir.ui.view">
+        <field name="name">quality.check.view.form.inherit.l10n.tr.nilvera.edispatch.quality</field>
+        <field name="model">quality.check</field>
+        <field name="inherit_id" ref="quality_control.quality_check_view_form"/>
+        <field name="arch" type="xml">
+            <page name="notes" position="before">
+                <page name="l10n_tr_unit_count" string="e-Response - Unit Count" invisible="test_type != 'unit_count'">
+                    <field name="l10n_tr_response_line_ids" readonly="quality_state != 'none'">
+                        <list editable="bottom" create="0" delete="0">
+                            <field name="product_id" readonly="1"/>
+                            <field name="product_uom_qty" readonly="1"/>
+                            <field name="uom_id" widget="many2one_uom" groups="uom.group_uom" readonly="1"/>
+                            <field name="received_qty"/>
+                            <field name="accepted_qty" readonly="1"/>
+                            <field name="rejected_qty"/>
+                            <field name="rejection_reason" required="rejected_qty &gt; 0"/>
+                            <field name="missing_qty"/>
+                            <field name="excess_qty"/>
+                        </list>
+                    </field>
+                </page>
+            </page>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="ai.CallDebrief" t-inherit="mail.CallDebrief" t-inherit-mode="extension">
+
+        <!-- 1. Add transcriptLines prop to CallDebriefTimeline -->
+        <xpath expr="//CallDebriefTimeline" position="attributes">
+            <attribute name="transcriptLines">this.state.transcriptLines</attribute>
+        </xpath>
+
+        <!-- 2. Update the media container's CSS class to handle the 'no-transcript' state -->
+        <xpath expr="//div[hasclass('o-CallDebrief-media-container')]" position="attributes">
+            <attribute name="t-attf-class">{{ !this.hasTranscript ? 'o-CallDebrief-media-container--no-transcript justify-content-center' : '' }}</attribute>
+        </xpath>
+
+        <!-- 3. Inject the transcript HTML block before the video container -->
+        <xpath expr="//div[hasclass('o-CallDebrief-media-container')]" position="inside">
+            <div
+                t-if="this.hasTranscript"
+                class="o-CallDebrief-transcript position-relative border bg-view overflow-y-auto"
+                t-att-class="{
+                    'border-bottom-0': this.hasTimeline,
+                    'flex-basis-50': this.hasTranscript,
+                }"
+                t-ref="this.transcriptContainer"
+                t-on-wheel="() => this.isAutoScrollEnabled = false"
+                t-on-touchmove="() => this.isAutoScrollEnabled = false"
+                t-on-mousedown="() => this.isAutoScrollEnabled = false"
+            >
+                <t t-if="this.hasTranscriptLines">
+                    <t t-foreach="this.state.transcriptLines" t-as="line" t-key="line.startSecRelToCall + '-' + line_index">
+                        <t t-if="line.isGap">
+                            <div class="o-CallDebrief-transcript-gap d-flex align-items-center justify-content-center gap-2 my-2 opacity-50 text-center text-muted small">
+                                <hr class="flex-grow-1"/>
+                                <span class="small italic" t-out="this.formatSilence(line.duration)"/>
+                                <hr class="flex-grow-1"/>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <p class="d-flex flex-column flex-md-row align-items-md-baseline mb-0 rounded px-2 py-1 cursor-pointer font-monospace" t-att-class="{'o-CallDebrief-transcript-highlight bg-info-subtle': line.isActive, 'o_hovered bg-300': line.isHovered and !line.isActive}" t-att-data-timestamp="line.startSecRelToCall" t-on-click="() => this.onTranscriptLineClick(line)" t-on-mouseenter="() => this.onTranscriptLineMouseEnter(line)" t-on-mouseleave="() => this.onTranscriptLineMouseLeave(line)">
+                                <small class="o-CallDebrief-transcript-timestamp flex-shrink-0 me-4 text-muted" t-out="this.formatDuration(line.startSecRelToCall)"/>
+                                <span class="o-CallDebrief-transcript-text" t-out="line.text"/>
+                            </p>
+                        </t>
+                    </t>
+                </t>
+                <div t-elif="this.hasPlainTextTranscript" class="o-CallDebrief-plaintext-transcript">
+                    <div>
+                        <p t-out="this.state.plainTextTranscript" class="mb-0 font-monospace"/>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+
+        <!-- 4. Update media player rounded corner when transcript -->
+        <xpath expr="//div[hasclass('o-CallDebrief-mediaPlayer')]" position="attributes">
+            <attribute name="t-attf-class">{{ this.hasVideo or this.hasTranscript ? 'rounded-bottom' : 'rounded' }}</attribute>
+        </xpath>
+    </t>
+</templates>

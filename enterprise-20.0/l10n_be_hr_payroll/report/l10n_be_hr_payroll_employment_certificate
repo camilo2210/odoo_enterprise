@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="l10n_be_hr_payroll.employment_certificate_base">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="l10n_be_hr_payroll.employment_certificate" t-lang="doc.lang"/>
+            </t>
+        </t>
+    </template>
+
+    <template id="l10n_be_hr_payroll.employment_certificate">
+        <t t-set="doc" t-value="doc.with_context(lang=doc.lang)"/>
+        <t t-set="blank_line"><span style="display:inline-block;min-width:150px;border-bottom:1px solid #000;">&#160;</span></t>
+        <t t-call="web.external_layout">
+            <div class="page">
+                <h1 class="text-center">Attestation of Employment</h1>
+                <h2 class="text-center">To give to the employee</h2>
+                <t t-if="doc.contract_date_end">
+                    <p>
+                        The employer certifies that the employee mentioned below was employed by the company as<br/>
+                        <t t-if="doc.job_id" t-out="doc.job_id.display_name"/><t t-else="" t-out="blank_line"/><br/>
+                        from <span t-out="doc._get_first_contract_date().strftime('%m/%d/%Y')"/> to <span t-field="doc.contract_date_end"/>.
+                    </p>
+                </t>
+                <t t-else="">
+                    <p>
+                        The employer certifies that the employee mentioned below has been employed by the company as<br/>
+                        <t t-if="doc.job_id" t-out="doc.job_id.display_name"/><t t-else="" t-out="blank_line"/><br/>
+                        since <span t-out="doc._get_first_contract_date().strftime('%m/%d/%Y')"/>.
+                    </p>
+                </t>
+                <h3>Employer</h3>
+                <p>
+                    <span t-field="doc.company_id.name"/><br/>
+                    <t t-if="doc.address_id.street" t-out="doc.address_id.street"/><t t-else="" t-out="blank_line"/><br/>
+                    <t t-if="doc.address_id.street2"><span t-field="doc.address_id.street2"/><br/></t>
+                    <t t-if="doc.address_id.zip" t-out="doc.address_id.zip"/><t t-else="" t-out="blank_line"/>
+                    <t t-if="doc.address_id.city" t-out="doc.address_id.city"/><t t-else="" t-out="blank_line"/><t t-if="doc.address_id.state_id">, </t><span t-field="doc.address_id.state_id"/><br/>
+                </p>
+                <h3>Employee</h3>
+                <p>
+                    <span t-field="doc.name"/><br/>
+                    NISS: <t t-if="doc.niss" t-out="doc.niss"/><t t-else="" t-out="blank_line"/>
+                </p>
+                <br/>
+                <br/>
+                <p id="signature_text" class="text-end">
+                    Done in <span t-field="doc.company_id.city"/>, on <span t-out="datetime.date.today()"/><br/>
+                    Signature of the employer or authorized representative.
+                </p>
+            </div>
+        </t>
+    </template>
+</odoo>

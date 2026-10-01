@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates>
+    <t t-name="l10n_ph_reports.warning_partner_without_vat">
+        There are partners with missing Tax ID:
+        <t t-foreach="warningParams.partners_without_vat" t-as="partner" t-key="partner.id">
+            <a href="#"
+               class="btn-link"
+               t-on-click.prevent="() => this.controller.actionPlugin.doAction({
+                   type: 'ir.actions.act_window',
+                   res_model: 'res.partner',
+                   res_id: partner.id,
+                   views: [[false, 'form']],
+                   target: 'current',
+               })">
+                <t t-out="partner.name"/>
+            </a>
+            <t t-if="!partner_last">, </t>
+        </t>
+    </t>
+    <t t-name="l10n_ph_reports.warning_partner_without_entity_type">
+        One or more contacts are missing an entity type, which may cause inaccuracies in your accounting reports.
+        <a class="btn-link"
+           t-on-click="(ev) => this.controller.reportAction(ev, 'action_open_partners_missing_entity_type', warningParams)">
+            Update Contacts
+        </a>
+    </t>
+</templates>

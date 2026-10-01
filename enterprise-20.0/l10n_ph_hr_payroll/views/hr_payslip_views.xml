@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_payslip_view_form" model="ir.ui.view">
+        <field name="name">hr.payslip.view.form</field>
+        <field name="model">hr.payslip</field>
+        <field name="priority">20</field>
+        <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='account_info']/group" position="inside">
+                <group col="4" invisible="country_code != 'PH'">
+                    <field name="l10n_ph_hr_payroll_is_final_slip"/>
+                    <field name="l10n_ph_hr_payroll_includes_13th_month"/>
+                    <field name="l10n_ph_hr_payroll_includes_tax_annualization"/>
+                    <field name="l10n_ph_hr_payroll_includes_retirement_pay" invisible="not l10n_ph_hr_payroll_is_final_slip"/>
+                    <field name="l10n_ph_hr_payroll_includes_separation_pay" invisible="not l10n_ph_hr_payroll_is_final_slip"/>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='worked_days_line_ids']//field[@name='number_of_hours']" position="after">
+                <!-- By default, we have up to 3 digits of precision in the rate; to avoid confusion we want to avoid rounding. See l10n_ph_hr_payroll_rule_parameter_worked_day_rates. -->
+                <field name="l10n_ph_hr_payroll_holiday_rate" column_invisible="parent.country_code != 'PH'" optional="hide" widget="percentage"/>
+                <field name="l10n_ph_hr_payroll_overtime_rate" column_invisible="parent.country_code != 'PH'" optional="hide" widget="percentage"/>
+                <field name="l10n_ph_hr_payroll_night_shift_rate" column_invisible="parent.country_code != 'PH'" optional="hide" widget="percentage"/>
+                <field name="l10n_ph_hr_payroll_basic_amount" column_invisible="1" force_save="1"/>  <!-- for the computation -->
+                <field name="l10n_ph_hr_payroll_holiday_amount" column_invisible="1" force_save="1"/>  <!-- for the computation -->
+                <field name="l10n_ph_hr_payroll_overtime_amount" column_invisible="1" force_save="1"/>  <!-- for the computation -->
+                <field name="l10n_ph_hr_payroll_shift_amount" column_invisible="1" force_save="1"/>  <!-- for the computation -->
+            </xpath>
+        </field>
+    </record>
+</odoo>

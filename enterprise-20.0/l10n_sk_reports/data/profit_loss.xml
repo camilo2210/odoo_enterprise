@@ -1,0 +1,788 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo auto_sequence="1">
+    <record id="l10n_sk_reports_profit_loss" model="account.report">
+        <field name="name">Profit and Loss Statement</field>
+        <field name="name@sk">Výkaz ziskov a strát</field>
+        <field name="filter_analytic_groupby" eval="True"/>
+        <field name="filter_unfold_all" eval="True"/>
+        <field name="filter_journals" eval="True"/>
+        <field name="country_id" ref="base.sk"/>
+        <field name="root_report_id" ref="account_reports.profit_and_loss"/>
+        <field name="filter_multi_company">selector</field>
+        <field name="column_ids">
+            <record id="l10n_sk__profit_loss_column_balance" model="account.report.column">
+                <field name="name">Balance</field>
+                <field name="name@sk">Vyváženosť</field>
+                <field name="expression_label">balance</field>
+            </record>
+        </field>
+        <field name="line_ids">
+            <record id="l10n_sk_reports_pl_net_turnover" model="account.report.line">
+                <field name="name">* Net turnover (part of accounting period 6 according to the law)</field>
+                <field name="name@sk">* Čistý obrat (časť účt. tr. 6 podľa zákona)</field>
+                <field name="code">sk_pl_net_turnover</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="l10n_sk_reports_pl_net_turnover_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">sk_pl_revenue_I.balance + sk_pl_revenue_II.balance + sk_pl_revenue_III.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_sk_reports_pl_total_revenue" model="account.report.line">
+                <field name="name">** Total revenue from economic activities</field>
+                <field name="name@sk">** Výnosy z hospodárskej činnosti spolu súčet</field>
+                <field name="code">sk_pl_total_revenue</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="l10n_sk_reports_pl_total_revenue_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">sk_pl_revenue_I.balance + sk_pl_revenue_II.balance + sk_pl_revenue_III.balance + sk_pl_revenue_IV.balance + sk_pl_revenue_V.balance + sk_pl_revenue_VI.balance + sk_pl_revenue_VII.balance</field>
+                    </record>
+                </field>
+                <field name="children_ids">
+                    <record id="l10n_sk_reports_pl_revenue_I" model="account.report.line">
+                        <field name="name">I. Revenue from the sale of goods (604, 607)</field>
+                        <field name="name@sk">I. Tržby z predaja tovaru (604, 607)</field>
+                        <field name="code">sk_pl_revenue_I</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_revenue_I_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-604-607</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_revenue_II" model="account.report.line">
+                        <field name="name">II. Revenue from sales of own products (601)</field>
+                        <field name="name@sk">II. Tržby z predaja vlastných výrobkov (601)</field>
+                        <field name="code">sk_pl_revenue_II</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_revenue_II_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-601</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_revenue_III" model="account.report.line">
+                        <field name="name">III. Revenue from the sale of services (602, 606)</field>
+                        <field name="name@sk">III. Tržby z predaja služieb (602, 606)</field>
+                        <field name="code">sk_pl_revenue_III</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_revenue_III_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-602-606</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_revenue_IV" model="account.report.line">
+                        <field name="name">IV. Changes in internal inventory (+/- accounting group 61)</field>
+                        <field name="name@sk">IV. Zmeny stavu vnútroorganizačných zásob (+/- účtovná skupina 61)</field>
+                        <field name="code">sk_pl_revenue_IV</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_revenue_IV_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-61</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_revenue_V" model="account.report.line">
+                        <field name="name">V. Activation (account group 62)</field>
+                        <field name="name@sk">V. Aktivácia (účtovná skupina 62)</field>
+                        <field name="code">sk_pl_revenue_V</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_revenue_V_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-62</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_revenue_VI" model="account.report.line">
+                        <field name="name">VI. Revenue from the sale of intangible fixed assets, tangible fixed assets, and materials (641, 642)</field>
+                        <field name="name@sk">VI. Tržby z predaja dlhodobého nehmotného majetku, dlhodobého hmotného majetku a materiálu (641, 642)</field>
+                        <field name="code">sk_pl_revenue_VI</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_revenue_VI_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-641-642</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_revenue_VII" model="account.report.line">
+                        <field name="name">VII. Other income from economic activities (644, 645, 646, 648, 655, 657)</field>
+                        <field name="name@sk">VII. Ostatné výnosy z hospodárskej činnosti (644, 645, 646, 648, 655, 657)</field>
+                        <field name="code">sk_pl_revenue_VII</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_revenue_VII_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-644-645-646-648-655-657</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_sk_reports_pl_total_cost" model="account.report.line">
+                <field name="name">** Total costs of economic activity</field>
+                <field name="name@sk">** Náklady na hospodársku činnosť spolu</field>
+                <field name="code">sk_pl_total_cost</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="l10n_sk_reports_pl_total_cost_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">sk_pl_total_cost_A.balance + sk_pl_total_cost_B.balance + sk_pl_total_cost_C.balance + sk_pl_total_cost_D.balance + sk_pl_total_cost_E.balance + sk_pl_total_cost_F.balance + sk_pl_total_cost_G.balance + sk_pl_total_cost_H.balance + sk_pl_total_cost_I.balance + sk_pl_total_cost_J.balance</field>
+                    </record>
+                </field>
+                <field name="children_ids">
+                    <record id="l10n_sk_reports_pl_total_cost_A" model="account.report.line">
+                        <field name="name">A. Costs incurred in purchasing goods sold (504, 507)</field>
+                        <field name="name@sk">A. Náklady vynaložené na obstaranie predaného tovaru (504, 507)</field>
+                        <field name="code">sk_pl_total_cost_A</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_cost_A_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">504 + 507</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_total_cost_B" model="account.report.line">
+                        <field name="name">B. Consumption of materials, energy, and other non-stock supplies (501, 502, 503)</field>
+                        <field name="name@sk">B. Spotreba materiálu, energie a ostatných neskladovateľných dodávok (501, 502, 503)</field>
+                        <field name="code">sk_pl_total_cost_B</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_cost_B_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">501 + 502 + 503</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_total_cost_C" model="account.report.line">
+                        <field name="name">C. Adjustments to inventories (+/-) (505)</field>
+                        <field name="name@sk">C. Opravné položky k zásobám (+/-) (505)</field>
+                        <field name="code">sk_pl_total_cost_C</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_cost_C_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">505</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_total_cost_D" model="account.report.line">
+                        <field name="name">D. Services (account group 51) </field>
+                        <field name="name@sk">D. Služby (účtovná skupina 51) </field>
+                        <field name="code">sk_pl_total_cost_D</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_cost_D_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">51</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_total_cost_E" model="account.report.line">
+                        <field name="name">E. Personnel costs</field>
+                        <field name="name@sk">E. Osobné náklady</field>
+                        <field name="code">sk_pl_total_cost_E</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_cost_E_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">sk_pl_total_cost_E_1.balance + sk_pl_total_cost_E_2.balance + sk_pl_total_cost_E_3.balance + sk_pl_total_cost_E_4.balance</field>
+                            </record>
+                        </field>
+                        <field name="children_ids">
+                            <record id="l10n_sk_reports_pl_total_cost_E_1" model="account.report.line">
+                                <field name="name">E. 1. Wage costs (521, 522)</field>
+                                <field name="name@sk">E. 1. Mzdové náklady (521, 522)</field>
+                                <field name="code">sk_pl_total_cost_E_1</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_sk_reports_pl_total_cost_E_1_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">521 + 522</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_sk_reports_pl_total_cost_E_2" model="account.report.line">
+                                <field name="name">E. 2. Remuneration of members of company and cooperative bodies (523)</field>
+                                <field name="name@sk">E. 2. Odmeny členom orgánov spoločnosti a družstva (523)</field>
+                                <field name="code">sk_pl_total_cost_E_2</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_sk_reports_pl_total_cost_E_2_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">523</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_sk_reports_pl_total_cost_E_3" model="account.report.line">
+                                <field name="name">E. 3. Social security costs (524, 525, 526)</field>
+                                <field name="name@sk">E. 3. Náklady na sociálne poistenie (524, 525, 526)</field>
+                                <field name="code">sk_pl_total_cost_E_3</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_sk_reports_pl_total_cost_E_3_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">524 + 525 + 526</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_sk_reports_pl_total_cost_E_4" model="account.report.line">
+                                <field name="name">E. 4. Social costs (527, 528) </field>
+                                <field name="name@sk">E. 4. Sociálne náklady (527, 528) </field>
+                                <field name="code">sk_pl_total_cost_E_4</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_sk_reports_pl_total_cost_E_4_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">527 + 528</field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_total_cost_F" model="account.report.line">
+                        <field name="name">F. Taxes and fees (accounting group 53)</field>
+                        <field name="name@sk">F. Dane a poplatky (účtovná skupina 53)</field>
+                        <field name="code">sk_pl_total_cost_F</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_cost_F_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">53</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_total_cost_G" model="account.report.line">
+                        <field name="name">G. Depreciation and provisions for intangible fixed assets and tangible fixed assets (r. 22 + r. 23)</field>
+                        <field name="name@sk">G. Odpisy a opravné položky k dlhodobému nehmotnému majetku a dlhodobému hmotnému majetku (r. 22 + r.23)</field>
+                        <field name="code">sk_pl_total_cost_G</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_cost_G_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">sk_pl_total_cost_G_1.balance + sk_pl_total_cost_G_2.balance</field>
+                            </record>
+                        </field>
+                        <field name="children_ids">
+                            <record id="l10n_sk_reports_pl_total_cost_G_1" model="account.report.line">
+                                <field name="name">G. 1. Depreciation of intangible fixed assets and tangible fixed assets (551)</field>
+                                <field name="name@sk">G. 1. Odpisy dlhodobého nehmotného majetku a dlhodobého hmotného majetku (551)</field>
+                                <field name="code">sk_pl_total_cost_G_1</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_sk_reports_pl_total_cost_G_1_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">551</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_sk_reports_pl_total_cost_G_2" model="account.report.line">
+                                <field name="name">G. 2. Adjustments to intangible fixed assets and tangible fixed assets (+/-) (553)</field>
+                                <field name="name@sk">G. 2. Opravné položky k dlhodobému nehmotnému majetku a dlhodobému hmotnému majetku (+/-) (553)</field>
+                                <field name="code">sk_pl_total_cost_G_2</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_sk_reports_pl_total_cost_G_2_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">553</field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_total_cost_H" model="account.report.line">
+                        <field name="name">H. Residual value of fixed assets and materials sold (541,542)</field>
+                        <field name="name@sk">H. Zostatková cena predaného dlhodobého majetku a predaného materiálu (541,542)</field>
+                        <field name="code">sk_pl_total_cost_H</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_cost_H_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">541 + 542</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_total_cost_I" model="account.report.line">
+                        <field name="name">I. Adjustments to receivables (+/-) (547)</field>
+                        <field name="name@sk">I. Opravné položky k pohľadávkam (+/-) (547)</field>
+                        <field name="code">sk_pl_total_cost_I</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_cost_I_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">547</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_total_cost_J" model="account.report.line">
+                        <field name="name">J. Other costs of economic activity (543, 544, 545, 546, 548, 549, 555, 557)</field>
+                        <field name="name@sk">J. Ostatné náklady na hospodársku činnosť (543, 544, 545, 546, 548, 549, 555, 557)</field>
+                        <field name="code">sk_pl_total_cost_J</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_cost_J_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">543 + 544 + 545 + 546 + 548 + 549 + 555 + 557</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_sk_reports_pl_result" model="account.report.line">
+                <field name="name">*** Result of economic activity</field>
+                <field name="name@sk">*** Výsledok hospodárenia z hospodárskej činnosti</field>
+                <field name="code">sk_pl_result</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="l10n_sk_reports_pl_result_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">sk_pl_total_revenue.balance - sk_pl_total_cost.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_sk_reports_pl_added_value" model="account.report.line">
+                <field name="name">* Added value</field>
+                <field name="name@sk">* Pridaná hodnota</field>
+                <field name="code">sk_pl_added_value</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="l10n_sk_reports_pl_added_value_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">sk_pl_revenue_I.balance + sk_pl_revenue_II.balance + sk_pl_revenue_III.balance + sk_pl_revenue_IV.balance + sk_pl_revenue_V.balance - sk_pl_total_cost_A.balance - sk_pl_total_cost_B.balance - sk_pl_total_cost_C.balance - sk_pl_total_cost_D.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_sk_reports_pl_total_income" model="account.report.line">
+                <field name="name">** Total income from financial activities</field>
+                <field name="name@sk">** Výnosy z finančnej činnosti spolu</field>
+                <field name="code">sk_pl_total_income</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="l10n_sk_reports_pl_total_income_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">sk_pl_total_income_VIII.balance + sk_pl_total_income_IX.balance  + sk_pl_total_income_X.balance  + sk_pl_total_income_XI.balance  + sk_pl_total_income_XII.balance  + sk_pl_total_income_XIII.balance  + sk_pl_total_income_XIV.balance</field>
+                    </record>
+                </field>
+                <field name="children_ids">
+                    <record id="l10n_sk_reports_pl_total_income_VIII" model="account.report.line">
+                        <field name="name">VIII. Revenue from the sale of securities and shares (661)</field>
+                        <field name="name@sk">VIII. Tržby z predaja cenných papierov a podielov (661)</field>
+                        <field name="code">sk_pl_total_income_VIII</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_income_VIII_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-661</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_total_income_IX" model="account.report.line">
+                        <field name="name">IX. Income from long-term financial assets total</field>
+                        <field name="name@sk">IX. Výnoy z dlhodobého finančného majetku súčet</field>
+                        <field name="code">sk_pl_total_income_IX</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_income_IX_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">sk_pl_total_income_IX_1.balance + sk_pl_total_income_IX_2.balance + sk_pl_total_income_IX_3.balance</field>
+                            </record>
+                        </field>
+                        <field name="children_ids">
+                            <record id="l10n_sk_reports_pl_total_income_IX_1" model="account.report.line">
+                                <field name="name">IX. 1. Income from securities and shares from related entities (665A)</field>
+                                <field name="name@sk">IX. 1. Výnosy z cenných papierov a podielov od prepojených účtovných jednotiek (665A)</field>
+                                <field name="code">sk_pl_total_income_IX_1</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_sk_reports_pl_total_income_IX_1_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">tag(sk.account_tag_pl_IX_1)</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_sk_reports_pl_total_income_IX_2" model="account.report.line">
+                                <field name="name">IX. 2. Income from securities and shares in joint ventures, excluding income from related entities (665A)</field>
+                                <field name="name@sk">IX. 2. Výnosy z cenných papierov apodielov v podielovej účasti okrem výnosov prepojených účtovných jednotiek (665A)</field>
+                                <field name="code">sk_pl_total_income_IX_2</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_sk_reports_pl_total_income_IX_2_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">tag(sk.account_tag_pl_IX_2)</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_sk_reports_pl_total_income_IX_3" model="account.report.line">
+                                <field name="name">IX. 3. Other income from securities and shares (665A)</field>
+                                <field name="name@sk">IX. 3. Ostatné výnosy z cenných papierov a podielov (665A)</field>
+                                <field name="code">sk_pl_total_income_IX_3</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_sk_reports_pl_total_income_IX_3_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">tag(sk.account_tag_pl_IX_3)</field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_total_income_X" model="account.report.line">
+                        <field name="name">X. Income from short-term financial assets total</field>
+                        <field name="name@sk">X. Výnosy z krátkodobého finančného majetku súčet</field>
+                        <field name="code">sk_pl_total_income_X</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_income_X_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">sk_pl_total_income_X_1.balance + sk_pl_total_income_X_2.balance + sk_pl_total_income_X_3.balance</field>
+                            </record>
+                        </field>
+                        <field name="children_ids">
+                            <record id="l10n_sk_reports_pl_total_income_X_1" model="account.report.line">
+                                <field name="name">X. 1. Income from short-term financial assets from related entities (666A)</field>
+                                <field name="name@sk">X. 1. Výnosy z krátkodobého finančného majetku od prepojených účtovných jednotiek (666A)</field>
+                                <field name="code">sk_pl_total_income_X_1</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_sk_reports_pl_total_income_X_1_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">tag(sk.account_tag_pl_X_1)</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_sk_reports_pl_total_income_X_2" model="account.report.line">
+                                <field name="name">X. 2. Income from short-term financial assets in equity investments, excluding income from related entities (666A)</field>
+                                <field name="name@sk">X. 2. Výnosy z krátkodobého finančného majetku od prepojených účtovných jednotiek (666A)</field>
+                                <field name="code">sk_pl_total_income_X_2</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_sk_reports_pl_total_income_X_2_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">tag(sk.account_tag_pl_X_2)</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_sk_reports_pl_total_income_X_3" model="account.report.line">
+                                <field name="name">X. 3. Other income from short-term financial assets (666A)</field>
+                                <field name="name@sk">X. 3. Ostatné výnosy z krátkodobého finančného majetku (666A)</field>
+                                <field name="code">sk_pl_total_income_X_3</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_sk_reports_pl_total_income_X_3_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">tag(sk.account_tag_pl_X_3)</field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_total_income_XI" model="account.report.line">
+                        <field name="name">XI. Interest income</field>
+                        <field name="name@sk">XI. Výnosové úroky</field>
+                        <field name="code">sk_pl_total_income_XI</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_income_XI_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">sk_pl_total_income_XI_1.balance + sk_pl_total_income_XI_2.balance</field>
+                            </record>
+                        </field>
+                        <field name="children_ids">
+                            <record id="l10n_sk_reports_pl_total_income_XI_1" model="account.report.line">
+                                <field name="name">XI. 1. Interest income from related entities (662A)</field>
+                                <field name="name@sk">XI. 1. Výnosové úroky od prepojených účtovných jednotiek (662A)</field>
+                                <field name="code">sk_pl_total_income_XI_1</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_sk_reports_pl_total_income_XI_1_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">tag(sk.account_tag_pl_XI_1)</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_sk_reports_pl_total_income_XI_2" model="account.report.line">
+                                <field name="name">XI. 2. Other interest income (662A)</field>
+                                <field name="name@sk">XI. 2. Ostatné výnosové úroky (662A)</field>
+                                <field name="code">sk_pl_total_income_XI_2</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_sk_reports_pl_total_income_XI_2_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">tag(sk.account_tag_pl_XI_2)</field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_total_income_XII" model="account.report.line">
+                        <field name="name">XII. Foreign exchange gains (663)</field>
+                        <field name="name@sk">XII. Kurzové zisky (663)</field>
+                        <field name="code">sk_pl_total_income_XII</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_income_XII_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-663</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_total_income_XIII" model="account.report.line">
+                        <field name="name">XIII. Income from revaluation of securities and income from derivative transactions (664, 667)</field>
+                        <field name="name@sk">XIII. Výnosy z precenenia cenných papierov a výnosy z derivátových operácií (664, 667)</field>
+                        <field name="code">sk_pl_total_income_XIII</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_income_XIII_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-664-667</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_total_income_XIV" model="account.report.line">
+                        <field name="name">XIV. Other income from financial activities (668)</field>
+                        <field name="name@sk">XIV. Ostatné výnosy z finančnej činnosti (668)</field>
+                        <field name="code">sk_pl_total_income_XIV</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_income_XIV_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-668</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_sk_reports_pl_total_financial_cost" model="account.report.line">
+                <field name="name">** Total financial activity costs</field>
+                <field name="name@sk">** Náklady na finančnú činnosť spolu</field>
+                <field name="code">sk_pl_total_financial_cost</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="l10n_sk_reports_pl_total_financial_cost_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">sk_pl_total_financial_cost_K.balance + sk_pl_total_financial_cost_L.balance + sk_pl_total_financial_cost_M.balance + sk_pl_total_financial_cost_N.balance + sk_pl_total_financial_cost_O.balance + sk_pl_total_financial_cost_P.balance + sk_pl_total_financial_cost_Q.balance</field>
+                    </record>
+                </field>
+                <field name="children_ids">
+                    <record id="l10n_sk_reports_pl_total_financial_cost_K" model="account.report.line">
+                        <field name="name">K. Securities and shares sold (561)</field>
+                        <field name="name@sk">K. Predané cenné papiere a podiely (561)</field>
+                        <field name="code">sk_pl_total_financial_cost_K</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_financial_cost_K_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">561</field>
+                            </record>
+                        </field>
+                     </record>
+                     <record id="l10n_sk_reports_pl_total_financial_cost_L" model="account.report.line">
+                        <field name="name">L. Costs of short-term financial assets (566)</field>
+                        <field name="name@sk">L. Náklady na krátkodobý finančný majetok ( 566 )</field>
+                        <field name="code">sk_pl_total_financial_cost_L</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_financial_cost_L_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">566</field>
+                            </record>
+                        </field>
+                     </record>
+                     <record id="l10n_sk_reports_pl_total_financial_cost_M" model="account.report.line">
+                        <field name="name">M. Adjustments to financial assets (+/-) (565)</field>
+                        <field name="name@sk">M. Opravné položky k finančnému majetku (+/-) (565)</field>
+                        <field name="code">sk_pl_total_financial_cost_M</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_financial_cost_M_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">565</field>
+                            </record>
+                        </field>
+                     </record>
+                     <record id="l10n_sk_reports_pl_total_financial_cost_N" model="account.report.line">
+                        <field name="name">N. Interest expense</field>
+                        <field name="name@sk">N. Nákladové úroky</field>
+                        <field name="code">sk_pl_total_financial_cost_N</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_financial_cost_N_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">sk_pl_total_financial_cost_N_1.balance + sk_pl_total_financial_cost_N_2.balance</field>
+                            </record>
+                        </field>
+                        <field name="children_ids">
+                            <record id="l10n_sk_reports_pl_total_financial_cost_N_1" model="account.report.line">
+                                <field name="name">N.1. Interest expense for related entities (562A)</field>
+                                <field name="name@sk">N.1. Nákladové úroky pre prepojené účtovné jednotky (562A)</field>
+                                <field name="code">sk_pl_total_financial_cost_N_1</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_sk_reports_pl_total_financial_cost_N_1_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">tag(sk.account_tag_pl_N_1)</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_sk_reports_pl_total_financial_cost_N_2" model="account.report.line">
+                                <field name="name">N. 2. Other interest expense (562A)</field>
+                                <field name="name@sk">N. 2. Ostatné nákladové úroky (562A)</field>
+                                <field name="code">sk_pl_total_financial_cost_N_2</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_sk_reports_pl_total_financial_cost_N_2_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">tag(sk.account_tag_pl_N_2)</field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                     </record>
+                     <record id="l10n_sk_reports_pl_total_financial_cost_O" model="account.report.line">
+                        <field name="name">O. Exchange rate losses (563)</field>
+                        <field name="name@sk">O. Kurzové straty (563)</field>
+                        <field name="code">sk_pl_total_financial_cost_O</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_financial_cost_O_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">563</field>
+                            </record>
+                        </field>
+                     </record>
+                     <record id="l10n_sk_reports_pl_total_financial_cost_P" model="account.report.line">
+                        <field name="name">P. Costs of revaluation of securities and costs of derivative transactions (564, 567)</field>
+                        <field name="name@sk">P. Náklady na precenenie cenných papierov a náklady na derivátové operácie (564, 567)</field>
+                        <field name="code">sk_pl_total_financial_cost_P</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_financial_cost_P_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">564 + 567</field>
+                            </record>
+                        </field>
+                     </record>
+                     <record id="l10n_sk_reports_pl_total_financial_cost_Q" model="account.report.line">
+                        <field name="name">Q. Other financial expenses (568, 569)</field>
+                        <field name="name@sk">Q. Ostatné náklady na finančnú činnosť (568, 569)</field>
+                        <field name="code">sk_pl_total_financial_cost_Q</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_total_financial_cost_Q_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">568 + 569</field>
+                            </record>
+                        </field>
+                     </record>
+                </field>
+            </record>
+            <record id="l10n_sk_reports_pl_result_financial" model="account.report.line">
+                <field name="name">*** Result of financial activities</field>
+                <field name="name@sk">*** Výsledok hospodárenia z finančnej činnosti</field>
+                <field name="code">sk_pl_result_financial</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="l10n_sk_reports_pl_result_financial_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">sk_pl_total_income.balance - sk_pl_total_financial_cost.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_sk_reports_pl_before_tax" model="account.report.line">
+                <field name="name">**** Profit or loss for the accounting period before tax</field>
+                <field name="name@sk">**** Výsledok hospodárenia za účtovné obdobie pred zdanením</field>
+                <field name="code">sk_pl_before_tax</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="l10n_sk_reports_pl_before_tax_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">sk_pl_result.balance + sk_pl_result_financial.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_sk_reports_pl_income_tax" model="account.report.line">
+                <field name="name">R. Income tax</field>
+                <field name="name@sk">R. Daň z príjmov</field>
+                <field name="code">sk_pl_income_tax</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="l10n_sk_reports_pl_income_tax_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">sk_pl_income_tax_1.balance + sk_pl_income_tax_2.balance</field>
+                    </record>
+                </field>
+                <field name="children_ids">
+                    <record id="l10n_sk_reports_pl_income_tax_1" model="account.report.line">
+                        <field name="name">R. 1. Income tax payable (591, 595)</field>
+                        <field name="name@sk">R. 1. Daň z príjmov splatná (591, 595)</field>
+                        <field name="code">sk_pl_income_tax_1</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_income_tax_1_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">591 + 595</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_sk_reports_pl_income_tax_2" model="account.report.line">
+                        <field name="name">R. 2. Deferred income tax (+/-) (592)</field>
+                        <field name="name@sk">R. 2. Daň z príjmov odložená (+/-) (592)</field>
+                        <field name="code">sk_pl_income_tax_2</field>
+                        <field name="expression_ids">
+                            <record id="l10n_sk_reports_pl_income_tax_2_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">592</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_sk_reports_pl_transfer" model="account.report.line">
+                <field name="name">S. Transfer of shares in the economic result to partners (+/- 596)</field>
+                <field name="name@sk">S. Prevod podielov na výsledku hospodárenia spoločníkom (+/- 596)</field>
+                <field name="code">sk_pl_transfer</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="l10n_sk_reports_pl_transfer_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">account_codes</field>
+                        <field name="formula">596</field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_sk_reports_pl_after_tax" model="account.report.line">
+                <field name="name">**** Profit or loss for the accounting period after tax</field>
+                <field name="name@sk">**** Výsledok hospodárenia za účtovné obdobie po zdanení</field>
+                <field name="code">sk_pl_after_tax</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="l10n_sk_reports_pl_after_tax_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">sk_pl_before_tax.balance - sk_pl_income_tax.balance - sk_pl_transfer.balance</field>
+                    </record>
+                </field>
+            </record>
+        </field>
+    </record>
+</odoo>

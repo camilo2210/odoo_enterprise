@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="worksheet_template_properties_display">
+        <div name="worksheet properties" style="page-break-inside: avoid">
+            <br/>
+            <h2>Worksheet</h2>
+            <t t-foreach="props_formatted" t-as="prop">
+                <t t-set="is_separator" t-value="prop['type'] == 'separator'"/>
+                <div t-attf-class="o_worksheet_row row mb-2 {{ 'my-3 pt-4' if is_separator else '' }}">
+                    <div t-attf-class="fw-bold {{ 'h5' if is_separator else 'col-lg-3 col-12 w-25' }}">
+                        <span t-out="prop['name']" />
+                    </div>
+                    <div t-if="not is_separator" class="col-lg-9 col-12 w-75">
+                        <t t-if="prop['type']=='signature'">
+                            <br/><br/>
+                            <img class ="img img-fluid" alt="Binary file"
+                                 t-attf-src="data:image/png;base64,{{prop['value']}}" t-if="prop['value']" style=""/>
+                        </t>
+                        <t t-elif="prop['type']=='tags'">
+                            <t t-foreach="prop['value']" t-as="tag">
+                                <span class='badge rounded-pill' t-attf-style="{{tag['style']}}" t-out="tag['name']"/>
+                            </t>
+                        </t>
+                        <t t-elif="prop['type']=='boolean'">
+                            <input type='checkbox' t-att-checked="prop['value']" t-att-disabled="prop['readonly']"/>
+                        </t>
+                        <t t-else="">
+                            <span t-out="prop['value']"/>
+                        </t>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </template>
+</odoo>

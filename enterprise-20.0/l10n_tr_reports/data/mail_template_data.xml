@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="email_template_reconciliation_letter" model="mail.template">
+        <field name="name">Reconciliation Letter</field>
+        <field name="name@tr">Cari hesap mutabakat formu</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="email_from">{{ object._get_followup_responsible().email_formatted }}</field>
+        <field name="use_default_to" eval="True"/>
+        <field name="subject">
+            {{ (object.company_id or object._get_followup_responsible().company_id).name }} Reconciliation Letter - {{ object.parent_name or object.name }}
+        </field>
+        <field name="email_layout_xmlid">mail.mail_notification_layout</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0; padding: 0;">
+                <p style="margin: 0; padding: 0;">
+                    Dear <t t-out="object.name or ''"/><t t-if="object.id != object.commercial_partner_id.id"> (<t t-out="object.commercial_partner_id.name or ''"/>)</t>,
+                    <br/>
+                    Please find attached your reconciliation letter.
+                    <br/>
+                    Kindly review the details and let us know if you identify any discrepancies.
+                    <br/>
+                    Sincerely,
+                    <br/>
+                    <t t-out="object._get_followup_responsible().name if is_html_empty(object._get_followup_responsible().signature) else object._get_followup_responsible().signature"/>
+                </p>
+            </div>
+        </field>
+        <field name="lang">{{ object.lang or user.lang }}</field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+</odoo>

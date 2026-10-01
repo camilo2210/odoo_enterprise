@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_skill_campaign_ecommerce" model="ai.skill">
+        <field name="name">Campaign eCommerce Targeting</field>
+        <field name="description">Rules for campaigns aimed at orders, purchases or customers who bought something, rather than at people directly. Load as soon as a request mentions orders, purchases, buyers or repeat customers.</field>
+        <field name="instructions">
+Extends CAMPAIGN 2.
+
+`sale.order` becomes a valid `model_id`, so a campaign can run on orders rather than on people.
+Its mailing takes `sale.order` as `mailing_model_id` too, and reaches the customer through
+`object.partner_id`.
+
+The shipped Purchase Follow-up campaign is one email and nothing else, enrolling confirmed orders
+of a website sales team:
+
+```
+How is everything going?    email   begin   +7d
+```
+
+Its "seven days after the order" is `interval_number` on the step, not a waiting node in front
+of it.
+        </field>
+    </record>
+
+    <record id="ai_marketing_automation.ai_agent_campaign_builder" model="ai.agent">
+        <field name="skill_ids" eval="[(4, ref('ai_skill_campaign_ecommerce'))]"/>
+    </record>
+</odoo>

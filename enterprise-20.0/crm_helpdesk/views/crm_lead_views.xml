@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <!-- inherit view of Lead Form : adding the "convert to ticket" button -->
+    <record id="crm_lead_view_form" model="ir.ui.view">
+        <field name="name">crm.lead.form</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="/form/header/button[last()]" position="after">
+                <button class="oe_stat_button" type="action" name="%(crm_lead_convert2ticket_action)d"
+                        string="Convert to Ticket"
+                        invisible="context.get('show_create_ticket', False) or not active or type == 'opportunity'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_server_convert_ticket_to_lead_or_opportunity" model="ir.actions.server">
+        <field name="name">Convert to Opportunity/Lead</field>
+        <field name="model_id" ref="model_helpdesk_ticket"/>
+        <field name="binding_model_id" ref="model_helpdesk_ticket"/>
+        <field name="binding_view_types">form</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = record.action_convert_ticket_to_lead_or_opportunity()
+        </field>
+    </record>
+
+</odoo>

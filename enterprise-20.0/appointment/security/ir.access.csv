@@ -1,0 +1,56 @@
+id,name,model_id,group_id/id,operation,domain
+appointment_type_rule_internal,appointment.type: apt internal rule (read self-staff and resources),appointment.type,base.group_user,r,"[
+            '|',
+                ('staff_user_ids', 'in', [user.id, False]),
+                ('schedule_based_on', '=', 'resources')]"
+appointment_type_rule_internal_published,appointment.type: apt internal rule (read published),appointment.type,base.group_user,r,"[('is_published', '=', True)]"
+appointment_type_rule_user,"appointment.type: apt user rule (read self-create, self-staff and resources)",appointment.type,appointment.group_appointment_user,cr,"[
+            '|', '|', '|',
+                ('create_uid', '=', user.id),
+                ('responsible_id', '=', user.id),
+                ('staff_user_ids', 'in', [user.id, False]),
+                ('schedule_based_on', '=', 'resources')]"
+appointment_type_rule_user_write_unlink,appointment.type: apt user rule (write/unlink = own only),appointment.type,appointment.group_appointment_user,crud,"[
+			'|',
+				('create_uid', '=', user.id),
+				('responsible_id', '=', user.id)]"
+appointment_type_rule_admin,appointment.type: apt administrator rule,appointment.type,appointment.group_appointment_manager,crud,
+appointment_slot_rule_internal,appointment.slot: apt internal rule (read self-staff and resources),appointment.slot,base.group_user,r,"[
+            ('appointment_type_id', 'any', [
+                '|',
+                ('staff_user_ids', 'in', [user.id, False]),
+                ('schedule_based_on', '=', 'resources')
+            ])
+        ]"
+appointment_slot_rule_internal_published,appointment.slot: apt internal rule (read published),appointment.slot,base.group_user,r,"[('appointment_type_id.is_published', '=', True)]"
+appointment_slot_rule_user,"appointment.slot: apt user rule (read self-create, self-staff and resources)",appointment.slot,appointment.group_appointment_user,cr,"[
+            ('appointment_type_id', 'any', [
+                '|', '|', '|',
+                ('create_uid', '=', user.id),
+                ('responsible_id', '=', user.id),
+                ('staff_user_ids', 'in', [user.id, False]),
+                ('schedule_based_on', '=', 'resources'),
+            ])
+        ]"
+appointment_slot_rule_user_write_unlink,appointment.slot: apt user rule (write/unlink = own only),appointment.slot,appointment.group_appointment_user,ud,"[
+            '|', '|',
+                ('appointment_type_id.create_uid', '=', user.id),
+                ('appointment_type_id.responsible_id', '=', user.id),
+                ('create_uid', '=', user.id)]"
+appointment_slot_rule_admin,appointment.slot: apt administrator rule,appointment.slot,appointment.group_appointment_manager,crud,
+access_appointment_question_employee,appointment.question.all,appointment.question,base.group_user,r,
+access_appointment_question_manager,appointment.question.manager,appointment.question,appointment.group_appointment_manager,crud,
+access_appointment_question_answer_employee,appointment.answer.all,appointment.answer,base.group_user,r,
+access_appointment_question_answer_manager,appointment.answer.manager,appointment.answer,appointment.group_appointment_manager,crud,
+access_appointment_question_answer_input_user,appointment.answer.input.user,appointment.answer.input,base.group_user,r,
+access_appointment_question_answer_input_manager,appointment.answer.input.manager,appointment.answer.input,appointment.group_appointment_manager,crud,
+access_calendar_alarm_public,calendar.alarm.all,calendar.alarm,base.group_everyone,r,
+appointment_invite_rule_user_internal,appointment.invite: user and internal rule (read self-create and self-staff),appointment.invite,base.group_user,cr,"['|', ('create_uid', '=', user.id), ('staff_user_ids', '=', user.id)]"
+appointment_invite_rule_user_internal_write_unlink,appointment.invite: apt user and internal rule (write/unlink = own only),appointment.invite,base.group_user,crud,"[('create_uid', '=', user.id)]"
+appointment_invite_rule_admin,appointment.invite: apt administrator rule,appointment.invite,appointment.group_appointment_manager,crud,
+access_appointment_leave_manager,appointment.leave.manager,appointment.leave,appointment.group_appointment_manager,crud,
+access_appointment_resource_manager,appointment.resource.manager,appointment.resource,appointment.group_appointment_manager,crud,
+access_appointment_resource_user,appointment.resource.user,appointment.resource,base.group_user,r,
+access_appointment_booking_line_manager,appointment.booking.line.manager,appointment.booking.line,appointment.group_appointment_manager,crud,
+access_appointment_booking_line_user,appointment.booking.line.user,appointment.booking.line,base.group_user,r,
+access_resource_resource_appointment_manager,resource.resource.appointment.manager,resource.resource,appointment.group_appointment_manager,cru,

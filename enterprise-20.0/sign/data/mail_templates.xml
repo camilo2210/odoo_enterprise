@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="sign_template_mail_request">
+<table border="0" cellpadding="0" style="background-color: white; padding: 0px; border-collapse:separate; width: 100%;">
+    <tr>
+        <td valign="top">
+        <p>Hello <t t-out="record.partner_id.name"/>,</p>
+        <t t-out="record.create_uid.name"/>
+        (<a t-att-href="record._get_mail_link(record.create_uid.email, subject)"
+            style="color:#428BCA; text-decoration:none;"
+            target="_blank"><t t-out="record.create_uid.email"/></a>)
+        has requested your signature on the document <t t-out="record.sign_request_id.reference"/>.
+        </td>
+    </tr>
+    <tr t-if="body"><td valign="top">
+        <div style="margin: 16px 0px 16px 0px; padding: 8px 16px 8px 16px; background-color: #F1F1F1;">
+            <span>
+                <t t-out="body"/>
+            </span>
+        </div>
+    </td></tr>
+    <t t-set="signature_provider" t-value="record.role_id._get_external_signature_provider_name()"/>
+    <tr t-if="signature_provider"><td valign="top">
+        <div style="margin: 16px 0px 16px 0px; padding: 8px 16px 8px 16px; background-color: #F1F1F1;">
+            This is a qualified signature request. You will need to authenticate yourself using
+            <t t-out="signature_provider"/> to confirm your identity and signature.
+        </div>
+    </td></tr>
+    <tr><td valign="top">
+        <div style="margin:16px auto; text-align:center;">
+            <a t-att-href="link"
+                t-attf-style="padding: 8px 16px 8px 16px; border-radius: 3px; background-color: {{record.communication_company_id.email_secondary_color or '#875A7B'}}; text-align:center; text-decoration:none; color: {{record.communication_company_id.email_primary_color or '#FFFFFF'}};">
+                Sign document
+            </a>
+        </div>
+    </td></tr>
+    <t t-if="show_validity">
+        <tr><td style="padding-bottom: 16px;">You have until <t t-out="record.sign_request_id.validity"/> to sign the document.</td></tr>
+    </t>
+    <tr><td valign="top">
+        <div style="opacity: 0.7;">
+            <strong>Warning:</strong> do not forward this email to others.<br/>
+            They will gain access to this document and be able to sign or reject it on your behalf.<br/>
+        </div>
+        <br/>
+        <div style="opacity: 0.7;"><small>If you do not wish to receive future reminders about this document,
+            <a t-att-href="link_cancel"
+            style="color: #000000; text-decoration:none; opacity:0.7;"> <span style="text-decoration: underline;">click here</span> to cancel it.</a></small>
+        </div>
+    </td></tr>
+    <t t-set="company" t-value="record.sign_request_id.communication_company_id"/>
+    <tr t-if="use_sign_terms">
+        <t t-if="company.sign_terms_type == 'html'">
+            <td style="margin:16px auto; text-align:center;">
+                <a t-att-href="'%s/sign/terms' % record.get_base_url()" class="text-dark">Terms &amp; Conditions</a>
+            </td>
+        </t>
+        <t t-else="">
+            <td>
+                <t t-out="company.sign_terms"/>
+            </td>
+        </t>
+    </tr>
+</table>
+        <br/>
+        <t t-out="user_signature"/>
+    </template>
+
+    <template id="sign_template_mail_refused">
+<table border="0" cellpadding="0" style="background-color: white; padding: 0px; border-collapse:separate; width: 100%;">
+    <tr><td valign="top">
+        <p>Hello <t t-out="recipient.name"/>,</p>
+        <t t-if="recipient.id == refuser.id">You have refused the document</t>
+        <t t-else="">
+            <t t-out="refuser.name"/>
+            (<a t-att-href="record._get_mail_link(refuser.email, subject)"
+                style="color:#428BCA; text-decoration:none;"
+                target="_blank"><t t-out="refuser.email"/></a>)
+            has refused to sign the document <t t-out="record.reference"/> with the following reason
+        </t>
+    </td></tr>
+    <tr t-if="body"><td valign="top">
+        <div style="margin: 16px 0px 16px 0px; padding: 8px 16px 8px 16px; background-color: #F1F1F1;">
+            <span>
+                <t t-out="body"/>
+            </span>
+        </div>
+    </td></tr>
+    <tr><td valign="top">
+        <div style="margin:16px auto; text-align:center;">
+            <a t-att-href="link"
+                t-attf-style="padding: 8px 16px 8px 16px; border-radius: 3px; background-color: {{record.communication_company_id.email_secondary_color or '#875A7B'}}; text-align:center; text-decoration:none; color: {{record.communication_company_id.email_primary_color or '#FFFFFF'}};">
+                View document
+            </a>
+        </div>
+    </td></tr>
+    <tr><td valign="top">
+        <div style="opacity: 0.7;">
+            <strong>Warning</strong> do not forward this email to other people!<br/>
+        </div>
+    </td></tr>
+</table>
+    </template>
+
+    <template id="sign_template_mail_completed">
+<table border="0" cellpadding="0" style="background-color: white; padding: 0px; border-collapse:separate; width: 100%;">
+    <tr><td valign="top">
+        <p>Hello <t t-out="recipient_name"/>,</p>
+        <t t-if="request_edited">The document <t t-out="record.reference"/> has been edited, completed and signed by </t>
+        <t t-else="">The document <t t-out="record.reference"/> has been completed by </t>
+        <t t-foreach="signers" t-as="signer">
+            <!-- signer_first is generated by qweb for-each and is a boolean that is set to true in the first iteration -->
+            <t t-if="not signer_first">and </t>
+            <t t-if="recipient_id == signer.get('id')">you</t>
+            <t t-else="">
+                <t t-out="signer.get('name')"/>
+                (<a t-att-href="record._get_mail_link(signer.get('email'), subject)"
+                    style="color:#428BCA; text-decoration:none;"
+                    target="_blank"><t t-out="signer.get('email')"/></a>)</t>
+        </t><t t-if="local_signer">, while connected as <t t-out="local_signer.get('name')"/>
+            (<a t-att-href="record._get_mail_link(local_signer.get('email'), subject)"
+                style="color:#428BCA; text-decoration:none;"
+                target="_blank"><t t-out="local_signer.get('email')"/></a>)</t>.
+    </td></tr>
+    <tr t-if="body"><td valign="top">
+        <div style="margin: 16px 0px 16px 0px; padding: 8px 16px 8px 16px; background-color: #F1F1F1;">
+            <span>
+                <t t-out="body"/>
+            </span>
+        </div>
+    </td></tr>
+    <tr><td valign="top">
+        <div style="margin:16px auto; text-align:center">
+            <a t-att-href="link"
+                t-attf-style="padding: 8px 16px 8px 16px; border-radius: 3px; background-color: {{record.communication_company_id.email_secondary_color or '#875A7B'}}; text-align:center; text-decoration:none; color: {{record.communication_company_id.email_primary_color or '#FFFFFF'}};">
+                View
+            </a>
+        </div>
+    </td></tr>
+</table>
+    </template>
+
+    <template id="sign_template_mail_not_enough_credits">
+        <table border="0" cellpadding="0" style="background-color: white; padding: 0px; border-collapse:separate;">
+            <tr>
+                <td valign="top">
+                    <p>Hello <t t-out="recipient_name"/>,</p>
+                    The document <t t-out="record.reference"/> has been signed by
+                    <t t-out="signer.name"/>
+                        (<a t-att-href="record._get_mail_link(signer.email, subject)"
+                            style="color:#428BCA; text-decoration:none;"
+                            target="_blank"><t t-out="signer.email"/></a>)
+                    without the requested extra-authentification step (<t t-out="auth_method"/>) due to insufficient credits.
+                    <br/><br/>
+                    The signatory was able to complete the signing operation, but was not requested to authenticate fully.
+                    <br/><br/>
+                    <p>
+                        If you do not want to receive these notifications anymore, you can disable the extra-authentication step in the
+                        <code>
+                            Sign > Configuration > Roles
+                        </code>
+                        menu.
+                    </p>
+                </td>
+            </tr>
+        </table>
+    </template>
+
+    <template id="sign_mail_notification_light" inherit_id="mail.mail_notification_light" primary="True">
+        <xpath expr="//table[@role='presentation'][@style]" position="attributes">
+            <attribute name="style" add="width: 100%; table-layout: fixed;" separator=" "/>
+        </xpath>
+        <xpath expr="//table[@role='presentation'][@width='590']" position="attributes">
+            <attribute name="style" add="max-width: 650px; width: 100%; table-layout: fixed;" separator=" "/>
+        </xpath>
+        <xpath expr="//table[@role='presentation'][@width='590']//td//span[1]" position="replace">
+            <span style="font-size: 10px;"><t t-out="model_description or 'document'"/></span>
+        </xpath>
+    </template>
+
+    <template id="template_sign_auto_field_tracking" technical_usage="mail_post_source">
+        <p class="mb-1">
+            <t t-out="message_title"/>:
+        </p>
+
+        <div class="o-mail-Message-textContent position-relative d-flex">
+            <div>
+                <ul class="mb-0 list-unstyled d-flex flex-column gap-1">
+                    <t t-foreach="changed_fields" t-as="change">
+                        <li class="o-mail-Message-tracking" role="group">
+                            <span class="o-mail-Message-trackingOld text-muted fw-bold">
+                                <t t-out="change['old_value']"/>
+                            </span>
+                            <i class="oi o-mail-Message-trackingSeparator mx-2 text-600" data-icon="east"></i>
+                            <span class="o-mail-Message-trackingNew me-1 fw-bold text-info">
+                                <t t-out="change['new_value']"/>
+                            </span>
+                            <span t-if="change.get('label')" class="o-mail-Message-trackingField ms-1 fst-italic text-muted">
+                                (<t t-out="change['label']"/>)
+                            </span>
+                        </li>
+                    </t>
+                </ul>
+            </div>
+        </div>
+    </template>
+
+    <template id="template_sign_request_completed" technical_usage="mail_post_source">
+        <span class="oi me-1" data-icon="edit_square"/>
+        <span>Signature Request completed</span>
+        <div class="small mt-1">
+            <a t-att-href="document_url" t-out="sign_request.template_id.name"/>
+        </div>
+        <div class="small text-muted">
+            <t t-foreach="sign_request.request_item_ids.partner_id" t-as="partner">
+                <t t-out="partner.name"/><t t-if="not partner_last">, </t>
+            </t>
+        </div>
+    </template>
+
+</odoo>

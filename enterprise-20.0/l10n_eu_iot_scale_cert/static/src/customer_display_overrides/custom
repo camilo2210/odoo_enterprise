@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="point_of_sale.CustomerDisplay" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o_customer_display_main')]/div" position="before">
+            <div t-if="this.order.conditions?.l10n_eu_iot_scale_cert_show_warning" class="text-center bg-warning w-100 fw-bolder py-1 fs-4">
+                Metrological data not certified
+            </div>
+        </xpath>
+
+        <xpath expr="//li[hasclass('orderline')]" position="attributes">
+            <attribute name="t-attf-class" add="{{ line.strikethrough ? 'text-decoration-line-through' : '' }}" separator=" "/>
+        </xpath>
+
+        <xpath expr="//li[hasclass('price-per-unit')]" position="replace">
+            <li class="price-per-unit">
+                <span class="qty px-1 border rounded text-bg-view fw-bolder me-1">
+                    <t t-out="line.qty" />
+                    <t t-if="line.product_uom_name and line.showUnit" t-out="' ' + line.product_uom_name" />
+                </span>
+                <t t-if="line.unit_price !== 0">
+                    x
+                    <t t-out="line.unit_price" />
+                </t>
+                <t t-if="line.product_uom_name and line.showUnit">
+                    /
+                    <t t-out="line.product_uom_name" />
+                </t>
+            </li>
+        </xpath>
+
+        <xpath expr="//div[@t-if='this.order.scaleData']" position="replace">
+            <div t-if="this.order.scaleData">
+                <t t-set-slot="header">
+                    <h4 class="modal-title text-break text-center w-100" t-att-class="{ 'me-auto': this.uiService.isSmall }">
+                        <span class="me-2">Weighing Product:</span>
+                        <t t-out="this.order.scaleData.productNname"/>
+                    </h4>
+                </t>
+                <div class="d-flex flex-column px-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="w-60 fs-2 me-2 form-control-plaintext">
+                            <t t-out="this.order.scaleData.hardwareTare ? 'Net' : 'Gross'"/> Weight:
+                        </div>
+                        <div class="weight fs-1 js-weight text-end form-control-plaintext" t-out="this.order.scaleData.netWeight"></div>
+                    </div>
+                    <div class="d-flex flex-row gap-2 m-2 align-items-center">
+                        <div class="product-price w-50 fs-1 text-center" t-out="this.order.scaleData.unitPrice"/>
+                        <div class="computed-price fd-flex flex-grow-1 p-2 rounded text-center text-bg-info bg-opacity-25 text-info fs-1 fw-bold" t-out="this.order.scaleData.totalPrice" />
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </t>
+</templates>

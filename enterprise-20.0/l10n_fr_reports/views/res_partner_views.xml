@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_inherit_l10n_fr_reports" model="ir.ui.view">
+        <field name="name">res.partner.form.profession</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='accounting']/group/group" position="inside">
+                <field
+                    name="l10n_fr_profession_id"
+                    invisible="'FR' not in fiscal_country_codes"
+                />
+                <field
+                    name="birth_date"
+                    invisible="'FR' not in fiscal_country_codes or not l10n_fr_profession_id or is_company"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_das2_required_partner_fields" model="ir.ui.view">
+        <field name="name">res.partner.list.required.partner.fields</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <list string="Partner with missing information for DAS2">
+                <field name="name" readonly="1"/>
+                <field name="l10n_fr_siret" invisible="not is_company" required="is_company"/>
+                <field name="birth_date" invisible="is_company" required="not is_company"/>
+                <field name="l10n_fr_profession_id" required="1"/>
+                <field name="street" required="1"/>
+                <field name="zip" required="1"/>
+                <field name="city" required="1"/>
+                <field name="country_id" required="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_partner_form_inherit_das2_required_partner_fields" model="ir.ui.view">
+        <field name="name">res.partner.form.required.partner.fields</field>
+        <field name="model">res.partner</field>
+        <field name="mode">primary</field>
+        <field name="inherit_id" ref="l10n_fr_reports.view_partner_form_inherit_l10n_fr_reports"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='birth_date']" position="attributes">
+                <attribute name="required">not is_company</attribute>
+            </xpath>
+            <xpath expr="//field[@name='l10n_fr_profession_id']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='street']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='zip']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='city']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='country_id']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_form_inherit_das2_required_firm_fields" model="ir.ui.view">
+        <field name="name">res.partner.form.required.firm.fields</field>
+        <field name="model">res.partner</field>
+        <field name="mode">primary</field>
+        <field name="inherit_id" ref="l10n_fr_reports.view_partner_form_inherit_l10n_fr_reports"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='street']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='zip']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='city']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='country_id']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_form_inherit_das2_required_contact_person_fields" model="ir.ui.view">
+        <field name="name">res.partner.form.required.contact.person.fields</field>
+        <field name="model">res.partner</field>
+        <field name="mode">primary</field>
+        <field name="inherit_id" ref="l10n_fr_reports.view_partner_form_inherit_l10n_fr_reports"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='phone']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='email']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

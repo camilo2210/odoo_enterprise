@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="iap_extract.Box">
+        <div
+            t-attf-class="o_extract_mixin_box
+                #{this.state.isHighlighted ? 'highlighted' : ''}
+                #{this.state.backgroundFadeout ? 'fadeout' : ''}"
+            t-att-data-id="this.state.id"
+            t-att-style="this.style"
+            t-on-pointerdown="this.onClick"
+            t-on-mousedown.stop.prevent=""
+            t-on-mouseover="this.onMouseOver"
+            t-on-mouseout="this.onMouseOut"
+        />
+    </t>
+    <t t-name="iap_extract.BoxCluster">
+        <div t-attf-class="o_extract_mixin_box_cluster" t-att-style="this.style">
+            <div
+                t-attf-class="o_extract_mixin_box_cluster_button w-100 #{this.state.showButton ? 'show-button' : ''}"
+                t-on-click="this.onClickLabel"
+                t-on-mousedown.stop.prevent=""/>
+        </div>
+    </t>
+    <t t-name="iap_extract.BoxLayer">
+        <div t-if="this.state.isSelecting" t-attf-class="o_extract_selection_box" t-att-style="this.selectionStyle" />
+
+        <div data-list-ignore-click=""
+             t-ref="this.boxLayerRef"
+             t-attf-class="o_extract_mixin_box_layer #{this.state.isSelecting ? 'is-selecting' : ''}"
+             t-att-style="this.style"
+             t-on-click.stop=""
+             t-on-mousedown.prevent="this.onMouseDown"
+             t-on-mouseup="this.onMouseUp"
+             t-on-mousemove="this.onMouseMove">
+            <t t-foreach="this.props.boxClusters" t-as="cluster" t-key="cluster.id">
+                <BoxCluster
+                    cluster="cluster"
+                    pageWidth="this.pageWidth"
+                    pageHeight="this.pageHeight"
+                    onClickBoxClusterCallback="this.props.onClickBoxClusterCallback"/>
+            </t>
+            <t t-foreach="this.state.boxes" t-as="box" t-key="box.id">
+                <Box
+                    box="box"
+                    pageWidth="this.pageWidth"
+                    pageHeight="this.pageHeight"
+                    onClickBoxCallback="this.props.onClickBoxCallback"
+                    onMouseHoverBoxCallback="this.props.onMouseHoverBoxCallback"
+                />
+            </t>
+        </div>
+    </t>
+</templates>

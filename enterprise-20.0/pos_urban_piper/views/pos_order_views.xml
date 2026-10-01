@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pos_order_form_inherit_pos_urban_piper" model="ir.ui.view">
+        <field name="name">pos.order.form.inherit.pos.urban.piper</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+        <field name="arch" type="xml">
+            <group name="other_information" position="after">
+                <group string="UrbanPiper" name="urbanPiper" invisible="source != 'online'">
+                    <field name="delivery_identifier" string="Online Order ID"/>
+                    <field name="delivery_provider_id" options="{'no_open': True}" widget="many2one_avatar_user"/>
+                    <field name="delivery_status" />
+                </group>
+            </group>
+            <xpath expr="//field[@name='lines']//list" position="inside">
+                <field name="urbanpiper_tax_liability" column_invisible="parent.source != 'online'" optional="hide" />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_pos_order_list_inherit_pos_urban_piper" model="ir.ui.view">
+        <field name="name">pos.order.tree.inherit.pos.urban.piper</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_order_tree"/>
+        <field name="arch" type="xml">
+            <field name="amount_total" position="before">
+                <field name="delivery_identifier" string="Online Order ID" optional="hide"/>
+                <field name="delivery_provider_id" optional="hide" widget="many2one_avatar_user"/>
+                <field name="delivery_status" widget="badge"
+                    decoration-info="delivery_status == 'placed'"
+                    decoration-success="delivery_status in ('food_ready', 'dispatched', 'completed')"
+                    decoration-muted="delivery_status == 'cancelled'"
+                    optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_pos_order_filter_inherit_pos_urban_piper" model="ir.ui.view">
+        <field name="name">pos.order.search.inherit.pos.urban.piper</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_order_filter"/>
+        <field name="arch" type="xml">
+            <search position="inside">
+                <field name="delivery_identifier"/>
+                <separator />
+                <filter string="Online Food Delivery" name="urbanpiper_order" domain="[('source', '=', 'online')]"/>
+            </search>
+            <group position="inside">
+                <filter string="Aggregator" name="delivery_provider" context="{'group_by': 'delivery_provider_id'}"/>
+            </group>
+        </field>
+    </record>
+</odoo>

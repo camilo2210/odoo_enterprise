@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates>
+    <t t-name="account_reports.AccountReportLineName">
+        <t t-call="{{ this.controller.template('AccountReportLineName') }}"/>
+    </t>
+
+    <t t-name="account_reports.AccountReportLineNameCustomizable">
+        <td
+            data-id="line_name"
+            class="line_name"
+            t-att-class="this.lineNameClasses"
+            t-on-click="() => this.toggleFoldable()"
+            t-att-colspan="this.props.line.colspan?.() || 1"
+            tabindex="-1"
+        >
+            <!-- Foldable -->
+            <i  t-if="this.props.line.unfoldable?.()"
+                data-id="btn_foldable"
+                class="btn btn_foldable oi"
+                tabindex="-1"
+                t-att-data-icon="this.props.line.unfolded() ? 'arrow_drop_down' : 'arrow_right'"
+                />
+
+            <t data-id="content">
+                <t t-if="this.hasAction()">
+                    <!-- Actions -->
+                    <a class="clickable cursor-pointer" t-on-click="this.triggerAction" tabindex="-1" t-out="this.props.line.name()"/>
+                </t>
+                <t t-elif="this.isLoadMore()">
+                    <!-- Load more -->
+                    <a class="clickable cursor-pointer" t-on-click="this.loadMore" tabindex="-1" t-out="this.props.line.name()"/>
+                </t>
+                <t t-else="">
+                    <t t-component="this.controller.component('AccountReportEllipsis')" t-props="{
+                        name: this.props.line.name,
+                        type: () => 'string',
+                        maxCharacters: 80,
+                    }"/>
+
+                    <AccountReviewStateSelectionBadge
+                        t-if="this.hasAccountStatus()"
+                        options="this.accountStatusBadgeOptions"
+                        record="this.controller.accountStatuses[this.props.line.account_status.id()]"
+                        readonly="false"
+                        name="'status'"
+                        class="'ms-2'"
+                        size="'small'"
+                        onChange="this.onAccountStatusChange.bind(this)"
+                        />
+
+                    <!-- Caret options -->
+                    <Dropdown position="'right-start'" t-if="this.hasCaretOptions()">
+                        <i class="btn btn_dropdown oi" data-icon="more_vert" tabindex="-1"/>
+                        <t t-set-slot="content">
+                            <div data-id="caret_options">
+                                <t t-foreach="this.caretOptions" t-as="caretOption" t-key="caretOption_index">
+                                    <DropdownItem onSelected="() => this.caretAction(caretOption)">
+                                        <t t-out="caretOption.name"/>
+                                    </DropdownItem>
+                                </t>
+                            </div>
+                        </t>
+                    </Dropdown>
+
+                    <i  tabindex="-1"
+                        t-if="this.hasChatter()"
+                        class="btn btn_annotation oi"
+                        t-att-class="{
+                            'o_account_report_chatter_selected oi-filled': this.isChatterSelected(),
+                            'o_account_report_chatter_annotated oi-filled': this.isChatterAnnotated(),
+                        }"
+                        t-on-click="this.openChatter"
+                        data-icon="mode_comment"
+                        />
+
+                    <t data-id="line_buttons" t-if="!this.props.line.hide_line_buttons?.()"/>
+                </t>
+            </t>
+        </td>
+    </t>
+</templates>

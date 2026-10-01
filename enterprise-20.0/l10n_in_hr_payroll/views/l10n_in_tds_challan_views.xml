@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="l10n_in_tds_challan_view_list" model="ir.ui.view">
+        <field name="name">l10n.in.tds.challan.list</field>
+        <field name="model">l10n.in.tds.challan</field>
+        <field name="arch" type="xml">
+            <list sample="1">
+                <field name="challan_date_from" string="Challan Period" widget="daterange" options="{'end_date_field': 'challan_date_to'}"/>
+                <field name="paid_date"/>
+                <field name="challan_number"/>
+                <field name="bsr_code"/>
+                <field name="minor_head" optional="hide"/>
+                <field name="tds_amount"/>
+                <field name="penalty"/>
+                <field name="interest"/>
+                <field name="total_paid"/>
+                <field name="state" widget="badge" decoration-primary="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_in_tds_challan_view_form" model="ir.ui.view">
+        <field name="name">l10n.in.tds.challan.form</field>
+        <field name="model">l10n.in.tds.challan</field>
+        <field name="arch" type="xml">
+            <form string="Payroll Challan">
+                <header>
+                    <button string="Import Payslips" class="btn btn-primary" type="object" name="action_open_payslip_import"
+                        invisible="state == 'done' or challan_line_ids"/>
+                    <button string="Mark as Done" class="btn btn-primary" type="object" name="action_mark_as_done"
+                        invisible="state == 'done' or not challan_line_ids"/>
+                    <button string="Import Payslips" class="btn btn-secondary" type="object" name="action_open_payslip_import"
+                        invisible="state == 'done' or not challan_line_ids"/>
+                    <button string="Set to Draft" class="btn btn-secondary" type="object" name="action_set_to_draft"
+                        invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button icon="description" type="object" class="oe_stat_button" name="action_open_form_138"
+                            string="Form 138" help="related form 138 for this challan" invisible="not form_138_id"/>
+                    </div>
+                    <group>
+                        <group string="challan details">
+                            <label for="challan_date_from" string="Challan Period"/>
+                            <field
+                                name="challan_date_from"
+                                widget="daterange"
+                                options="{'end_date_field': 'challan_date_to'}"
+                                nolabel="1"
+                                readonly="state == 'done'"
+                            />
+                            <field name="paid_date" readonly="state == 'done'"/>
+                            <field name="challan_number" placeholder="e.g., 12345" readonly="state == 'done'"/>
+                            <field name="bsr_code" placeholder="e.g., 1234567" readonly="state == 'done'"/>
+                            <field name="minor_head" widget="radio" options="{'horizontal': True}" readonly="state == 'done'"/>
+                            <field name="mode_of_payment" widget="radio" options="{'horizontal': True}" readonly="state == 'done'"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Challan Amounts">
+                            <field name="currency_id" invisible="1"/> <!-- needed for monetary fields -->
+                            <field name="tds_amount"/>
+                            <field name="penalty" readonly="state == 'done'"/>
+                            <field name="interest" readonly="state == 'done'"/>
+                            <field name="total_paid"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Challan Lines">
+                            <field name="challan_line_ids" nolabel="1" create="0" readonly="state == 'done'">
+                                <list editable="bottom" decoration-danger="not payslip_id">
+                                    <field name="employee_id" readonly="1"/>
+                                    <field name="payslip_id" optional="hide"/>
+                                    <field name="pan" readonly="1"/>
+                                    <field name="paid_date" readonly="1"/>
+                                    <field name="net_wage"/>
+                                    <field name="total_tds_paid" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_in_tds_challan_payslip_view_list" model="ir.ui.view">
+        <field name="name">l10n.in.tds.challan.payslip.list</field>
+        <field name="model">hr.payslip</field>
+        <field name="arch" type="xml">
+            <list
+                string="Payslips"
+                create="0"
+                edit="0"
+                duplicate="0"
+                js_class="l10n_in_challan_payslip_list"
+            >
+                <field name="employee_id" widget="many2one_avatar_employee"/>
+                <field
+                    name="date_from"
+                    string="Period"
+                    widget="daterange"
+                    options="{'end_date_field': 'date_to'}"
+                />
+                <field name="struct_id" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="net_wage" optional="show"/>
+                <field name="state_display" widget="badge" decoration-primary="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_in_tds_challan_view_search" model="ir.ui.view">
+        <field name="name">l10n.in.tds.challan.view.search</field>
+        <field name="model">l10n.in.tds.challan</field>
+        <field name="arch" type="xml">
+            <search string="Search Challans">
+                <field name="challan_date_from"/>
+                <field name="challan_date_to"/>
+                <field name="state"/>
+                <filter
+                    string="Current FY"
+                    name="current_fy"
+                    domain="[('financial_year_start', '=', context_today().year if context_today().month > 3 else context_today().year - 1)]"
+                />
+                <filter
+                    string="Previous FY"
+                    name="previous_fy"
+                    domain="[('financial_year_start', '=', context_today().year - 1 if context_today().month > 3 else context_today().year - 2)]"
+                />
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Done" name="done" domain="[('state', '=', 'done')]"/>
+                <separator/>
+                <group>
+                    <filter string="Status" name="groupby_state" context="{'group_by': 'state'}"/>
+                    <filter string="From Date" name="groupby_challan_date_from" context="{'group_by': 'challan_date_from'}"/>
+                    <filter string="To Date" name="groupby_challan_date_to" context="{'group_by': 'challan_date_to'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_l10n_in_tds_challan" model="ir.actions.act_window">
+        <field name="name">TDS Challans</field>
+        <field name="res_model">l10n.in.tds.challan</field>
+        <field name="view_mode">list,form</field>
+        <field name="path">tds-challans</field>
+        <field name="context">{'search_default_current_fy': 1}</field>
+        <field name="domain">[('company_id', 'in', allowed_company_ids)]</field>
+    </record>
+
+    <menuitem
+        id="menu_l10n_in_tds_challan"
+        name="TDS Challans"
+        action="action_l10n_in_tds_challan"
+        parent="l10n_in_hr_payroll.menu_reporting_l10n_in"
+        groups="hr_payroll.group_hr_payroll_manager,hr_payroll.group_hr_payroll_user"
+        sequence="320"
+    />
+
+</odoo>

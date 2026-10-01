@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="appointment_info" name="Appointment: Appointment Info" inherit_id="appointment.appointment_info">
+        <xpath expr="//t[@t-call='portal.portal_layout']" position="attributes">
+            <attribute name="t-call">website.layout</attribute>
+        </xpath>
+        <xpath expr="//div[@id='wrap']" position="attributes">
+            <attribute name="class">o_wappointment_wrap h-100 overflow-x-hidden</attribute>
+        </xpath>
+        <xpath expr="//t[@t-set='o_portal_fullwidth_alert']" position="replace"/>
+    </template>
+
+    <template id="appointment_entity_card_selection" name="Selection of user / resource with cards" inherit_id="appointment.appointment_entity_card_selection">
+        <xpath expr="//span[hasclass('o_appointment_card_user_fct')]" position="after">
+            <div class="o_wappointment_card_user_dsc text-muted small">
+                <div t-field="user.partner_id.website_description" placeholder="Add a user description here..."/>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- Pages -->
+    <template id="appointments_selection_layout" name="Appointment Types Selection">
+        <t t-set="mode_cards" t-value="is_view_active('website_appointment.opt_appointments_index_cards')"/>
+        <t t-set="mode_pictures" t-value="is_view_active('website_appointment.opt_appointments_index_pictures')"/>
+        <t t-call="website.layout">
+            <div id="wrap" class="o_appointment_index">
+                <div class="oe_structure" id="oe_structure_appointments_card_top"/>
+                <t t-call="website_appointment.website_calendar_index"/>
+                <t t-call="website_appointment.website_calendar_index_topbar"/>
+                <div>
+                    <div class="container o_appointment_selection">
+                        <div t-if="not appointment_types" class="col-12 o_appointment_not_found">
+                            <div class="alert alert-info text-center d-none mt-4" groups="appointment.group_appointment_manager">
+                                <p class="m-0">Use the top button '<b>+ New</b>' to create an appointment type.</p>
+                            </div>
+                            <div class="o_appointment_svg mx-auto text-center py-3 w-75">
+                                <i class="oi oi-spin mx-auto h3" data-icon="autorenew"/>
+                            </div>
+                            <div class="mt-4 text-center d-none">
+                                <t t-if="current_search">
+                                    <h4>No result for "<t t-out="current_search"/>"</h4>
+                                    <a href="/appointment">See all appointments <i class="oi" data-icon="east"/></a>
+                                </t>
+                                <h4 t-else="">There is currently no appointment available</h4>
+                            </div>
+                        </div>
+                        <div t-elif="mode_cards" class="col-md px-0">
+                            <div class="row row-gap-3">
+                                <t t-call="website_appointment.appointments_cards"/>
+                            </div>
+                        </div>
+                        <div t-elif="mode_pictures" class="row g-3">
+                            <t t-call="website_appointment.appointments_pictures"/>
+                        </div>
+                        <div t-else="" class="row g-2">
+                            <t t-call="appointment.appointments_list"/>
+                        </div>
+                        <div class="d-flex justify-content-center my-3">
+                            <t t-call="website.pager"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="oe_structure" id="oe_structure_appointments_card_bottom"/>
+            </div>
+        </t>
+    </template>
+
+    <!-- Enable the various appointment selection layout options -->
+    <template id="website_calendar_index" name="Appointment"/>
+    <template id="opt_appointments_index_cards" inherit_id="website_appointment.website_calendar_index" active="False" name="Card Design"/>
+    <template id="opt_appointments_index_pictures" inherit_id="website_appointment.website_calendar_index" active="False" name="Picture Design"/>
+
+    <!-- Top bar -->
+    <template id="website_calendar_index_topbar" name="Topbar">
+        <div class="container">
+            <section class="d-flex d-print-none align-items-center justify-content-lg-end flex-wrap gap-2 mt-4 mb-3" t-if="appointment_types">
+                <div class="flex-grow-1">
+                    <h1 class="h4 mb-0">Choose your appointment</h1>
+                </div>
+                <div class="d-flex w-100 w-lg-50 w-xl-25">
+                    <t t-call="website.website_search_box_input"
+                        _form_classes.f="flex-grow-1"
+                        search_type.f="appointments"
+                        action.f="/appointment"
+                        search="current_search">
+                        <t t-foreach="searches" t-as="item">
+                            <input t-if="item != 'search' and item_value != 'all'" type="hidden"
+                                t-att-name="item" t-att-value="item_value"/>
+                        </t>
+                        <input type="hidden" name="filter_appointment_type_ids" t-att-value="filter_appointment_type_ids"/>
+                        <input type="hidden" name="filter_staff_user_ids" t-att-value="filter_staff_user_ids"/>
+                        <input type="hidden" name="filter_resource_ids" t-att-value="filter_resource_ids"/>
+                        <input type="hidden" name="invite_token" t-att-value="invite_token"/>
+                        <t t-out="0"/>
+                    </t>
+                </div>
+            </section>
+        </div>
+    </template>
+
+    <template id="appointments_cards" name="Appointments Cards">
+        <div t-foreach="appointment_types" t-as="appointment" class="col-md-6 col-lg-4 col-xl-3">
+            <t t-call="website_appointment.appointment_card"/>
+        </div>
+    </template>
+
+    <template id="appointment_card" name="Appointment Card">
+        <div class="o_wappointment_card card h-100" itemscope="itemscope" itemtype="http://schema.org/Appointments" t-att-data-publish="'on' if appointment.website_published else 'off'">
+            <t t-if="not appointment.website_published" t-call="website.unpublished_badge"/>
+            <t t-call="website_appointment.appointment_card_top"/>
+            <t t-call="website_appointment.appointment_card_body"/>
+        </div>
+    </template>
+
+    <template id="appointment_card_top">
+        <div class="card-img-top position-relative">
+            <a t-attf-href="#{appointment.website_url}?#{keep_query('filter_appointment_type_ids', 'filter_staff_user_ids', 'filter_resource_ids', 'invite_token')}"
+                t-attf-title="Book {{appointment.name}}">
+                <div t-field="appointment.image_1920" class="d-block h-100 w-100 overflow-hidden ratio ratio-16x9 object-fit-cover" t-options="{'widget': 'image', 'class': 'object-fit-cover', 'preview_image': 'image_512'}"/>
+            </a>
+            <div t-if="appointment.schedule_based_on == 'users' and appointment.staff_user_ids" class="o_wappointment_card_staff_users position-absolute bottom-0 d-flex align-items-center">
+                <t t-if="len(appointment.staff_user_ids)" t-call="appointment.appointment_booking_resource_description"/>
+            </div>
+        </div>
+    </template>
+
+    <template id="appointment_card_body">
+        <div class="card-body d-flex flex-column gap-2">
+            <div class="d-flex align-items-start justify-content-between gap-3">
+                <h2 class="card-title m-0 text-break h5" t-field="appointment.name" itemprop="name"/>
+            </div>
+            <div class="o_wappointment_card_infos d-flex flex-column gap-1">
+                <div itemprop="location" class="o_appointment_card_location d-flex gap-1 fw-bold small text-muted text-break">
+                    <t t-if="appointment.location_id">
+                        <i class="oi oi-fw lh-base" data-icon="location_on" role="presentation"/>
+                        <span t-field="appointment.location_id" t-options="{'widget': 'contact', 'fields': ['name']}"/>
+                    </t>
+                    <t t-else="">
+                        <i class="oi oi-fw oi-filled lh-base" data-icon="videocam" role="presentation"/>
+                        <span class="o_not_editable">Online</span>
+                    </t>
+                </div>
+                <div t-if="not appointment.hide_duration and (appointment.category != 'custom')" class="d-flex gap-1 fw-bold small text-muted text-break">
+                    <i class="oi oi-fw lh-base" data-icon="schedule" />
+                    <span t-out="appointment.appointment_duration"
+                        t-options="{'widget': 'duration', 'unit': 'hour'}"/>
+                </div>
+            </div>
+            <span t-if="not is_html_empty(appointment.message_intro)" class="o_appointment_message_intro o_line_clamp card-text text-muted" t-field="appointment.message_intro" itemprop="message_intro" placeholder="Add an intro message here..."/>
+            <div class="mt-auto">
+                <a t-attf-href="#{appointment.website_url}?#{keep_query('filter_appointment_type_ids', 'filter_staff_user_ids', 'filter_resource_ids', 'invite_token')}"
+                    t-attf-title="Book {{appointment.name}}" role="button" class="btn btn-primary w-100 mt-3 o_not_editable" contenteditable="false">Book now</a>
+            </div>
+        </div>
+    </template>
+
+    <template id="appointment_list_item" inherit_id="appointment.appointment_list_item">
+        <xpath expr="//div[hasclass('o_appointment_image')]" position="replace">
+            <small t-if="not appointment.website_published"
+                class="o_appointment_unpublished badge bg-danger position-absolute top-0 end-0 mt-2 me-2 z-1"
+                groups="base.group_user">
+                <i class="oi me-2" data-icon="block" role="presentation"/>Unpublished
+            </small>
+            <div t-if="is_sample" class="o_ribbon_right smaller text-bg-primary text-uppercase z-1">Sample</div>
+            <div t-if="is_sample or appointment.image_1920" class="o_list_item_gradient_img_filter g-col-12 position-relative position-md-absolute end-0 top-0 h-md-100 w-100 w-md-25 py-5">
+                <img t-if="is_sample" src="/appointment/static/src/img/appointment_cover_0.jpg" class="position-absolute top-0 start-0 w-100 h-100 rounded object-fit-cover"/>
+                <div t-elif="appointment.image_1920" t-field="appointment.image_1920" t-options="{'widget': 'image', 'class': 'position-absolute top-0 start-0 w-100 h-100 rounded object-fit-cover', 'preview_image': 'image_512'}"/>
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('o_appointment_message_intro')]" position="attributes">
+            <attribute name="class" add="small" separator=" "/>
+        </xpath>
+    </template>
+
+    <template id="appointments_pictures" name="Appointments Pictures">
+        <div t-foreach="appointment_types" t-as="appointment" class="col-12 col-md-6 col-xl-4">
+            <div> <!-- This div is kept in order to match dynamic snippet structure -->
+                <t t-call="website_appointment.appointment_picture_item"/>
+            </div>
+        </div>
+    </template>
+
+    <template id="appointment_picture_item">
+        <a t-attf-href="/appointment/#{appointment.id}?#{keep_query('filter_appointment_type_ids', 'filter_staff_user_ids', 'filter_resource_ids', 'invite_token')}"
+            t-attf-title="Book {{appointment.name}}" role="button" class="o_appointment_picture_item position-relative d-block rounded overflow-hidden opacity-trigger-hover">
+            <small t-if="not appointment.website_published"
+                class="o_appointment_unpublished badge bg-danger position-absolute top-0 end-0 mt-2 me-2 z-1"
+                groups="base.group_user">
+                <i class="oi me-2" data-icon="block" role="presentation"/>Unpublished
+            </small>
+            <div t-if="is_sample" class="o_ribbon_right h5 text-bg-primary text-uppercase z-1">Sample</div>
+            <div class="bg-600 ratio ratio-1x1">
+                <img t-if="is_sample" src="/appointment/static/src/img/appointment_cover_0.jpg" class="object-fit-cover"/>
+                <div t-else="" t-field="appointment.image_1920" t-options="{'widget': 'image', 'class': 'h-100 w-100 object-fit-cover', 'preview_image': 'image_512'}"/>
+                <div class="bg-black opacity-25 opacity-50-hover transition-base"/>
+            </div>
+            <div class="position-absolute top-0 start-0 d-flex flex-column justify-content-between w-100 h-100 p-3">
+                <div class="d-flex align-items-end h-50 flex-shrink-0">
+                    <div class="o_appointment_picture_item_head d-flex align-items-center flex-column justify-content-end w-100 transition-base">
+                        <div t-if="appointment.schedule_based_on == 'users' and appointment.staff_user_ids" class="mt-auto mb-2">
+                            <t t-if="len(appointment.staff_user_ids)" t-call="appointment.appointment_booking_resource_description"
+                                avatars_max_count="3"/>
+                        </div>
+                        <h5 t-attf-class="px-3 fs-3 text-white text-center" t-field="appointment.name"/>
+                        <div class="d-flex gap-2 justify-content-between align-items-center">
+                            <div class="o_appointment_card_location d-flex align-items-center gap-3 fw-bold smaller text-white lh-1">
+                                <div t-if="not appointment.hide_duration and (appointment.category != 'custom')" class="d-flex gap-1 align-items-center">
+                                    <i class="oi oi-fw lh-base" data-icon="schedule"/>
+                                    <span t-out="appointment.appointment_duration"
+                                        t-options="{'widget': 'duration', 'unit': 'hour'}"/>
+                                </div>
+                                <div class="d-flex gap-1 align-items-center">
+                                    <t t-if="appointment.location_id">
+                                        <i class="oi" data-icon="location_on" role="presentation"/>
+                                        <span t-field="appointment.location_id" t-options="{'widget': 'contact', 'fields': ['name']}"/>
+                                    </t>
+                                    <t t-else="">
+                                        <i class="oi oi-filled" data-icon="videocam" role="presentation"/>
+                                        <span class="o_not_editable">Online</span>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mh-auto py-3 overflow-hidden">
+                    <span t-if="not is_html_empty(appointment.message_intro)" class="o_appointment_message_intro o_line_clamp px-3 text-white text-center opacity-0 opacity-100-hover transition-base" t-field="appointment.message_intro"/>
+                </div>
+                <span class="p-2 text-white text-decoration-none text-center transition-base opacity-0 opacity-100-hover">Book now</span>
+            </div>
+        </a>
+    </template>
+
+</odoo>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="l10n_ch_hr_leave_view_form" model="ir.ui.view">
+        <field name="name">hr.leave.view.form</field>
+        <field name="model">hr.leave</field>
+        <field name="inherit_id" ref="hr_holidays.hr_leave_view_form"/>
+        <field name="priority" eval="40"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[label[@for='name']]" position="before">
+                <field name="l10n_ch_swissdec_payroll_impact" invisible="1"/>
+                <field name="l10n_ch_swissdec_work_interruption" invisible="1"/>
+                <div class="d-flex gap-2">
+                    <label for="l10n_ch_continued_pay_percentage" string="Continued Pay" invisible="l10n_ch_swissdec_work_interruption or not l10n_ch_swissdec_payroll_impact"/>
+                </div>
+                <div>
+                    <field name="l10n_ch_continued_pay_percentage" readonly="state not in ('draft', 'confirm')" widget="percentage" invisible="l10n_ch_swissdec_work_interruption or not l10n_ch_swissdec_payroll_impact"/>
+                </div>
+                <div class="d-flex gap-2">
+                    <label for="l10n_ch_disability_percentage" string="Disability" invisible="l10n_ch_swissdec_work_interruption or not l10n_ch_swissdec_payroll_impact"/>
+                </div>
+                <div>
+                    <field name="l10n_ch_disability_percentage" readonly="state not in ('draft', 'confirm')" widget="percentage" invisible="l10n_ch_swissdec_work_interruption or not l10n_ch_swissdec_payroll_impact"/>
+                </div>
+                <div class="d-flex gap-2">
+                    <label for="l10n_ch_pay_interruption" invisible="not l10n_ch_swissdec_work_interruption or not l10n_ch_swissdec_payroll_impact"/>
+                </div>
+                <div>
+                    <field name="l10n_ch_pay_interruption" readonly="state not in ('draft', 'confirm')" invisible="not l10n_ch_swissdec_work_interruption or not l10n_ch_swissdec_payroll_impact"/>
+                </div>
+                <div class="d-flex gap-2">
+                    <label for="l10n_ch_lpp_interruption" invisible="not l10n_ch_swissdec_work_interruption or not l10n_ch_swissdec_payroll_impact"/>
+                </div>
+                <div>
+                    <field name="l10n_ch_lpp_interruption" readonly="state not in ('draft', 'confirm')" invisible="not l10n_ch_swissdec_work_interruption or not l10n_ch_swissdec_payroll_impact"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="l10n_ch_hr_leave_employee_view_dashboard" model="ir.ui.view">
+        <field name="name">hr.leave.view.dashboard</field>
+        <field name="model">hr.leave</field>
+        <field name="arch" type="xml">
+            <calendar string="Absences"
+                    js_class="time_off_calendar_dashboard"
+                    form_view_id="%(l10n_ch_hr_payroll.l10n_ch_hr_leave_view_form)d"
+                    event_open_popup="true"
+                    date_start="date_from"
+                    date_stop="date_to"
+                    mode="month"
+                    quick_create="0"
+                    color="color"
+                    hide_time="True">
+                <field name="display_name"/>
+                <field name="work_entry_type_id" filters="1" invisible="1" color="color"/>
+                <field name="state" invisible="1"/>
+                <field name="is_hatched" invisible="1" />
+                <field name="is_striked" invisible="1"/>
+                <field name="can_cancel" invisible="1"/>
+            </calendar>
+        </field>
+    </record>
+</odoo>

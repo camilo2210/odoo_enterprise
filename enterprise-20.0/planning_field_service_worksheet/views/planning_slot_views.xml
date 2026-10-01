@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="planning_slot_view_search" model="ir.ui.view">
+        <field name="name">planning.slot.inherit.view.search</field>
+        <field name="model">planning.slot</field>
+        <field name="priority">30</field>
+        <field name="inherit_id" ref="planning.planning_view_search_base"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='role_id']" position="after">
+                <field name="worksheet_template_id" groups="planning.group_planning_manager"/>
+            </xpath>
+            <xpath expr="//group/filter[@name='group_by_role']" position="after">
+                <filter name="group_by_worksheet_template" string="Worksheet" context="{'group_by': 'worksheet_template_id'}" groups="planning.group_planning_manager"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_slot_view_search_service_requests" model="ir.ui.view">
+        <field name="name">planning.slot.view.search.service.requests.inherit.worksheet</field>
+        <field name="model">planning.slot</field>
+        <field name="priority">25</field>
+        <field name="inherit_id" ref="planning.planning_slot_view_search_service_requests"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='company_id']" position="before">
+                <field name="worksheet_template_id" groups="planning.group_planning_manager"/>
+            </xpath>
+            <xpath expr="//group/filter[@name='group_by_company']" position="before">
+                <filter name="group_by_worksheet_template" string="Worksheet" context="{'group_by': 'worksheet_template_id'}" groups="planning.group_planning_manager"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_view_tree" model="ir.ui.view">
+        <field name="name">planning.slot.list.inherit.planning_field_service_worksheet</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='role_id']" position="after">
+                <field name="worksheet_template_id" optional="show" groups="planning.group_planning_manager"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_slot_view_list_service_requests" model="ir.ui.view">
+        <field name="name">planning.slot.view.list.service.requests.inherit.worksheet</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_slot_view_list_service_requests"/>
+        <field name="arch" type="xml">
+            <field name="worksheet_template_id" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="planning_view_form" model="ir.ui.view">
+        <field name="name">planning.view.form.inherit.planning_field_service_worksheet</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_form"/>
+        <field name="priority">40</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_phone'][2]" position="after">
+                <field
+                    name="worksheet_template_id"
+                    widget="worksheet_template_many2one"
+                    context="{'default_res_model': 'planning.slot'}"
+                    options="{'no_quick_create': True}"
+                    groups="planning.group_planning_manager"
+                />
+            </xpath>
+            <xpath expr="//button[@name='action_complete']" position="after">
+                <field name="photo_ids" invisible="1"/>  <!-- Needed to get the number of photos in the widget below -->
+                <widget
+                    name="planning_slot_photos_widget"
+                    string="Photos"
+                    class="w-100 w-sm-auto"
+                    options="{'accepted_file_extensions': 'image/jpg, image/jpeg, image/jpe, image/png'}"
+                    invisible="state in ['1_draft', '2_published'] or not worksheet_template_id and not can_edit"
+                />
+            </xpath>
+            <xpath expr="//page[@name='internal_note']" position="after">
+                <page name="worksheet" string="Worksheet" invisible="not worksheet_template_id">
+                    <group col="1">
+                        <group>
+                            <field name="worksheet_properties" widget="field_service_worksheet_properties" nolabel="1" colspan="2" readonly="not can_edit"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_view_form_in_gantt" model="ir.ui.view">
+        <field name="name">planning.slot.inherit.view.form.in.gantt</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning_field_service.planning_view_form_in_gantt"/>
+        <field name="arch" type="xml">
+            <xpath expr="//footer/button[@name='action_complete']" position="after">
+                <widget
+                    name="planning_slot_photos_widget"
+                    string="Photos"
+                    class="w-100 w-sm-auto"
+                    options="{'accepted_file_extensions': 'image/jpg, image/jpeg, image/jpe, image/png, image/gif, image/webp'}"
+                    invisible="state in ['1_draft', '2_published'] or not worksheet_template_id"
+                    groups="planning.group_planning_manager"
+                />
+                <t groups="!planning.group_planning_manager">
+                    <widget
+                        name="planning_slot_photos_widget"
+                        string="Photos"
+                        class="w-100 w-sm-auto"
+                        options="{'accepted_file_extensions': 'image/jpg, image/jpeg, image/jpe, image/png, image/gif, image/webp'}"
+                        invisible="state in ['1_draft', '2_published'] or not worksheet_template_id or uid not in user_ids"
+                        groups="planning.group_planning_user"
+                    />
+                </t>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_slot_view_card" model="ir.ui.view">
+        <field name="name">planning.slot.card.inherit</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning_field_service.planning_slot_view_card"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='description']" position="before">
+                <div t-if="record.worksheet_template_id.raw_value" class="d-flex gap-1" name="worksheet" title="Worksheet" groups="planning.group_planning_manager">
+                    <i class="oi oi-fw px-1 mt-1" data-icon="build"/>
+                    <field name="worksheet_template_id"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

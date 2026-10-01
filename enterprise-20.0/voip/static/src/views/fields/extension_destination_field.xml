@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="voip.ExtensionDestinationField">
+        <t t-set="relation" t-value="this.getRelation()"/>
+        <div class="d-flex align-items-center gap-1 flex-nowrap">
+            <select t-if="!this.props.readonly and !this.hideModelSelector" class="o_input w-25 flex-shrink-0" t-att-tabindex="relation ? '-1': 0" t-on-change="(ev) => this.updateModel(ev.target.value || false)">
+                <option/>
+                <t t-foreach="this.selection" t-as="option" t-key="option[0]">
+                    <option t-att-value="option[0]" t-att-selected="option[0] === relation" t-out="option[1]"/>
+                </t>
+            </select>
+            <span t-if="this.destination and this.hasDestinationAvatar" class="flex-shrink-0" t-att-title="this.destinationInfo.label">
+                <Avatar cssClass="'o_m2o_avatar'" resModel="relation" resId="this.destination.resId" noSpacing="true"/>
+            </span>
+            <i t-elif="this.destination and this.destinationInfo.icon" class="oi oi-fw flex-shrink-0" t-att-class="this.destinationInfo.icon_class" t-att-data-icon="this.destinationInfo.icon" t-att-title="this.destinationInfo.label" t-att-aria-label="this.destinationInfo.label" role="img"/>
+            <div t-if="relation" class="flex-grow-1 overflow-hidden">
+                <Many2One t-props="this.m2oProps" t-key="relation"/>
+            </div>
+        </div>
+    </t>
+</templates>

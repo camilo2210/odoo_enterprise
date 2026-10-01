@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sign.SignRequestControlPanel">
+        <ControlPanel display="this.controlPanelDisplay">
+            <t t-set-slot="control-panel-buttons">
+                <button t-if="this.signInfo.get('canSignNow')" type="button" class="btn btn-primary o_sign_sign_directly" t-on-click="this.signDocument">Sign Now</button>
+                <button t-if="this.nextTemplate &amp;&amp; this.nextTemplate.template" type="button" class="btn btn-primary" t-on-click="this.goToNextDocument">Next Document</button>
+                <SignRequestDocumentsDropdown t-if="this.shouldShowDownloadDropdown"/>
+            </t>
+            <t t-set-slot="control-panel-additional-actions">
+                <Dropdown t-if="this.allowCancel or this.shouldShowDetailsButton">
+                    <button class="btn p-0 ms-1 border-0">
+                        <i class="oi oi-filled" data-icon="settings"/>
+                    </button>
+                    <t t-set-slot="content">
+                        <t t-if="this.allowCancel" >
+                            <DropdownItem class="'o_menu_item'" onSelected.bind="this.cancelDocument">
+                                Cancel request
+                            </DropdownItem>
+                        </t>
+                        <t t-if="this.shouldShowDetailsButton">
+                            <DropdownItem class="'o_menu_item'" onSelected.bind="this.openFormView">
+                                Details
+                            </DropdownItem>
+                            <DropdownItem class="'o_menu_item'" onSelected.bind="this.openSendWizard">
+                                Send to
+                            </DropdownItem>
+                            <DropdownItem class="'o_menu_item'" onSelected.bind="this.saveAsTemplate">
+                                Save as template
+                            </DropdownItem>
+                        </t>
+                    </t>
+                </Dropdown>
+            </t>
+            <t t-set-slot="control-panel-navigation-additional">
+                <div class="signer-status d-flex align-items-center gap-4">
+                    <div t-if="this.TagsProps" class="me-4">
+                        <SignHeaderTags t-props="this.TagsProps" />
+                    </div>
+                    <div>
+                        <SignerStatusBadge t-props="this.signerStatusBadgeProps" />
+                    </div>
+                    <div class="o_sign_document_navigator align-items-center ms-2 flex-shrink-0" t-att-class="this.hasMultipleDocuments ? 'd-flex' : 'd-none'">
+                        <span class="o_sign_document_navigator_text me-2 text-nowrap"></span>
+                        <div class="d-flex gap-1 flex-shrink-0">
+                            <button class="o_sign_document_navigator_left_arrow btn btn-secondary px-2 rounded-start">
+                                <i class="oi" data-icon="chevron_backward"/>
+                            </button>
+                            <button class="o_sign_document_navigator_right_arrow btn btn-secondary px-2 rounded-end">
+                                <i class="oi" data-icon="chevron_forward"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </ControlPanel>
+    </t>
+</templates>

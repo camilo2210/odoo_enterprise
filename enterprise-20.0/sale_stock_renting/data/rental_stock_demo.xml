@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+
+    <record id="sale_renting.projector" model="product.product">
+        <field name="preparation_time" eval="0.05"/>  <!-- 3 minutes -->
+    </record>
+
+    <record id="sale_renting.premium_bike" model="product.product">
+        <field name="is_storable" eval="True"/>
+        <field name="preparation_time" eval="0.5"/>  <!-- 30 minutes -->
+        <field name="tracking">serial</field>
+    </record>
+
+    <record id="sale_renting.printer" model="product.product">
+        <field name="is_storable" eval="True"/>
+        <field name="preparation_time" eval="0.05"/>  <!-- 3 minutes -->
+        <field name="tracking">serial</field>
+    </record>
+
+    <record id="rental_stock_lot_1" model="stock.lot">
+        <field name="name">PRINT001</field>
+        <field name="product_id" ref="sale_renting.printer"/>
+        <field name="quant_ids">
+            <record id="rental_stock_inventory_1" model="stock.quant">
+                <field name="location_id" ref="stock.stock_location_stock"/>
+                <field name="product_id" ref="sale_renting.printer"/>
+                <field name="inventory_quantity">1.00</field>
+            </record>
+        </field>
+    </record>
+
+    <record id="rental_stock_lot_2" model="stock.lot">
+        <field name="name">PRINT002</field>
+        <field name="product_id" ref="sale_renting.printer"/>
+        <field name="quant_ids">
+            <record id="rental_stock_inventory_2" model="stock.quant">
+                <field name="location_id" ref="stock.stock_location_stock"/>
+                <field name="product_id" ref="sale_renting.printer"/>
+                <field name="inventory_quantity">1.00</field>
+            </record>
+        </field>
+    </record>
+
+    <record id="rental_stock_lot_3" model="stock.lot">
+        <field name="name">PRINT003</field>
+        <field name="product_id" ref="sale_renting.printer"/>
+        <field name="quant_ids">
+            <record id="rental_stock_inventory_3" model="stock.quant">
+                <field name="location_id" ref="stock.stock_location_stock"/>
+                <field name="product_id" ref="sale_renting.printer"/>
+                <field name="inventory_quantity">1.00</field>
+            </record>
+        </field>
+    </record>
+
+    <record id="premium_bike_lot_1" model="stock.lot">
+        <field name="name">BIKE001</field>
+        <field name="product_id" ref="sale_renting.premium_bike"/>
+        <field name="quant_ids">
+            <record id="premium_bike_lot_1_quant" model="stock.quant">
+                <field name="location_id" ref="stock.stock_location_stock"/>
+                <field name="product_id" ref="sale_renting.premium_bike"/>
+                <field name="inventory_quantity">1.00</field>
+            </record>
+        </field>
+    </record>
+
+    <function model="stock.quant" name="action_apply_inventory" eval="[[
+        ref('rental_stock_inventory_1'),
+        ref('rental_stock_inventory_2'),
+        ref('rental_stock_inventory_3'),
+        ref('premium_bike_lot_1_quant'),
+    ]]"/>
+
+    <record id="rental_stock_order_1" model="sale.order">
+        <field name="partner_id" ref="base.res_partner_2"/>
+        <field name="user_id" ref="base.user_admin"/>
+        <field name="team_id" ref="sales_team.team_sales_department"/>
+        <field name="date_order" eval="datetime.now() - relativedelta(months=3)"/>
+        <field name="rental_start_date" eval="
+            datetime.now().replace(hour=13, minute=0, second=0) + relativedelta(days=1)
+        "/>
+        <field name="rental_return_date" eval="
+            datetime.now().replace(hour=13, minute=0, second=0) + relativedelta(days=5)
+        "/>
+        <field name="order_line">
+            <record id="rental_stock_order_1_line_1" model="sale.order.line">
+                <field name="product_id" ref="sale_renting.printer"/>
+                <field name="product_uom_qty">2</field>
+                <field name="reserved_lot_ids" eval="[
+                    Command.set([ref('rental_stock_lot_1'), ref('rental_stock_lot_2')]),
+                ]"/>
+            </record>
+        </field>
+    </record>
+
+    <!-- CONFIRM Rental Sale Order -->
+    <function
+        model="sale.order"
+        name="action_confirm"
+        eval="[[ref('rental_stock_order_1')]]"
+        context="{'action_no_send_mail': True}"
+    />
+
+</odoo>

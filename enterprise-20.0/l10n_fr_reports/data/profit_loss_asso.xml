@@ -1,0 +1,889 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data auto_sequence="1">
+    <record id="account_financial_report_l10n_fr_cdr_asso" model="account.report">
+        <field name="name">Profit and loss account for associations</field>
+        <field name="name@fr">Compte de résultats pour associations</field>
+        <field name="root_report_id" ref="account_reports.profit_and_loss"/>
+        <field name="availability_condition">coa</field>
+        <field name="chart_template">fr_asso</field>
+        <field name="filter_unfold_all" eval="True"/>
+        <field name="filter_analytic_groupby" eval="True"/>
+        <field name="country_id" ref="base.fr"/>
+        <field name="filter_journals" eval="True"/>
+        <field name="filter_multi_company">selector</field>
+        <field name="column_ids">
+            <record id="account_financial_report_l10n_fr_cdr_column_asso" model="account.report.column">
+                <field name="name">Balance</field>
+                <field name="name@fr">Solde</field>
+                <field name="expression_label">balance</field>
+            </record>
+        </field>
+        <field name="line_ids">
+            <record id="account_financial_report_line_fr_cdr_prod_exp_A_asso" model="account.report.line">
+                <field name="name">Operating income (I)</field>
+                <field name="name@fr">Produits d'exploitation (I)</field>
+                <field name="code">I</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_line_fr_cdr_prod_exp_A_balance_asso" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">COTISATIONS.balance + VENTE_BIEN_ET_S.balance + PRODUIT_TIER.balance + REPRISE_AMORT.balance + PRODUIT_CESSION.balance + UTILISATION_FOND.balance + AUTRES_PROD.balance</field>
+                    </record>
+                </field>
+                <field name="children_ids">
+                    <record id="account_financial_report_line_fr_cdrp1_asso" model="account.report.line">
+                        <field name="name">Membership fees</field>
+                        <field name="name@fr">Cotisations</field>
+                        <field name="code">COTISATIONS</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdrp1_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-756</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdrp2_asso" model="account.report.line">
+                        <field name="name">Sales of goods or services</field>
+                        <field name="name@fr">Ventes de biens et services</field>
+                        <field name="code">VENTE_BIEN_ET_S</field>
+                        <field name="foldability">foldable</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdrp2_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">VENTE_BIEN.balance + VENTE_SERVICE.balance</field>
+                            </record>
+                        </field>
+                        <field name="children_ids">
+                            <record id="account_financial_report_line_fr_cdrp2_1_asso" model="account.report.line">
+                                <field name="name">Sales of goods</field>
+                                <field name="name@fr">Ventes de biens</field>
+                                <field name="code">VENTE_BIEN</field>
+                                <field name="foldability">foldable</field>
+                                <field name="expression_ids">
+                                    <record id="account_financial_report_line_fr_cdrp2_1_balance_asso" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">-70\(706,7063,7073)</field>
+                                    </record>
+                                </field>
+                                <field name="children_ids">
+                                    <record id="account_financial_report_line_fr_cdrp2_1_1_asso" model="account.report.line">
+                                        <field name="name">including sales of donations in kind</field>
+                                        <field name="name@fr">dont ventes de dons en nature</field>
+                                        <field name="code">VENTE_DONATION</field>
+                                        <field name="expression_ids">
+                                            <record id="account_financial_report_line_fr_cdrp2_1_1_balance_asso" model="account.report.expression">
+                                                <field name="label">balance</field>
+                                                <field name="engine">account_codes</field>
+                                                <field name="formula">-7073</field>
+                                            </record>
+                                        </field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="account_financial_report_line_fr_cdrp2_2_asso" model="account.report.line">
+                                <field name="name">Services supplied</field>
+                                <field name="name@fr">Ventes de prestations de service</field>
+                                <field name="code">VENTE_SERVICE</field>
+                                <field name="foldability">foldable</field>
+                                <field name="expression_ids">
+                                    <record id="account_financial_report_line_fr_cdrp2_2_balance_asso" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">-706\(7063)</field>
+                                    </record>
+                                </field>
+                                <field name="children_ids">
+                                    <record id="account_financial_report_line_fr_cdrp2_2_1_asso" model="account.report.line">
+                                        <field name="name">including sponsorships</field>
+                                        <field name="name@fr">dont parrainages</field>
+                                        <field name="code">VENTE_PARRAINAGE</field>
+                                        <field name="expression_ids">
+                                            <record id="account_financial_report_line_fr_cdrp2_2_1_balance_asso" model="account.report.expression">
+                                                <field name="label">balance</field>
+                                                <field name="engine">account_codes</field>
+                                                <field name="formula">-7063</field>
+                                            </record>
+                                        </field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdrp3_asso" model="account.report.line">
+                        <field name="name">Stored production</field>
+                        <field name="name@fr">Produits de tiers financeurs</field>
+                        <field name="code">PRODUIT_TIER</field>
+                        <field name="foldability">foldable</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdrp3_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">CONCOURS_PUB.balance + VERSEMENT.balance + RESSOURCE_GENEROSITE.balance + CONTRIB_FIN.balance</field>
+                            </record>
+                        </field>
+                        <field name="children_ids">
+                            <record id="account_financial_report_line_fr_cdrp3_1_asso" model="account.report.line">
+                                <field name="name">Public contributions and operating grants</field>
+                                <field name="name@fr">Concours publics et subventions d'exploitation</field>
+                                <field name="code">CONCOURS_PUB</field>
+                                <field name="expression_ids">
+                                    <record id="account_financial_report_line_fr_cdrp3_1_balance_asso" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">-73 - 74</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="account_financial_report_line_fr_cdrp3_2_asso" model="account.report.line">
+                                <field name="name">Founders' payments or endowment consumption</field>
+                                <field name="name@fr">Versements des fondateurs ou consommations de la dotation consomptible</field>
+                                <field name="code">VERSEMENT</field>
+                                <field name="expression_ids">
+                                    <record id="account_financial_report_line_fr_cdrp3_2_balance_asso" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">-753</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="account_financial_report_line_fr_cdrp3_3_asso" model="account.report.line">
+                                <field name="name">Resources linked to public generosity</field>
+                                <field name="name@fr">Ressources liées à la générosité du public</field>
+                                <field name="code">RESSOURCE_GENEROSITE</field>
+                                <field name="foldability">foldable</field>
+                                <field name="expression_ids">
+                                    <record id="account_financial_report_line_fr_cdrp3_3_balance_asso" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">-754\(7541,7542,7543)</field>
+                                    </record>
+                                </field>
+                                <field name="children_ids">
+                                    <record id="account_financial_report_line_fr_cdrp3_3_1_asso" model="account.report.line">
+                                        <field name="name">Manual donations</field>
+                                        <field name="name@fr">Dons manuels</field>
+                                        <field name="code">DON_MANUEL</field>
+                                        <field name="expression_ids">
+                                            <record id="account_financial_report_line_fr_cdrp3_3_1_balance_asso" model="account.report.expression">
+                                                <field name="label">balance</field>
+                                                <field name="engine">account_codes</field>
+                                                <field name="formula">-7541</field>
+                                            </record>
+                                        </field>
+                                    </record>
+                                    <record id="account_financial_report_line_fr_cdrp3_3_2_asso" model="account.report.line">
+                                        <field name="name">Corporate sponsorship</field>
+                                        <field name="name@fr">Mécénats</field>
+                                        <field name="code">MECENAT</field>
+                                        <field name="expression_ids">
+                                            <record id="account_financial_report_line_fr_cdrp3_3_2_balance_asso" model="account.report.expression">
+                                                <field name="label">balance</field>
+                                                <field name="engine">account_codes</field>
+                                                <field name="formula">-7542</field>
+                                            </record>
+                                        </field>
+                                    </record>
+                                    <record id="account_financial_report_line_fr_cdrp3_3_3_asso" model="account.report.line">
+                                        <field name="name">Legacies, donations and life insurance</field>
+                                        <field name="name@fr">Legs, donations et assurances-vie</field>
+                                        <field name="code">LEGS</field>
+                                        <field name="expression_ids">
+                                            <record id="account_financial_report_line_fr_cdrp3_3_3_balance_asso" model="account.report.expression">
+                                                <field name="label">balance</field>
+                                                <field name="engine">account_codes</field>
+                                                <field name="formula">-7543</field>
+                                            </record>
+                                        </field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="account_financial_report_line_fr_cdrp3_4_asso" model="account.report.line">
+                                <field name="name">Financial contributions</field>
+                                <field name="name@fr">Contributions financières</field>
+                                <field name="code">CONTRIB_FIN</field>
+                                <field name="expression_ids">
+                                    <record id="account_financial_report_line_fr_cdrp3_4_balance_asso" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">account_codes</field>
+                                        <field name="formula">-755</field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdrp4_asso" model="account.report.line">
+                        <field name="name">Depreciation and provisions written back</field>
+                        <field name="name@fr">Reprises sur amortissements, dépréciations et provisions</field>
+                        <field name="code">REPRISE_AMORT</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdrp4_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-781 - 649</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdrp5_asso" model="account.report.line">
+                        <field name="name">Proceeds from disposals of property, plant and equipment and intangible assets</field>
+                        <field name="name@fr">Produits des cessions d'immobilisations incorporelles et corporelles</field>
+                        <field name="code">PRODUIT_CESSION</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdrp5_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-721 - 722 - 757</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdrp6_asso" model="account.report.line">
+                        <field name="name">Use of dedicated funds</field>
+                        <field name="name@fr">Utilisations des fonds dédiés</field>
+                        <field name="code">UTILISATION_FOND</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdrp6_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-7891 - 7894 - 7895 - 7896</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdrp7_asso" model="account.report.line">
+                        <field name="name">Other products</field>
+                        <field name="name@fr">Autres produits</field>
+                        <field name="code">AUTRES_PROD</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdrp7_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-751 - 752 - 758 - 791 - 796</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_line_fr_cdr_char_exp_asso" model="account.report.line">
+                <field name="name">Operating charges (II)</field>
+                <field name="name@fr">Charges d'exploitation (II)</field>
+                <field name="code">II</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_line_fr_cdr_char_exp_balance_asso" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">ACHAT_MARCH.balance + VARIATION_STOCK.balance + AUTRE_ACHAT.balance + AIDE_FINAN.balance + IMPOT.balance + SALAIRE.balance + COTISATION_SOC.balance + DOTATION_AMORT.balance + DOTATION_PROV.balance + VALEUR_COMPT.balance + REPORT_FOND.balance + AUTRE_CHARGE.balance</field>
+                    </record>
+                </field>
+                <field name="children_ids">
+                    <record id="account_financial_report_line_fr_cdrc1_asso" model="account.report.line">
+                        <field name="name">Purchases of goods for resale</field>
+                        <field name="name@fr">Achats de marchandises</field>
+                        <field name="code">ACHAT_MARCH</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdrc1_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">601 + 602 + 607 + 6087 + 6091 + 6092 + 6097</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdrc2_asso" model="account.report.line">
+                        <field name="name">Changes in inventories</field>
+                        <field name="name@fr">Variation de stock</field>
+                        <field name="code">VARIATION_STOCK</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdrc2_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">6031 + 6032 + 6037</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdrc3_asso" model="account.report.line">
+                        <field name="name">Other purchases and external charges</field>
+                        <field name="name@fr">Autres achats et charges externes</field>
+                        <field name="code">AUTRE_ACHAT</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdrc3_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">604 + 605 + 606 + 608000 + 6084 + 6085 + 6086 + 61\(619) + 62\(629) + 668 - 6090 - 6098 - 619 - 629</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdrc4_asso" model="account.report.line">
+                        <field name="name">Financial aid</field>
+                        <field name="name@fr">Aides financières</field>
+                        <field name="code">AIDE_FINAN</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdrc4_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">6571 + 6572</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdrc5_asso" model="account.report.line">
+                        <field name="name">Taxes, levies and similar payments</field>
+                        <field name="name@fr">Impôts, taxes et versements assimilés</field>
+                        <field name="code">IMPOT</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdrc5_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">635 + 637 + 638</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdrc6_asso" model="account.report.line">
+                        <field name="name">Salaries</field>
+                        <field name="name@fr">Salaires</field>
+                        <field name="code">SALAIRE</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdrc6_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">641 + 648</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdrc7_asso" model="account.report.line">
+                        <field name="name">Social security contributions</field>
+                        <field name="name@fr">Cotisations sociales</field>
+                        <field name="code">COTISATION_SOC</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdrc7_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">633 + 631 + 645 + 647</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdrc8_asso" model="account.report.line">
+                        <field name="name">Appropriations to depreciation</field>
+                        <field name="name@fr">Dotations aux amortissements et aux dépréciations</field>
+                        <field name="code">DOTATION_AMORT</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdrc8_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">6811 + 6862</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdrc9_asso" model="account.report.line">
+                        <field name="name">Appropriations to provisions</field>
+                        <field name="name@fr">Dotations aux provisions</field>
+                        <field name="code">DOTATION_PROV</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdrc9_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">6815 + 6816 + 6817</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdrc10_asso" model="account.report.line">
+                        <field name="name">Book values of realised assets</field>
+                        <field name="name@fr">Valeurs comptables des immobilisations incorporelles et corporelles cédées</field>
+                        <field name="code">VALEUR_COMPT</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdrc10_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">657\(6571,6572)</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdrc11_asso" model="account.report.line">
+                        <field name="name">Transfers to dedicated funds</field>
+                        <field name="name@fr">Reports en fonds dédiés</field>
+                        <field name="code">REPORT_FOND</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdrc11_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">689</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdrc12_asso" model="account.report.line">
+                        <field name="name">Other charges</field>
+                        <field name="name@fr">Autres charges</field>
+                        <field name="code">AUTRE_CHARGE</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdrc12_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">65\(657,655)</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <record id="p_n_l_1_resultat_exploitation_asso" model="account.report.line">
+                <field name="name">1. Operating result (I-II)</field>
+                <field name="name@fr">1. Résultat d'exploitation (I-II)</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="p_n_l_1_resultat_exploitation_balance_asso" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">I.balance - II.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_line_fr_cdr_prod_fin_asso" model="account.report.line">
+                <field name="name">Financial income (III)</field>
+                <field name="name@fr">Produits financiers (III)</field>
+                <field name="code">III</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_line_fr_cdr_prod_fin_balance_asso" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">PARTICIPATION.balance + AUTRE_VALEUR.balance + AUTRE_INTERET.balance + REPRISE_DEPR.balance + DIFF_POSITIVE.balance + PRODUIT_IMMO.balance + PRODUIT_NET.balance</field>
+                    </record>
+                </field>
+                <field name="children_ids">
+                    <record id="account_financial_report_line_fr_cdr_prod_fin1_asso" model="account.report.line">
+                        <field name="name">Of participations</field>
+                        <field name="name@fr">De participation</field>
+                        <field name="code">PARTICIPATION</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdr_prod_fin1_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-761</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdr_prod_fin2_asso" model="account.report.line">
+                        <field name="name">Other securities and receivables in fixed assets</field>
+                        <field name="name@fr">D'autres valeurs mobilières et créances de l'actif immobilisé</field>
+                        <field name="code">AUTRE_VALEUR</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdr_prod_fin2_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-762 - 764</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdr_prod_fin3_asso" model="account.report.line">
+                        <field name="name">Other interest and similar income</field>
+                        <field name="name@fr">Autres intérêts et produits assimilés</field>
+                        <field name="code">AUTRE_INTERET</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdr_prod_fin3_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-763 - 765 - 768</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdr_prod_fin4_asso" model="account.report.line">
+                        <field name="name">Reversals of depreciation and provisions</field>
+                        <field name="name@fr">Reprises sur dépréciations et provisions</field>
+                        <field name="code">REPRISE_DEPR</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdr_prod_fin4_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-786</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdr_prod_fin5_asso" model="account.report.line">
+                        <field name="name">Positive exchange rate differences</field>
+                        <field name="name@fr">Différences positives de change</field>
+                        <field name="code">DIFF_POSITIVE</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdr_prod_fin5_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-766</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdr_prod_fin6_asso" model="account.report.line">
+                        <field name="name">Income from disposals of financial fixed assets</field>
+                        <field name="name@fr">Produits des immobilisations financières cédées</field>
+                        <field name="code">PRODUIT_IMMO</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdr_prod_fin6_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-7671 - 7672</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdr_prod_fin7_asso" model="account.report.line">
+                        <field name="name">Net income from sales of marketable securities and treasury instruments</field>
+                        <field name="name@fr">Produits nets sur cessions de valeurs mobilières de placement et d'instruments de trésorerie</field>
+                        <field name="code">PRODUIT_NET</field>
+                        <field name="groupby">account_id</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdr_prod_fin7_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">-7673 - 7674</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_line_fr_cdr_char_fin_asso" model="account.report.line">
+                <field name="name">Financial charges (IV)</field>
+                <field name="name@fr">Charges financières (IV)</field>
+                <field name="code">IV</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_line_fr_cdr_char_fin_balance_asso" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">DOTATION_AMORT_CHARGE.balance + INTERET_CHARGE.balance + DIFF_NEGATIVE.balance + VALEUR_IMMO.balance + CHARGE_NETTE.balance</field>
+                    </record>
+                </field>
+                <field name="children_ids">
+                    <record id="account_financial_report_line_fr_cdr_char_fin1_asso" model="account.report.line">
+                        <field name="name">Appropriations to depreciation and provisions</field>
+                        <field name="name@fr">Dotations aux amortissements, aux dépréciations et aux provisions</field>
+                        <field name="code">DOTATION_AMORT_CHARGE</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdr_char_fin1_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">686\(6862) + 6812</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdr_char_fin2_asso" model="account.report.line">
+                        <field name="name">Interest and similar charges</field>
+                        <field name="name@fr">Intérêts et charges assimilées</field>
+                        <field name="code">INTERET_CHARGE</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdr_char_fin2_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">661 + 664 + 665 + 669</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdr_char_fin3_asso" model="account.report.line">
+                        <field name="name">Negative exchange rate differences</field>
+                        <field name="name@fr">Différences négatives de change</field>
+                        <field name="code">DIFF_NEGATIVE</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdr_char_fin3_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">666</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdr_char_fin4_asso" model="account.report.line">
+                        <field name="name">Book values of realised financial fixed assets</field>
+                        <field name="name@fr">Valeurs comptables des immobilisations financières cédées</field>
+                        <field name="code">VALEUR_IMMO</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdr_char_fin4_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">6671 + 6672</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdr_char_fin5_asso" model="account.report.line">
+                        <field name="name">Net charges on realisation of short-term investment securities and treasury instruments</field>
+                        <field name="name@fr">Charges nettes sur cessions de valeurs mobilières de placement et d'instruments de trésorerie</field>
+                        <field name="code">CHARGE_NETTE</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdr_char_fin5_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">6673 + 6674</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <record id="p_n_l_2_resultat_financier_asso" model="account.report.line">
+                <field name="name">2. Financial result (III-IV)</field>
+                <field name="name@fr">2. Résultat financier (III-IV)</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="p_n_l_2_resultat_financier_balance_asso" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">III.balance - IV.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="p_n_l_3_resultat_courant_avant_impots_asso" model="account.report.line">
+                <field name="name">3. Current result before taxes (I-II+III-IV)</field>
+                <field name="name@fr">3. Résultat courant avant impôts (I-II+III-IV)</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="p_n_l_3_resultat_courant_avant_impots_balance_asso" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">I.balance - II.balance + III.balance -IV.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_line_fr_cdr_prod_exc_asso" model="account.report.line">
+                <field name="name">Extraordinary income (V)</field>
+                <field name="name@fr">Produits exceptionnels (V)</field>
+                <field name="code">V</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_line_fr_cdr_prod_exc_balance_asso" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">account_codes</field>
+                        <field name="formula">-77 - 787 - 797</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_line_fr_cdr_char_exc_asso" model="account.report.line">
+                <field name="name">Extraordinary charges (VI)</field>
+                <field name="name@fr">Charges exceptionnelles (VI)</field>
+                <field name="code">VI</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_line_fr_cdr_char_exc_balance_asso" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">account_codes</field>
+                        <field name="formula">67 + 687</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_line_fr_cdr_resultat_exc_asso" model="account.report.line">
+                <field name="name">4. Extraordinary result (V-VI)</field>
+                <field name="name@fr">4. Résultat exceptionnel (V-VI)</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_line_fr_cdr_resultat_exc_balance_asso" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">V.balance - VI.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_line_fr_cdr_part_sal_asso" model="account.report.line">
+                <field name="name">Employee profit-sharing (VII)</field>
+                <field name="name@fr">Participation des salariés aux résultats (VII)</field>
+                <field name="code">VII</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_line_fr_cdr_part_sal_balance_asso" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">account_codes</field>
+                        <field name="formula">691</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_line_fr_cdr_impot_ben_asso" model="account.report.line">
+                <field name="name">Income tax (VIII)</field>
+                <field name="name@fr">Impôts sur les bénéfices (VIII)</field>
+                <field name="code">VIII</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_line_fr_cdr_impot_ben_balance_asso" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">account_codes</field>
+                        <field name="formula">695 + 696 + 698 + 699</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_line_fr_cdr_total_prod_asso" model="account.report.line">
+                <field name="name">Total income (I+III+V)</field>
+                <field name="name@fr">Total des produits (I+III+V)</field>
+                <field name="code">total_products</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_line_fr_cdr_total_prod_balance_asso" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">I.balance + III.balance + V.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_line_fr_cdr_total_char_asso" model="account.report.line">
+                <field name="name">Total charges (II+IV+VI+VII+VIII)</field>
+                <field name="name@fr">Total des charges (II+IV+VI+VII+VIII)</field>
+                <field name="code">total_charges</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_line_fr_cdr_total_char_balance_asso" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">II.balance + IV.balance + VI.balance + VII.balance + VIII.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_line_fr_cdr_tot_asso" model="account.report.line">
+                <field name="name">Profit or loss</field>
+                <field name="name@fr">Excédent ou déficit</field>
+                <field name="code">total_all</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_line_fr_cdr_tot_balance_asso" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">total_products.balance - total_charges.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_line_fr_cdr_contrib_vol_asso" model="account.report.line">
+                <field name="name">Voluntary contributions in kind</field>
+                <field name="name@fr">Contributions volontaires en nature</field>
+                <field name="code">CONTRIB_VOL</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_line_fr_cdr_contrib_vol_balance_asso" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">DON_NAT.balance + PRESTATION_NAT.balance + BENEVOLAT.balance</field>
+                    </record>
+                </field>
+                <field name="children_ids">
+                    <record id="account_financial_report_line_fr_cdr_contrib_vol1_asso" model="account.report.line">
+                        <field name="name">Donations in kind</field>
+                        <field name="name@fr">Dons en nature</field>
+                        <field name="code">DON_NAT</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdr_contrib_vol1_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">870</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdr_contrib_vol2_asso" model="account.report.line">
+                        <field name="name">Services in kind</field>
+                        <field name="name@fr">Prestations en nature</field>
+                        <field name="code">PRESTATION_NAT</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdr_contrib_vol2_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">871</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdr_contrib_vol3_asso" model="account.report.line">
+                        <field name="name">Volunteering</field>
+                        <field name="name@fr">Bénévolat</field>
+                        <field name="code">BENEVOLAT</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdr_contrib_vol3_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">875</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_line_fr_cdr_contrib_charvol_asso" model="account.report.line">
+                <field name="name">Uses of voluntary contributions in kind</field>
+                <field name="name@fr">Charges des contributions volontaires en nature</field>
+                <field name="code">CHARGE_CONTRIB</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_line_fr_cdr_contrib_charvol_balance_asso" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">SECOURS.balance + MISE_DISPO_BIEN.balance + PRESTATION_NAT_CHARGE.balance + PERSONNEL_BENEVOLE.balance</field>
+                    </record>
+                </field>
+                <field name="children_ids">
+                    <record id="account_financial_report_line_fr_cdr_contrib_charvol1_asso" model="account.report.line">
+                        <field name="name">In-kind relief</field>
+                        <field name="name@fr">Secours en nature</field>
+                        <field name="code">SECOURS</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdr_contrib_charvol1_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">860</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdr_contrib_charvol2_asso" model="account.report.line">
+                        <field name="name">Free provision of goods</field>
+                        <field name="name@fr">Mises à disposition gratuite de biens</field>
+                        <field name="code">MISE_DISPO_BIEN</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdr_contrib_charvol2_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">861</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdr_contrib_charvol3_asso" model="account.report.line">
+                        <field name="name">Services in kind</field>
+                        <field name="name@fr">Prestations en nature</field>
+                        <field name="code">PRESTATION_NAT_CHARGE</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdr_contrib_charvol3_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">862</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_financial_report_line_fr_cdr_contrib_charvol4_asso" model="account.report.line">
+                        <field name="name">Volunteer personnel</field>
+                        <field name="name@fr">Personnel bénévole</field>
+                        <field name="code">PERSONNEL_BENEVOLE</field>
+                        <field name="expression_ids">
+                            <record id="account_financial_report_line_fr_cdr_contrib_charvol4_balance_asso" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">account_codes</field>
+                                <field name="formula">864</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+        </field>
+    </record>
+</data>
+<data>
+    <record id="account_financial_report_l10n_fr_cdr_asso_action" model="ir.actions.client">
+        <field name="name">Profit and loss account associations</field>
+        <field name="tag">account_report</field>
+        <field name="context" eval="{'report_id': ref('account_financial_report_l10n_fr_cdr_asso')}"/>
+    </record>
+
+    <record id="account_financial_report_line_01_0_6_fr_bilan_passif_asso" model="account.report.line">
+        <field name="action_id" ref="account_financial_report_l10n_fr_cdr_asso_action"/>
+    </record>
+</data>
+</odoo>

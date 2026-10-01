@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+    <template id="instagram_preview" t-name="Instagram Preview">
+        <div class="o_social_preview o_social_instagram_preview bg-white border rounded overflow-hidden"
+            t-if="not instagram_post_as_story">
+            <div class="o_social_preview_header d-flex mt-3 mb-2 px-3">
+                <span class="o_social_preview_icon_wrapper d-inline-block overflow-hidden me-2">
+                    <i class="oi oi-2x" data-icon="oi_instagram"/>
+                </span>
+
+                <div class="o_social_preview_author o_social_instagram_font_size">
+                    <span class="mt-1 fw-bold">My Instagram Page</span>
+                </div>
+            </div>
+            <t t-call="social_instagram.instagram_preview_warning"/>
+            <div t-if="image_urls and not error_code"
+                class="o_social_stream_post_content d-flex mx-n3 overflow-hidden px-3">
+                <t t-foreach="image_urls" t-as="image_url">
+                    <div t-if="image_url_index == 1 and len(image_urls) > 2"
+                         class="o_social_stream_post_content_more position-relative d-flex ms-1">
+                        <img t-att-src="image_url" alt="Post Image" />
+                        <div class="o_social_stream_post_content_more_overlay
+                            d-flex align-items-center h-100 w-100 text-white
+                            justify-content-center position-absolute h1 m-0 pe-none">
+                            +<t t-out="len(image_urls) - 2"/>
+                        </div>
+                    </div>
+                    <div t-elif="image_url_index &lt; 2" class="w-100">
+                        <img t-att-src="image_url" alt="Post Image" />
+                    </div>
+                </t>
+            </div>
+            <div t-if="message and not instagram_post_as_story" class="pt-2 o_social_instagram_font_size px-3">
+                <span class="fw-bold pe-1">My_instagram_page</span>
+                <span class="o_social_preview_message" t-out="message" />
+            </div>
+            <div class="text-muted o_social_instagram_font_size small py-1 px-3">
+                <a t-if="live_post_link" t-attf-href="#{live_post_link}" target="blank">34 SECONDS AGO</a>
+                <t t-else="">34 SECONDS AGO</t>
+            </div>
+            <div t-if="instagram_first_comment" class="o_social_comment px-3 py-2 w-100 bg-white">
+                <hr class="my-2"/>
+                <span>1 Comment</span>
+            </div>
+        </div>
+        <t t-elif="error_code" t-call="social_instagram.instagram_preview_warning"/>
+        <div t-elif="image_urls" class="o_social_preview o_social_instagram_preview overflow-hidden o_social_story m-auto h-100 rounded d-flex flex-column justify-content-between">
+            <!-- Story preview -->
+            <div>
+                <div class="o_social_preview_progress d-flex flex-row justify-content-around align-items-center text-white">
+                    <hr class="my-1"/>
+                    <hr class="my-1"/>
+                    <hr class="my-1"/>
+                </div>
+                <div class="d-flex flex-row align-items-center text-white p-1 o_social_header">
+                    <span class="o_social_preview_icon_wrapper d-inline-block overflow-hidden me-2">
+                        <i class="oi oi-2x" data-icon="oi_instagram"/>
+                    </span>
+                    <b class="me-1">My Page</b> <span>7h</span>
+                </div>
+            </div>
+            <div class="d-flex flex-row align-items-center w-100 justify-content-between flex-grow-1 overflow-hidden">
+                <img t-if="not error_code" t-att-src="image_urls[0]" class="w-100 object-fit-contain"/>
+            </div>
+        </div>
+    </template>
+
+    <template id="instagram_preview_warning">
+        <div t-if="error_code == 'missing'" class="alert alert-warning w-100 px-3">
+            <i class="oi me-1" data-icon="warning"/>
+            At least one image is required when posting on Instagram.
+        </div>
+        <div t-if="error_code == 'corrupted'" class="alert alert-warning w-100 px-3">
+            <i class="oi me-1" data-icon="warning"/>
+            Your image appears to be corrupted, please try loading it again.
+        </div>
+        <div t-if="error_code == 'wrong_extension'" class="alert alert-warning w-100 px-3">
+            <span class="d-flex gap-1">
+                <div><i class="oi me-1" data-icon="warning"/></div>
+                <div>
+                    The following images are not in the correct format (jpg/jpeg).
+                </div>
+            </span>
+            <hr/>
+            <ul>
+                <t t-foreach="faulty_images" t-as="faulty_image">
+                    <li t-out="faulty_image"/>
+                </t>
+            </ul>
+        </div>
+         <div t-if="error_code == 'max_limit'" class="alert alert-warning w-100 px-3">
+            <i class="oi me-1" data-icon="warning"/>
+            <t t-if="instagram_post_as_story">Instagram stories can only contain a single picture.</t>
+            <t t-else="">You can only post up to 10 images at once.</t>
+        </div>
+        <div t-if="error_code == 'incorrect_ratio'" class="alert alert-warning w-100 px-3">
+            <span class="d-flex gap-1">
+                <div><i class="oi me-1" data-icon="warning"/></div>
+                <div>
+                    The following images do not meet the
+                    <a href="https://www.facebook.com/help/instagram/1631821640426723" target="_blank">
+                        required aspect ratio
+                    </a>
+                    (between 1.91:1 and 4:5).
+                </div>
+            </span>
+            <hr/>
+            <ul>
+                <t t-foreach="faulty_images" t-as="faulty_image">
+                    <li t-out="faulty_image"/>
+                </t>
+            </ul>
+        </div>
+    </template>
+</data>
+</odoo>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="hr_attendance_view_inherit_filter" model="ir.ui.view">
+        <field name="name">hr.attendance.view.inherit.filter</field>
+        <field name="model">hr.attendance</field>
+        <field name="inherit_id" ref="hr_attendance.hr_attendance_view_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='employee_id']" position="after">
+                <field name="employee_id" string="Employee Reference" filter_domain="[('employee_id.registration_number','ilike', self)]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_attendance_view_list_payroll" model="ir.ui.view">
+        <field name="name">hr.attendance.view.list.inherit.hr.payroll.attendance</field>
+        <field name="model">hr.attendance</field>
+        <field name="inherit_id" ref="hr_attendance.view_attendance_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='worked_hours']" position="after">
+                <field name="work_entry_type_id" optional="hidden" groups="hr.group_hr_user"/>
+                <field name="category_options_ids" widget="many2many_tags"
+                    optional="hidden" groups="hr_payroll.group_hr_payroll_user"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_attendance_view_form" model="ir.ui.view">
+        <field name="name">hr.attendance.view.form.inherit.hr.payroll.attendance</field>
+        <field name="model">hr.attendance</field>
+        <field name="inherit_id" ref="hr_attendance.hr_attendance_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button type="object" class="oe_stat_button" name="action_open_payslip" id="open_payslip"
+                        icon="payments" invisible="not payslip_id" groups="hr_payroll.group_hr_payroll_user">
+                        <span class="o_stat_text">Linked Payslip</span>
+                    </button>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='work_entry_type_id']" position="after">
+                <field name="category_options_ids" widget="many2many_tags"
+                    options="{'no_create': True}"
+                    invisible="not work_entry_type_id"
+                    groups="hr_payroll.group_hr_payroll_user"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_attendance_my_calendar_view_payroll" model="ir.ui.view">
+        <field name="name">hr.attendance.my.calendar.inherit.hr.payroll.attendance</field>
+        <field name="model">hr.attendance</field>
+        <field name="inherit_id" ref="hr_attendance.hr_attendance_my_calendar_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='work_entry_type_id']" position="after">
+                <field name="category_options_ids" widget="many2many_tags" string="Options"
+                    invisible="not work_entry_type_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_payroll_attendance_gantt_view" model="ir.ui.view">
+        <field name="name">hr.attendance.gantt.payroll</field>
+        <field name="model">hr.attendance</field>
+        <field name="inherit_id" ref="hr_attendance_gantt.hr_attendance_gantt_view"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <gantt position="attributes">
+                <attribute name="js_class">hr_payroll_attendance_gantt</attribute>
+            </gantt>
+        </field>
+    </record>
+</odoo>

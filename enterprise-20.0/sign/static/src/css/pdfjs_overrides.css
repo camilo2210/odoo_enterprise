@@ -1,0 +1,277 @@
+/*
+Purpose
+========
+This file overrides the default PDF.js viewer styling to enhance the user 
+experience while signing documents. Specifically, Moves the side panel to 
+the right side of the viewer for improved accessibility. The customizations 
+aim to deliver a cleaner and more intuitive user interface.
+*/
+
+/* The viewer is an isolated iframe, Odoo's SCSS tokens are out of reach, so the
+   "Frost" palette is mirrored here as literals. It should be kept in sync with
+   web_enterprise/static/src/scss/primary_variables{,.dark}.scss. */
+:root {
+    --sidebar-width: 200px;
+    --body-bg-color: #e7ebed;
+    --separator-color: rgb(0 0 0 / 0.15);
+    --sidebar-narrow-bg-color: #e7ebed;
+    --field-bg-color: #e7ebed;
+    --field-border-color: #dee2e6;
+    --field-color: #212529;
+    --toggled-btn-bg-color: #e6f2f3;
+    --toggled-btn-border-color: #017e84;
+    --toolbar-bg-color: #f8f9fa;
+    --toolbar-box-shadow: none;
+    --toolbar-height: 33px;
+    --toolbar-border-bottom: 1px solid #dee2e6;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:where(:not(.is-light)) {
+        --body-bg-color: #25262b;
+        --toolbar-bg-color: #1C1C20;
+        --separator-color: rgba(255, 255, 255, 0.15);
+        --field-bg-color: #25262b;
+        --field-border-color: #56575E;
+        --field-color: #E4E4E5;
+        --toolbar-border-bottom: 1px solid #3A3B41;
+        --sidebar-narrow-bg-color: #25262b;
+        --sidebar-toolbar-bg-color: #1C1C20;
+        --toggled-btn-bg-color: #1c3436;
+        --toggled-btn-border-color: #1CBCB1;
+    }
+}
+
+:root:where(.is-dark) {
+    --body-bg-color: #25262b;
+    --toolbar-bg-color: #1C1C20;
+    --separator-color: rgba(255, 255, 255, 0.15);
+    --field-bg-color: #25262b;
+    --field-border-color: #56575E;
+    --field-color: #E4E4E5;
+    --toolbar-border-bottom: 1px solid #3A3B41;
+    --sidebar-narrow-bg-color: #25262b;
+    --sidebar-toolbar-bg-color: #1C1C20;
+    --toggled-btn-bg-color: #1c3436;
+    --toggled-btn-border-color: #1CBCB1;
+}
+
+#sidebarContainer {
+    inset-inline-end: calc(-1 * var(--sidebar-width));
+    inset-inline-start: unset !important;
+    transition-property: inset-inline-end !important;
+}
+
+#outerContainer {
+    overflow-x: hidden;
+}
+
+#viewerContainer {
+    inset-inline-start: 0 !important;
+}
+
+#outerContainer.sidebarOpen #sidebarContainer {
+    inset-inline-end: 0;
+}
+
+#outerContainer.sidebarOpen #loadingBar {
+    inset-inline-end: var(--sidebar-width);
+    inset-inline-start: unset !important;
+}
+
+#outerContainer.sidebarOpen #viewerContainer:not(.pdfPresentationMode) {
+    inset-inline-end: var(--sidebar-width);
+    transition-property: inset-inline-end;
+}
+
+#sidebarResizer {
+    inset-inline-end: unset !important;
+    position: absolute;
+    inset-block: unset;
+}
+
+#toolbarContainer #toolbarViewer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    justify-content: center !important;
+}
+
+#toolbarViewerLeft {
+    position: absolute;
+    right: 0;
+    display: flex;
+}
+
+#toolbarViewerLeft > .toolbarHorizontalGroup:has(#pageNumber) {
+    order: 1;
+}
+
+#toolbarViewerLeft > .toolbarHorizontalGroup:has(button) {
+    display: contents;
+}
+
+#toolbarViewerLeft > .toolbarHorizontalGroup > .splitToolbarButtonSeparator {
+    order: 3;
+}
+
+#sidebarToggleButton {
+    position: absolute;
+    right: 0;
+}
+
+#toolbarViewerRight {
+    display: none !important;
+}
+
+#secondaryToolbarToggleButton::before {
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+    transform: none !important;
+    content: "\2807";
+    font-size: 20px;
+    display: inline-block;
+    color: black;
+}
+
+#secondaryToolbarToggleButton.toolbarButton::before {
+    background-color: transparent !important;
+}
+
+#secondaryToolbar {
+    inset-inline-start: 4px;
+    inset-inline-end: unset !important;
+}
+
+#secondaryToolbar::before,
+#secondaryToolbar::after {
+    inset-inline-start: 10px;
+    margin-inline-start: -9px;
+}
+
+#findbar {
+    inset-inline-end: 7px;
+    inset-inline-start: unset !important;
+}
+
+.doorHanger::before,
+.doorHanger::after {
+    inset-inline-end: 10px;
+    margin-inline-end: -9px;
+    inset-inline-start: unset !important;
+    margin-inline-start: 0;
+}
+
+.dropdownToolbarButton {
+    order: 5;
+    background-color: var(--field-bg-color);
+    border: 1px solid var(--field-border-color);
+}
+
+#toolbarViewerLeft,
+#toolbarViewerMiddle,
+#toolbarViewerMiddle > .toolbarHorizontalGroup {
+    display: contents;
+}
+
+.toolbarButtonWithContainer {
+    order: 8;
+}
+
+.toolbarButton {
+    border: 1px solid transparent;
+}
+
+.toolbarButton.toggled {
+    border: 1px solid var(--toggled-btn-border-color);
+}
+
+#pageNumber {
+    text-align: center;
+    width: auto;
+    font-size: 12px !important;
+}
+
+.toolbarLabel {
+    padding-inline-end: 0;
+}
+
+#previous, #next, #zoomOutButton, #zoomInButton {
+    margin-inline: 5px;
+}
+
+#next {
+    order: 2;
+}
+
+#zoomOutButton {
+    order: 4;
+}
+
+#scaleSelectContainer > select {
+    height: 22px;
+    background-color: var(--field-bg-color);
+}
+
+#zoomInButton {
+    order: 6;
+}
+
+#toolbarViewerMiddle .splitToolbarButtonSeparator {
+    order: 7;
+}
+
+.splitToolbarButtonSeparator {
+    margin-inline: 12px;
+}
+
+@media all and (min-width: 690px) {
+    .toolbarButtonWithContainer {
+        margin-left: 5px;
+    }
+}
+
+@media all and (max-width: 690px) {
+    :root {
+        --toolbar-height: 40px;
+    }
+
+    #toolbarViewerLeft > .toolbarHorizontalGroup:has(#pageNumber),
+    #toolbarViewerMiddle > .toolbarHorizontalGroup:has(#zoomOutButton) {
+        display: none;
+    }
+
+    #findbar {
+        inset-inline-end: unset;
+        width: 100vw;
+        position: fixed;
+        inset: auto 0;
+        max-width: 100vw;
+        padding: 10px 16px;
+        margin-top: 2px;
+        border-top: var(--toolbar-border-bottom);
+        border-bottom: var(--toolbar-border-bottom);
+        border-radius: 0;
+    }
+
+    #toolbarContainer #toolbarViewer {
+        justify-content: flex-start !important;
+    }
+
+    .doorHanger::before,
+    .doorHanger::after,
+    #findbarOptionsOneContainer,
+    #findbarOptionsTwoContainer,
+    #scaleSelectContainer {
+        display: none;
+    }
+
+    #sidebarToggleButton {
+        margin-right: 16px;
+    }
+
+    .toolbarButtonWithContainer > .toolbarButton {
+        width: auto;
+        margin-left: 16px;
+    }
+}

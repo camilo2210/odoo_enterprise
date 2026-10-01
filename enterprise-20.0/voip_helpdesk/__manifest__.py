@@ -1,0 +1,33 @@
+{  # noqa: B018
+    "name": "Phone - Helpdesk",
+    "summary": "Phone integration with Helpdesk module.",
+    "category": "Helpdesk",
+    "author": "Odoo S.A.",
+    "license": "OEEL-1",
+    "depends": ["voip", "helpdesk"],
+    "auto_install": True,
+    "data": [
+        "views/voip_call_views.xml",
+        "wizards/mail_activity_schedule_views.xml",
+    ],
+    "demo": [
+        "demo/voip_call.xml",
+    ],
+    "assets": {
+        "im_livechat.assets_embed_core": [
+            "voip_helpdesk/static/src/core/common/**/*",
+        ],
+        "mail.assets_public": [
+            "voip_helpdesk/static/src/core/common/**/*",
+        ],
+        "portal.assets_chatter_helpers": [
+            "voip_helpdesk/static/src/core/common/**/*",
+        ],
+        "web.assets_backend": [
+            "voip_helpdesk/static/src/**/*",
+        ],
+        "web.assets_unit_tests": [
+            "voip_helpdesk/static/tests/**/*",
+        ],
+    },
+}

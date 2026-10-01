@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="sign.ThankYouDialog">
+        <Dialog t-props="this.dialogProps">
+            <t t-set-slot="header" t-slot-scope="scope">
+                <h3 class="modal-title text-break text-center" t-att-class="{ 'me-auto': scope.isFullscreen }">
+                    <span id="header-title-content">
+                       It's signed! <i id="sign-thank-you-icon" class="oi oi-sm p-2 text-success" data-icon="check" role="img"/>
+                    </span>
+                </h3>
+                <button class="btn btn-close shadow-none float-end" t-on-click="this.onClickClose"/>
+            </t>
+            <h5 t-if="this.props.subtitle" id="thank-you-subtitle" class="text-center"><t t-out="this.props.subtitle"/></h5>
+            <div t-attf-class="o_sign_thankyou_dialog d-flex flex-column align-items-center gap-2 mb-3">
+                <div id="thank-you-message" class="o_thankyou_message">
+                    <t t-out="this.message"/>
+                </div>
+                <br/>
+                <div class="d-flex justify-content-center">
+                    <button type="button" t-if="this.signRequestState === 'signed'" class="btn btn-primary o_next_document_button" t-on-click="() => this.downloadDocument()">
+                        Download
+                    </button>
+                </div>
+            </div>
+            <t t-if="this.state.nextDocuments.filter((doc) => !doc.canceled).length > 0">
+                <hr/>
+                <t t-if="this.isMobileOS">
+                    <br/>
+                </t>
+                <div class="o_thankyou_message">Other documents waiting for your signature:</div>
+                <table class="table table-sm">
+                    <tbody>
+                        <t t-foreach="this.state.nextDocuments.filter((doc) => !doc.canceled)" t-as="doc" t-key="doc.id">
+                            <tr t-attf-class="next-document">
+                                <th t-attf-class="{{doc_last and 'border-0'}} p-2 o_sign_thankyou_dialog">
+                                    <div class="next-document d-flex flex-column gap-2">
+                                        <strong class="text-normal" t-out="doc.name"/>
+                                        <span class="fw-normal">Sent by <span t-out="doc.user"></span> - <span t-out="doc.date"></span></span>
+                                        <div class="d-flex justify-content-start gap-2">
+                                            <button class="btn btn-sm btn-primary o_thankyou_next_sign" t-on-click="() => this.clickNextSign(doc.requestId, doc.accessToken)">Sign</button>
+                                            <button class="btn btn-sm btn-secondary o_thankyou_next_view" t-on-click="() => this.clickNextSign(doc.requestId, doc.accessToken)">View</button>
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </t>
+            <div t-if="this.suggestSignUp" class="alert alert-info o_thankyou_message d-flex gap-2 mb-0 mt-3 rounded border-0 align-items-center mb-3">
+                <img class="img" height="48" width="48" src="/base/static/img/icons/sign.png"></img>
+                <div>
+                    <h6 class="mb-1">Need to sign documents?</h6>
+                    <p class="mb-0">
+                        <a class="fw-bold" href="https://www.odoo.com/trial?selected_app=sign&amp;utm_source=db&amp;utm_medium=sign" target="_blank">Odoo Sign</a>
+                        is free, forever, with unlimited users - and it's fun to use!
+                    </p>
+                    <t t-if="this.suggestSignUp">
+                        <button t-att-class="this.state.signUpButton.classes" t-on-click="this.state.signUpButton.click">
+                            <t t-out="this.state.signUpButton.name"/>
+                        </button>
+                    </t>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <t t-foreach="this.state.buttons" t-as="button" t-key="button.name">
+                    <button t-att-class="button.classes" t-on-click="button.click" t-att-disabled="button.disabled"><t t-out="button.name"/></button>
+                </t>
+            </t>
+        </Dialog>
+    </t>
+</templates>

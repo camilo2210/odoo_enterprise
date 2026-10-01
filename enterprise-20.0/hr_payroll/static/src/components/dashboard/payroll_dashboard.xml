@@ -1,0 +1,93 @@
+<template>
+    <t t-name="hr_payroll.Dashboard">
+        <t t-if="!this.state.warnings.length and !this.state.isRecomputing">
+            <DashboardEmptyScreen closingDatesData="this.state.closingDatesData"/>
+        </t>
+        <t else="">
+            <div class="container-fluid h-100 py-4 py-md-5 overflow-auto border-top">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-sm-10 col-xl-8 col-xxl-6">
+                        <div t-if="this.state.error" class="alert alert-warning d-flex align-items-center justify-content-between gap-3" role="alert">
+                            <span>The warnings could not be loaded entirely.</span>
+                            <button type="button" class="btn btn-secondary flex-shrink-0" t-on-click="() => this.retryWarningStream()">
+                                Retry
+                            </button>
+                        </div>
+                        <t t-foreach="this.groupedWarnings" t-as="warningsPerMonthData" t-key="warningsPerMonthData.date.toISODate()">
+                            <div class="o_payroll_warning_month_wrapper d-flex flex-column gap-2">
+                                <div class="o_payroll_warning_month_img_wrapper d-flex gap-3 mb-2 mb-md-0">
+                                    <div class="d-none d-md-block">
+                                        <div class="o_payroll_warning_date_line h-100 d-flex flex-column align-items-center flex-shrink-0">
+                                            <div class="h-100 border-start"/>
+                                        </div>
+                                    </div>
+                                    <div class="o_payroll_warning_month_img d-flex align-items-center flex-grow-1 border rounded px-4 bg-view"
+                                        t-attf-style="background-image: url('/hr_payroll/static/img/banner-#{warningsPerMonthData.date.month}.svg');">
+                                        <h1 class="h2 mb-0">
+                                            <span t-out="warningsPerMonthData.date.toLocaleString({ month: 'long' })"/>
+                                            <br/>
+                                            <span t-out="warningsPerMonthData.date.year"/>
+                                        </h1>
+                                    </div>
+                                </div>
+                                <t t-foreach="warningsPerMonthData.warningDates" t-as="date" t-key="date.toISODate()">
+                                    <div class="o_payroll_warning_cards d-flex flex-column flex-md-row gap-3">
+                                        <div class="o_payroll_warning_date_line d-flex flex-column align-items-start align-items-md-center flex-shrink-0 gap-2 text-wrap">
+                                            <h1
+                                                class="h5 mb-0 text-center"
+                                                t-att-class="this.getDateLabelClasses(date)"
+                                                t-out="this.formatDateLabel(date, true)"
+                                            />
+                                            <div class="d-none d-md-block h-100 border-start"/>
+                                        </div>
+                                        <div class="o_payroll_warning_card_wrapper flex-grow-1">
+                                            <div class="d-flex flex-column gap-2">
+                                                <t t-foreach="warningsPerMonthData.warningsByDate[date.toISODate()]" t-as="warning" t-key="warning.key">
+                                                    <div
+                                                        class="d-flex position-relative opacity-trigger-hover"
+                                                        t-att-data-warning-key="warning.key"
+                                                        t-attf-class="{{warning.is_fading_out ? 'o_payroll_warning_fade_out' : ''}} {{warning.is_fading_in ? 'o_payroll_warning_fade_in' : ''}}"
+                                                    >
+                                                        <PayrollWarningCard
+                                                            id="warning.id"
+                                                            title="warning.name"
+                                                            structureTypeSuffix="warning.structure_type_suffix"
+                                                            description="warning.description"
+                                                            count="warning.count"
+                                                            colorClass="warning.color_class"
+                                                            buttonName="warning.button_name"
+                                                            buttonAction="warning.button_action"
+                                                            isLoading="warning.is_loading"
+                                                            isError="warning.is_error"
+                                                        />
+                                                        <div
+                                                            class="o_payroll_cancel_warning position-absolute top-50 start-100 translate-middle-y h-100 align-self-stretch ps-2 d-none d-md-flex align-items-center opacity-0"
+                                                            t-attf-class="{{this.state.mandatoryConfigId == warning.id ? 'pe-none' : 'opacity-100-hover'}}"
+                                                        >
+                                                            <button
+                                                                type="button"
+                                                                class="btn-close"
+                                                                aria-label="Hide warning"
+                                                                t-on-click="() => this.actionArchive(warning.id, warning.name)"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </t>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                        <t t-if="this.state.isRecomputing">
+                            <div class="d-flex justify-content-center align-items-center py-3 text-muted">
+                                <i class="oi oi-spin d-inline-block" data-icon="autorenew"/>
+                                <span class="ms-2">Checking for more warnings...</span>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </t>
+</template>

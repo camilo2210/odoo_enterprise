@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.l10n_be_hr_payroll</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="45"/>
+        <field name="inherit_id" ref="hr_payroll.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='hr_payroll_accountant']" position="after">
+                <field name="company_country_code" invisible="1"/>
+                <field name="l10n_be_employer_category_has_cp302" invisible="1"/>
+                <block title="Belgian Localization" id="l10n_be_hr_payroll" invisible="company_country_code != 'BE'">
+                    <setting string="ONSS Certificate" company_dependent="1" help="Automate Dimona, DMFA and DRS submissions via API.">
+                        <div class="mt16">
+                            <div class="mb-3">
+                                <widget name="documentation_link"
+                                        path="https://www.socialsecurity.be/site_fr/employer/applics/dmfa/batch/home.htm"
+                                        label="See Documentation" icon="east"/>
+                            </div>
+                            <div class="row mb-2 align-items-center">
+                                <div class="col-lg-5 d-flex align-items-center">
+                                    <label for="onss_technical_user_name"/>
+                                    <div class="oi" data-icon="help" title="The technical username used to log in to the ONSS/RSZ portal for submitting declarations."/>
+                                </div>
+                                <field name="onss_technical_user_name" placeholder="Enter ONSS portal username"/>
+                            </div>
+                            <div class="row mb-2 align-items-center">
+                                <div class="col-lg-5 d-flex align-items-center">
+                                    <label for="onss_sftp_private_key"/>
+                                    <div class="oi" data-icon="help" title="The private key associated with the technical user, required to authenticate communications with ONSS."/>
+                                </div>
+                                <div class="col-lg-7">
+                                    <field name="onss_sftp_private_key"
+                                           placeholder="Upload private key file (.pem)"
+                                           class="w-100"/>
+                                </div>
+                            </div>
+                            <div class="row mb-2 align-items-center">
+                                <div class="col-lg-5 d-flex align-items-center">
+                                    <label for="onss_expeditor_number"/>
+                                    <div class="oi" data-icon="help" title="The unique number assigned to the sender to identify the source of DMFA submissions to ONSS."/>
+                                </div>
+                                <field name="onss_expeditor_number" placeholder="e.g. 123456"/>
+                            </div>
+                            <div class="row mb-2 align-items-center">
+                                <div class="col-lg-5 d-flex align-items-center">
+                                    <label for="onss_certificate_id"/>
+                                    <div class="oi" data-icon="help" title="Official certificate provided by ONSS, used to validate and secure electronic exchanges with the portal."/>
+                                </div>
+                                <div class="col-lg-7">
+                                    <field name="onss_certificate_id"
+                                           placeholder="Upload certificate file (.cer)"
+                                           class="w-100"/>
+                                </div>
+                            </div>
+                            <div class="row mb-2 align-items-center">
+                                <div class="col-lg-5 d-flex align-items-center">
+                                    <label for="nsso_immatriculation_date"/>
+                                    <div class="oi" data-icon="help" title="The date the company was registered with the National Social Security Office (NSSO)."/>
+                                </div>
+                                <div class="col-lg-7">
+                                    <field name="nsso_immatriculation_date" 
+                                           placeholder="e.g. 01/01/2020" 
+                                           class="w-100"/>
+                                </div>
+                            </div>
+                            <div class="row mb-2 align-items-center">
+                                <div class="col-lg-5 d-flex align-items-center">
+                                    <label for="l10n_be_dimona_environment"/>
+                                    <div class="oi" data-icon="help" title="Choose whether to communicate with the production server or the test server for Dimona declarations"/>
+                                </div>
+                                <div class="col-lg-7">
+                                    <field name="l10n_be_dimona_environment"
+                                           class="w-100"/>
+                                </div>
+                            </div>
+                            <button name="l10n_be_hr_payroll.l10n_be_fetch_dimona_sandbox_action" icon="east" type="action" string="Fetch Declarations (Sandbox)" class="btn-link" invisible="l10n_be_dimona_environment != 'sandbox'"/>
+                        </div>
+                    </setting>
+                    <setting id="cash_register" string="Cash Register" company_dependent="1" help="Configure cash register settings (CP302)" invisible="not l10n_be_employer_category_has_cp302">
+                        <div class="mt16">
+                            <div class="row mb-2 align-items-center">
+                                <div class="col-lg-5 d-flex align-items-start gap-2">
+                                    <label string="Active" for="l10n_be_cash_register_active"/>
+                                    <field name="l10n_be_cash_register_active" nolabel="1" />
+                                </div>
+                            </div>
+                            <div class="row mb-2 align-items-center">
+                                <div class="col-lg-5 d-flex align-items-center">
+                                    <label string="Number" for="l10n_be_cash_register_number"/>
+                                </div>
+                                <field name="l10n_be_cash_register_number" class="w-50" placeholder="e.g. 001" />
+                            </div>
+                            <div class="row mb-2 align-items-center">
+                                <div class="col-lg-5 d-flex align-items-center">
+                                    <label string="Registration Start" for="l10n_be_cash_register_registration_start"/>
+                                </div>
+                                <field name="l10n_be_cash_register_registration_start" />
+                            </div>
+                            <div class="row mb-2 align-items-center">
+                                <div class="col-lg-5 d-flex align-items-center">
+                                    <label string="Registration End" for="l10n_be_cash_register_registration_end"/>
+                                </div>
+                                <field name="l10n_be_cash_register_registration_end" />
+                            </div>
+                            <div class="row mb-2 align-items-center">
+                                <div class="col-lg-5 d-flex align-items-center">
+                                    <label string="Daily Registration Recording" for="l10n_be_daily_registration_recording"/>
+                                    <div class="oi" data-icon="help" title="If not visible, considered as 1."/>
+                                </div>
+                                <div class="col-lg-7">
+                                    <field name="l10n_be_daily_registration_recording" />
+                                </div>
+                            </div>
+                        </div>
+                    </setting>
+                    <setting id="company_information" string="Company Information" help="Official Company Information" company_dependent="1">
+                        <div class="mt16 content-group">
+                            <div class="row mb-2 align-items-center">
+                                <div class="col-lg-5 d-flex align-items-start gap-2">
+                                    <label for="l10n_be_cbe_inscription"/>
+                                    <field name="l10n_be_cbe_inscription"/>
+                                </div>
+                            </div>
+                        </div>
+                        <button name="action_open_hr_payroll_localization" type="object" string="Configure" class="btn-secondary ps-2 w-100"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="res_config_settings_view_form_fleet" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.l10n_be_hr_payroll.fleet</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="45"/>
+        <field name="inherit_id" ref="fleet.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@id='fleet']" position="inside">
+                <block>
+                    <setting
+                    string="New Vehicle Request"
+                    title="When the limit is reached, all offers generated for employees will uncheck the 'Show Company Car to Order' by default.">
+                    <div class="text-muted content-group mt16">
+                    <span>Allow ordering a new car if less than</span>
+                        <field name="l10n_be_max_unused_cars" class="text-center" style="width: 10%; min-width: 4rem;" />
+                        <span> cars availables.</span>
+                    </div>
+                    </setting>
+                    <setting
+                    string="Temporary Vehicle Choice">
+                    <div class="text-muted content-group mt16">
+                        <field name="l10n_be_temporary_car_option"/>
+                        <span>Allow employee to select a temporary car when ordering a new one and adapt its salary.</span>
+                    </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

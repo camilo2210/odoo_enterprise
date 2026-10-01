@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="whatsapp_composer_view_form" model="ir.ui.view">
+        <field name="name">whatsapp.composer.view.form</field>
+        <field name="model">whatsapp.composer</field>
+        <field name="arch" type="xml">
+            <form string="Send WhatsApp" js_class="whatsapp_composer_form">
+                <t invisible="blocklisted_phone_number_count == 0">
+                    <div class="alert alert-danger text-center" role="alert" invisible="batch_mode">
+                        <p class="my-0">
+                            This number is <strong>blocklisted</strong> for WhatsApp. Unblock it to send messages.
+                        </p>
+                    </div>
+                    <div class="alert alert-info text-center" role="alert" invisible="not batch_mode">
+                        <p class="my-0">
+                            Skipping <field class="oe_inline fw-bold" name="blocklisted_phone_number_count"/> blocklisted recipient(s).
+                        </p>
+                    </div>
+                </t>
+                <t invisible="invalid_phone_number_count == 0">
+                    <div class="alert alert-danger text-center" role="alert" invisible="batch_mode">
+                        <p class="my-0">
+                            <strong>Invalid number: </strong>
+                            <span>make sure to set a country on the Contact or to specify the country code.</span>
+                        </p>
+                    </div>
+                    <div class="alert alert-info text-center" role="alert" invisible="not batch_mode">
+                        <p class="my-0">
+                            <field class="oe_inline fw-bold" name="invalid_phone_number_count"/> recipients have an invalid phone number and will be skipped.
+                        </p>
+                    </div>
+                </t>
+                <div invisible="not (is_header_free_text or number_of_free_text or number_of_free_text_button)" class="alert alert-info text-center" role="alert">
+                    <p class="my-0">
+                        <strong>Note: </strong>
+                        <span>If you leave a free text field blank, the sample value from the template will be used.</span>
+                    </p>
+                </div>
+                <sheet>
+                    <group>
+                    <group>
+                        <field name="wa_template_id"
+                            required="1"
+                            options="{'no_create_edit': True, 'no_create': True, 'no_open': True}"
+                            domain="[('model', '=', res_model), ('status', '=', 'approved'), ('template_type', 'in', context.get('template_types', ['authentication', 'marketing', 'utility']))]"/>
+                        <field name="phone" invisible="batch_mode" required="not batch_mode"/>
+                        <field name="header_text_1" invisible="not is_header_free_text" widget="whatsapp_placeholder_char"/>
+                        <field name="free_text_1" invisible="number_of_free_text &lt; 1" widget="whatsapp_placeholder_char"/>
+                        <field name="free_text_2" invisible="number_of_free_text &lt; 2" widget="whatsapp_placeholder_char"/>
+                        <field name="free_text_3" invisible="number_of_free_text &lt; 3" widget="whatsapp_placeholder_char"/>
+                        <field name="free_text_4" invisible="number_of_free_text &lt; 4" widget="whatsapp_placeholder_char"/>
+                        <field name="free_text_5" invisible="number_of_free_text &lt; 5" widget="whatsapp_placeholder_char"/>
+                        <field name="free_text_6" invisible="number_of_free_text &lt; 6" widget="whatsapp_placeholder_char"/>
+                        <field name="free_text_7" invisible="number_of_free_text &lt; 7" widget="whatsapp_placeholder_char"/>
+                        <field name="free_text_8" invisible="number_of_free_text &lt; 8" widget="whatsapp_placeholder_char"/>
+                        <field name="free_text_9" invisible="number_of_free_text &lt; 9" widget="whatsapp_placeholder_char"/>
+                        <field name="free_text_10" invisible="number_of_free_text &lt; 10" widget="whatsapp_placeholder_char"/>
+                        <field name="button_dynamic_url_1" invisible="number_of_free_text_button &lt; 1" widget="whatsapp_placeholder_char"/>
+                        <field name="button_dynamic_url_2" invisible="number_of_free_text_button &lt; 2" widget="whatsapp_placeholder_char"/>
+                    </group>
+                    <group>
+                        <div colspan="2">
+                            <field name="preview_whatsapp" no_label="1" invisible="not preview_whatsapp"/>
+                        </div>
+                    </group>
+                </group>
+                </sheet>
+                <footer>
+                    <button string="Send Message" type="object" class="oe_highlight" name="action_send_whatsapp_template"/>
+                    <button name="cancel" special="cancel" data-hotkey="z" string="Close" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

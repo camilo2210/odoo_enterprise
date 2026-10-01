@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <div
+        t-name="spreadsheet_edition.ListDetailsSidePanel"
+        class="o-listing-details-side-panel"
+        t-att="this.env.model.getters.isReadonly() ? ['inert', 1] : []"
+        t-att-class="{ 'pe-none opacity-50': this.env.model.getters.isReadonly() }">
+        <t t-if="this.isModelValid">
+            <Section class="'o-section'">
+                <t t-set-slot="title">
+                    <div class="d-flex flex-row justify-content-between align-items-center">
+                        List Name
+                        <CogWheelMenu items="this.cogWheelMenuItems"/>
+                    </div>
+                </t>
+                <TextInput
+                    value="this.env.model.getters.getListName(this.props.listId)"
+                    onChange.bind="this.onNameChanged"
+                />
+            </Section>
+            <t t-set="def" t-value="this.listDefinition"/>
+            <Section title.translate="Model">
+                <div class="o_model_name"><t t-out="def.modelDisplayName"/> (<t t-out="def.model"/>)</div>
+                <span
+                    t-att-class=" this.canFetchMoreRecords ? 'o-button-link' : 'text-muted' "
+                    t-on-click="this.fetchMoreRecords"
+                    t-out="this.recordsCountText"/>
+            </Section>
+            <Section>
+                <t t-set-slot="title">
+                    <div class="d-flex justify-content-between align-items-center">
+                        Columns
+                        <SidepanelModelFieldSelector
+                            resModel="this.listDefinition.model"
+                            isDebugMode="this.debugMode.isActive()"
+                            readonly="false"
+                            filter.bind="this.filterField"
+                            update.bind="this.addDimension"
+                            canFollowComputedRelation="true"
+                        >
+                            <div
+                                t-on-click="this.addCalculatedColumn"
+                                class="btn btn-light d-flex align-items-center sticky-bottom border-0 border-top rounded-0 text-break fw-normal">
+                                <div class="pe-1">
+                                    <t t-call="o-spreadsheet-Icon.FORMULA"/>
+                                </div>
+                                Add calculated column
+                            </div>
+                        </SidepanelModelFieldSelector>
+                    </div>
+                </t>
+                <ListDimensions
+                    dimensions="this.getDimensions()"
+                    onRemoved.bind="this.onRemoveDimension"
+                    onNameUpdated.bind="this.onRenameDimension"
+                    onFormulaUpdate.bind="this.onFormulaChange"
+                    updateOrder.bind="this.reorderColumns"
+                    toggleVisibility.bind="this.toggleColumnVisibility"
+                />
+                <Checkbox
+                    name="'translateHeaders'"
+                    label.translate="Translate headers"
+                    value="this.listDefinition.translateHeaders"
+                    onChange.bind="this.onTranslateCustomHeadersChanged"
+                    className="'mt-2'"
+                />
+            </Section>
+            <EditListSortingSection
+                resModel="def.model"
+                orderBy="def.orderBy"
+                fields="this.listFields"
+                onUpdateSorting.bind="this.onUpdateSorting"
+            />
+            <SidePanelDomain
+                resModel="def.model"
+                domain="def.domain"
+                onUpdate.bind="this.onDomainUpdate"
+            />
+            <RelatedFiltersSection
+                resModel="def.model"
+                dataSourceId="this.props.listId"
+                dataSourceType="'list'"
+            />
+            <Section class="'o-section pt-0'">
+                <div class="o_pivot_last_update text-muted"><i>Last updated at <t t-out="this.getLastUpdate()"/></i></div>
+            </Section>
+            <div class="o-section py-1" t-if="this.env.model.getters.isListUnused(this.props.listId)">
+                <ValidationMessages messages="[this.unusedListWarning]" msgType="'warning'"/>
+            </div>
+        </t>
+        <Section t-else="1">
+            <ValidationMessages messages="[this.invalidListModel]" msgType="'error'"/>
+            <button class="mx o-button o-button-primary mt-2 m-1" t-on-click="this.delete">Delete List</button>
+        </Section>
+    </div>
+</templates>

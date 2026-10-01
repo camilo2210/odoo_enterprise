@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <div
+        t-name="spreadsheet_edition.PivotDetailsSidePanel"
+        class="o_spreadsheet_pivot_side_panel h-100 overflow-hidden d-flex justify-content-between flex-column">
+        <t t-set="isReadonly" t-value="this.env.model.getters.isReadonly()"/>
+        <div class="h-100 position-relative overflow-x-hidden overflow-y-auto" t-ref="this.pivotSidePanelRef">
+            <div
+                t-if="this.isModelValid"
+                t-att="isReadonly ? ['inert', 1] : []"
+                t-att-class="{ 'pe-none opacity-50': isReadonly }">
+                <PivotTitleSection pivotId="this.props.pivotId" flipAxis.bind="this.flipAxis"/>
+                <t t-set="definition" t-value="this.store.definition"/>
+                <div class="o-section">
+                    <div class="o-section-title">Model</div>
+                    <div class="o_model_name"><t t-out="this.modelDisplayName"/> (<t t-out="definition.model"/>)</div>
+                </div>
+                <OdooPivotLayoutConfigurator
+                    unusedGroupableFields="this.store.unusedGroupableFields"
+                    measureFields="this.store.measureFields"
+                    definition="definition"
+                    unusedGranularities="this.store.unusedGranularities"
+                    dateGranularities="this.store.dateGranularities"
+                    datetimeGranularities="this.store.datetimeGranularities"
+                    onDimensionsUpdated.bind="this.onDimensionsUpdated"
+                    onFiltersUpdated.bind="this.onFiltersUpdated"
+                    pivotId="this.props.pivotId"
+                    getScrollableContainerEl.bind="this.getScrollableContainerEl"
+                    addDraftField="this.store.addDraftField.bind(this.store)"
+                />
+                <SidePanelDomain
+                    resModel="definition.model"
+                    domain="definition.domain"
+                    onUpdate.bind="this.onDomainUpdate"
+                />
+                <RelatedFiltersSection
+                    resModel="definition.model"
+                    dataSourceId="this.props.pivotId"
+                    dataSourceType="'pivot'"
+                />
+                <div class="o-section pt-1">
+                    <div class="o_pivot_last_update text-muted"><i>Last updated at <t t-out="this.getLastUpdate()"/></i></div>
+                </div>
+                <div class="o-section py-1" t-if="this.env.model.getters.isPivotUnused(this.props.pivotId)">
+                    <ValidationMessages messages="[this.unusedPivotWarning]" msgType="'warning'"/>
+                </div>
+            </div>
+            <Section t-else="1">
+                <ValidationMessages messages="[this.invalidPivotModel]" msgType="'error'"/>
+                <button class="mx o-button o-button-primary mt-2 m-1" t-on-click="this.delete">Delete Pivot</button>
+            </Section>
+        </div>
+        <PivotDeferUpdate
+            t-if="this.isModelValid and !isReadonly"
+            deferUpdate="this.store.updatesAreDeferred"
+            toggleDeferUpdate="(value) => this.store.deferUpdates(value)"
+            isDirty="this.store.isDirty"
+            discard="this.store.discardPendingUpdate"
+            apply="this.store.applyUpdate"
+        />
+    </div>
+</templates>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <record id="hr_payroll_warning_missing_info" model="hr.payroll.warning">
+            <field name="name">Employees with missing required information</field>
+            <field name="country_id" ref="base.au"/>
+            <field name="button_name">Review Employees</field>
+            <field name="warning_type">domain</field>
+            <field name="model_id" ref="hr.model_hr_employee"/>
+            <field name="warning_domain">['|', '|', '|', ('work_phone', '=', False), ('private_street', '=', False), ('private_city', '=', False), ('birthday', '=', False)]</field>
+        </record>
+
+        <record id="hr_payroll_warning_missing_tfn" model="hr.payroll.warning">
+            <field name="name">Employees who have not provided a TFN declaration after 28 days</field>
+            <field name="country_id" ref="base.au"/>
+            <field name="button_name">Review Employees</field>
+            <field name="warning_type">domain</field>
+            <field name="model_id" ref="hr.model_hr_employee"/>
+            <field name="warning_domain">[
+                ('current_version_id.l10n_au_tfn_declaration', '=', '111111111'),
+                ('create_date', '&lt;', 'now -28d')
+            ]</field>
+        </record>
+
+        <record id="hr_payroll_warning_incorrect_proportion" model="hr.payroll.warning">
+            <field name="name">Employees who have misconfigured super account proportions</field>
+            <field name="country_id" ref="base.au"/>
+            <field name="button_name">Review Employees</field>
+            <field name="evaluation_code">
+au_companies = self.env.companies.filtered(lambda c: c.country_id.code == "AU")
+proportions = self.env["l10n_au.super.account"]._read_group(
+    [("account_active", "=", True)],
+    ["employee_id"],
+    having=[("proportion:sum", "!=", 1)],
+)
+invalid_employees = self.env['hr.employee'].browse([employee.id for employee, in proportions])
+
+if invalid_employees:
+
+    warning_records = invalid_employees
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_missing_birthdate" model="hr.payroll.warning">
+            <field name="name">Missing birth date</field>
+            <field name="description">Some employees are missing their birth date.</field>
+            <field name="country_id" ref="base.au"/>
+            <field name="warning_color_class">danger</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_au_hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+au_companies = self.env.companies.filtered(lambda c: c.country_id and c.country_id.code == 'AU')
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', au_companies.ids),
+    ('state', '=', 'draft')])
+warning_records = self.env['hr.payslip']
+warning_details = defaultdict(list)
+for payslip in payslips:
+    if not payslip.employee_id.birthday and payslip.l10n_au_termination_type:
+        has_etp_input = payslip.input_line_ids.filtered(
+            lambda line: line.salary_rule_id.l10n_au_payment_type == 'etp'
+        )
+        if has_etp_input:
+            warning_records |= payslip
+            warning_details[payslip].append({
+                'message': _get_payroll_translation('No birthdate'),
+                'action_text': _get_payroll_translation('Employee'),
+                'action': payslip.employee_id._get_records_action(),
+                'level': 'danger',
+            })
+            </field>
+        </record>
+    </data>
+</odoo>

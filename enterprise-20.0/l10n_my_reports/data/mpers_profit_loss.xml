@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_financial_report_my_pl" model="account.report">
+        <field name="name">Profit and Loss</field>
+        <field name="root_report_id" ref="account_reports.profit_and_loss"/>
+        <field name="groupby">account_id</field>
+        <field name="filter_unfold_all" eval="True"/>
+        <field name="filter_journals" eval="True"/>
+        <field name="filter_hierarchy">by_default</field>
+        <field name="country_id" ref="base.my"/>
+        <field name="filter_multi_company">selector</field>
+        <field name="column_ids">
+            <record id="account_financial_report_my_pl_column" model="account.report.column">
+                <field name="name">Balance</field>
+                <field name="expression_label">balance</field>
+            </record>
+        </field>
+        <field name="line_ids">
+            <record id="account_financial_report_my_pl_revenue" model="account.report.line">
+                <field name="name">Revenue</field>
+                <field name="code">MY_REV</field>
+                <field name="hierarchy_level">0</field>
+                <field name="hide_if_zero" eval="True"/>
+                <field name="expression_ids">
+                    <record id="account_financial_report_my_pl_revenue_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('account_id.account_type', '=', 'income')]"/>
+                        <field name="subformula">-sum</field>
+                        <field name="date_scope">strict_range</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_my_pl_cos" model="account.report.line">
+                <field name="name">Cost of sales</field>
+                <field name="code">MY_COS</field>
+                <field name="hierarchy_level">0</field>
+                <field name="hide_if_zero" eval="True"/>
+                <field name="expression_ids">
+                    <record id="account_financial_report_my_pl_cos_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('account_id.account_type', '=', 'expense_direct_cost')]"/>
+                        <field name="subformula">sum</field>
+                        <field name="date_scope">strict_range</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_my_pl_gross_profit" model="account.report.line">
+                <field name="name">Gross profit</field>
+                <field name="code">MY_GRP</field>
+                <field name="hierarchy_level">0</field>
+                <field name="aggregation_formula">MY_REV.balance - MY_COS.balance</field>
+            </record>
+            <record id="account_financial_report_my_pl_other_income" model="account.report.line">
+                <field name="name">Other operating income</field>
+                <field name="code">MY_OIN</field>
+                <field name="hierarchy_level">0</field>
+                <field name="hide_if_zero" eval="True"/>
+                <field name="expression_ids">
+                    <record id="account_financial_report_my_pl_other_income_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('account_id.account_type', '=', 'income_other')]"/>
+                        <field name="subformula">-sum</field>
+                        <field name="date_scope">strict_range</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_my_pl_oae" model="account.report.line">
+                <field name="name">Other operating expenses</field>
+                <field name="code">MY_EXP</field>
+                <field name="hierarchy_level">0</field>
+                <field name="hide_if_zero" eval="True"/>
+                <field name="expression_ids">
+                    <record id="account_financial_report_my_pl_oae_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[
+                            ('account_id.account_type', 'in', ['expense', 'expense_other', 'expense_depreciation']),
+                            ('account_id.tag_ids', 'not in', [
+                                ref('l10n_my.account_tag_ite'),
+                                ref('l10n_my.account_tag_fc'),
+                                ref('l10n_my.account_tag_jv'),
+                            ]),
+                        ]"/>
+                        <field name="subformula">sum</field>
+                        <field name="date_scope">strict_range</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_my_pl_profit_from_ops" model="account.report.line">
+                <field name="name">Profit/(loss) from operations</field>
+                <field name="code">MY_PFO</field>
+                <field name="hierarchy_level">0</field>
+                <field name="aggregation_formula">MY_GRP.balance + MY_OIN.balance - MY_EXP.balance</field>
+            </record>
+            <record id="account_financial_report_my_pl_fc" model="account.report.line">
+                <field name="name">Finance costs</field>
+                <field name="code">MY_FEXP</field>
+                <field name="hierarchy_level">0</field>
+                <field name="hide_if_zero" eval="True"/>
+                <field name="expression_ids">
+                    <record id="account_financial_report_my_pl_fc_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[
+                            ('account_id.account_type', 'in', ['expense', 'expense_other', 'expense_depreciation']),
+                            ('account_id.tag_ids', 'in', [ref('l10n_my.account_tag_fc')]),
+                        ]"/>
+                        <field name="subformula">sum</field>
+                        <field name="date_scope">strict_range</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_my_pl_jv" model="account.report.line">
+                <field name="name">Share of profit/(loss) of associates and joint ventures</field>
+                <field name="code">MY_JV</field>
+                <field name="hierarchy_level">0</field>
+                <field name="hide_if_zero" eval="True"/>
+                <field name="expression_ids">
+                    <record id="account_financial_report_my_pl_jv_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[
+                            ('account_id.account_type', 'in', ['expense', 'expense_other', 'expense_depreciation']),
+                            ('account_id.tag_ids', 'in', [ref('l10n_my.account_tag_jv')]),
+                        ]"/>
+                        <field name="subformula">-sum</field>
+                        <field name="date_scope">strict_range</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_my_pl_profit_before_tax" model="account.report.line">
+                <field name="name">Profit/(loss) before tax</field>
+                <field name="code">MY_PBT</field>
+                <field name="hierarchy_level">0</field>
+                <field name="aggregation_formula">MY_PFO.balance - MY_FEXP.balance + MY_JV.balance</field>
+            </record>
+            <record id="account_financial_report_my_pl_income_tax" model="account.report.line">
+                <field name="name">Income tax expense</field>
+                <field name="code">MY_ICTX</field>
+                <field name="hierarchy_level">0</field>
+                <field name="hide_if_zero" eval="True"/>
+                <field name="expression_ids">
+                    <record id="account_financial_report_my_pl_income_tax_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[
+                            ('account_id.account_type', 'in', ['expense', 'expense_other', 'expense_depreciation']),
+                            ('account_id.tag_ids', 'in', [ref('l10n_my.account_tag_ite')]),
+                        ]"/>
+                        <field name="subformula">sum</field>
+                        <field name="date_scope">strict_range</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_my_pl_profit_after_tax" model="account.report.line">
+                <field name="name">Profit/(loss) after tax</field>
+                <field name="code">MY_PAT</field>
+                <field name="hierarchy_level">0</field>
+                <field name="aggregation_formula">MY_PBT.balance - MY_ICTX.balance</field>
+            </record>
+            <record id="account_financial_report_my_pl_oci" model="account.report.line">
+                <field name="name">Other comprehensive income/(expense)</field>
+                <field name="code">MY_OCI</field>
+                <field name="hierarchy_level">0</field>
+                <field name="hide_if_zero" eval="True"/>
+                <field name="expression_ids">
+                    <record id="account_financial_report_my_pl_oci_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[
+                            ('account_id.account_type', '=', 'equity'),
+                            ('account_id.tag_ids', 'in', [ref('l10n_my.account_tag_oci')]),
+                        ]"/>
+                        <field name="subformula">-sum</field>
+                        <field name="date_scope">strict_range</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_my_pl_total_comprehensive_income" model="account.report.line">
+                <field name="name">Total comprehensive income/(expense) for the year</field>
+                <field name="code">MY_TCI</field>
+                <field name="hierarchy_level">0</field>
+                <field name="hide_if_zero" eval="True"/>
+                <field name="expression_ids">
+                    <record id="account_financial_report_my_pl_tci_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">MY_PAT.balance + MY_OCI.balance</field>
+                        <field name="subformula">if_other_expr_above(MY_TCI.combined_check, MYR(0))</field>
+                    </record>
+                    <record id="account_financial_report_my_pl_tci_check_above" model="account.report.expression">
+                        <field name="label">check_above</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">1</field>
+                        <field name="subformula">if_other_expr_above(MY_OCI.balance, MYR(0))</field>
+                    </record>
+                    <record id="account_financial_report_my_pl_tci_check_below" model="account.report.expression">
+                        <field name="label">check_below</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">1</field>
+                        <field name="subformula">if_other_expr_below(MY_OCI.balance, MYR(0))</field>
+                    </record>
+                    <record id="account_financial_report_my_pl_tci_combined_check" model="account.report.expression">
+                        <field name="label">combined_check</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">MY_TCI.check_above + MY_TCI.check_below</field>
+                    </record>
+                </field>
+            </record>
+        </field>
+    </record>
+</odoo>

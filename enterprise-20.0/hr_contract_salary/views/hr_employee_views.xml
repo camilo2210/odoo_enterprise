@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_contract_salary_view_employee_form" model="ir.ui.view">
+        <field name="name">hr.employee.form.inherit.contract_salary</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <button name="action_open_versions" position="before">
+                <button name="action_show_contract_reviews" class="oe_stat_button" icon="book" type="object" help="Contracts Reviews" invisible="not employee_id or contract_reviews_count == 0">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value"><field name="contract_reviews_count"/></span>
+                        <span class="o_stat_text">Reviews</span>
+                    </div>
+                </button>
+                <button name="action_generate_offer" string="Offers" class="oe_stat_button" icon="handshake" type="object" help="Generate Offer"
+                        invisible="current_date_version &gt; date_version or salary_offers_count > 0" groups="hr_payroll.group_hr_payroll_user" >
+                    <div class="o_field_widget o_stat_info ms-1">
+                        <span class="o_stat_value">New</span>
+                        <span class="o_stat_text">Offers</span>
+                    </div>
+                </button>
+                <button name="action_show_offers" string="Offers" class="oe_stat_button" icon="handshake" type="object" help="Sent Offers"
+                        invisible="salary_offers_count == 0" groups="hr_payroll.group_hr_payroll_user">
+                    <div class="o_field_widget o_stat_info ms-1">
+                        <span class="o_stat_value"><field name="salary_offers_count"/></span>
+                        <span class="o_stat_text">Offers</span>
+                    </div>
+                </button>
+            </button>
+            <header position="inside">
+                <field name="current_date_version" invisible="1"/>
+                <button name="%(action_hr_salary_simulator)d"
+                    type="action"
+                    string="Simulation"
+                    context="{
+                        'default_employee_id': id,
+                        'default_structure_type_id': structure_type_id,
+                        'default_salary_amount': final_yearly_costs,
+                        'default_budget_type': 'yearly_employer',
+                        'default_final_yearly_costs': final_yearly_costs,
+                        'default_structure_id': structure_id,
+                        'default_resource_calendar_id': resource_calendar_id,
+                        'from_employee' : True,
+                    }"
+                    groups="hr_payroll.group_hr_payroll_user"/>
+            </header>
+            <group name="contract" position="inside">
+                <field name="originated_offer_id" readonly="1" invisible="not originated_offer_id"/>
+            </group>
+            <field name="wage" position="after">
+                <div invisible="1">  <!-- Remove in Master -->
+                    <div class="mb-3" invisible="schedule_pay != 'annually'">/ year</div>
+                    <div class="mb-3" invisible="schedule_pay != 'semi-annually'">/ half-year</div>
+                    <div class="mb-3" invisible="schedule_pay != 'quarterly'">/ quarter</div>
+                    <div class="mb-3" invisible="schedule_pay != 'bi-monthly'">/ two months</div>
+                    <div class="mb-3" invisible="schedule_pay != 'semi-monthly'">/ half-month</div>
+                    <div class="mb-3" invisible="schedule_pay != 'bi-weekly'">/ two weeks</div>
+                    <div class="mb-3" invisible="schedule_pay != 'weekly'">/ week</div>
+                    <div class="mb-3" invisible="schedule_pay != 'daily'">/ day</div>
+                    <div class="mb-3" invisible="schedule_pay != '10_days'">/ 10 days</div>
+                    <div class="mb-3" invisible="schedule_pay != '14_days'">/ 14 days</div>
+                </div>
+            </field>
+        </field>
+    </record>
+    <record id="hr_contract_salary_view_employee_form_readonly" model="ir.ui.view">
+        <field name="name">hr.employee.form.inherit.contract_salary.readonly</field>
+        <field name="model">hr.employee</field>
+        <field name="mode">primary</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="replace"/>
+            <xpath expr="//form/*[1]" position="before">
+                <div role="alert" class="alert alert-warning text-center">
+                    This is a partially-signed contract.
+                </div>
+            </xpath>
+            <xpath expr="//chatter" position="replace"/>
+            <xpath expr="//field[@name='employee_properties']" position="before">
+                <widget name="web_ribbon" title="Draft" bg_color="text-bg-info" groups="hr.group_hr_user"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_view_partially_signed_contract_statbutton" model="ir.actions.act_window">
+        <field name="name">Contract Details (Read Only) </field>
+        <field name="res_model">hr.employee</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="hr_contract_salary.hr_contract_salary_view_employee_form_readonly"/>
+        <field name="target">current</field>
+    </record>
+
+</odoo>

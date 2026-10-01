@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="hr_attendance_management_view_filter" model="ir.ui.view">
+        <field name="name">hr.attendance.management.filter.inherit.l10n.sa.hr.attendance</field>
+        <field name="model">hr.attendance</field>
+        <field name="inherit_id" ref="hr_attendance.hr_attendance_management_view_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='myteam']" position="after">
+                <separator/>
+                <filter name="l10n_sa_late_hours_to_approve" string="To Approve Late Hours"
+                    domain="[('l10n_sa_late_hours_status', '=', 'to_approve'), ('l10n_sa_late_hours_visible', '=', True)]"/>
+                <filter name="l10n_sa_late_hours_approved" string="Approved Late Hours"
+                    domain="[('l10n_sa_late_hours_status', '=', 'approved'), ('l10n_sa_late_hours_visible', '=', True)]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_attendance_view_list_management" model="ir.ui.view">
+        <field name="name">hr.attendance.list.inherit.l10n.sa.hr.attendance</field>
+        <field name="model">hr.attendance</field>
+        <field name="inherit_id" ref="hr_attendance.view_attendance_tree_management"/>
+        <field name="arch" type="xml">
+            <xpath expr="/list" position="attributes">
+                <attribute name="js_class">hr_attendance_management_list</attribute>
+            </xpath>
+            <xpath expr="//field[@name='employee_id']" position="before">
+                <header>
+                    <button class="btn-secondary" string="Approve Late Hours" name="action_approve_l10n_sa_late_hours" type="object"/>
+                    <button class="btn-secondary" string="Refuse Late Hours" name="action_refuse_l10n_sa_late_hours" type="object"/>
+                </header>
+            </xpath>
+            <xpath expr="//field[@name='check_in']" position="before">
+                <field name="l10n_sa_expected_check_in" invisible="not l10n_sa_late_hours_visible"/>
+            </xpath>
+            <xpath expr="//field[@name='worked_hours']" position="after">
+                <field name="l10n_sa_late_hours" widget="float_time" invisible="not l10n_sa_late_hours_visible"/>
+                <field name="l10n_sa_late_hours_status" widget="badge" invisible="not l10n_sa_late_hours_visible"
+                    decoration-warning="l10n_sa_late_hours_status == 'to_approve'" decoration-success="l10n_sa_late_hours_status == 'approved'"/>
+                <button
+                    class="oe_stat_button"
+                    string="Approve"
+                    invisible="not is_manager or l10n_sa_late_hours_status != 'to_approve' or not l10n_sa_late_hours_visible"
+                    groups="hr_attendance.group_hr_attendance_officer"
+                    name="action_approve_l10n_sa_late_hours"
+                    icon="check"
+                    type="object"/>
+                <button
+                    class="oe_stat_button"
+                    string="Refuse"
+                    invisible="not is_manager or l10n_sa_late_hours_status != 'approved' or not l10n_sa_late_hours_visible"
+                    groups="hr_attendance.group_hr_attendance_officer"
+                    name="action_refuse_l10n_sa_late_hours"
+                    icon="close"
+                    type="object"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_attendance.hr_attendance_management_action" model="ir.actions.act_window">
+        <field name="context">{
+            "search_default_to_approve" : 1,
+            "search_default_activeemployees": 1,
+            "search_default_l10n_sa_late_hours_to_approve": 1,
+        }</field>
+    </record>
+
+    <record id="hr_attendance_view_list" model="ir.ui.view">
+        <field name="name">hr.attendance.list.inherit.l10n.sa.hr.attendance</field>
+        <field name="model">hr.attendance</field>
+        <field name="inherit_id" ref="hr_attendance.view_attendance_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='employee_id']" position="before">
+                <header>
+                    <button class="btn-secondary" string="Approve Late Hours" name="action_approve_l10n_sa_late_hours" type="object"/>
+                    <button class="btn-secondary" string="Refuse Late Hours" name="action_refuse_l10n_sa_late_hours" type="object"/>
+                </header>
+            </xpath>
+            <xpath expr="//field[@name='check_in']" position="before">
+                <field name="l10n_sa_expected_check_in" invisible="not l10n_sa_late_hours_visible"/>
+            </xpath>
+            <xpath expr="//field[@name='worked_hours']" position="after">
+                <field name="l10n_sa_late_hours" widget="float_time" invisible="not l10n_sa_late_hours_visible"/>
+                <field name="l10n_sa_late_hours_status" widget="badge" invisible="not l10n_sa_late_hours_visible"
+                    decoration-warning="l10n_sa_late_hours_status == 'to_approve'" decoration-success="l10n_sa_late_hours_status == 'approved'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_attendance_view_form" model="ir.ui.view">
+        <field name="name">hr.attendance.form.inherit.l10n.sa.hr.attendance</field>
+        <field name="model">hr.attendance</field>
+        <field name="inherit_id" ref="hr_attendance.hr_attendance_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='check_in']" position="before">
+                <field name="l10n_sa_expected_check_in" invisible="not l10n_sa_late_hours_visible"/>
+            </xpath>
+            <xpath expr="//group[@name='group_worked_hours']" position="inside">
+                <label for="l10n_sa_late_hours" invisible="not l10n_sa_late_hours_visible"/>
+                <div class="o_row" invisible="not l10n_sa_late_hours_visible">
+                    <field name="l10n_sa_late_hours" widget="float_time" class="o_hr_narrow_field-4"/>
+                    <button
+                        class="oe_stat_button"
+                        string="Approve"
+                        name="action_approve_l10n_sa_late_hours"
+                        icon="check"
+                        type="object"
+                        invisible="l10n_sa_late_hours_status != 'to_approve' or not l10n_sa_late_hours"/>
+                    <button
+                        class="oe_stat_button"
+                        string="Refuse"
+                        name="action_refuse_l10n_sa_late_hours"
+                        icon="close"
+                        type="object"
+                        invisible="l10n_sa_late_hours_status == 'to_approve' or not l10n_sa_late_hours"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

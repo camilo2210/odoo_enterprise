@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="l10n_be_281_xx_view_search" model="ir.ui.view">
+        <field name="name">l10n_be.281_xx.view.search</field>
+        <field name="model">l10n_be.281_xx</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="reference"/>
+                <field name="year"/>
+                <filter string="Draft" name="state_draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Ready" name="state_ready" domain="[('state', '=', 'ready')]"/>
+                <filter string="Done" name="state_done" domain="[('state', '=', 'done')]"/>
+                <filter string="Cancel" name="state_cancel" domain="[('state', '=', 'cancel')]"/>
+                <separator/>
+                <filter string="Original" name="treatment_original" domain="[('type_treatment', '=', '0')]"/>
+                <filter string="Modifications" name="treatment_modification" domain="[('type_treatment', '=', '1')]"/>
+                <filter string="Add" name="treatment_add" domain="[('type_treatment', '=', '2')]"/>
+                <filter string="Cancellation" name="treatment_cancel" domain="[('type_treatment', '=', '3')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_be_281_xx_view_list" model="ir.ui.view">
+        <field name="name">l10n_be.281_xx.view.list</field>
+        <field name="model">l10n_be.281_xx</field>
+        <field name="arch" type="xml">
+            <list string="281.XX Forms" delete="0">
+                <field name="year"/>
+                <field name="reference"/>
+                <field name="form_types_display" string="Form Types"/>
+                <field name="type_sending"/>
+                <field name="type_treatment" optional="hide"/>
+                <field name="state"
+                    widget="badge"
+                    decoration-muted="state == 'draft'"
+                    decoration-danger="state == 'error'"
+                    decoration-info="state == 'ready'"
+                    decoration-success="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_be_281_xx_view_form" model="ir.ui.view">
+        <field name="name">l10n_be.281_xx.view.form</field>
+        <field name="model">l10n_be.281_xx</field>
+        <field name="arch" type="xml">
+            <form string="281.XX Form" delete="0">
+                <header>
+                    <button name="action_generate_test_xml" string="Compute" type="object" class="oe_highlight"
+                            invisible="test_xml_file or state == 'cancel'"/>
+
+                    <button name="action_generate_xml" string="Create XML" type="object" class="oe_highlight"
+                            invisible="not test_xml_file or xml_file or state in ['error', 'cancel']"/>
+                    <button name="action_generate_test_xml" string="Re-compute Test" type="object" class="oe_highlight"
+                            invisible="not test_xml_file or xml_file or state != 'error' or state == 'cancel'"/>
+                    <button name="action_generate_test_xml" string="Re-compute Test" type="object"
+                            invisible="not test_xml_file or xml_file or state == 'error' or state == 'cancel'"/>
+
+                    <button name="action_mark_as_done" string="Mark as done" type="object" class="oe_highlight"
+                            invisible="state != 'ready'"
+                            confirm="You are about to confirm the statement has been done. All 281.xx Form will be generated and send to employees."/>
+
+                    <button name="action_generate_xml" string="Re-compute" type="object" class="oe_highlight"
+                            invisible="not xml_file or state != 'error' or state == 'cancel'"/>
+                    <button name="action_generate_xml" string="Re-compute" type="object"
+                            invisible="not xml_file or state in ['error', 'done'] or state == 'cancel'"/>
+
+                    <button name="action_correct_declaration" string="Correct" type="object"
+                            invisible="state != 'done'"/>
+
+                    <button name="action_cancel_declaration" string="Cancel" type="object"
+                            invisible="state in ['done', 'cancel']"/>
+
+                    <button name="action_set_draft_declaration" string="Set to Draft" type="object"
+                            invisible="state != 'cancel'"/>
+
+                    <field name="state" widget="statusbar" statusbar_visible="draft,ready,done"/>
+                </header>
+                <sheet>
+                    <div invisible="not is_correction_needed or state == 'draft' or correction_ids" class="alert alert-warning mb-3" role="alert">
+                        This Declaration needs to be re-computed as Payslips are updated since Last compute
+                    </div>
+                    <div invisible="not correction_ids" class="alert alert-info mb-3" role="alert">
+                        This Declaration is already corrected by another Declaration. Please check the correction(s) for more details.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="year" readonly="xml_file or state in ['done', 'cancel']"/>
+                            <label for="include_281_10" string="Form type"
+                                invisible="state == 'draft' and not test_xml_file"/>
+                            <div class="d-flex align-items-center" invisible="state == 'draft' and not test_xml_file">
+                                <field name="include_281_10" class="oe_inline me-1"
+                                    invisible="l10n_be_281_10_id_lines_count == 0" readonly="xml_file or state in ['done', 'cancel']"/>
+                                <label for="include_281_10" string="281.10" class="me-4"
+                                    invisible="l10n_be_281_10_id_lines_count == 0"/>
+                                <field name="include_281_13" class="oe_inline me-1"
+                                    invisible="l10n_be_281_13_id_lines_count == 0"/>
+                                <label for="include_281_13" string="281.13"
+                                    invisible="l10n_be_281_13_id_lines_count == 0"/>
+                                <field name="include_281_18" class="oe_inline me-1"
+                                    invisible="l10n_be_281_18_id_lines_count == 0"/>
+                                <label for="include_281_18" string="281.18" class="me-4"
+                                    invisible="l10n_be_281_18_id_lines_count == 0"/>
+                                <field name="include_281_20" class="oe_inline me-1"
+                                    invisible="l10n_be_281_20_id_lines_count == 0"/>
+                                <label for="include_281_20" string="281.20" class="me-4"
+                                    invisible="l10n_be_281_20_id_lines_count == 0"/>
+                                <field name="include_281_30" class="oe_inline me-1"
+                                    invisible="l10n_be_281_30_id_lines_count == 0"/>
+                                <label for="include_281_30" string="281.30" class="me-4"
+                                    invisible="l10n_be_281_30_id_lines_count == 0"/>
+                                <field name="include_281_45" class="oe_inline me-1"
+                                    invisible="l10n_be_281_45_id_lines_count == 0" readonly="xml_file or state in ['done', 'cancel']"/>
+                                <label for="include_281_45" string="281.45"
+                                    invisible="l10n_be_281_45_id_lines_count == 0"/>
+                            </div>
+                            <field name="type_sending" widget="radio" options="{'horizontal': true}" readonly="xml_file or state in ['done', 'cancel']"/>
+                            <field name="type_treatment" widget="filterable_radio" options="{'horizontal': true, 'blacklisted_values': ['0']}" invisible="type_sending =='0'" readonly="xml_file or state in ['done', 'cancel']"/>
+                            <field name="origin_id" invisible="type_sending =='0'" readonly="xml_file or state in ['done', 'cancel']" domain="[('id', '!=', id), ('year', '=', year)]"/>
+                            <field name="correction_ids" widget="many2many_tags" invisible="not correction_ids" readonly="1" options="{'on_tag_click': 'open_form'}"/>
+                            <field name="reference" placeholder="ID from Belcotax" invisible="state == 'draft'" readonly="state in ['done', 'cancel']"/>
+                        </group>
+                        <group>
+                            <field name="test_xml_file" filename="test_xml_filename" invisible="not test_xml_file"/>
+                            <field name="xml_file" filename="xml_filename" invisible="not xml_file"/>
+                            <field name="error_message" string="Error" invisible="state != 'error'" class="ms-2 text-danger"/>
+                        </group>
+                    </group>
+
+                    <notebook invisible="state in ['draft', 'cancel'] and not test_xml_file">
+                        <page name="page_281_10" string="281.10" invisible="l10n_be_281_10_id_lines_count == 0 or not include_281_10">
+                            <field name="l10n_be_281_10_line_ids"
+                                   context="{'list_view_ref': 'l10n_be_hr_payroll.l10n_be_281_xx_declaration_view_list'}"/>
+                        </page>
+                        <page name="page_281_13" string="281.13" invisible="l10n_be_281_13_id_lines_count == 0 or not include_281_13">
+                            <field name="l10n_be_281_13_line_ids"
+                                   context="{'list_view_ref': 'l10n_be_hr_payroll.l10n_be_281_xx_declaration_view_list'}"/>
+                        </page>
+                        <page name="page_281_18" string="281.18" invisible="l10n_be_281_18_id_lines_count == 0 or not include_281_18">
+                            <field name="l10n_be_281_18_line_ids"
+                                    context="{'list_view_ref': 'l10n_be_hr_payroll.l10n_be_281_xx_declaration_view_list'}"/>
+                        </page>
+                        <page name="page_281_20" string="281.20" invisible="l10n_be_281_20_id_lines_count == 0 or not include_281_20">
+                            <field name="l10n_be_281_20_line_ids"
+                                   context="{'list_view_ref': 'l10n_be_hr_payroll.l10n_be_281_xx_declaration_view_list'}"/>
+                        </page>
+                        <page name="page_281_30" string="281.30" invisible="l10n_be_281_30_id_lines_count == 0 or not include_281_30">
+                            <field name="l10n_be_281_30_line_ids"
+                                   context="{'list_view_ref': 'l10n_be_hr_payroll.l10n_be_281_xx_declaration_view_list'}"/>
+                        </page>
+                        <page name="page_281_45" string="281.45" invisible="l10n_be_281_45_id_lines_count == 0 or not include_281_45">
+                            <field name="l10n_be_281_45_line_ids"
+                                   context="{'list_view_ref': 'l10n_be_hr_payroll.l10n_be_281_xx_declaration_view_list'}"/>
+                        </page>
+                        <page name="untaxed_employees" string="Untaxed Employees" invisible="not untaxed_employee_ids">
+                            <field name="untaxed_employee_ids"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_be_281_XX_action" model="ir.actions.act_window">
+        <field name="name">Create 281.XX Form</field>
+        <field name="res_model">l10n_be.281_xx</field>
+        <field name="view_mode">list,form</field>
+        <field name="target">current</field>
+    </record>
+
+    <menuitem
+        id="menu_l10n_be_l10n_be_281_XX"
+        name="281.XX Sheets"
+        action="l10n_be_281_XX_action"
+        parent="l10n_be_hr_payroll.menu_reporting_l10n_be"
+        sequence="150"
+    />
+</odoo>

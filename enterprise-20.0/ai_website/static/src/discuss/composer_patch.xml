@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="ai_website.ComposerElementSelection"
+   t-inherit="mail.Composer"
+   t-inherit-mode="extension">
+    <xpath expr="//div[hasclass('o-mail-Composer-coreHeader')]" position="inside">
+        <div t-if="this.aiWebsiteSelectionState.elements.length"
+             class="o-ai-website-selection-chips d-flex flex-wrap gap-1 px-1 pb-1">
+            <span t-foreach="this.aiWebsiteSelectionState.elements" t-as="element" t-key="element.id"
+                  class="o-ai-website-selection-chip badge rounded-pill d-inline-flex align-items-center gap-1">
+                <span class="text-truncate" style="max-width: 180px" t-out="element.label"/>
+                <button type="button" class="btn btn-link text-reset p-0 border-0 lh-1"
+                        t-att-disabled="this.isAiAgentGenerating"
+                        t-att-aria-label="this.getAiWebsiteElementRemoveLabel(element)"
+                        t-on-click="() => this.deselectAiWebsiteElement(element.id)">
+                    <i class="oi" data-icon="close"/>
+                </button>
+            </span>
+        </div>
+    </xpath>
+</t>
+
+<t t-name="ai_website.MessageElementSelection"
+   t-inherit="mail.Message"
+   t-inherit-mode="extension">
+    <xpath expr="//div[hasclass('o-mail-Message-textContent')]" position="before">
+        <div t-if="this.message.ai_website_element_labels?.length"
+             class="d-flex flex-wrap justify-content-end gap-1 mb-1">
+            <span t-foreach="this.message.ai_website_element_labels"
+                  t-as="label"
+                  t-key="label_index"
+                  class="o-ai-website-selection-chip badge rounded-pill"
+                  t-out="label"/>
+        </div>
+    </xpath>
+</t>
+
+</templates>

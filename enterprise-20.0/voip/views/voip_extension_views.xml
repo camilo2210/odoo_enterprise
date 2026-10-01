@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="voip_extension_view_list" model="ir.ui.view">
+        <field name="name">voip.extension.view.list</field>
+        <field name="model">voip.extension</field>
+        <field name="arch" type="xml">
+            <list string="Extensions" js_class="voip_phone_number_required_list" editable="bottom" duplicate="false">
+                <field name="number" string="Extension"/>
+                <field name="destination_ref" string="Destination" widget="voip_extension_destination"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="voip_extension_view_search" model="ir.ui.view">
+        <field name="name">voip.extension.view.search</field>
+        <field name="model">voip.extension</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="number"/>
+                <field name="destination_ref"/>
+                <filter string="Users" name="users" domain="[('destination_type', '=', 'user')]"/>
+                <filter string="Groups" name="call_groups" domain="[('destination_type', '=', 'call_group')]"/>
+                <filter string="Queues" name="queues" domain="[('destination_type', '=', 'queue')]"/>
+                <group>
+                    <filter string="Destination Type" name="group_by_destination_type" context="{'group_by': 'destination_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="voip_extension_view_form" model="ir.ui.view">
+        <field name="name">voip.extension.view.form</field>
+        <field name="model">voip.extension</field>
+        <field name="arch" type="xml">
+            <form string="Extension" duplicate="false">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_active_did_number" type="object" class="oe_stat_button" icon="phone" invisible="not active_did_number_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value"><field name="active_did_number"/></span>
+                                <span class="o_stat_text">Phone Number</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="number"/>
+                        <h1>
+                            <field name="number" string="Extension" placeholder='e.g. "1000"' default_focus="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="is_call_flow_node_configuration" invisible="1"/>
+                            <field name="destination_ref" string="Destination" widget="voip_extension_destination" invisible="is_call_flow_node_configuration"/>
+                            <field name="active_did_number_id" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_voip_extension" model="ir.actions.act_window">
+        <field name="name">Extensions</field>
+        <field name="res_model">voip.extension</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder" aria-hidden="true"/>
+            <p>
+                Create an extension to be able to call a user, a group, or a queue internally.
+                A good practice is at least to create an extension for all users who will make or receive calls.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="voip_extension_menu" name="Extensions" parent="voip.voip_pbx_configuration_menu" action="action_voip_extension" sequence="10" groups="voip.group_voip_admin"/>
+</odoo>

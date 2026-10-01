@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_l10n_be_holiday_attest_form" model="ir.ui.view">
+        <field name="name">l10n.be.holiday.attest.form</field>
+        <field name="model">l10n.be.holiday.attest</field>
+        <field name="arch" type="xml">
+            <form string="Holiday Attest">
+                <field name="issues" class="w-100" widget="actionable_warnings" invisible="not issues" groups="hr_payroll.group_hr_payroll_user"/>
+                <field name="currency_id" invisible="1"/>
+                <field name="is_worker" invisible="1"/>
+                <sheet>
+                    <div invisible="context.get('show_computation')" class="row">
+                        <div class="col-md-7 align-content-start">
+                            <group>
+                                <field name="attest_type" widget="radio" options="{'horizontal': True}"/>
+                                <field name="date_from" widget="daterange" options="{'end_date_field': 'date_to'}"/>
+                                <label for="prev_work_hours_per_week" string="Work rate (Q/S)"/>
+                                <div class="o_row gap-2">
+                                    <div class="d-flex gap-2">
+                                        <field name="prev_work_hours_per_week" nolabel="1"/>
+                                        <span>/</span>
+                                        <field name="prev_reference_work_hours_per_week" nolabel="1"/>
+                                    </div>
+                                    <field name="prev_work_time_rate" class="text-muted hr_end_label" widget="percentage"/>
+                                </div>
+                                <label for="prev_work_days_per_week" string="Working days"/>
+                                <div class="o_row gap-2">
+                                    <field name="prev_work_days_per_week" nolabel="1"/>
+                                    <span class="hr_end_label">day(s) / week</span>
+                                </div>
+
+                                <label for="prev_assimilated_days" string="Assimilated"/>
+                                <div class="o_row gap-2">
+                                    <field name="prev_assimilated_days" nolabel="1"/>
+                                    <span class="hr_end_label">day(s)</span>
+                                </div>
+
+                                <label for="prev_days_earned" class="text-nowrap"/>
+                                <div class="o_row gap-2">
+                                    <field name="prev_days_earned" nolabel="1"/>
+                                    <span class="hr_end_label">day(s)</span>
+                                </div>
+
+                                <field name="prev_total_holiday_pay_paid" widget="monetary" options="{'currency_field': 'currency_id'}" invisible="attest_type != 'worker'"/>
+                                <field name="prev_simple_holiday_pay_paid" widget="monetary" options="{'currency_field': 'currency_id'}" invisible="attest_type == 'worker'"/>
+                                <field name="prev_double_holiday_pay_paid" widget="monetary" options="{'currency_field': 'currency_id'}" invisible="attest_type == 'worker'"/>
+                            </group>
+                        </div>
+
+                        <div class="col-md-5 pb-2" invisible="not attestation_warning_message">
+                            <field name="attestation_warning_message" class="alert alert-warning w-100" role="alert" style="white-space: pre-wrap;"/>
+                        </div>
+
+                        <div class="col-md-5 pb-2" invisible="attestation_warning_message">
+                            <div class="border rounded-3 bg-opacity-25 text-bg-300">
+                                <div class="d-grid gap-2 p-3"
+                                    style="grid-template-columns: 1fr 1fr;"
+                                    >
+
+                                    <p class="fw-bold text-uppercase small mb-1"
+                                        style="grid-column: span 2;"
+                                        >
+                                        Simple Holiday Pay
+                                    </p>
+
+                                    <p class="text-muted mb-1">Paid holiday</p>
+                                    <div class="p-0 d-flex align-items-baseline gap-1 fw-bolder">
+                                        <button name="action_open_allocation"
+                                                type="object"
+                                                class="btn btn-link p-0 d-flex align-items-baseline gap-1 fw-bolder o_cursor_pointer"
+                                                invisible="not leave_allocation_id"
+                                                >
+                                                <field name="days_to_allocate" nolabel="1" readonly="1"/>
+                                                <span>Days</span>
+                                                <span class="text-muted fw-normal small" invisible="not days_to_allocate and not hours_to_allocate">
+                                                    (<field name="hours_to_allocate" nolabel="1" readonly="1"/> hours)
+                                                </span>
+                                        </button>
+                                        <div class="d-flex align-items-baseline gap-1" invisible="leave_allocation_id">
+                                            <field name="days_to_allocate" nolabel="1" readonly="1"/>
+                                            <span>Days</span>
+                                            <span class="text-muted fw-normal small" invisible="not days_to_allocate and not hours_to_allocate">
+                                                (<field name="hours_to_allocate" nolabel="1" readonly="1"/> hours)
+                                            </span>
+                                        </div>
+                                        <field name="allocation_conversion_message"
+                                            nolabel="1"
+                                            widget="explanation_tooltip"
+                                            invisible="not allocation_conversion_message"
+                                        />
+                                    </div>
+
+                                    <div style="grid-column: span 2;" invisible="not allocation_warning_message">
+                                        <field name="allocation_warning_message" class="alert alert-warning w-100" role="alert" style="white-space: pre-wrap;"/>
+                                    </div>
+                                    <p class="text-warning mb-1"
+                                        invisible="leave_allocation_id or not linkable_allocation_ids"
+                                        >
+                                        Existing Allocations
+                                        <sup class="d-print-none text-info p-1 ms-1"
+                                            data-tooltip="This employee already has a legal-leave allocation in this holiday year. Select it to link and resize it to this attestation's entitlement, or leave empty to create a new one. Leaving it empty keeps both and may give the employee more leave than they're entitled to."
+                                            >
+                                            ?
+                                        </sup>
+                                    </p>
+                                    <div class="p-0 d-flex align-items-baseline gap-1 fw-bolder" invisible="leave_allocation_id or not linkable_allocation_ids">
+                                        <field name="allocation_to_link_id" placeholder="New Allocation" options="{'no_create': True}"/>
+                                    </div>
+
+                                    <p class="text-muted mb-1">To recover</p>
+                                    <div class="d-flex align-items-baseline gap-2">
+                                        <field name="simple_holiday_pay_cap"
+                                            class="fw-bolder"
+                                            widget="monetary"
+                                            options="{'currency_field': 'currency_id'}"
+                                            readonly="1"
+                                            />
+                                        <i class="oi text-warning"
+                                            invisible="is_worker or l10n_be_daily_wage > 0"
+                                            title="No wage or working hours on employee's contract"
+                                            data-icon="warning"
+                                            data-tooltip="Simple holiday pay cannot be computed: this employee's contract has no wage, or no usable working hours. Please configure them before adding an attestation, so holiday pay amounts can be calculated correctly."
+                                        />
+                                        <i class="oi oi-filled text-info"
+                                            invisible="not is_worker"
+                                            title="Nothing to recover for a worker's holiday"
+                                            data-icon="info"
+                                            data-tooltip="Nothing to recover since the employer doesn't pay worker's holiday. This attest is only used for allocation."
+                                        />
+                                    </div>
+
+                                    <div class="text-muted mb-1">Recovered</div>
+                                    <button name="action_open_shp_recovery_payslips"
+                                            type="object"
+                                            class="btn btn-link p-0 d-flex align-items-baseline gap-1 fw-bolder o_cursor_pointer"
+                                            invisible="simple_holiday_pay_amount_recovered == 0"
+                                            >
+
+                                        <field name="simple_holiday_pay_amount_recovered"
+                                            widget="monetary"
+                                            options="{'currency_field': 'currency_id'}"
+                                            nolabel="1"
+                                            readonly="1"
+                                            />
+                                    </button>
+                                    <field name="simple_holiday_pay_amount_recovered"
+                                        class="fw-bolder"
+                                        widget="monetary"
+                                        options="{'currency_field': 'currency_id'}"
+                                        readonly="1"
+                                        invisible="simple_holiday_pay_amount_recovered != 0"
+                                        />
+
+                                    <div class="border-top mb-2" style="grid-column: span 2;"></div>
+
+                                    <p class="fw-bold text-uppercase small mb-1"
+                                        style="grid-column: span 2;"
+                                        >
+                                        Double Holiday Pay
+                                    </p>
+
+                                    <p class="text-muted mb-1">To recover</p>
+                                    <div class="d-flex align-items-baseline gap-2">
+                                        <field name="double_holiday_pay_cap"
+                                            widget="monetary"
+                                            class="fw-bolder"
+                                            options="{'currency_field': 'currency_id'}"
+                                            readonly="1"
+                                        />
+                                        <i class="oi text-warning"
+                                            invisible="is_worker or has_contract_wage"
+                                            title="No wage on employee's contract"
+                                            data-icon="warning"
+                                            data-tooltip="No wage is set for this employee's contract. Please configure a wage before adding an attestation, so holiday pay amounts can be calculated correctly."
+                                        />
+                                        <i class="oi oi-filled text-info"
+                                            invisible="not is_worker"
+                                            title="Nothing to recover for a worker's holiday"
+                                            data-icon="info"
+                                            data-tooltip="Nothing to recover since the employer doesn't pay worker's holiday. This attest is only used for allocation."
+                                        />
+                                    </div>
+                                    <p class="text-muted mb-1">Recovered</p>
+                                    <button name="action_open_dhp_recovery_payslips"
+                                            type="object"
+                                            class="btn btn-link p-0 d-flex align-items-baseline gap-1 fw-bolder o_cursor_pointer"
+                                            invisible="double_holiday_pay_amount_recovered == 0"
+                                            >
+
+                                        <field name="double_holiday_pay_amount_recovered"
+                                            widget="monetary"
+                                            options="{'currency_field': 'currency_id'}"
+                                            nolabel="1"
+                                            readonly="1"
+                                            />
+                                    </button>
+
+                                    <field name="double_holiday_pay_amount_recovered"
+                                        widget="monetary"
+                                        class="fw-bolder"
+                                        options="{'currency_field': 'currency_id'}"
+                                        readonly="1"
+                                        invisible="double_holiday_pay_amount_recovered != 0"
+                                        />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+
+            </form>
+        </field>
+    </record>
+
+    <record id="view_l10n_be_holiday_attest_kanban" model="ir.ui.view">
+        <field name="name">l10n.be.holiday.attest.kanban</field>
+        <field name="model">l10n.be.holiday.attest</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_small_column">
+                <field name="year"/>
+                <field name="days_to_allocate"/>
+                <field name="prev_total_holiday_pay_paid"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="currency_id"/>
+
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click o_kanban_card p-3 d-flex flex-column h-100">
+
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <div class="fw-bold fs-4">
+                                    <t t-out="record.year.raw_value"/>
+                                </div>
+                                <div class="fw-bold text-end">
+                                    <field name="prev_days_earned"/> day(s)
+                                </div>
+                            </div>
+
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-end">
+                                    <div class="text-muted">
+                                        <t t-set="fromDate" t-value="new Date(record.date_from.raw_value)"/>
+                                        <t t-set="toDate" t-value="new Date(record.date_to.raw_value)"/>
+
+                                        <span t-out="fromDate.toLocaleString(undefined, {month: 'short'})"/>
+                                        –
+                                        <span t-out="toDate.toLocaleString(undefined, {month: 'short'})"/>
+                                    </div>
+
+                                    <div class="fw-bold fs-5 text-end">
+                                        <field name="prev_total_holiday_pay_paid" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+</odoo>

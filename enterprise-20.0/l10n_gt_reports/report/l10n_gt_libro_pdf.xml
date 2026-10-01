@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="l10n_gt_libro_pdf_export_main" inherit_id="account_reports.pdf_export_main" primary="True">
+        <xpath expr="//header" position="inside">
+            <div class="row mt-2">
+                <div class="col-6">
+                    <div><strong>Period:</strong> <t t-out="options.get('l10n_gt_libro_period')"/></div>
+                </div>
+                <div class="col-6 text-end">
+                    <div class="o_text_muted">Quetzales (Q)</div>
+                </div>
+            </div>
+        </xpath>
+        <xpath expr="//ol[hasclass('o_annotation')]" position="before">
+            <div class="mt-3">
+                <div><strong>Number of documents:</strong> <t t-out="l10n_gt_doc_count"/></div>
+                <div>
+                    <strong t-if="options.get('l10n_gt_libro_book', 'sale') == 'sale'">Total tax debit:</strong>
+                    <strong t-else="">Total tax credit:</strong>
+                    <t t-out="l10n_gt_total_vat"/> Q
+                </div>
+            </div>
+            <div class="o_l10n_gt_libro_summary mt-3" t-if="l10n_gt_summary_rows">
+                <table class="o_table">
+                    <thead>
+                        <tr>
+                            <th/>
+                            <th t-att-colspan="5 if l10n_gt_has_specific_tax else 4">Summary</th>
+                        </tr>
+                        <tr>
+                            <th/>
+                            <th class="text-end">Exempt</th>
+                            <th class="text-end">Taxable</th>
+                            <th t-if="l10n_gt_has_specific_tax" class="text-end">Specific Tax Amount</th>
+                            <th class="text-end">VAT Amount</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="l10n_gt_summary_rows" t-as="row" class="o_line_level_1">
+                            <td class="o_line_name_level" t-out="row['label']"/>
+                            <td class="text-end" t-out="row['exempt']"/>
+                            <td class="text-end" t-out="row['taxable']"/>
+                            <td t-if="l10n_gt_has_specific_tax" class="text-end" t-out="row['specific']"/>
+                            <td class="text-end" t-out="row['vat']"/>
+                            <td class="text-end" t-out="row['total']"/>
+                        </tr>
+                        <tr class="o_line_level_0">
+                            <td class="o_line_name_level" t-out="l10n_gt_summary_total['label']"/>
+                            <td class="text-end" t-out="l10n_gt_summary_total['exempt']"/>
+                            <td class="text-end" t-out="l10n_gt_summary_total['taxable']"/>
+                            <td t-if="l10n_gt_has_specific_tax" class="text-end" t-out="l10n_gt_summary_total['specific']"/>
+                            <td class="text-end" t-out="l10n_gt_summary_total['vat']"/>
+                            <td class="text-end" t-out="l10n_gt_summary_total['total']"/>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </xpath>
+    </template>
+</odoo>

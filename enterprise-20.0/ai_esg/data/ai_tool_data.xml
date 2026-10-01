@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_actions_server_ai_esg_get_emission_sources" model="ir.actions.server">
+        <field name="name">AI Tool: Get Emission Sources</field>
+        <field name="ai_tool_name">ai_tool_get_emission_sources</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">ai['result'] = record.sudo()._ai_get_emission_sources(scope)</field>
+        <field name="model_id" ref="esg.model_esg_carbon_emission_report"/>
+        <field name="ai_tool_description">Get the most relevant Emission Sources.</field>
+        <field name="ai_tool_schema">
+        {
+            "properties": {
+                "scope": {
+                    "type": "string",
+                    "description": "Description of the emission scope"
+                }
+            },
+            "required": ["scope"],
+            "type": "object"
+        }
+        </field>
+    </record>
+
+     <record id="ir_actions_server_ai_esg_get_emission_factor" model="ir.actions.server">
+        <field name="name">AI Tool: Get Emission Factor</field>
+        <field name="ai_tool_name">ai_tool_get_emission_factor</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">ai['result'] = record.sudo()._ai_get_emission_factor(source_ids)</field>
+        <field name="model_id" ref="esg.model_esg_carbon_emission_report"/>
+        <field name="ai_tool_description">Get the most relevant Emission Factor.</field>
+        <field name="ai_tool_schema">
+        {
+            "properties": {
+                "source_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    },
+                    "description": "Ids of the emission sources"
+                }
+            },
+            "required": ["source_ids"],
+            "type": "object"
+        }
+        </field>
+    </record>
+
+    <record id="ir_actions_server_ai_esg_assign_emission_factors_to_carbon_line" model="ir.actions.server">
+        <field name="name">AI Tool: Assign Emission Factors to Emission Line</field>
+        <field name="ai_tool_name">ai_tool_assign_emission_factors_to_emission_line</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">ai['result'] = record.sudo()._ai_assign_emission_factor(factor_id)</field>
+        <field name="model_id" ref="esg.model_esg_carbon_emission_report"/>
+        <field name="ai_tool_description">Assign Emission Factor to Emission Line.</field>
+        <field name="ai_tool_schema">
+        {
+            "properties": {
+                "factor_id": {
+                    "type": "number",
+                    "description": "Id of the emission factor"
+                }
+            },
+            "required": ["factor_id"],
+            "type": "object"
+        }
+        </field>
+    </record>
+
+</odoo>

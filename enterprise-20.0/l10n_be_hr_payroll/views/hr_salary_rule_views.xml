@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_salary_rule_list" model="ir.ui.view">
+        <field name="name">hr.salary.rule.list</field>
+        <field name="model">hr.salary.rule</field>
+        <field name="inherit_id" ref="hr_payroll.hr_salary_rule_list"/>
+        <field name="arch" type="xml">
+            <field name="category_ids" position="after">
+                <field name="l10n_be_joint_committee_ids" widget="many2many_tags" optional="hide"/>
+                <field name="l10n_be_excluded_joint_committee_ids" widget="many2many_tags" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="hr_salary_rule_form" model="ir.ui.view">
+        <field name="name">hr.salary.rule.form</field>
+        <field name="model">hr.salary.rule</field>
+        <field name="inherit_id" ref="hr_payroll.hr_salary_rule_form"/>
+        <field name="arch" type="xml">
+            <field name="appears_on_employee_cost_dashboard" position="after">
+                <field 
+                    name="l10n_be_joint_committee_ids"
+                    invisible="country_id != %(base.be)d"
+                    placeholder="All" widget="many2many_tags"
+                    options="{'edit_tags': True}"/>
+                <field
+                    name="l10n_be_excluded_joint_committee_ids"
+                    invisible="country_id != %(base.be)d"
+                    widget="many2many_tags"
+                    options="{'edit_tags': True}"/>
+            </field>
+            <field name="category_ids" position="after">
+                <field name="country_code" invisible="1"/>
+                <field name="l10n_be_remuneration_code" placeholder="Not reported in the DMFA" invisible="country_code != 'BE'"/>
+                <field name="l10n_be_remuneration_frequency" invisible="not l10n_be_is_bonus_remuneration"/>
+                <field name="l10n_be_fiscal_nature_ids" widget="many2many_tags" invisible="country_code != 'BE'"/>
+                <field name="l10n_be_follow_pay_period" invisible="country_code != 'BE'"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="hr_salary_rule_filter" model="ir.ui.view">
+        <field name="name">hr.salary.rule.filter</field>
+        <field name="model">hr.salary.rule</field>
+        <field name="inherit_id" ref="hr_payroll.view_hr_rule_filter"/>
+        <field name="arch" type="xml">
+             <xpath expr="//field[@name='category_ids']" position="after">
+                <field name="l10n_be_joint_committee_ids" groups="hr.group_hr_user" filter_domain="['&amp;', '|', ('l10n_be_joint_committee_ids', '=', False), ('l10n_be_joint_committee_ids', 'ilike', self), '!', ('l10n_be_excluded_joint_committee_ids', 'ilike', self)]" />
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

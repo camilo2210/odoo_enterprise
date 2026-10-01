@@ -1,0 +1,822 @@
+<odoo>
+    <data>
+        <!--   Saudi Arabia Payroll Rules   -->
+        <record id="l10n_sa_hr_payroll_ksa_saudi_employee_payroll_structure_basic_salary_rule" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.BASIC')])]"/>
+            <field name="name">Basic Salary</field>
+            <field name="sequence">1</field>
+            <field name="code">BASIC</field>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+# define to be used in all the calc after the basic
+total_number_of_work_days = sum(work_day.number_of_days for _code, work_day in worked_days.items() if not work_day.work_entry_type_id.is_extra_hours) or 1
+total_number_of_days = 30 if version.schedule_pay == '30_monthly' else total_number_of_work_days
+amount_to_defer = 0
+
+result = 0
+if version.has_static_work_entries():
+    result = version.wage
+elif '002.00' in worked_days:
+    result = (version.wage * worked_days['002.00'].number_of_days) / total_number_of_days
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="ksa_saudi_employee_payroll_structure_salary_advance_recovery" model="hr.salary.rule">
+            <field name="name">Salary Advance Recovery</field>
+            <field name="sequence">198</field>
+            <field name="code">ADVDED</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+            <field name="condition_select">property_input</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = -(inputs['ADVDED'].amount if 'ADVDED' in inputs else 0.0)</field>
+            <field name="input_usage_employee" eval="False"/>
+            <field name="input_default_value" eval="0.0"/>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+        <record id="ksa_saudi_employee_payroll_structure_loan_deduction" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+            <field name="name">Loan Deduction</field>
+            <field name="sequence">190</field>
+            <field name="code">LOAN_DEDUCTION</field>
+            <field name="condition_select">property_input</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = -(inputs['LOAN_DEDUCTION'].amount if 'LOAN_DEDUCTION' in inputs else 0.0)
+            </field>
+            <field name="input_usage_employee" eval="False"/>
+            <field name="input_default_value" eval="0.0"/>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="ksa_saudi_housing_allowance_salary_rule" model="hr.salary.rule">
+            <field name="name">Housing Allowance</field>
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_sa_category_allowance')])]"/>
+            <field name="code">HOUALLOW</field>
+            <field name="sequence">2</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = version.wage_type == 'monthly'</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = 0
+if version.has_static_work_entries():
+    result = version.l10n_sa_housing_allowance
+elif '002.00' in worked_days:
+    result = (version.l10n_sa_housing_allowance * worked_days['002.00'].number_of_days) / total_number_of_days
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+        <record id="ksa_saudi_transportation_allowance_salary_rule" model="hr.salary.rule">
+            <field name="name">Transportation Allowance</field>
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_sa_category_allowance')])]"/>
+            <field name="code">TRAALLOW</field>
+            <field name="sequence">3</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = version.wage_type == 'monthly'</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = 0
+if version.has_static_work_entries():
+    result = version.l10n_sa_transportation_allowance
+elif '002.00' in worked_days:
+    result = (version.l10n_sa_transportation_allowance * worked_days['002.00'].number_of_days) / total_number_of_days
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+        <record id="ksa_saudi_other_allowances_salary_rule" model="hr.salary.rule">
+            <field name="name">Other Allowances</field>
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_sa_category_allowance')])]"/>
+            <field name="code">OTALLOW</field>
+            <field name="sequence">4</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = version.wage_type == 'monthly'</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = 0
+if version.has_static_work_entries():
+    result = version.l10n_sa_other_allowances
+elif '002.00' in worked_days:
+    result = (version.l10n_sa_other_allowances * worked_days['002.00'].number_of_days) / total_number_of_days
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="ksa_saudi_unpaid_days" model="hr.salary.rule">
+            <field name="name">Unpaid Days</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+            <field name="code">UNPAID</field>
+            <field name="sequence">10</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">
+result = any(line.work_entry_type_id.amount_rate == 0 for code, line in worked_days.items())
+            </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+unpaid_days = sum(line.number_of_days for code, line in worked_days.items() if line.work_entry_type_id.amount_rate == 0)
+daily_salary = (payslip._get_contract_wage() + categories['SA_ALW']) / total_number_of_days
+
+if version.schedule_pay == '30_monthly':
+    month_days = (payslip.date_to - payslip.date_from).days + 1
+    if unpaid_days == month_days:
+        if unpaid_days == 31:
+            amount_to_defer = -daily_salary
+        unpaid_days = 30
+    elif unpaid_days == 30 and month_days == 31:
+        amount_to_defer = daily_salary
+
+result_qty = unpaid_days
+result = -daily_salary
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="ksa_saudi_social_insurance_contribution" model="hr.salary.rule">
+            <field name="name">GOSI - Company Contribution</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+            <field name="code">GOSI_COMP</field>
+            <field name="appears_on_employee_cost_dashboard" eval="True"/>
+            <field name="sequence">20</field>
+             <field name="condition_select">python</field>
+            <field name="condition_python">
+entry_month = employee._get_first_version_date().month
+departure_date = employee.departure_date
+result = not departure_date or departure_date &gt;= payslip.date_to or departure_date.month == entry_month
+            </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+company_contribution = version.l10n_sa_company_social_insurance_percentage \
+                     + version.l10n_sa_company_oh_insurance_percentage \
+                     + version.l10n_sa_company_unemployment_insurance_percentage
+
+result = (payslip._get_contract_wage() + version.l10n_sa_housing_allowance) * -company_contribution
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="ksa_saudi_social_insurance_employee_contribution" model="hr.salary.rule">
+            <field name="name">GOSI - Employee Contribution</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED'), ref('hr_payroll.COMP')])]"/>
+            <field name="code">GOSI_EMP</field>
+            <field name="appears_on_employee_cost_dashboard" eval="True"/>
+            <field name="sequence">25</field>
+            <!-- Only applicable for KSA nationals -->
+            <field name="condition_select">python</field>
+            <field name="condition_python">
+entry_month = employee._get_first_version_date().month
+departure_date = employee.departure_date
+result = employee.country_id.code == 'SA' and \
+         (not departure_date or departure_date &gt;= payslip.date_to or departure_date.month == entry_month)
+            </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+employee_contribution = version.l10n_sa_employee_social_insurance_percentage \
+                     + version.l10n_sa_employee_oh_insurance_percentage \
+                     + version.l10n_sa_employee_unemployment_insurance_percentage
+
+result = (payslip._get_contract_wage() + version.l10n_sa_housing_allowance) * -employee_contribution
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="ksa_saudi_employee_payroll_structure_deduction_sick_leave" model="hr.salary.rule">
+            <field name="name">Sick Leave (Deduction)</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+            <field name="code">DEDSICKLEAVE</field>
+            <field name="sequence">35</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = 'SASICKLEAVE75' in worked_days</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+daily_salary = (payslip._get_contract_wage() + categories['SA_ALW']) / total_number_of_days
+result_qty = worked_days['SASICKLEAVE75'].number_of_days
+result_rate = (1 - worked_days['SASICKLEAVE75'].work_entry_type_id.amount_rate) * 100
+result = -daily_salary
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="ksa_saudi_overtime" model="hr.salary.rule">
+            <field name="name">Overtime</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+            <field name="code">OT</field>
+            <field name="sequence">40</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">
+result = any(work_day.work_entry_type_id.is_extra_hours for _code, work_day in worked_days.items()) 
+            </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+compensation = categories['BASIC'] + categories['SA_ALW']
+daily_wage = compensation / total_number_of_days
+
+result = 0
+for code, work_day in worked_days.items():
+    if work_day.work_entry_type_id.is_extra_hours:
+        result += daily_wage * work_day.number_of_days * work_day.work_entry_type_id.amount_rate
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="ksa_saudi_end_of_service_provision_salary_rule" model="hr.salary.rule">
+            <field name="name">End of Service Provision</field>
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_sa_hr_payroll.l10n_sa_category_provision')])]"/>
+            <field name="code">EOSP</field>
+            <field name="appears_on_payslip">non_zero</field>
+            <field name="sequence">45</field>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+paid_days = total_number_of_days
+if any(line.work_entry_type_id.amount_rate == 0 for code, line in worked_days.items()):
+    paid_days -= unpaid_days
+if total_number_of_days:
+    total_years = employee._l10n_sa_get_number_of_years(employee._get_first_version_date(), payslip.date_to)
+    provision_month = (categories['BASIC'] + categories['SA_ALW']) / 12
+    if total_years &lt;= 5:
+        provision_month = provision_month / 2
+    result = (provision_month / total_number_of_days) * paid_days
+    result = payslip.company_id.currency_id.round(result)
+else:
+    result = 0
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="ksa_saudi_employee_payroll_structure_annual_leave_provision" model="hr.salary.rule">
+            <field name="name">Annual Leave Provision</field>
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_sa_hr_payroll.l10n_sa_category_provision')])]"/>
+            <field name="code">ANNUALP</field>
+            <field name="sequence">50</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">
+result = version.l10n_sa_number_of_days
+            </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+gross_salary = categories['BASIC'] + categories['SA_ALW']
+number_of_leave_days = version.l10n_sa_number_of_days
+daily_rate = gross_salary / total_number_of_days
+result = daily_rate * number_of_leave_days / 12
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+        <record id="sa_annual_leave_provision_payout_salary_rule" model="hr.salary.rule">
+            <field name="name">Annual Leave Provision Payout</field>
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_sa_hr_payroll.l10n_sa_category_provision_payout')])]"/>
+            <field name="code">ALPPOUT</field>
+            <field name="sequence">30</field>
+            <field name="amount_select">code</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = '016.00' in worked_days</field>
+            <field name="amount_python_compute">
+annual_leave_days = worked_days['016.00'].number_of_days
+daily_wage = (categories['BASIC'] + categories["ALW"]) / total_number_of_days
+result = annual_leave_days * daily_wage
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="ksa_saudi_employee_payroll_structure_remaining_leave_days_compensation" model="hr.salary.rule">
+            <field name="name">Remaining leave days Compensation</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+            <field name="code">ANNUALCOMP</field>
+            <field name="appears_on_payslip">never</field>
+            <field name="sequence">55</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">
+result = employee.departure_reason_id and employee.l10n_sa_remaining_annual_leave_balance &gt; 0
+            </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result_qty = employee.l10n_sa_remaining_annual_leave_balance
+result = (version.wage + categories['SA_ALW']) / total_number_of_days
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="ksa_saudi_end_of_service_salary_rule" model="hr.salary.rule">
+            <field name="name">Saudi End of Service Benefit</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+            <field name="code">EOSB</field>
+            <field name="sequence">60</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = employee.departure_date and employee.departure_reason_id</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = 0
+start_date = employee._get_first_version_date()
+end_date = employee.departure_date
+total_years = employee._l10n_sa_get_number_of_years(start_date, end_date)
+compensation = (version._get_contract_wage() + version.l10n_sa_housing_allowance
+                + version.l10n_sa_transportation_allowance + version.l10n_sa_other_allowances)
+
+if reason_type := employee.departure_reason_id.l10n_sa_reason_type:
+    if reason_type == 'fired':
+        result = 0
+    elif reason_type in ['end_of_contract', 'retired']:
+        if 1 &lt;= total_years &lt;= 5:
+            result = total_years * compensation / 2
+        if total_years &gt; 5:
+            result = (5 * compensation / 2) + ((total_years - 5) * compensation)
+    elif reason_type in {'company_article_77', 'employee_article_77'}:
+        sign = -1 if reason_type == 'employee_article_77' else 1
+        if not employee.contract_date_end:
+            result = sign * max(2 * compensation, compensation / 2 * total_years)
+        elif employee.contract_date_end &gt;= employee.departure_date:
+            result = sign * max(2 * compensation, (employee.contract_date_end - employee.departure_date).days * compensation / 30)
+        elif employee.contract_date_end &lt; employee.departure_date:
+            result = sign * 2 * compensation
+    elif reason_type == 'resigned':
+        if 2 &lt;= total_years &lt; 10:
+            result = (total_years * compensation / 2) / 3
+        elif total_years &gt;= 10:
+            result = (5 * compensation / 2) + ((total_years - 5) * compensation)
+result = employee.company_id.currency_id.round(result)
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="ksa_saudi_end_of_service_provision_correction_salary_rule" model="hr.salary.rule">
+            <field name="name">EOS Provision Correction</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+            <field name="code">EOSPC</field>
+            <field name="appears_on_payslip">never</field>
+            <field name="sequence">61</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">
+result = employee.departure_date and employee.departure_reason_id
+            </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+start_date = employee._get_first_version_date()
+total_provisions = payslip._sum('EOSP', start_date, payslip.date_to)
+eos_benefit = result_rules['EOSB']['total']
+result = eos_benefit - total_provisions
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="ksa_saudi_employee_payroll_structure_exit_re_entry" model="hr.salary.rule">
+            <field name="name">Exit Re-Entry</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+            <field name="code">EXREENT</field>
+            <field name="sequence">70</field>
+            <field name="condition_select">property_input</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="amount_select">property_input</field>
+            <field name="input_usage_employee" eval="False"/>
+            <field name="input_default_value" eval="0.0"/>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="l10n_sa_hr_payroll_ksa_saudi_employee_payroll_structure_gross_salary_rule" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.GROSS')])]"/>
+            <field name="name">Gross</field>
+            <field name="sequence">80</field>
+            <field name="code">GROSS</field>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = categories['BASIC'] + categories['ALW']
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="ksa_saudi_employee_payroll_structure_medical_insureance" model="hr.salary.rule">
+            <field name="name">Medical Insurance (Company Contribution)</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+            <field name="code">MEDICAL</field>
+            <field name="appears_on_employee_cost_dashboard" eval="True"/>
+            <field name="sequence">90</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = version.l10n_sa_medical_insurance_annual_amount &gt; 0</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = version.l10n_sa_medical_insurance_annual_amount / 12</field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="ksa_saudi_employee_payroll_structure_iqama" model="hr.salary.rule">
+            <field name="name">Iqama (Company Contribution)</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+            <field name="code">IQAMA</field>
+            <field name="appears_on_employee_cost_dashboard" eval="True"/>
+            <field name="sequence">90</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = version.l10n_sa_iqama_annual_amount &gt; 0</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = version.l10n_sa_iqama_annual_amount / 12</field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="ksa_saudi_employee_payroll_structure_work_permit" model="hr.salary.rule">
+            <field name="name">Work Permit (Company Contribution)</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+            <field name="code">WORKPER</field>
+            <field name="appears_on_employee_cost_dashboard" eval="True"/>
+            <field name="sequence">90</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = version.l10n_sa_work_permit_annual_amount &gt; 0</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = version.l10n_sa_work_permit_annual_amount / 12</field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="l10n_sa_hr_payroll_ksa_saudi_employee_payroll_structure_attachment_of_salary_rule"
+                model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+            <field name="name">Attachment of Salary</field>
+            <field name="sequence">110</field>
+            <field name="code">ATTACH_SALARY</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = 'ATTACH_SALARY' in inputs</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = -inputs['ATTACH_SALARY'].amount
+result_name = inputs['ATTACH_SALARY'].name
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="l10n_sa_hr_payroll_ksa_saudi_disciplinary_action_rule" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+            <field name="name">Disciplinary Deduction</field>
+            <field name="sequence">110</field>
+            <field name="code">DISC_DED</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result  = payslip._l10n_sa_has_disciplinary_action()</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = -payslip._l10n_sa_get_disciplinary_action_amount()
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="l10n_sa_hr_payroll_ksa_saudi_employee_payroll_structure_assignment_of_salary_rule"
+                model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+            <field name="name">Assignment of Salary</field>
+            <field name="sequence">110</field>
+            <field name="code">ASSIG_SALARY</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = 'ASSIG_SALARY' in inputs</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = -inputs['ASSIG_SALARY'].amount
+result_name = inputs['ASSIG_SALARY'].name
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="l10n_sa_hr_payroll_ksa_saudi_employee_payroll_structure_child_support" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+            <field name="name">Child Support</field>
+            <field name="code">CHILD_SUPPORT</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="amount_select">code</field>
+            <field name="sequence">110</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = 'CHILD_SUPPORT' in inputs</field>
+            <field name="amount_python_compute">
+result = -inputs['CHILD_SUPPORT'].amount
+result_name = inputs['CHILD_SUPPORT'].name
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="l10n_sa_hr_payroll_ksa_saudi_employee_payroll_structure_deduction_salary_rule"
+                model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+            <field name="name">Deduction</field>
+            <field name="sequence">110</field>
+            <field name="code">DEDUCTION</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = 'DEDUCTION' in inputs</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = -inputs['DEDUCTION'].amount
+result_name = inputs['DEDUCTION'].name
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="l10n_sa_hr_payroll_ksa_saudi_employee_payroll_structure_leave_recovery_rule" model="hr.salary.rule">
+            <field name="name">Leave Recovery Pay</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+            <field name="code">LEAVERECPAY</field>
+            <field name="sequence">110</field>
+            <field name="condition_select">property_input</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+daily_salary = (version.wage + categories['SA_ALW']) / total_number_of_days
+result =  - daily_salary * (inputs['LEAVERECPAY'].amount if 'LEAVERECPAY' in inputs else 0.0)
+            </field>
+            <field name="input_usage_employee" eval="False"/>
+            <field name="input_default_value" eval="0.0"/>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="l10n_sa_hr_payroll_ksa_saudi_employee_payroll_structure_reimbursement_salary_rule"
+                model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+            <field name="name">Reimbursement</field>
+            <field name="sequence">110</field>
+            <field name="code">REIMBURSEMENT</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = 'REIMBURSEMENT' in inputs</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = inputs['REIMBURSEMENT'].amount
+result_name = inputs['REIMBURSEMENT'].name
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="l10n_sa_hr_payroll_ksa_saudi_employee_payroll_structure_paid_leave_salary_rule"
+                model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+            <field name="name">Paid Leave</field>
+            <field name="sequence">120</field>
+            <field name="code">PAIDLEAVE</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">
+result = not version.has_static_work_entries() and '016.00' in worked_days
+            </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = ((version.wage / total_number_of_days) / version.resource_calendar_id.hours_per_day) * \
+worked_days['016.00'].number_of_hours
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="l10n_sa_hr_payroll_ksa_saudi_employee_payroll_structure_maternity_leave_salary_rule"
+                model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+            <field name="name">Maternity Leave</field>
+            <field name="sequence">140</field>
+            <field name="code">MATERNITY</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">
+result = not version.has_static_work_entries() and 'SAMATERNITY' in worked_days
+            </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = ((version.wage / total_number_of_days) / version.resource_calendar_id.hours_per_day) * \
+worked_days['SAMATERNITY'].number_of_hours
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="l10n_sa_hr_payroll_ksa_saudi_employee_payroll_structure_emergency_leave_salary_rule"
+                model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+            <field name="name">Emergency Leave</field>
+            <field name="sequence">150</field>
+            <field name="code">EMERGENCY</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">
+result = not version.has_static_work_entries() and 'SAEMERGENCY' in worked_days
+            </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = ((version.wage / total_number_of_days) / version.resource_calendar_id.hours_per_day) * \
+worked_days['SAEMERGENCY'].number_of_hours
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="l10n_sa_hr_payroll_ksa_saudi_employee_payroll_structure_expenses_reimbursement" model="hr.salary.rule">
+            <field name="name">Expenses Reimbursement</field>
+            <field name="code">EXPENSES</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+            <field name="sequence">199</field>
+            <field name="condition_select">property_input</field>
+            <field name="amount_select">property_input</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="appears_on_payslip">non_zero</field>
+            <field name="input_usage_employee" eval="False"/>
+            <field name="input_default_value" eval="0.0"/>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="l10n_sa_hr_payroll_ksa_saudi_employee_payroll_structure_leave_advance_pay_rule" model="hr.salary.rule">
+            <field name="name">Leave Advance Pay</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+            <field name="code">LEAVEADVPAY</field>
+            <field name="sequence">220</field>
+            <field name="condition_select">property_input</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+daily_salary = (version.wage + categories['SA_ALW']) / total_number_of_days
+result =  daily_salary * (inputs['LEAVEADVPAY'].amount if 'LEAVEADVPAY' in inputs else 0.0)
+            </field>
+            <field name="input_usage_employee" eval="False"/>
+            <field name="input_default_value" eval="0.0"/>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="l10n_sa_hr_payroll_ksa_saudi_employee_payroll_structure_deferred_amount_salary_rule" model="hr.salary.rule">
+            <field name="name">Deferred Amount</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+            <field name="code">DEFERREDAMOUNT</field>
+            <field name="sequence">230</field>
+            <field name="appears_on_payslip">non_zero</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">
+previous_payslips = payslip.env['hr.payslip'].search([
+    ('employee_id', '=', employee.id),
+    ('date_to', '&lt;', payslip.date_from),
+    ('state', 'in', ['validated', 'paid']),
+    ('company_id', '=', payslip.company_id.id),
+]).sorted('date_from')
+result = previous_payslips[-1]._get_line_values(['AMOUNTTODEFER'])['AMOUNTTODEFER'][previous_payslips[-1].id]['total'] if previous_payslips else False
+            </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+net_salary = categories['BASIC'] + categories['ALW'] + categories['DED']
+previous_payslips = payslip.env['hr.payslip'].search([
+    ('employee_id', '=', employee.id),
+    ('date_to', '&lt;', payslip.date_from),
+    ('state', 'in', ['validated', 'paid']),
+    ('company_id', '=', payslip.company_id.id),
+]).sorted('date_from')
+
+result = 0
+if previous_payslips:
+    deferred_amount = previous_payslips[-1]._get_line_values(['AMOUNTTODEFER'])['AMOUNTTODEFER'][previous_payslips[-1].id]['total']
+    if deferred_amount &gt;= 0 or net_salary &gt;= abs(deferred_amount):
+        result = deferred_amount
+    else:
+        result = -max(0 , net_salary)
+        amount_to_defer += deferred_amount - result
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+        <record id="l10n_sa_hr_payroll_ksa_saudi_employee_payroll_structure_amount_to_defer_salary_rule" model="hr.salary.rule">
+            <field name="name">Amount to defer</field>
+            <field name="category_ids" eval="[(5, 0, 0)]"/>
+            <field name="code">AMOUNTTODEFER</field>
+            <field name="sequence">240</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = amount_to_defer</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = amount_to_defer
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="l10n_sa_hr_payroll_ksa_saudi_employee_payroll_structure_net_salary" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.NET')])]"/>
+            <field name="name">Net Salary</field>
+            <field name="sequence">400</field>
+            <field name="code">NET</field>
+            <field name="appears_on_employee_cost_dashboard" eval="False"/>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = categories['BASIC'] + categories['ALW'] + categories['DED']
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="l10n_sa_hr_payroll_ksa_saudi_employee_payroll_structure_net_cost" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_sa_hr_payroll.l10n_sa_category_net_cost')])]"/>
+            <field name="name">Net Cost</field>
+            <field name="sequence">500</field>
+            <field name="code">NETCOST</field>
+            <field name="appears_on_payslip">never</field>
+            <field name="appears_on_employee_cost_dashboard" eval="True"/>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+comp_codes = payslip.struct_id.rule_ids.filtered_domain([('category_ids', 'child_of', payslip.env.ref('hr_payroll.COMP').id)]).mapped('code')
+result = sum(abs(result_rules[comp_code]['total']) for comp_code in comp_codes) + result_rules['NET']['total']
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+    </data>
+</odoo>

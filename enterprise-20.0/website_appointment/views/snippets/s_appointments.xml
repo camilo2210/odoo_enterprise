@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<template id="remove_external_snippets" inherit_id="website_enterprise.external_snippets">
+    <xpath expr="//t[@id='appointments_snippet']" position="replace"/>
+</template>
+
+<template id="snippets" inherit_id="website.snippets">
+    <xpath expr="//t[@id='appointments_hook']" position="replace">
+        <t t-snippet="website_appointment.s_appointments_card" string="Appointments" group="appointments" label="Appointment"/>
+        <t t-snippet="website_appointment.s_appointments_picture" string="Appointments" group="appointments" label="Appointment"/>
+        <t t-snippet="website_appointment.s_appointments_list" string="Appointments" group="appointments" label="Appointment"/>
+        <t t-snippet="website_appointment.s_appointments_carousel" string="Appointments" group="appointments" label="Dynamic Carousel"/>
+    </xpath>
+    <xpath expr="//t[@id='installed_snippets_hook']" position="after">
+        <t snippet-group="appointments" t-snippet="website.s_snippet_group" string="Appointments"
+            t-thumbnail="/website_enterprise/static/src/img/snippets_thumbs/s_appointments.svg"/>
+    </xpath>
+</template>
+
+<!-- Snippet -->
+<template id="s_appointments" name="Appointments">
+    <t t-call="website.s_dynamic_snippet_template"
+        snippet_name.f="s_appointments"
+        main_page_url.f="/appointment"
+        snippet_title.translate="Schedule a Visit"
+        snippet_description.translate="Browse open slots and reserve your appointment easily.">
+        <t t-out="0"/>
+    </t>
+</template>
+<!-- Multi record snippets -->
+<template id="s_appointments_card" name="Appointments Card">
+    <t t-set="snippet_classes" t-value="'s_appointment_type_card'"/>
+    <t t-call="website_appointment.s_appointments">
+        <t t-call="website_appointment.s_appointments_preview_data"/>
+    </t>
+</template>
+<template id="s_appointments_picture" name="Appointments Picture">
+    <t t-set="snippet_classes" t-value="'s_appointment_type_picture'"/>
+    <t t-call="website_appointment.s_appointments">
+        <t t-call="website_appointment.s_appointments_picture_preview_data"/>
+    </t>
+</template>
+<template id="s_appointments_list" name="Appointments List">
+    <t t-set="snippet_classes" t-value="'s_appointment_type_list'"/>
+    <t t-call="website_appointment.s_appointments">
+        <t t-call="website_appointment.s_appointments_list_preview_data"/>
+    </t>
+</template>
+<!-- Single record snippets (coming soon...) -->
+
+<!-- Templates -->
+<template id="dynamic_filter_template_appointment_type_card" name="Cards"
+        data-extra-classes="g-3"
+        data-column-classes="s_appointments_card col-12 col-sm-6 col-lg-4 col-xxl-3">
+    <div t-foreach="records" t-as="data" class="w-100 h-100">
+        <t t-set="appointment" t-value="data['_record']"/>
+        <div class="card shadow-sm h-100">
+            <t t-if="is_sample">
+                <div class="card-img-top position-relative ratio ratio-16x9">
+                    <div>
+                        <img class="d-block h-100 w-100 object-fit-cover" src="/appointment/static/src/img/appointment_cover_0.jpg"/>
+                        <div class="h5 o_ribbon_right text-bg-primary text-uppercase">Sample</div>
+                    </div>
+                </div>
+            </t>
+            <t t-else="" t-call="website_appointment.appointment_card_top"/>
+            <t t-call="website_appointment.appointment_card_body"/>
+        </div>
+    </div>
+</template>
+
+<template id="dynamic_filter_template_appointment_type_picture" name="Pictures"
+        data-number-of-elements="3"
+        data-extra-classes="g-3"
+        data-column-classes="col-12 col-md-6 col-xl-4">
+    <div t-foreach="records" t-as="data" class="w-100">
+        <t t-set="appointment" t-value="data['_record']"/>
+        <t t-call="website_appointment.appointment_picture_item"/>
+    </div>
+</template>
+
+<template id="dynamic_filter_template_appointment_type_list" name="List"
+        data-extra-classes="g-2"
+        data-column-classes="o_appointment_list_item px-0">
+    <div t-foreach="records" t-as="data" class="o_cc o_cc1 position-relative grid align-items-center gap-3 gap-lg-5 rounded p-3 overflow-hidden">
+        <t t-set="appointment" t-value="data['_record']"/>
+        <t t-call="website_appointment.appointment_list_item"/>
+    </div>
+</template>
+
+<asset id="website_appointment.s_appointments_000_scss" name="Appointments 000 SCSS">
+    <bundle>web.assets_frontend</bundle>
+    <path>website_appointment/static/src/snippets/s_appointments/000.scss</path>
+</asset>
+
+</odoo>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+
+    <t t-name="appointment.resources_capacity_options">
+        <!-- Only used on refresh. Needed to be able to go back to 1 if new max capacity for selected entity. -->
+        <option t-if="noAvailability" value="0" t-att-selected="!asked_capacity and 'selected'">-</option>
+        <t t-foreach="range(1, max_capacity + 1)" t-as="counter" t-key="counter_index">
+            <option t-att-value="counter" t-att-selected="counter == asked_capacity and 'selected'">
+                <t t-out="counter"/>
+            </option>
+        </t>
+    </t>
+
+    <t t-name="appointment.slots_list">
+        <div class="h6">Pick a Time</div>
+        <div class="o_slots_list grid gap-1">
+            <t t-set="slot_grid_classes" t-value="categorySlotScheduling === 'flexible' ? 'g-col-12 g-col-lg-6' : 'g-col-6 g-col-sm-4'"/>
+            <t t-foreach="slots" t-as="slot" t-key="slot_index">
+                <div t-attf-class="#{slot['is_long_duration'] ? 'g-col-12 g-col-xl-6' : slot_grid_classes}">
+                    <button class="o_slot_hours o_appointment_btn btn w-100 border text-nowrap"
+                        t-att-data-available-resources="getAvailableResources(slot)"
+                        t-att-data-available-staff-users="getAvailableUsers(slot)"
+                        t-attf-data-url-parameters="#{slot['url_parameters']}&amp;#{commonUrlParams}">
+                            <t t-out="slot['start_hour']"/>
+                            <t t-if="slot['start_hour'] == slot['end_hour']">
+                                All Day
+                            </t>
+                            <t t-elif="slot['end_hour']">
+                                to <t t-out="slot['end_hour']"/>
+                            </t>
+                    </button>
+                </div>
+            </t>
+        </div>
+    </t>
+
+</templates>

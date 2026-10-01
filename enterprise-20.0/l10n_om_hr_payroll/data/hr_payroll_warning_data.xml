@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <record id="l10n_om_wps_warning_company_config" model="hr.payroll.warning">
+            <field name="name">Oman WPS: Missing Company Configuration</field>
+            <field name="country_id" ref="base.om"/>
+            <field name="warning_color_class">warning</field>
+            <field name="warning_type">python</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_om_hr_payroll.model_hr_payslip"/>
+            <field name="evaluation_code">
+payslips = self.env['hr.payslip'].browse(active_ids).filtered(
+    lambda p: p.company_id.country_code == 'OM'
+)
+warning_records = self.env['hr.payslip']
+warning_details = {}
+for slip in payslips:
+    issues = []
+    level = 'danger' if slip.state == 'validated' else 'warning'
+    company = slip.company_id
+    settings_action = self.env['ir.actions.actions']._for_xml_id('hr_payroll.action_hr_payroll_configuration')
+
+    if not company.l10n_om_company_mol_number:
+        issues.append({
+            'message': _get_payroll_translation("Kindly configure the company's MOL registration number"),
+            'action_text': _get_payroll_translation("Settings"),
+            'action': settings_action,
+            'level': level,
+        })
+    if not company.l10n_om_salary_payer:
+            issues.append({
+                'message': _get_payroll_translation("Kindly configure the Salary Payer"),
+                'action_text': _get_payroll_translation("Settings"),
+                'action': settings_action,
+                'level': level,
+            })
+    if not company.l10n_om_salary_payer_mol_number:
+        issues.append({
+            'message': _get_payroll_translation("Kindly configure the Salary Payer's MOL registration number"),
+            'action_text': _get_payroll_translation("Settings"),
+            'action': settings_action,
+            'level': level,
+        })
+    else:
+        if not company.l10n_om_bank_account_id:
+            issues.append({
+                'message': _get_payroll_translation("Kindly configure the WPS Disbursement Bank Account for the Salary Payer"),
+                'action_text': _get_payroll_translation("Settings"),
+                'action': settings_action,
+                'level': level,
+            })
+        elif company.l10n_om_bank_account_id.partner_id != company.l10n_om_salary_payer:
+            issues.append({
+                'message': _get_payroll_translation("The WPS Disbursement Bank Account does not belong to the configured Salary Payer"),
+                'action_text': _get_payroll_translation("Settings"),
+                'action': settings_action,
+                'level': level,
+            })
+        elif not slip._l10n_om_resolve_bank_code(company.l10n_om_bank_account_id):
+            issues.append({
+                'message': _get_payroll_translation("The WPS Disbursement Bank Account has no WPS Short Name or no BIC, the bank code for the WPS export cannot be determined"),
+                'action_text': _get_payroll_translation("Company Bank Account"),
+                'action': company.l10n_om_bank_account_id._get_records_action(),
+                'level': level,
+            })
+
+    if issues:
+        warning_records |= slip
+        warning_details[slip] = issues
+            </field>
+        </record>
+
+        <record id="l10n_om_wps_warning_employee_config" model="hr.payroll.warning">
+            <field name="name">Oman WPS: Missing Employee Configuration</field>
+            <field name="country_id" ref="base.om"/>
+            <field name="warning_color_class">warning</field>
+            <field name="warning_type">python</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_om_hr_payroll.model_hr_payslip"/>
+            <field name="evaluation_code">
+payslips = self.env['hr.payslip'].browse(active_ids).filtered(
+    lambda p: p.company_id.country_code == 'OM' and p.net_wage > 0
+)
+warning_records = self.env['hr.payslip']
+warning_details = {}
+for slip in payslips:
+    issues = []
+    employee = slip.employee_id
+    level = 'danger' if slip.state == 'validated' else 'warning'
+
+    id_type = employee.l10n_om_identification_type or 'passport'
+    id_number = employee.identification_id if id_type == 'civil_status_card' else employee.passport_id
+    if not id_number:
+        id_label = "Civil Status Card" if id_type == 'civil_status_card' else "Passport"
+        issues.append({
+            'message': _get_payroll_translation("Missing identification number for the employee: %(label)s", label=id_label),
+            'action_text': _get_payroll_translation("Employee"),
+            'action': employee._get_records_action(
+                name=_get_payroll_translation("Employee"),
+                context={**self.env.context, 'version_id': slip.version_id.id},
+            ),
+            'level': level,
+        })
+    schedule_pay = slip.struct_id.schedule_pay if slip.struct_id else False
+    if schedule_pay and schedule_pay not in ('monthly', 'bi-weekly'):
+        issues.append({
+            'message': _get_payroll_translation(
+                "Salary frequency %(frequency)s is not supported by the Oman WPS format. Only Monthly and Bi-weekly are allowed.",
+                frequency=slip.struct_id._fields['schedule_pay'].convert_to_export(schedule_pay, slip.struct_id),
+            ),
+            'action_text': _get_payroll_translation("Payroll Structure"),
+            'action': slip.struct_id.type_id._get_records_action(),
+            'level': 'warning',
+        })
+
+    if issues:
+        warning_records |= slip
+        warning_details[slip] = issues
+            </field>
+        </record>
+
+    </data>
+</odoo>

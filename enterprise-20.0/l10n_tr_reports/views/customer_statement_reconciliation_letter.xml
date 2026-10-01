@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="l10n_tr_pdf_export_main_customer_report" inherit_id="account_reports.pdf_export_main_customer_report">
+
+        <xpath expr="//div[hasclass('o_title')]" position="replace">
+            <t t-if="not selected_partner">
+                <div class="o_title text-center">
+                    <t t-if="report.filter_show_draft and options['all_entries']">[Draft]</t>
+                    <t t-out="report_title"/>
+                </div>
+            </t>
+        </xpath>
+
+        <xpath expr="//header/div[hasclass('row')]" position="replace">
+            <t t-if="selected_partner">
+                <t t-set="company" t-value="env.company"/>
+                <t t-if="is_turkish">
+                    <t t-set="label_vat">Vergi No:</t>
+                    <t t-set="label_phone">Telefon:</t>
+                    <t t-set="label_email">E-posta:</t>
+                    <t t-set="label_title">Cari Hesap Mutabakat Formu</t>
+                </t>
+                <t t-else="">
+                    <t t-set="label_vat">VAT:</t>
+                    <t t-set="label_phone">Phone:</t>
+                    <t t-set="label_email">Email:</t>
+                    <t t-set="label_title">Reconciliation Letter</t>
+                </t>
+
+                <!-- SENDER -->
+                <div style="display:table; width:100%; margin-bottom:20px;">
+                    <div style="display:table-cell; vertical-align:top; width:90px; padding-right:12px;">
+                        <img t-if="company.logo"
+                            t-att-src="image_data_uri(company.logo)"
+                            style="max-width:86px; height:auto;"/>
+                    </div>
+                    <div style="display:table-cell; vertical-align:top;">
+                        <t t-set="partner" t-value="company.partner_id"/>
+                        <t t-call="l10n_tr_reports.l10n_tr_partner_address_block"/>
+                    </div>
+                </div>
+
+                <!-- RECEIVER -->
+                <div style="margin-bottom:30px;">
+                    <table style="margin-left:auto; border-radius:6px; border-collapse:separate; padding:10px 16px 10px 10px;">
+                        <tr>
+                            <t t-if="selected_partner.image_1920">
+                                <td style="vertical-align:top; width:70px; padding-right:10px;">
+                                    <img t-att-src="image_data_uri(selected_partner.image_1920)"
+                                        style="max-width:64px; height:auto;"/>
+                                </td>
+                            </t>
+                            <td style="vertical-align:top; text-align:left; padding-right:12px;">
+                                <t t-set="partner" t-value="selected_partner"/>
+                                <t t-call="l10n_tr_reports.l10n_tr_partner_address_block"/>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- TITLE -->
+                <div class="o_title" style="margin-bottom:4px; font-weight:400;">
+                    <t t-if="report.filter_show_draft and options['all_entries']">[Draft] </t>
+                    <span style="color: #714B67;">
+                        <t t-out="label_title"/>
+                    </span>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="row">
+                    <div class="col-8">
+                        <t t-call="account_reports.company_information_customer_report"/>
+                    </div>
+                    <div class="col-4">
+                        <t t-call="account_reports.tax_information_customer_report"/>
+                        <t t-call="account_reports.bank_information_customer_report"/>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+
+        <xpath expr="//div[hasclass('d-flex')][hasclass('align-items-start')]" position="before">
+            <t t-if="selected_partner">
+                <t t-if="is_turkish">
+                    <t t-set="period_label">Hesap Dönemi:</t>
+                    <t t-set="greeting">Sayın</t>
+                    <t t-set="body_message">Lütfen belirtilen döneme ait fatura sayısı ve tutarlarını aşağıda inceleyiniz. Mutabık olup olmadığınızı lütfen bildiriniz.</t>
+                </t>
+                <t t-else="">
+                    <t t-set="period_label">Period:</t>
+                    <t t-set="greeting">Dear</t>
+                    <t t-set="body_message">Please find below the invoice count and amounts for the mentioned period. Kindly confirm whether you are in agreement with these figures.</t>
+                </t>
+                <div style="margin-bottom:4px; padding-left:10px;">
+                    <strong t-out="period_label"/>
+                    <span t-out="options['date']['date_from']"/>
+                    –
+                    <span t-out="options['date']['date_to']"/>
+                </div>
+                <div style="margin-top:8px; margin-bottom:24px; padding-left:10px;">
+                    <p style="margin:0 0 4px 0;">
+                        <span t-out="greeting"/>
+                        <strong t-out="selected_partner.name"/>,
+                    </p>
+                    <p style="margin:0;" t-out="body_message"/>
+                </div>
+            </t>
+        </xpath>
+
+        <xpath expr="//tbody/t/t[@lines]" position="attributes">
+            <attribute name="lines">filter(lambda x: not (selected_partner and x.level == 1), lines)</attribute>
+        </xpath>
+
+        <xpath expr="//div[hasclass('d-flex')][hasclass('align-items-start')]" position="after">
+            <t t-if="selected_partner">
+                <t t-if="is_turkish">
+                    <t t-set="label_invoice_count">Fatura Sayısı:</t>
+                    <t t-set="label_total">Toplam:</t>
+                    <t t-set="result_label">Mutabakat Sonucu:</t>
+                    <t t-set="result_intro">Yukarıda belirtilen cari hesap hareketleri tarafımızca kontrol edilmiş ve mutabık kalınmıştır.</t>
+                    <t t-set="result_li_1">Bu form, tarafların cari hesap kayıtlarının doğruluğunu gösterir.</t>
+                    <t t-set="result_li_2">Mütabık olunmadığı takdirde hesap ekstrenizin bir nüshasını tarafımıza göndermenizi rica ederiz.</t>
+                    <t t-set="result_li_3">Mütabakat veya itirazınıza ilişkin bildiriminizi 30 (otuz) gün içerisinde tarafımıza iletmemeniz halinde, Türk Ticaret Kanunu'nun 94. maddesi uyarınca mutabakatın sağlanmış sayılacağını bilgilerinize arz ederiz.</t>
+                    <t t-set="closing">Saygılarımızla,</t>
+                    <t t-set="label_authorized_person">Yetkili Kişi</t>
+                    <t t-set="label_name_surname">Adı Soyadı</t>
+                    <t t-set="label_role">Ünvan</t>
+                    <t t-set="label_signature_stamp">İmza / Kaşe</t>
+                </t>
+                <t t-else="">
+                    <t t-set="label_invoice_count">Invoice Count:</t>
+                    <t t-set="label_total">Total:</t>
+                    <t t-set="result_label">Reconciliation Result:</t>
+                    <t t-set="result_intro">The current account transactions stated above have been reviewed by us and have been found to be in agreement.</t>
+                    <t t-set="result_li_1">This form confirms the accuracy of the current account records of both parties.</t>
+                    <t t-set="result_li_2">In the event of any discrepancy, we kindly request that you provide us with a copy of your account statement.</t>
+                    <t t-set="result_li_3">If you do not communicate your acceptance or objection within 30 (thirty) days, we will deem the account to be agreed in accordance with Article 94 of the Turkish Commercial Code.</t>
+                    <t t-set="closing">Best regards,</t>
+                    <t t-set="label_authorized_person">Authorized Person</t>
+                    <t t-set="label_name_surname">Name and Surname</t>
+                    <t t-set="label_role">Role</t>
+                    <t t-set="label_signature_stamp">Signature / Stamp</t>
+                </t>
+
+                <!-- Invoice count + total -->
+                <div style="display:table; width:100%; padding-left:8px;">
+                    <div style="display:table-cell; text-align:left; padding-left:25px;">
+                        <strong t-out="label_invoice_count"/>
+                        <t t-out="invoice_count"/>
+                    </div>
+                    <div style="display:table-cell; text-align:right; white-space:nowrap; padding-right:10px;">
+                        <strong t-out="label_total"/>
+                        <t t-out="invoice_total"/>
+                    </div>
+                </div>
+
+                <!-- Reconciliation result -->
+                <div style="margin-top:32px; margin-bottom:12px; padding-left:8px;">
+                    <strong style="margin-bottom:4px; display:block;" t-out="result_label"/>
+                    <p t-out="result_intro"/>
+                    <ul>
+                        <li t-out="result_li_1"/>
+                        <li t-out="result_li_2"/>
+                        <li t-out="result_li_3"/>
+                    </ul>
+                    <p t-out="closing"/>
+                </div>
+
+                <!-- Signature block -->
+                <div style="margin-top:30px; page-break-inside:avoid; padding-left:8px;">
+                    <div style="display:table; width:100%; page-break-inside:avoid;">
+                        <div style="display:table-cell; width:50%; vertical-align:top; padding-right:30px;">
+                            <div t-out="label_authorized_person"/>
+                            <div><t t-out="label_name_surname"/> : </div>
+                            <div style="margin-top:12px;"><t t-out="label_role"/> : </div>
+                            <div style="margin-top:12px;"><t t-out="label_signature_stamp"/> :</div>
+                            <div style="border-top:1px solid #333; width:80%; margin-top:45px;"/>
+                        </div>
+                        <div style="display:table-cell; width:50%; vertical-align:top; padding-left:30px;">
+                            <div t-out="label_authorized_person"/>
+                            <div><t t-out="label_name_surname"/> : </div>
+                            <div style="margin-top:12px;"><t t-out="label_role"/> : </div>
+                            <div style="margin-top:12px;"><t t-out="label_signature_stamp"/> :</div>
+                            <div style="border-top:1px solid #333; width:80%; margin-top:45px;"/>
+                        </div>
+                    </div>
+                </div>
+
+            </t>
+        </xpath>
+
+    </template>
+
+    <template id="l10n_tr_partner_address_block">
+        <div style="font-weight:bold; margin-bottom:3px; white-space:normal; word-break:break-word; overflow-wrap:anywhere;">
+            <t t-out="partner.name"/>
+        </div>
+        <div t-if="partner.street">
+            <span t-out="partner.street"/>
+        </div>
+        <div t-if="partner.street2">
+            <span t-out="partner.street2"/>
+        </div>
+        <div>
+            <span t-out="partner.zip or ''"/>
+            <t t-if="partner.city">
+                <span t-out="' ' + partner.city"/>
+            </t>
+        </div>
+        <div t-if="partner.country_id">
+            <span t-out="partner.country_id.name"/>
+        </div>
+        <div t-if="partner.vat">
+            <strong t-out="label_vat"/>
+            <span t-out="partner.vat"/>
+        </div>
+        <div t-if="partner.phone">
+            <strong t-out="label_phone"/>
+            <span t-out="partner.phone"/>
+        </div>
+        <div t-if="partner.email">
+            <strong t-out="label_email"/>
+            <span t-out="partner.email"/>
+        </div>
+    </template>
+
+</odoo>

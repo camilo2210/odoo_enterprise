@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<templates>
+<t t-name="voip.TabEntry">
+    <div class="o-voip-TabEntry" t-att-class="this.props.extraClass">
+        <details t-att-open="this.isActiveRecord">
+            <summary class="d-flex justify-content-between gap-3 py-2 px-3 cursor-pointer" t-on-click="this.onClickSummary">
+                <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
+                    <div class="position-relative">
+                        <DiscussAvatar t-if="this.props.contactRecord?.partner_share === false" record="this.props.contactRecord" size="40"/>
+                        <t t-else="">
+                            <t t-set="avatarURL" t-value="this.props.contactRecord?.avatarUrl"/>
+                            <img class="o_avatar rounded object-fit-contain" t-att-class="{ 'o-voip-avatar-bg': avatarURL }" t-att-src="avatarURL or '/base/static/img/avatar_grey.png'" alt=""/>
+                        </t>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="d-flex align-items-center justify-content-between gap-2">
+                            <t t-set="title" t-value="this.props.title ?? this.props.contactRecord?.voipName"/>
+                            <p class="flex-grow-1 m-0 fw-bold text-truncate" t-att-data-tooltip="this.props.contactRecord?.complete_name ?? this.props.record[this.props.phoneNumberField]">
+                                <img t-if="!title and this.props.record.phone_country_id?.image_url" class="o-voip-countryFlag me-1 align-middle" t-att-src="this.props.record.phone_country_id.image_url" t-att-alt="this.flagAlt"/>
+                                <span class="o-voip-TabEntry-title align-middle" t-out="title or this.props.record[this.props.phoneNumberField]"/>
+                            </p>
+                            <t t-call-slot="extra-title"/>
+                        </div>
+                        <div t-if="this.props.subtitle" class="d-flex align-items-center opacity-75" t-att-class="this.props.subtitleClass">
+                            <i t-if="this.props.subtitleIcon" class="oi" t-att-class="this.props.subtitleIconClass" t-att-data-icon="this.props.subtitleIcon" aria-hidden="true"/>
+                            <span class="text-truncate" t-out="this.props.subtitle"/>
+                            <div class="d-flex gap-1 ms-1">
+                                <t t-foreach="this.props.subtitleExtraIcons" t-as="icon" t-key="window.JSON.stringify(icon)">
+                                    <i class="oi ms-1" t-att-class="icon.class" t-att-data-icon="icon.name" aria-hidden="true" t-att-title="icon.title"/>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-empty-none flex-shrink-0 align-self-center">
+                    <t t-call-slot="side"/>
+                </div>
+            </summary>
+            <div class="d-flex flex-column gap-3 py-2 px-3">
+                <div class="d-empty-none">
+                    <t t-call-slot="info" item="this.item"/>
+                </div>
+                <div class="d-flex d-empty-none flex-column gap-1">
+                    <t t-call-slot="voiceRecords" item="this.item"/>
+                </div>
+                <div class="d-flex d-empty-none gap-2 align-items-end justify-content-between">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <t t-call-slot="actions" item="this.item"/>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap justify-content-end">
+                        <t t-call-slot="call-to-action" item="this.item"/>
+                    </div>
+                </div>
+            </div>
+            <span t-if="this.isActiveRecord" t-ref="this.activeRecordRef"/>
+        </details>
+    </div>
+</t>
+</templates>

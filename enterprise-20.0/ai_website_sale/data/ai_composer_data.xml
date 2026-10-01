@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="ai_prompt_generate_product_image_image" model="ai.prompt.button">
+            <field name="name">Help me generate an image</field>
+            <field name="prompt" type="html">
+<div>
+    Generate an image for this product:
+    <ol>
+        <li>product_name: <span data-ai-field="product_tmpl_id.name">product_tmpl_id &gt; name</span></li>
+        <li>product_image: <span data-ai-field="image_1024">image_1024</span></li>
+        <li>product_description: <span data-ai-field="product_tmpl_id.description">product_tmpl_id &gt; description</span></li>
+        <li>product_description_sale: <span data-ai-field="product_tmpl_id.description_sale">product_tmpl_id &gt; description_sale</span></li>
+        <li>product_type: <span data-ai-field="product_tmpl_id.type">product_tmpl_id &gt; type</span></li>
+    </ol>
+</div>
+            </field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="ai_prompt_enhance_product_image_image" model="ai.prompt.button">
+            <field name="name">Enhance image</field>
+            <field name="prompt" type="html">
+<div>
+1. If an image is provided (<span data-ai-field="image_1024">image_1024</span>):
+    - Ask the user what changes they would like to make. 
+    - Provide a few concise example options inspired by the image (e.g., lighting, time of day, motion blur, color temperature, background, etc.). 
+    - The response must be **a list of 3 recommended changes**.
+    - Keep it **very concise and direct**.
+        
+2. If no image is provided:
+    - Ask the user to provide an image.
+    - Ask them to mention the enhancements they would like.
+
+Example (image provided):
+    What changes would you like to make to this image?
+    - time of day.
+    - motion blur amount.
+    - background style.
+Example (no image):
+    Please provide an image and tell me what enhancement you would like to see in the image.
+</div>
+            </field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="ai_media_dialog_product_image" model="ai.composer">
+            <field name="name">Product Image Media Manager</field>
+            <field name="interface_key">media_dialog</field>
+            <field name="focused_model_id" ref="website_sale.model_product_image"/>
+            <field name="ai_agent_id" ref="ai.ai_default_agent"/>
+            <field name="is_system_default">True</field>
+            <field name="available_prompt_ids" eval="[(4, ref('ai_prompt_generate_product_image_image')), (4, ref('ai_prompt_enhance_product_image_image'))]"/>
+        </record>
+    </data>
+</odoo>

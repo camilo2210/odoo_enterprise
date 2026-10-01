@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template xml:space="preserve">
+    <t t-name="marketing_automation.CampaignFlow.buttonDialogTemplate" t-inherit="web.FormView.DialogButtons">
+        <xpath expr="//button[hasclass('o_form_button_cancel')]" position="after">
+            <div class="flex-grow-1"/>
+        </xpath>
+    </t>
+    <t t-name="marketing_automation.CampaignFlowView">
+        <!-- Action helper: -->
+        <div t-if="this.props.record.isNew" class="d-flex flex-column flex-grow-1 justify-content-center bg-100 p-3">
+            <h1 class="text-center">Welcome to your Automation Campaign!</h1>
+            <p class="text-center lead">What will you build today?</p>
+            <div class="d-flex flex-column flex-md-row justify-content-center align-items-center o_marketing_helper_cards">
+                <div class="o_marketing_campaign_helper_card border rounded text-center cursor-pointer bg-white p-3" t-on-click="this.defineTrigger">
+                    <img src="/marketing_automation/static/img/trigger.svg" class="d-block mx-auto" width="64" height="64" alt="Trigger icon"/>
+                    <p class="m-0">Define a Trigger</p>
+                </div>
+                <span class="px-3">or</span>
+                <div class="o_marketing_campaign_helper_card border rounded text-center cursor-pointer bg-white p-3" t-on-click="this.openCampaignTemplatePickerDialog">
+                    <img src="/marketing_automation/static/img/puzzle.svg" class="d-block mx-auto" width="64" height="64" alt="Template icon"/>
+                    <p class="m-0">Load a Template</p>
+                </div>
+            </div>
+        </div>
+        <!-- Editor: -->
+        <div
+            t-else=""
+            t-ref="this.editor"
+            t-attf-style="visibility: {{ this.state.ready ? 'visible' : 'hidden' }}; background-size: {{ 20 * this.state.scale }}px {{ 20 * this.state.scale }}px; background-position: {{ this.state.origin.x }}px {{ this.state.origin.y }}px; cursor: {{ this.state.dragging ? 'grabbing;' : 'grab' }}"
+            class="editor flex-grow-1 overflow-hidden position-relative bg-100">
+
+            <!-- Add the links: -->
+            <t t-foreach="this.props.record.data.marketing_activity_ids.records" t-as="activity" t-key="activity_index">
+                <t t-if="this.hasVisibleNode(activity)">
+                    <!-- Order: "Trigger" > "Delay" > "Activity" -->
+                    <!-- Add a link between the trigger node (i.e: "wait for value" or "mail interaction") and the next node (i.e: "delay" or "activity"): -->
+                    <t t-if="this.hasTriggerNode(activity) and (this.hasDelayNode(activity) or !['split', 'structure'].includes(activity.data.activity_type))">
+                        <t t-set="a" t-value="this.getActivityTriggerPositionOnScreen(activity)"/>
+                        <t t-set="b" t-value="this.hasDelayNode(activity)
+                            ? this.getActivityDelayPositionOnScreen(activity)
+                            : this.getActivityPositionOnScreen(activity)"/>
+                        <svg xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                t-attf-d="M {{a.x}} {{a.y}} C {{a.x + (b.x - a.x) / 2}} {{a.y}}, {{a.x + (b.x - a.x) / 2}} {{b.y}}, {{b.x}} {{b.y}}"
+                                t-attf-stroke-width="calc({{ this.state.scale }} * var(--border-width))"
+                                stroke="var(--border-color)" fill="transparent" />
+                        </svg>
+                        <AddStepButton
+                            style="this.getCSSTransform(a.x + (b.x - a.x) / 2, a.y + (b.y - a.y) / 2)"
+                            onSelectedStep="(stepType) => this.addStepBefore(activity, stepType, {}, 'trigger')"/>
+                    </t>
+                    <!-- Add a link between the delay node and the activity node: -->
+                    <t t-if="this.hasDelayNode(activity) and this.hasActivityNode(activity)">
+                        <t t-set="a" t-value="this.getActivityDelayPositionOnScreen(activity)"/>
+                        <t t-set="b" t-value="this.getActivityPositionOnScreen(activity)"/>
+                        <svg xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                t-attf-d="M {{a.x}} {{a.y}} C {{a.x + (b.x - a.x) / 2}} {{a.y}}, {{a.x + (b.x - a.x) / 2}} {{b.y}}, {{b.x}} {{b.y}}"
+                                t-attf-stroke-width="calc({{ this.state.scale }} * var(--border-width))"
+                                stroke="var(--border-color)" fill="transparent" />
+                        </svg>
+                        <AddStepButton
+                            style="this.getCSSTransform(a.x + (b.x - a.x) / 2, a.y + (b.y - a.y) / 2)"
+                            onSelectedStep="(stepType) => this.addStepBefore(activity, stepType, {}, 'delay')"/>
+                    </t>
+                    <!-- Add a link between the first visible node and its parent -->
+                    <t t-set="parent" t-value="this.getParentMarketingActivity(activity)"/>
+                    <t t-set="a" t-value="parent
+                        ? this.getPositionOfLastVisibleNodeOnScreen(parent)
+                        : (activity.data.trigger_type === 'collect_reply'
+                            ? this.getReplyTriggerPositionOnScreen(this.props.record)
+                            : this.getTriggerPositionOnScreen(this.props.record))"/>
+                    <t t-set="b" t-value="this.getPositionOfFirstVisibleNodeOnScreen(activity)"/>
+                    <svg xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            t-attf-d="M {{a.x}} {{a.y}} C {{a.x + (b.x - a.x) / 2}} {{a.y}}, {{a.x + (b.x - a.x) / 2}} {{b.y}}, {{b.x}} {{b.y}}"
+                            t-attf-stroke-width="calc({{ this.state.scale }} * var(--border-width))"
+                            stroke="var(--border-color)" fill="transparent" />
+                    </svg>
+                    <!-- Add annotation for the split node: -->
+                    <t t-if="parent and parent.data.activity_type === 'split'">
+                        <t t-set="c" t-value="this.getBezierPoint(a, b, 2 / 5)"/>
+                        <t t-set="d" t-value="this.getBezierPoint(a, b, 3 / 5)"/>
+                        <t t-if="activity.data.is_split_no">
+                            <div class="o-editor-annotation bg-view rounded border px-2 py-1"
+                                t-att-style="this.getCSSTransform(c.x, c.y)">No</div>
+                            <AddStepButton
+                                style="this.getCSSTransform(d.x, d.y)"
+                                disabledStepTypes="['branching']"
+                                onSelectedStep="(stepType) => this.addStepBefore(activity, stepType, { 'is_split_no': true })"/>
+                        </t>
+                        <t t-else="">
+                            <div class="o-editor-annotation bg-view rounded border px-2 py-1"
+                                t-att-style="this.getCSSTransform(c.x, c.y)">Yes</div>
+                            <AddStepButton
+                                style="this.getCSSTransform(d.x, d.y)"
+                                disabledStepTypes="['branching']"
+                                onSelectedStep="(stepType) => this.addStepBefore(activity, stepType, { 'is_split_no': false })"/>
+                        </t>
+                    </t>
+                    <t t-else="">
+                        <AddStepButton
+                            style="this.getCSSTransform(a.x + (b.x - a.x) / 2, a.y + (b.y - a.y) / 2)"
+                            disabledStepTypes="activity.data.trigger_type === 'collect_reply' ? ['split', 'trigger'] : []"
+                            onSelectedStep="(stepType) => this.addStepBefore(activity, stepType, activity.data.trigger_type === 'collect_reply' ? {trigger_type: 'collect_reply'} : {})"/>
+                    </t>
+                </t>
+            </t>
+
+            <!-- Render the END flag for the nodes: -->
+            <t t-foreach="this.props.record.data.marketing_activity_ids.records" t-as="activity" t-key="activity_index">
+                <t t-if="activity.data.child_ids.records.length === 0 and activity.data.activity_type !== 'split'">
+                    <t t-set="a" t-value="this.getPositionOfLastVisibleNodeOnScreen(activity)"/>
+                    <t t-set="b" t-value="this.getActivityFlagPositionOnScreen(activity)"/>
+                    <!-- Render the link: -->
+                    <svg xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            t-attf-d="M {{a.x}} {{a.y}} C {{a.x + (b.x - a.x) / 2}} {{a.y}}, {{a.x + (b.x - a.x) / 2}} {{b.y}}, {{b.x}} {{b.y}}"
+                            t-attf-stroke-width="calc({{ this.state.scale }} * var(--border-width))"
+                            stroke="var(--border-color)" fill="transparent" />
+                    </svg>
+                    <AddStepButton
+                        style="this.getCSSTransform(a.x + (b.x - a.x) / 2, a.y + (b.y - a.y) / 2)"
+                        onSelectedStep="(stepType) => this.addStepAfter(activity, stepType)"/>
+                    <!-- Render the flag: -->
+                    <div class="o-editor-flag align-self-center px-3 py-2 border badge rounded bg-200"
+                        t-att-style="this.getCSSTransform(b.x, b.y)"
+                        t-on-pointerdown="(e) => this.addPointerListenerOnMarketingActivityFlag(activity, e)">END</div>
+                </t>
+            </t>
+
+            <!-- Pending branches for the marketing activities: -->
+            <t t-foreach="this.getAllPendingBranchesForActivities()" t-as="branch" t-key="branch_index">
+                <t t-set="a" t-value="branch[0]"/>
+                <t t-set="b" t-value="branch[1]"/>
+                <t t-set="activity" t-value="branch[2]"/>
+                <t t-set="fakeStepType" t-value="branch[3]"/>
+                <!-- Render the link: -->
+                <svg xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        t-attf-d="M {{a.x}} {{a.y}} C {{a.x + (b.x - a.x) / 2}} {{a.y}}, {{a.x + (b.x - a.x) / 2}} {{b.y}}, {{b.x}} {{b.y}}"
+                        t-attf-stroke-width="calc({{ this.state.scale }} * var(--border-width))"
+                        stroke="var(--border-color)"
+                        stroke-dasharray="10 5"
+                        fill="transparent" />
+                </svg>
+                <AddStepButton
+                    style="this.getCSSTransform(a.x + (b.x - a.x) / 2, a.y + (b.y - a.y) / 2)"
+                    onSelectedStep="(stepType) => this.addForkingStep(activity, fakeStepType, stepType)"/>
+                <!-- Render the flag: -->
+                <div class="o-editor-flag align-self-center px-3 py-2 border badge rounded bg-200"
+                    t-att-style="this.getCSSTransform(b.x, b.y)"
+                    t-on-pointerdown="(e) => this.addPointerListenerOnActivityBranchFlag(activity, fakeStepType, e)">
+                    <i class="oi" data-icon="delete" aria-hidden="true"/>
+                    <span>END</span>
+                </div>
+            </t>
+
+            <!-- Pending branches for the campaign triggers: -->
+            <t t-foreach="this.getAllPendingBranchesForCampaignTriggers()" t-as="branch" t-key="branch_index">
+                <t t-set="a" t-value="branch[0]"/>
+                <t t-set="b" t-value="branch[1]"/>
+                <t t-set="additionalValues" t-value="branch[2]"/>
+                <!-- Render the link: -->
+                <svg xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        t-attf-d="M {{a.x}} {{a.y}} C {{a.x + (b.x - a.x) / 2}} {{a.y}}, {{a.x + (b.x - a.x) / 2}} {{b.y}}, {{b.x}} {{b.y}}"
+                        t-attf-stroke-width="calc({{ this.state.scale }} * var(--border-width))"
+                        stroke="var(--border-color)"
+                        stroke-dasharray="10 5"
+                        fill="transparent" />
+                </svg>
+                <AddStepButton
+                    style="this.getCSSTransform(a.x + (b.x - a.x) / 2, a.y + (b.y - a.y) / 2)"
+                    onSelectedStep="(stepType) => this.addStepAfter(undefined, stepType, additionalValues)"/>
+                <!-- Render the flag: -->
+                <div class="o-editor-flag align-self-center px-3 py-2 border badge rounded bg-200"
+                    t-att-style="this.getCSSTransform(b.x, b.y)"
+                    t-on-pointerdown="(e) => this.addPointerListenerOnCampaignBranchFlag(this.props.record, additionalValues, e)">
+                    <i class="oi" data-icon="delete" aria-hidden="true"/>
+                    <span>END</span>
+                </div>
+            </t>
+
+            <!-- Render the missing "yes"/"no" branches for the split nodes: -->
+            <t t-foreach="this.props.record.data.marketing_activity_ids.records" t-as="activity" t-key="activity_index">
+                <t t-if="activity.data.activity_type === 'split'">
+                    <t t-set="children" t-value="this.getChildrenMarketingActivity(activity)"/>
+                    <!-- Add a branch for the missing "yes" -->
+                    <t t-if="children.every(child => child.data.is_split_no)">
+                        <t t-set="a" t-value="this.getActivityPositionOnScreen(activity)"/>
+                        <t t-set="b" t-value="this.getYesBranchPositionOnScreen(activity)"/>
+                        <t t-set="c" t-value="this.getBezierPoint(a, b, 2 / 5)"/>
+                        <t t-set="d" t-value="this.getBezierPoint(a, b, 3 / 5)"/>
+                        <!-- Render the link: -->
+                        <svg xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                t-attf-d="M {{a.x}} {{a.y}} C {{a.x + (b.x - a.x) / 2}} {{a.y}}, {{a.x + (b.x - a.x) / 2}} {{b.y}}, {{b.x}} {{b.y}}"
+                                t-attf-stroke-width="calc({{ this.state.scale }} * var(--border-width))"
+                                stroke="var(--border-color)" fill="transparent" />
+                        </svg>
+                        <AddStepButton
+                            style="this.getCSSTransform(d.x, d.y)"
+                            disabledStepTypes="['branching']"
+                            onSelectedStep="(stepType) => this.addStepAfter(activity, stepType, { 'is_split_no': false })"/>
+                        <!-- Render the "yes" label: -->
+                        <div class="o-editor-annotation bg-view rounded border px-2 py-1"
+                            t-att-style="this.getCSSTransform(c.x, c.y)">Yes</div>
+                        <!-- Render the flag: -->
+                        <div class="o-editor-flag align-self-center px-3 py-2 border badge rounded bg-200"
+                            t-att-style="this.getCSSTransform(b.x, b.y)"
+                            t-on-pointerdown="(e) => this.addPointerListenerOnBranchYesFlag(activity, e)">END</div>
+                    </t>
+                    <!-- Add a branch for the missing "no": -->
+                    <t t-if="children.every(child => !child.data.is_split_no)">
+                        <t t-set="a" t-value="this.getActivityPositionOnScreen(activity)"/>
+                        <t t-set="b" t-value="this.getNoBranchPositionOnScreen(activity)"/>
+                        <t t-set="c" t-value="this.getBezierPoint(a, b, 2 / 5)"/>
+                        <t t-set="d" t-value="this.getBezierPoint(a, b, 3 / 5)"/>
+                        <!-- Render the link: -->
+                        <svg xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                t-attf-d="M {{a.x}} {{a.y}} C {{a.x + (b.x - a.x) / 2}} {{a.y}}, {{a.x + (b.x - a.x) / 2}} {{b.y}}, {{b.x}} {{b.y}}"
+                                t-attf-stroke-width="calc({{ this.state.scale }} * var(--border-width))"
+                                stroke="var(--border-color)" fill="transparent" />
+                        </svg>
+                        <AddStepButton
+                            style="this.getCSSTransform(d.x, d.y)"
+                            disabledStepTypes="['branching']"
+                            onSelectedStep="(stepType) => this.addStepAfter(activity, stepType, { 'is_split_no': true })"/>
+                        <!-- Render the "no" label: -->
+                        <div class="o-editor-annotation bg-view rounded border px-2 py-1"
+                            t-att-style="this.getCSSTransform(c.x, c.y)">No</div>
+                        <!-- Render the flag: -->
+                        <div class="o-editor-flag align-self-center px-3 py-2 border badge rounded bg-200"
+                            t-att-style="this.getCSSTransform(b.x, b.y)"
+                            t-on-pointerdown="(e) => this.addPointerListenerOnBranchNoFlag(activity, e)">END</div>
+                    </t>
+                </t>
+            </t>
+
+            <!-- Render the main trigger node: -->
+            <t t-set="position" t-value="this.getTriggerPositionOnScreen(this.props.record)"/>
+            <div class="o-editor-node d-flex flex-column align-self-center flex-shrink-0 bg-view rounded border"
+                t-att-style="this.getCSSTransform(position.x, position.y)"
+                t-on-pointerdown="(e) => this.addPointerListenerOnTrigger(this.props.record, e)">
+                <div class="d-flex flex-row align-items-center p-2">
+                    <i class="o_ma_step_icon oi p-2 rounded" data-icon="flash_on" aria-hidden="true"/>
+                    <div class="d-flex flex-column ps-2">
+                        <span class="fw-bold">Campaign Start</span>
+                        <span class="small text-break" t-out="this.getCampaignTriggerDescription()"/>
+                    </div>
+                </div>
+                <div t-if="!this.hasActivityForReplyTrigger()" class="pt-3">
+                    <AddStepButton
+                        style="'top: 100%; left: 50%; transform: translate(-50%, -50%)'"
+                        title.translate="Trigger another path on replies"
+                        icon="'family_history'"
+                        disabledStepTypes="['split', 'trigger']"
+                        onSelectedStep="(stepType) => this.addStepAfter(undefined, stepType, { trigger_type: 'collect_reply' })">
+                        <t t-set-slot="dropdown-header">
+                            <div class="dropdown-header">On Replies, trigger:</div>
+                        </t>
+                    </AddStepButton>
+                </div>
+            </div>
+
+            <!-- Render the reply trigger node: -->
+            <t t-set="a" t-value="this.getTriggerPositionOnScreen(this.props.record)"/>
+            <t t-set="b" t-value="this.getReplyTriggerPositionOnScreen(this.props.record)"/>
+            <t t-if="this.hasActivityForReplyTrigger()">
+                <!-- Render the link: -->
+                <svg xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        t-attf-d="M {{a.x}} {{a.y}} C {{a.x + (b.x - a.x) / 2}} {{a.y}}, {{a.x + (b.x - a.x) / 2}} {{b.y}}, {{b.x}} {{b.y}}"
+                        t-attf-stroke-width="calc({{ this.state.scale }} * var(--border-width))"
+                        stroke="var(--border-color)" fill="transparent" />
+                </svg>
+                <!-- Render the node: -->
+                <div class="o-editor-node d-flex flex-column align-self-center flex-shrink-0 bg-view rounded border overflow-hidden"
+                    t-att-style="this.getCSSTransform(b.x, b.y)"
+                    t-on-pointerdown="(e) => this.addPointerListenerOnReplyTrigger(this.props.record, e)">
+                    <div class="d-flex flex-column px-3 py-2">
+                        <span class="fw-bold">Global Reply Path</span>
+                        <span class="small text-break">Switch to this branch on replies</span>
+                    </div>
+                </div>
+            </t>
+
+            <!-- Render the END flag for the main trigger node: -->
+            <t t-if="!this.hasActivityForTrigger()">
+                <t t-set="a" t-value="this.getTriggerPositionOnScreen(this.props.record)"/>
+                <t t-set="b" t-value="this.getTriggerFlagPositionOnScreen(this.props.record)"/>
+                <!-- Render the link: -->
+                <svg xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        t-attf-d="M {{a.x}} {{a.y}} C {{a.x + (b.x - a.x) / 2}} {{a.y}}, {{a.x + (b.x - a.x) / 2}} {{b.y}}, {{b.x}} {{b.y}}"
+                        t-attf-stroke-width="calc({{ this.state.scale }} * var(--border-width))"
+                        stroke="var(--border-color)" fill="transparent" />
+                </svg>
+                <AddStepButton
+                    style="this.getCSSTransform(a.x + (b.x - a.x) / 2, a.y + (b.y - a.y) / 2)"
+                    onSelectedStep="(stepType) => this.addStepAfter(undefined, stepType)"/>
+                <!-- Render the flag: -->
+                <div class="o-editor-flag align-self-center px-3 py-2 border badge rounded bg-200"
+                    t-att-style="this.getCSSTransform(b.x, b.y)"
+                    t-on-pointerdown="(e) => this.addPointerListenerOnTriggerFlag(this.props.record, e)">END</div>
+            </t>
+
+            <!-- Render the activity nodes: -->
+            <t t-foreach="this.props.record.data.marketing_activity_ids.records" t-as="activity" t-key="activity_index">
+                <t t-if="['log_note', 'subscribe_to_list'].includes(activity.data.activity_type)">
+                    <t t-set="position" t-value="this.getActivityPositionOnScreen(activity)"/>
+                    <div class="o-editor-node d-flex flex-column align-self-center flex-shrink-0 bg-view rounded border overflow-hidden"
+                        t-att-style="this.getCSSTransform(position.x, position.y)"
+                        t-on-pointerdown="(e) => this.addPointerListenerOnMarketingActivity(activity, e)">
+                        <!-- "Log Note" node: -->
+                        <t t-if="activity.data.activity_type === 'log_note'">
+                            <div class="d-flex flex-row align-items-center p-2">
+                                <i class="o_ma_step_icon o_ma_step_communicate oi p-2 rounded" data-icon="edit_square" aria-hidden="true"/>
+                                <div class="d-flex flex-column ps-2">
+                                    <span class="fw-bold">Log Note</span>
+                                    <span class="small text-break" t-out="activity.data.description"/>
+                                </div>
+                            </div>
+                        </t>
+                        <!-- "Update subscription" node: -->
+                        <t t-elif="activity.data.activity_type === 'subscribe_to_list'">
+                            <div class="d-flex flex-row align-items-center p-2">
+                                <i class="o_ma_step_icon o_ma_step_action oi p-2 rounded" data-icon="contact_mail" aria-hidden="true"/>
+                                <div class="d-flex flex-column ps-2">
+                                    <span class="fw-bold">Update Subscription</span>
+                                    <span class="small text-break" t-out="activity.data.description"/>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+                <!-- "Email" node: -->
+                <t t-elif="activity.data.activity_type === 'mail'">
+                    <t t-set="position" t-value="this.getActivityPositionOnScreen(activity)"/>
+                    <div class="o-editor-node d-flex flex-column align-self-center flex-shrink-0 bg-300 rounded border overflow-hidden"
+                        t-att-style="this.getCSSTransform(position.x, position.y)"
+                        t-on-pointerdown="(e) => this.addPointerListenerOnMarketingActivity(activity, e)">
+                        <div class="d-flex flex-row align-items-center bg-view p-2">
+                            <i class="o_ma_step_icon o_ma_step_communicate oi p-2 rounded" data-icon="email" aria-hidden="true"/>
+                            <div class="d-flex flex-column min-w-0 ps-2">
+                                <span class="fw-bold text-truncate" t-out="activity.data.name" t-att-title="activity.data.name"/>
+                                <span class="small" t-out="activity.data.mass_mailing_id.display_name"/>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 px-2 py-1">
+                            <div class="d-flex align-items-center">
+                                <span class="small" t-out="activity.data.total_sent"/>
+                                <span class="text-muted small ps-1">Sent</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="small" t-out="activity.data.total_open"/>
+                                <span class="text-muted small ps-1">Opened</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="small" t-out="activity.data.total_click"/>
+                                <span class="text-muted small ps-1">Clicks</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="small" t-out="activity.data.total_reply"/>
+                                <span class="text-muted small ps-1">Replied</span>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+                <!-- "Split" node: -->
+                <t t-elif="activity.data.activity_type === 'split'">
+                    <t t-set="position" t-value="this.getActivityPositionOnScreen(activity)"/>
+                    <div class="o-editor-node d-flex flex-column align-self-center flex-shrink-0 bg-view rounded border overflow-hidden"
+                        t-att-style="this.getCSSTransform(position.x, position.y)"
+                        t-on-pointerdown="(e) => this.addPointerListenerOnMarketingActivity(activity, e)">
+                        <div class="d-flex flex-row align-items-center p-2">
+                            <i class="o_ma_step_icon oi p-2 rounded" data-icon="signpost" aria-hidden="true"/>
+                            <div class="d-flex flex-column ps-2">
+                                <span class="fw-bold">If/Else Split</span>
+                                <t t-if="!['begin', 'activity', 'wait_value', 'collect_reply'].includes(activity.data.trigger_type)">
+                                    <span class="small text-break" t-out="this.getActivityTriggerDescription(activity)"/>
+                                </t>
+                            </div>
+                        </div>
+                        <div t-if="['begin', 'activity', 'wait_value', 'collect_reply'].includes(activity.data.trigger_type)" class="p-2 pt-0">
+                            <DomainSelector domain="this.getDomainDisplay(activity)" resModel="this.props.record.data.model_name" readonly="true"/>
+                        </div>
+                    </div>
+                </t>
+                <t t-elif="activity.data.activity_type === 'action'">
+                    <t t-set="position" t-value="this.getActivityPositionOnScreen(activity)"/>
+                    <div class="o-editor-node d-flex flex-column align-self-center flex-shrink-0 bg-view rounded border overflow-hidden"
+                        t-att-style="this.getCSSTransform(position.x, position.y)"
+                        t-on-pointerdown="(e) => this.addPointerListenerOnMarketingActivity(activity, e)">
+                        <!-- "Update record" node: -->
+                        <t t-if="activity.data.server_action_state === 'object_write'">
+                            <div class="d-flex flex-row align-items-center p-2">
+                                <i class="o_ma_step_icon o_ma_step_action oi p-2 rounded" data-icon="edit" aria-hidden="true"/>
+                                <div class="d-flex flex-column ps-2">
+                                    <span class="fw-bold">Update Record</span>
+                                    <span class="small text-break" t-out="activity.data.description"/>
+                                </div>
+                            </div>
+                        </t>
+                        <!-- "Next activity" node: -->
+                        <t t-elif="activity.data.server_action_state === 'next_activity'">
+                            <div class="d-flex flex-row align-items-center p-2">
+                                <i class="o_ma_step_icon o_ma_step_action oi p-2 rounded" data-icon="verified" aria-hidden="true"/>
+                                <div class="d-flex flex-column ps-2">
+                                    <span class="fw-bold">Create an Activity</span>
+                                    <span class="small text-break" t-out="activity.data.description"/>
+                                </div>
+                            </div>
+                        </t>
+                        <!-- "Action" node: -->
+                        <t t-else="">
+                            <div class="d-flex flex-row align-items-center p-2">
+                                <i class="o_ma_step_icon o_ma_step_action oi p-2 rounded" data-icon="settings" aria-hidden="true"/>
+                                <div class="d-flex flex-column min-w-0 ps-2">
+                                    <span class="fw-bold text-truncate" t-out="activity.data.name" t-att-title="activity.data.name"/>
+                                    <span class="small text-break" t-out="activity.data.description"/>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+                <!-- Fake "Activity trigger" node: -->
+                <t t-if="this.hasTriggerNode(activity)">
+                    <t t-set="position" t-value="this.getActivityTriggerPositionOnScreen(activity)"/>
+                    <div class="o-editor-node d-flex flex-column align-self-center flex-shrink-0 bg-view rounded border overflow-hidden"
+                        t-att-style="this.getCSSTransform(position.x, position.y)"
+                        t-on-pointerdown="(e) => this.addPointerListenerOnMarketingActivityTrigger(activity, e)">
+                        <div class="d-flex flex-row align-items-center p-2">
+                            <i class="o_ma_step_icon oi p-2 rounded" data-icon="pause_circle" aria-hidden="true"/>
+                            <div class="d-flex flex-column ps-2">
+                                <span class="fw-bold">Condition Delay</span>
+                                <t t-if="activity.data.triggering_activity_id">
+                                    <span class="small" t-out="this.getActivityTriggerDescription(activity)"/>
+                                </t>
+                                <t t-else="">
+                                    <span class="small">Wait until</span>
+                                </t>
+                            </div>
+                        </div>
+                        <div t-if="!activity.data.triggering_activity_id" class="p-2 pt-0">
+                            <DomainSelector domain="this.getDomainDisplay(activity)" resModel="this.props.record.data.model_name" readonly="true"/>
+                        </div>
+                    </div>
+                </t>
+                <!-- Fake "Delay" node: -->
+                <t t-if="this.hasDelayNode(activity)">
+                    <t t-set="position" t-value="this.getActivityDelayPositionOnScreen(activity)"/>
+                    <div class="o-editor-node d-flex flex-column align-self-center flex-shrink-0 bg-view rounded border overflow-hidden"
+                        t-att-style="this.getCSSTransform(position.x, position.y)"
+                        t-on-pointerdown="(e) => this.addPointerListenerOnMarketingActivityDelay(activity, e)">
+                        <div class="d-flex flex-row align-items-center p-2">
+                            <i class="o_ma_step_icon oi p-2 rounded" data-icon="hourglass_empty" aria-hidden="true"/>
+                            <div class="d-flex flex-column ps-2">
+                                <span class="fw-bold">Delay</span>
+                                <span class="small">Wait for <t t-out="activity.data.interval_number"/> <t t-out="activity.data.interval_type"/></span>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+
+            <!-- Controls: -->
+            <div class="o-editor-controls d-flex align-items-center p-3 gap-2">
+                <div class="d-flex gap-1 p-1 bg-view border rounded-3 shadow-sm" role="group" aria-label="Zoom">
+                    <button class="btn btn-light" t-on-click="this.zoomOut" title="Zoom Out">
+                        <i class="oi" data-icon="remove" aria-hidden="true"/>
+                    </button>
+                    <button type="button" class="o-editor-zoomlevel btn btn-light px-0" data-tooltip="Reset Zoom" t-on-click="() => this.zoom(1)">
+                        <span class="visually-hidden">Reset Zoom</span>
+                        <t t-out="Math.round(100 * this.state.scale)"/>%
+                    </button>
+                    <button class="btn btn-light" t-on-click="this.zoomIn" title="Zoom In">
+                        <i class="oi" data-icon="add" aria-hidden="true"/>
+                    </button>
+                    <button class="btn btn-light" t-on-click="this.fitGraphToView" title="Fit Graph to View">
+                        <i class="oi" data-icon="fullscreen" aria-hidden="true"/>
+                    </button>
+                </div>
+                <div class="d-flex gap-1 p-1 bg-view border rounded-3 shadow-sm">
+                    <button class="btn btn-light" t-on-click="this.sortSteps" title="Tidy Up">
+                        <i class="oi" data-icon="account_tree" aria-hidden="true"/>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <CampaignSidePanel t-if="this.panelState.activePanel" t-props="{
+            record: this.props.record,
+            readonly: this.props.readonly,
+        }"/>
+    </t>
+</template>

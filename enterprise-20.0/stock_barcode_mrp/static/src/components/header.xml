@@ -1,0 +1,41 @@
+<templates>
+    <t t-name="stock_barcode_mrp.HeaderComponent">
+        <div class="o_barcode_line o_header p-2 p-3"
+            t-attf-class="{{this.componentClasses}}">
+            <div class="h6 text-primary">Producing</div>
+            <div class="o_barcode_line_details flex-grow-1 flex-column flex-nowrap p-2">
+                <t t-set="upperButtons" t-value="'stock_barcode_mrp.MOButtons'"/>
+                <t t-call="stock_barcode.LineTitle"/>
+                <t t-call="stock_barcode.LineLot"/>
+                <t t-set="lowerButtons" t-value="false"/>
+                <t t-call="stock_barcode.LineQuantity"/>
+                <t t-set="packageLabels" t-value="this.productionPackageLabels"/>
+                <div t-if="packageLabels.length" class="o_result_package_labels d-flex flex-wrap gap-1 mt-2">
+                    <span t-foreach="packageLabels" t-as="label" t-key="label_index"
+                        class="badge rounded-pill bg-dark text-white">
+                        <span class="result-package" t-out="label"/>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="stock_barcode_mrp.MOButtons">
+        <div>
+            <button t-if="this.displayGenerateSerialButton"
+                    t-on-click="() => this.env.model.generateSerial()"
+                    class="o_line_button o_add_lot ms-2"
+                    t-attf-class="btn btn-{{this.lotName ? 'secondary' : 'primary'}}">
+                <i class="oi" data-icon="add" />
+            </button>
+            <button t-on-click="this.props.openDetails"
+                    class="o_line_button o_edit btn btn-secondary ms-2">
+                <i class="oi oi-lg oi-filled" data-icon="edit"/>
+            </button>
+            <button t-if="!this.hideProduceButton" name="produceButton"
+                    t-att-disabled="this.hideProduceButton" t-out="'+' + this.incrementQty"
+                    t-on-click.prevent.stop="() => this.env.model.produceQty(this.incrementQty)"
+                    class="o_line_button o_add_quantity btn btn-primary ms-2"/>
+        </div>
+    </t>
+</templates>

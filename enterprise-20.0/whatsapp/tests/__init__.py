@@ -1,0 +1,15 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+from . import template_data
+from . import test_discuss_channel
+from . import test_phone_format
+from . import test_security
+from . import test_text_formatting
+from . import test_whatsapp_api
+from . import test_whatsapp_blocklist
+from . import test_whatsapp_composer
+from . import test_whatsapp_interactive
+from . import test_whatsapp_message
+from . import test_whatsapp_multicompany
+from . import test_whatsapp_oauth
+from . import test_whatsapp_template

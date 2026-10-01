@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <t t-name="sign.SignerStatusBadgeTemplate">
+        <div class="d-flex justify-content-end">
+
+            <Dropdown t-if="this.showDropdown" position="'bottom-end'">
+                
+                <div class="d-flex flex-column align-items-start cursor-pointer border-0 bg-transparent text-start">
+                    
+                    <t t-if="this.props.currentRequestItem">
+                        <div class="d-flex align-items-center fw-bold text-900">
+                            <t t-out="this.props.currentRequestItem.name"/> <i class="oi ms-2" data-icon="expand_more"/>
+                        </div>
+                        
+                        <div t-if="this.props.currentRequestItem.state === 'completed'" class="d-flex align-items-center text-muted small">
+                            <i class="oi oi-filled text-success me-2" data-icon="check_circle"/>
+                            <span>Signed</span>
+                        </div>
+                        <div t-else="" class="d-flex align-items-center text-info small">
+                            <i class="oi oi-filled me-2" data-icon="edit"/>
+                            <span>Signing</span>
+                        </div>
+                    </t>
+                    
+                    <t t-else="">
+                        <div class="d-flex align-items-center fw-bold text-900">
+                            Signers <i class="oi ms-2" data-icon="expand_more"/>
+                        </div>
+                        <div class="text-muted small">
+                            <t t-out="this.signersSummary"/>
+                        </div>
+                    </t>
+                </div>
+
+                <t t-set-slot="content">
+                    <div class="p-2 d-flex flex-column gap-2">               
+                        
+                        <t t-foreach="this.props.completedSigners || []" t-as="sign" t-key="sign.id">
+                            <div class="d-flex flex-column gap-1 px-2">
+                                <span class="fw-bold text-900 d-flex align-items-center gap-1">
+                                    <t t-out="sign.name"/>
+                                    <img t-if="sign.externalSignatureLogo" t-att-src="sign.externalSignatureLogo"
+                                         t-att-alt="sign.externalSignatureProvider" t-att-title="sign.externalSignatureProvider"
+                                         width="16" height="16"/>
+                                </span>
+                                <div class="d-flex align-items-center text-muted small lh-1">
+                                    <i class="oi oi-filled text-success me-2" data-icon="check_circle"/>
+                                    <t t-if="sign.signedViaName">
+                                        <t t-out="sign.signingDate"/> via <t t-out="sign.signedViaName"/>
+                                    </t>
+                                    <t t-else="">
+                                        <t t-out="sign.signingDate"/>
+                                    </t>
+                                </div>
+                            </div>
+                        </t>
+
+                        <div t-if="(this.props.completedSigners?.length) &amp;&amp; (this.props.waitingSigners?.length)" class="border-top mx-2 mt-1"/>
+                        
+                        <div class="d-flex flex-column gap-2">
+                            <t t-foreach="this.props.waitingSigners || []" t-as="sign" t-key="sign.id">
+                                <div class="d-flex flex-column gap-1 px-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold text-900"><t t-out="sign.name"/></span>
+                                        <button t-if="this.props.showResendButtons &amp;&amp; !this.props.sequencedSignatureMail"
+                                                class="btn btn-sm p-0 ms-3"
+                                                title="Resend"
+                                                t-on-click.stop="() => this.handleResend(sign.id)">
+                                                <i t-attf-class="oi {{ this.state.resentIds.has(sign.id) ? 'text-success' : 'text-muted o_sign_resend_icon' }}" t-attf-data-icon="{{ this.state.resentIds.has(sign.id) ? 'check' : 'send' }}"/>
+                                        </button>
+                                    </div>
+                                    <div class="d-flex align-items-center text-muted small lh-1">
+                                        <i class="oi text-warning me-2" data-icon="schedule"/>
+                                        <span>Awaiting Signature</span>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                        
+                        <t t-foreach="this.props.canceledSigners || []" t-as="sign" t-key="sign.id">
+                            <div class="d-flex flex-column gap-1 px-2">
+                                <span class="fw-bold text-muted"><t t-out="sign.name"/></span>
+                                <div class="d-flex align-items-center text-muted small lh-1">
+                                    <i class="oi oi-filled text-danger me-2" data-icon="cancel"/>
+                                    <span>Cancelled</span>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+            </Dropdown>
+
+            <div t-else="" class="d-flex align-items-center gap-4">
+                
+                <t t-if="this.props.currentRequestItem">
+                    <div class="d-flex flex-column align-items-end">
+                        <div class="fs-6 text-900"><t t-out="this.props.currentRequestItem.name"/></div>
+                        <div t-if="this.props.currentRequestItem.state === 'completed'" class="text-muted small d-flex align-items-center">
+                            <i class="oi oi-filled text-success me-2" data-icon="check_circle"/> Signed
+                        </div>
+                        <div t-else="" class="text-info small d-flex align-items-center">
+                            <i class="oi oi-filled me-2" data-icon="edit"/> Signing
+                        </div>
+                    </div>
+                </t>
+                
+                <t t-foreach="this.props.completedSigners || []" t-as="sign" t-key="sign.id">
+                    <t t-if="!this.props.currentRequestItem || sign.id !== this.props.currentRequestItem.id">
+                        <div class="d-flex flex-column align-items-start">
+                            <div class="fs-6 text-900 d-flex align-items-center gap-1">
+                                <t t-out="sign.name"/>
+                                <img t-if="sign.externalSignatureLogo" t-att-src="sign.externalSignatureLogo"
+                                     t-att-alt="sign.externalSignatureProvider" t-att-title="sign.externalSignatureProvider"
+                                     width="16" height="16"/>
+                            </div>
+                            <div class="text-muted small d-flex align-items-center">
+                                <i class="oi oi-filled text-success me-2" data-icon="check_circle"/>
+                                <t t-out="sign.signingDate || 'Signed'"/>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+
+                <t t-foreach="this.props.waitingSigners || []" t-as="sign" t-key="sign.id">
+                    <t t-if="!this.props.currentRequestItem || sign.id !== this.props.currentRequestItem.id">
+                        <div class="d-flex flex-column align-items-start">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="fs-6 text-900"><t t-out="sign.name"/></div>
+                                <button t-if="this.props.showResendButtons &amp;&amp; !this.props.sequencedSignatureMail"
+                                        class="btn btn-sm p-0 text-muted"
+                                        title="Resend"
+                                        t-on-click.stop="() => this.handleResend(sign.id)">
+                                        <i t-attf-class="oi {{ this.state.resentIds.has(sign.id) ? 'text-success' : 'o_sign_resend_icon' }}" t-attf-data-icon="{{ this.state.resentIds.has(sign.id) ? 'check' : 'send' }}"/>
+                                </button>
+                            </div>
+                            <div class="text-muted small d-flex align-items-center">
+                                <i class="oi text-warning me-2" data-icon="schedule"/> Awaiting Signature
+                            </div>
+                        </div>
+                    </t>
+                </t>
+                
+                <t t-foreach="this.props.canceledSigners || []" t-as="sign" t-key="sign.id">
+                    <t t-if="!this.props.currentRequestItem || sign.id !== this.props.currentRequestItem.id">
+                        <div class="d-flex flex-column align-items-start">
+                            <div class="fs-6 text-900"><t t-out="sign.name"/></div>
+                            <div class="text-muted small d-flex align-items-center">
+                                <i class="oi oi-filled text-danger me-2" data-icon="cancel"/> Cancelled
+                            </div>
+                        </div>
+                    </t>
+                </t>
+
+            </div>
+
+        </div>
+    </t>
+</odoo>

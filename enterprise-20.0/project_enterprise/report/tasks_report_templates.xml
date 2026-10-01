@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="tasks_report">
+        <t t-call="web.basic_layout">
+                <style>
+                    table.chart {
+                        width: 100%;
+                        border-collapse: collapse;
+                        table-layout: fixed;
+                        font-size: 11px;
+                    }
+
+                    .chart th, .chart td {
+                        border: 1px solid #ccc;
+                        padding: 4px 1px;
+                        vertical-align: middle;
+                        text-align: center;
+                    }
+
+                    td.pill {
+                        padding: 0px !important;
+                        position: relative;
+                        height: 35px;
+                    }
+
+                    .chart th {
+                        background-color: #f2f2f2;
+                        font-size: 9px;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        width: auto;
+                    }
+
+                    .group-by-cell {
+                        font-weight: bold;
+                        background-color: #f9f9f9;
+                        width: 400px !important;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                        text-align: left !important;
+                        padding-left: 4px !important;
+                    }
+
+                    .task-bar {
+                        border-radius: 0.25rem;
+                        padding: 6px;
+                        position: absolute;
+                        top: 2px;
+                        left: 0;
+                        right: 0;
+                        bottom: 2px;
+                    }
+                </style>
+                <div class="page">
+                    <t t-foreach="grid" t-as="period">
+                        <div style="page-break-before: always;">
+                            <h3 t-out="period['title']"/>
+                            <table class="chart">
+                                <thead>
+                                    <tr>
+                                        <th class="group-by-cell"><t t-out="planning"/></th>
+                                        <t t-foreach="period['days']" t-as="day">
+                                            <th t-out="day['formated_day']"/>
+                                        </t>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="period['tasks']" t-as="task">
+                                        <tr>
+                                            <td t-out="task.get('title')" class="group-by-cell"/>
+                                            <t t-set="start" t-value="task['cell_start']"/>
+                                            <t t-set="end" t-value="task['cell_end']"/>
+                                            <t t-set="colspan" t-value="end - start + 1"/>
+                                            <t t-foreach="range(start - 1)" t-as="i">
+                                                <td></td>
+                                            </t>
+                                            <td t-att-colspan="colspan" class="pill">
+                                                <div class="task-bar" t-att-style="task['style']"/>
+                                            </td>
+                                            <t t-foreach="range(len(period['days']) - end)" t-as="i">
+                                                <td></td>
+                                            </t>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </t>
+                </div>
+        </t>
+    </template>
+</odoo>

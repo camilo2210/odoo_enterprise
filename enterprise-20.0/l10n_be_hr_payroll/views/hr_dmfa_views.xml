@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_be_dmfa_view_search" model="ir.ui.view">
+        <field name="name">l10n_be_hr_payroll.dmfa.search</field>
+        <field name="model">l10n_be.dmfa</field>
+        <field name="arch" type="xml">
+            <search string="DMFA">
+                <field name="name"/>
+                <field name="year"/>
+                <filter string="Processed" name="valid_state" domain="[('state', 'not in', ('draft', 'error'))]"/>
+                <filter string="Errors" name="invalid_state" domain="[('state', '=', 'error')]"/>
+                <filter string="Waiting" name="na_state" domain="[('state', '=', 'draft')]"/>
+                <filter string="Date" name="date" date="quarter_start"/>
+                <separator/>
+                <filter string="Current Company" name="filter_current_company"
+                        domain="[('company_id', '=', allowed_company_ids[0])]"
+                        groups="base.group_multi_company"/>
+                <group>
+                    <filter string="Year" name="group_by_year" domain="[]" context="{'group_by': 'year'}"/>
+                    <filter string="Company" name="group_by_company" domain="[]"
+                            context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_be_dmfa_view_form" model="ir.ui.view">
+        <field name="name">l10n_be_hr_payroll.dmfa.report</field>
+        <field name="model">l10n_be.dmfa</field>
+        <field name="arch" type="xml">
+            <form string="DMFA">
+                <!-- add is_invalid field to the form to use it in the invisible condition for the buttons -->
+                <field name="is_invalid" invisible="1"/>
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,ready,done" invisible="declaration_method != 'batch'"/>
+                    <button name="action_mark_done" string="Mark as done" type="object" class="oe_highlight" invisible="state != 'ready' or declaration_method == 'batch'"/>
+                    <button name="action_mark_paid" string="Mark as paid" type="object" class="oe_highlight" invisible="state != 'done'"/>
+                    <button name="action_open_report_employees_wizard" string="Generate XML report" type="object" class="oe_highlight"  invisible="declaration_method == 'web' or declaration_type == 'original' or xml_file"/>
+                    <button name="action_open_report_employees_wizard" string="Re-Generate XML report" type="object" invisible="declaration_type == 'original' or xml_file or declaration_type != 'original'"/>
+                    <button name="generate_declaration_xml_report" string="Generate XML report" type="object" class="oe_highlight"  invisible="declaration_method == 'web' or xml_file or declaration_type != 'original' or is_invalid"/>
+                    <button name="generate_declaration_xml_report" string="Generate XML report" type="object" class="oe_highlight"  invisible="declaration_method == 'web' or xml_file or declaration_type != 'original' or not is_invalid" disabled='1'/>
+                    <button name="generate_dmfa_pdf_report" string="Generate PDF report" type="object" class="oe_highlight"  invisible="declaration_method == 'batch' or dmfa_pdf or is_invalid"/>
+                    <button name="generate_dmfa_pdf_report" string="Generate PDF report" type="object" class="oe_highlight"  invisible="declaration_method == 'batch' or dmfa_pdf or not is_invalid" disabled='1'/>
+                    <button
+                        name="action_post_onss_declaration"
+                        string="Post ONSS Declaration"
+                        type="object"
+                        class="oe_highlight"
+                        invisible="declaration_method == 'web' or not xml_file or state == 'error'"/>
+                    <button name="action_correct_web_dmfa" invisible="state not in ('done', 'paid') or declaration_method != 'web'" string="Correct DMFA" type="object"/>
+                    <button name="action_create_consultation_request" invisible="state not in ('done', 'paid', 'refused') or declaration_method == 'web' or has_unfinished_modification" string="Correct DMFA" type="object"/>
+                    <button name="action_create_modification_request" invisible="not declaration_type == 'consultation' or state != 'ready'" string="Submit Correction" type="object" class="oe_highlight" icon="redo"/>
+                    <button name="generate_declaration_xml_report" string="Re-Generate XML report" type="object" invisible="declaration_method == 'web' or not xml_file or state not in ('ready', 'error')"/>
+                    <button name="generate_dmfa_pdf_report" string="Re-Generate PDF report" type="object" invisible="declaration_method == 'batch' or not dmfa_pdf or state not in ('ready', 'error')"/>
+                    <button name="action_reset_to_draft" string="Set To Draft" type="object" invisible="state not in ('ready', 'error')"/>
+                    <button name="%(action_report_dmfa_preview)d" string="Preview" type="action" class="btn btn-secondary" invisible="is_invalid"/>
+                    <button name="%(action_report_dmfa_preview)d" string="Preview" type="action" class="btn btn-secondary" invisible="not is_invalid" disabled='1'/>
+                </header>
+                <sheet>
+                    <div role="alert" class="alert alert-info text-center" invisible="not state == 'pending'">
+                        The file has been submitted to ONSS and is awaiting validation
+                    </div>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_related_reports"
+                            class="oe_stat_button"
+                            icon="refresh"
+                            type="object"
+                            invisible="declaration_type != 'original'">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Report Updates</span>
+                            </div>
+                        </button>
+                        <button name="action_open_onss_declaration"
+                            class="oe_stat_button"
+                            icon="book"
+                            type="object"
+                            invisible="not onss_declaration_count or declaration_method == 'web'">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="onss_declaration_count"/>
+                                </span>
+                                <span invisible="onss_declaration_count == 1" class="o_stat_text">ONSS Declaration</span>
+                                <span invisible="onss_declaration_count &gt; 1" class="o_stat_text">ONSS Declarations</span>
+                            </div>
+                        </button>
+                        <button name="action_show_related_payslips"
+                            class="oe_stat_button"
+                            icon="group" icon_class="oi-filled"
+                            type="object">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="payslip_count" invisible="not payslip_count"/>
+                                </span>
+                                <span class="o_stat_text">Report Payslips</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div invisible="declaration_method == 'web'">
+                        <widget name="web_ribbon" title="Processed" invisible="state in ('draft', 'error')"/>
+                        <widget name="web_ribbon" title="Error" bg_color="text-bg-danger" invisible="state != 'error'"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="year" readonly="state != 'draft'"/>
+                            <field name="quarter" readonly="state != 'draft'"/>
+                            <field name="name" invisible="(declaration_method == 'batch' and not name)" readonly="declaration_method == 'batch'" placeholder="Used to identify the report"/>
+                            <field name="environment" readonly="state not in ('draft', 'ready')"/>
+                            <field name="signature_filename" invisible="1"/>
+                            <field name="signature_file" filename="signature_filename" readonly="1" invisible="declaration_method == 'web' or not signature_file" groups="base.group_no_one"/>
+                            <field name="go_filename" invisible="1"/>
+                            <field name="go_file" filename="go_filename" readonly="1" invisible="declaration_method == 'web' or not go_file" groups="base.group_no_one"/>
+                            <field name="dmfa_pdf_filename" invisible="1"/>
+                            <field name="dmfa_pdf" filename="dmfa_pdf_filename" readonly="1" invisible="declaration_method == 'batch' or not dmfa_pdf"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="declaration_method" widget="radio" options="{'horizontal': True}" readonly="state != 'draft' or declaration_type != 'original'"/>
+                            <field name="declaration_type" invisible="not declaration_method == 'batch'" widget="radio" options="{'horizontal': True}"/>
+                            <field name="parent_id" invisible="declaration_type == 'original'" domain="[('declaration_type', '=', 'original')]"/>
+                            <field name="xml_filename" invisible="1"/>
+                            <field name="xml_file" filename="xml_filename" readonly="1" invisible="declaration_method == 'web' or not xml_file"/>
+                            <field name="correction_reason" invisible="declaration_method == 'web' or not parent_id" placeholder="Optional justification" readonly="state != 'draft'"/>
+                            <field name="error_message" invisible="declaration_method == 'web' or state != 'error'"/>
+                        </group>
+                        <p class="text-muted" colspan="2" invisible="declaration_method == 'web'">Please note that the declaration by batch is rather complex and requires some technical knowledge (using some concepts like ssh keys, SFTP servers, and electronical signatures). You may want to take a look at the <a href="https://www.socialsecurity.be/site_fr/employer/applics/dmfa/batch/home.htm" target="_blank">the official documentation</a> and at the <a href="https://www.socialsecurity.be/site_fr/employer/applics/dmfa/batch/outline.htm" target="_blank">process overview</a> for more informations</p>
+                        <p class="text-muted" colspan="2" invisible="declaration_method == 'batch'">The printed pdf contains all the data to encode into the 'DmfA declaration web interface' that you can find <a href="https://www.socialsecurity.be/site_fr/employer/applics/dmfa/index.htm" target="_blank">here</a>.</p>
+                    </group>
+                    <notebook>
+                        <page string="Validation Errors" name="validation_errors" invisible="not issues">
+                            <field name="issues" class="w-100" widget="actionable_warnings" invisible="not issues"/>
+                        </page>
+
+                        <page string="Elderly Reduction" name="elderly_reduction" invisible="not elderly_reduction_line_ids">
+                            <field name="elderly_reduction_line_ids" readonly="1">
+                                <list string="Elderly Reduction" create="false" delete="false" contenteditable="false">
+                                    <field name="employee_id"/>
+                                    <field name="deduction_code"/>
+                                    <field name="amount" sum="Total" widget="monetary"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Artist Reductions" name="artist_reduction" invisible="not artist_reduction_line_ids">
+                            <field name="artist_reduction_line_ids" readonly="1">
+                                <list string="Artist reduction lines" create="false" delete="false" contenteditable="false">
+                                    <field name="employee_id"/>
+                                    <field name="deduction_code"/>
+                                    <field name="amount" sum="Total" widget="monetary"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Unexperienced Employee Reductions - Flemish" name="unexperienced_reductions" invisible="not unexperienced_reduction_line_ids">
+                            <field name="unexperienced_reduction_line_ids" readonly="1">
+                                <list>
+                                    <field name="employee_id"/>
+                                    <field name="date_from" string="Start Date"/>
+                                    <field name="date_to" string="End Date"/>
+                                    <field name="amount" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page id="first_hires_reductions_tab" name="first_hires_reductions_tab" string="First Hires" invisible="first_hire_fields_invisible">
+                            <group colspan="2" invisible="first_hire_message == ''">
+                                <group>
+                                    <field name="first_hire" options="{'no_create': True}" domain="[('id', 'in', first_hires_reductions_eligible_employee_ids)]" readonly='first_hire_disabled' widget='many2one_avatar_user' help="https://emploi.belgique.be/fr/themes/emploi-et-marche-du-travail/mesures-demploi/reduction-premiers-engagements"/>
+                                </group>
+                                <group col="3">
+                                    <group colspan="1">
+                                        <field name="first_hire_message" readonly="1" nolabel="1"/>
+                                    </group>
+                                    <group colspan="2" invisible="not first_hire_warning">
+                                        <div class="o_row">
+                                            <i class="oi text-warning" title="Warning" data-icon="warning"/>
+                                            <field name="first_hire_warning" readonly="1" nolabel="1" decoration-warning="1"/>
+                                        </div>
+                                    </group>
+                                </group>
+                            </group>
+                            <group colspan="2" invisible="second_hire_message == ''">
+                                <group>
+                                    <field name="second_hire" options="{'no_create': True}" domain="[('id', 'in', first_hires_reductions_eligible_employee_ids)]" readonly='second_hire_disabled' widget='many2one_avatar_user' help="https://emploi.belgique.be/fr/themes/emploi-et-marche-du-travail/mesures-demploi/reduction-premiers-engagements"/>
+                                </group>
+                                <group col="3">
+                                    <group colspan="1">
+                                        <field name="second_hire_message" readonly="1" nolabel="1"/>
+                                    </group>
+                                    <group colspan="2" invisible="not second_hire_warning">
+                                        <div class="o_row">
+                                             <i class="oi text-warning" title="Warning" data-icon="warning"/>
+                                            <field name="second_hire_warning" readonly="1" nolabel="1" decoration-warning="1"/>
+                                        </div>
+                                    </group>
+                                </group>
+                            </group>
+                            <group colspan="2" invisible="third_hire_message == ''">
+                                <group>
+                                    <field name="third_hire" options="{'no_create': True}" domain="[('id', 'in', first_hires_reductions_eligible_employee_ids)]" readonly='third_hire_disabled' widget='many2one_avatar_user' help="https://emploi.belgique.be/fr/themes/emploi-et-marche-du-travail/mesures-demploi/reduction-premiers-engagements"/>
+                                </group>
+                                <group col="3">
+                                    <group colspan="1">
+                                        <field name="third_hire_message" readonly="1" nolabel="1"/>
+                                    </group>
+                                    <group colspan="2" invisible="not third_hire_warning">
+                                        <div class="o_row">
+                                            <i class="oi text-warning" title="Warning" data-icon="warning"/>
+                                            <field name="third_hire_warning" readonly="1" nolabel="1" decoration-warning="1"/>
+                                        </div>
+                                    </group>
+                                </group>
+                            </group>
+                            <group colspan="2" invisible="fourth_hire_message == ''">
+                                <group>
+                                    <field name="fourth_hire" options="{'no_create': True}" domain="[('id', 'in', first_hires_reductions_eligible_employee_ids)]" readonly='fourth_hire_disabled' widget='many2one_avatar_user' help="https://emploi.belgique.be/fr/themes/emploi-et-marche-du-travail/mesures-demploi/reduction-premiers-engagements"/>
+                                </group>
+                                <group col="3">
+                                    <group colspan="1">
+                                        <field name="fourth_hire_message" readonly="1" nolabel="1"/>
+                                    </group>
+                                    <group colspan="2" invisible="not fourth_hire_warning">
+                                        <div class="o_row">
+                                            <i class="oi text-warning" title="Warning" data-icon="warning"/>
+                                            <field name="fourth_hire_warning" readonly="1" nolabel="1" decoration-warning="1"/>
+                                        </div>
+                                    </group>
+                                </group>
+                            </group>
+                            <group colspan="2" invisible="fifth_hire_message == ''">
+                                <group>
+                                    <field name="fifth_hire" options="{'no_create': True}" domain="[('id', 'in', first_hires_reductions_eligible_employee_ids)]" readonly='fifth_hire_disabled' widget='many2one_avatar_user' help="https://emploi.belgique.be/fr/themes/emploi-et-marche-du-travail/mesures-demploi/reduction-premiers-engagements"/>
+                                </group>
+                                <group col="3">
+                                    <group colspan="1">
+                                        <field name="fifth_hire_message" readonly="1" nolabel="1"/>
+                                    </group>
+                                    <group colspan="2" invisible="not fifth_hire_warning">
+                                        <div class="o_row">
+                                            <i class="oi text-warning" title="Warning" data-icon="warning"/>
+                                            <field name="fifth_hire_warning" readonly="1" nolabel="1" decoration-warning="1"/>
+                                        </div>
+                                    </group>
+                                </group>
+                            </group>
+                            <group colspan="2" invisible="sixth_hire_message == ''">
+                                <group>
+                                    <field name="sixth_hire" options="{'no_create': True}" domain="[('id', 'in', first_hires_reductions_eligible_employee_ids)]" readonly='sixth_hire_disabled' widget='many2one_avatar_user' help="https://emploi.belgique.be/fr/themes/emploi-et-marche-du-travail/mesures-demploi/reduction-premiers-engagements"/>
+                                </group>
+                                <group col="3">
+                                    <group colspan="1">
+                                        <field name="sixth_hire_message" readonly="1" nolabel="1"/>
+                                    </group>
+                                    <group colspan="2" invisible="not sixth_hire_warning">
+                                        <div class="o_row">
+                                            <i class="oi text-warning" title="Warning" data-icon="warning"/>
+                                            <field name="sixth_hire_warning" readonly="1" nolabel="1" decoration-warning="1"/>
+                                        </div>
+                                    </group>
+                                </group>
+                            </group>
+                            <button name="prefill_first_hires" string="Prefill first hires" type="object" invisible="first_hire_fields_invisible or state != 'draft'"/>
+                        </page>
+                    </notebook>
+                    <notebook invisible="not acs_deduction_line_ids">
+                        <page string="ONSS ACS Deduction">
+                            <field name="acs_deduction_line_ids" readonly="1">
+                                <list string="ONSS ACS Deduction" create="false" delete="false" contenteditable="false">
+                                    <field name="employee_id" widget="many2one_avatar_user"/>
+                                    <field name="deduction_code"/>
+                                    <field name="amount" sum="Total" widget="monetary"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_be_dmfa_view_search" model="ir.ui.view">
+        <field name="name">l10n_be.dmfa.search</field>
+        <field name="model">l10n_be.dmfa</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="year"/>
+                <separator/>
+                <filter string="Current Company" name="filter_current_company"
+                        domain="[('company_id', '=', allowed_company_ids[0])]"
+                        groups="base.group_multi_company"/>
+                <group>
+                    <filter string="Year" name="group_by_year" domain="[]" context="{'group_by': 'year'}"/>
+                    <filter string="Company" name="group_by_company" domain="[]"
+                            context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="hr_payslip_report_action_dmfa" model="ir.actions.act_window">
+        <field name="name">DMFA</field>
+        <field name="res_model">l10n_be.dmfa</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a DMFA export
+            </p><p>
+                The DMFA ("Déclaration Multifonctionnelle") is a quarterly report employers submit to social security.
+                It summarizes all employee salaries, working hours, and social contributions.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_dmfa_server_context" model="ir.actions.server">
+        <field name="name">DMFA</field>
+        <field name="model_id" ref="model_l10n_be_dmfa"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = env['l10n_be.dmfa'].action_list_view()
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_l10n_be_hr_payroll_configuration"
+        name="Belgium"
+        parent="hr_payroll.menu_hr_payroll_configuration"
+        sequence="500"
+        groups="hr_payroll.group_hr_payroll_user"
+    />
+
+    <record id="l10n_be_dmfa_view_tree" model="ir.ui.view">
+        <field name="name">l10n_be.dmfa</field>
+        <field name="model">l10n_be.dmfa</field>
+        <field name="arch" type="xml">
+            <list string="DMFA Reports">
+                <field name="name"/>
+                <field name="year"/>
+                <field name="quarter"/>
+                <field name="declaration_type" widget="badge"
+                    decoration-info="declaration_type == 'original'"
+                    decoration-warning="declaration_type == 'modification'"
+                    decoration-danger="declaration_type == 'cancellation'"/>
+                <field name="declaration_method" optional="hide"/>
+                <field name="state" widget="badge" decoration-info="state in ('draft', 'ready', 'pending', 'in_progress')" decoration-success="state in ('done', 'paid')" decoration-danger="state in ('refused', 'error')"/>
+                <button string="Download" type="object" name="action_download_declaration_file" icon="download"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dmfa_consultation_wizard_form" model="ir.ui.view">
+        <field name="name">l10n_be.dmfa.employees.wizard.form</field>
+        <field name="model">l10n_be.dmfa.employees.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Select Employees">
+                <group>
+                    <field name="employee_ids"
+                        widget="many2many_tags"
+                        invisible="select_all == True"/>
+                    <field name="select_all"/>
+                </group>
+                <footer>
+                    <button name="action_confirm_selection" type="object" string="Generate XML File" class="oe_highlight"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <menuitem
+        id="menu_hr_payroll_dmfa"
+        action="action_dmfa_server_context"
+        parent="l10n_be_hr_payroll.menu_reporting_l10n_be"
+        sequence="30"
+    />
+
+</odoo>

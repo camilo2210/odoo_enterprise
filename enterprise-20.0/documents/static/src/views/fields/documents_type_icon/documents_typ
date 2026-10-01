@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="documents.DocumentsTypeIcon">
+        <t t-set="recordOrShortcutTarget" t-value="this.props.record.shortcutTarget || this.props.record"/>
+        <t t-set="mimetype" t-value="recordOrShortcutTarget.data['mimetype']"/>
+        <t t-set="type" t-value="this.props.record.data['type']"/>
+
+        <i t-if="type === 'folder'" class="oi ms-1" data-icon="folder" title="Folder"/>
+        <i t-elif="type === 'url'" class="oi ms-1" data-icon="link" title="Link"/>
+        <i t-elif="type === 'binary' and mimetype" class="o_documents_mimetype_icon o_image" t-att-data-mimetype="mimetype" t-att-title="mimetype"/>
+        <div t-elif="this.props.record.isRequest?.()" t-on-click.stop.prevent="this.onClickDocumentsRequest" class="oi text-muted ms-1 mt-1" data-icon="upload"
+            role="button" tabindex="0" aria-label="Upload the requested file">
+            <input type="file" class="o_input_file o_hidden" t-ref="this.fileInputRef" t-on-change.stop.prevent="this.onReplaceDocument" t-on-click.stop="() => {}"/>
+        </div>
+        <i t-else="" class="oi ms-1" data-icon="description" title="File"/>
+    </t>
+
+</templates>

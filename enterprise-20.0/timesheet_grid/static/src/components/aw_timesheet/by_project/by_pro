@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="timesheet_grid.TimesheetsAssistantByProject">
+        <t t-foreach="Object.keys(this.props.model.data.grouped).sort()" t-as="groupKey" t-key="groupKey">
+            <t t-if="this.props.model.hasVisibleActivities(groupKey)">
+                <t t-set="ids" t-value="this.parseJson(groupKey)"/>
+                <t t-set="previousWasSelected" t-value="false"/>
+                <div role="heading" aria-level="3" class="fw-medium mb-1 d-flex justify-content-between">
+                    <span class="text-wrap text-break me-3">
+                        <t t-out="this.props.model.groupByTitle(ids)"/>
+                    </span>
+                    <span class="text-nowrap">
+                        <t t-set="groupTotal" t-value="this.props.model.getGroupTotalDuration(groupKey)"/>
+                        <time
+                            t-att-datetime="(groupTotal / 60).toFixed(0) + 'm'"
+                            t-out="this.formatDuration(groupTotal / 3600, { hideZeroHours: false })"
+                        />
+                    </span>
+                </div>
+                <div class="list-group rounded mb-3">
+                    <t t-foreach="Object.keys(this.props.model.data.grouped[groupKey].suggestions)" t-as="title" t-key="title">
+                        <t t-if="this.props.model.data.grouped[groupKey].suggestions[title].type != 'afk'">
+                            <button class="o_suggestions_suggestion list-group-item list-group-item-action cursor-pointer bg-view d-flex flex-wrap flex-xl-nowrap align-items-stretch position-relative p-0 mb-2 mb-lg-0"
+                               t-att-title="title"
+                               t-att-class="this.props.getSelectionClass(groupKey, title, previousWasSelected)"
+                               t-att-aria-current="this.props.isSelected(groupKey, title)"
+                               t-on-mousedown.stop="(ev) => this.props.onMouseDown(groupKey, title, ev)"
+                               t-on-mouseenter.stop="() => this.props.onMouseEnter(groupKey, title)"
+                            >
+                                <t t-set="hasTakeButton" t-value="this.props.model.isProjectAllowsTimesheets(ids.project_id) &amp;&amp; !(groupKey === this.props.model.unmatchedProjectTaskKey || this.props.selectedRowsSize > 0)"/>
+                                <t t-set="hasRemoveButton" t-value="this.props.selectedRowsSize === 0"/>
+
+                                <div class="flag position-absolute end-100 h-100 bg-view rounded-start align-items-center">
+                                    <i class="oi smaller" data-icon="chevron_backward" role="presentation"/>
+                                </div>
+
+                                <div
+                                    class="d-flex flex-wrap flex-xl-nowrap flex-grow-1 align-items-center min-w-0 gap-1 pt-2 px-2"
+                                    t-att-class="hasTakeButton || hasRemoveButton ? 'pb-1 pb-xl-2' : 'pb-2'"
+                                >
+                                    <div class="d-flex align-items-center flex-shrink-0">
+                                        <t t-set="icon" t-value="this.getIcon(this.props.model.data.grouped[groupKey].suggestions[title].type)"/>
+                                        <i t-attf-class="oi oi-fw {{ icon.class }}" t-att-data-icon="icon.icon" role="presentation"/>
+                                        <time
+                                            class="o_tabular_nums fw-medium mx-2"
+                                            style="min-width: 4ch;"
+                                            t-att-datetime="(this.props.model.data.grouped[groupKey].suggestions[title].duration / 60).toFixed(0) + 'm'"
+                                            t-out="this.formatDuration(this.props.model.data.grouped[groupKey].suggestions[title].duration / 3600, { hideZeroHours: false })"
+                                        />
+                                    </div>
+                                    <span
+                                        class="o_suggestions_suggestion_description w-100 min-w-0 w-xl-auto"
+                                        t-out="title"
+                                    />
+                                </div>
+
+                                <t t-set="toolbarMobileClasses">px-3 py-2 w-100 justify-content-end gap-2</t>
+                                <t t-set="toolbarDesktopClasses">px-0 w-auto align-items-stretch</t>
+                                <div
+                                    t-if="hasTakeButton || hasRemoveButton"
+                                    class="o_suggestions_suggestion_toolbar d-flex"
+                                    t-att-class="this.uiService.isSmall ? toolbarMobileClasses : toolbarDesktopClasses"
+                                >
+                                    <button t-if="hasTakeButton"
+                                        class="o_aw_btn_take btn btn-sm text-nowrap"
+                                        t-on-click.stop="() => this.props.onTake(groupKey, title)"
+                                        title="Take this suggestion"
+                                    >
+                                        Add
+                                        <i class="ms-1" role="presentation"/>
+                                    </button>
+                                    <button
+                                        class="o_aw_btn_remove btn btn-sm text-nowrap"
+                                        t-on-click.stop="() => this.props.onDelete(groupKey, title)"
+                                        title="Hide this suggestion"
+                                    >
+                                        <i class="oi" data-icon="close_small" role="presentation"/>
+                                        Remove
+                                    </button>
+                                </div>
+                            </button>
+                            <t t-set="previousWasSelected" t-value="this.props.isSelected(groupKey, title)"/>
+                        </t>
+                    </t>
+                </div>
+            </t>
+        </t>
+    </t>
+</templates>

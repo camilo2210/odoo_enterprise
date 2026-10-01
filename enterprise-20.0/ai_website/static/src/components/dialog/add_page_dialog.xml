@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+<t t-name="ai_website.AddPageConfirmDialog" t-inherit="website.AddPageConfirmDialog" t-inherit-mode="extension">
+    <xpath expr="//WebsiteDialog" position="attributes">
+        <attribute name="primaryTitle">this.buttonTitle</attribute>
+    </xpath>
+    <xpath expr="//div[@class='row gy-4']" position="attributes">
+        <attribute name="t-att-class">this.state.loading ? 'row gy-4 opacity-50 pe-none' : 'row gy-4'</attribute>
+    </xpath>
+    <xpath expr="//div[@class='row gy-4']" position="inside">
+        <div t-if="this.state.loading" class="d-flex justify-content-center w-100 position-absolute" style="bottom: 160px;">
+            <div class="text-muted">
+                <i class="oi oi-spin me-2" data-icon="progress_activity"></i>
+                Generating content...
+            </div>
+        </div>
+    </xpath>
+    <xpath expr="//Switch[contains(@label.translate, 'Add to menu')]" position="after">
+        <div t-if="!!this.state.sectionsArch" class="offset-md-3 col-md-9">
+            <Switch extraClasses="'d-inline-flex align-items-center text-start'"
+                value="this.state.generateText"
+                onChange="(checked) => this.onChangeGenerateText(checked)"
+                labelIcon="'o_ai_icon'"
+                labelIconClass="'oi-lg o_ai_icon_color'"
+                label.translate="Generate text"/>
+        </div>
+        <t t-if="this.state.generateText">
+            <label class="col-form-label col-md-3">
+                Instructions
+            </label>
+            <div class="col-md-9">
+                <textarea t-model.proxy="this.state.instructions"
+                        class="form-control"
+                        rows="4"
+                        placeholder="Describe the page with keywords..."></textarea>
+            </div>
+            <div class="btn-group offset-md-3 col-md-9 text-start" role="group" aria-label="Tone Selection">
+                <t t-foreach="Object.keys(this.tones)" t-as="toneOption" t-key="toneOption">
+                    <button
+                        t-att-class="'btn btn-sm me-1 rounded-pill ' + (this.state.tone === toneOption ? 'btn-primary' : 'btn-outline-secondary')"
+                        t-att-title="this.tones[toneOption].title"
+                        t-on-click="this.onToneSelect"
+                        t-att-data-tone="toneOption"
+                    >
+                        <t t-out="this.tones[toneOption].title"/>
+                    </button>
+                </t>
+            </div>
+        </t>
+    </xpath>
+</t>
+</templates>

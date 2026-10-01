@@ -1,0 +1,20 @@
+{
+    'name': 'AI - ESG',
+    'category': 'Hidden',
+    'summary': 'AI integration with ESG',
+    'depends': ['ai', 'esg'],
+    'data': [
+        'data/ai_tool_data.xml',
+        'data/ir_actions_server_data.xml',
+        'data/ir_cron_data.xml',
+        'data/mail_template_data.xml',
+        'data/ir_attachment_data.xml',
+        'wizard/metrics_ai_generation_wizard_views.xml',
+        'wizard/metrics_ai_suggestion_wizard_views.xml',
+        'views/esg_metric_views.xml',
+        'security/ir.access.csv',
+    ],
+    'auto_install': True,
+    'author': 'Odoo S.A.',
+    'license': 'OEEL-1',
+}

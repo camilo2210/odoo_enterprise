@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_payment_form" model="ir.ui.view">
+        <field name="name">account.payment.form.inherit.l10n_tr_currency_live_rate</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='amount_div']" position="after">
+                <span class="o_form_label" invisible="currency_id == company_currency_id or not currency_id.l10n_tr_show_buy_rate"/>
+                <div name="l10n_tr_currency_conversion_div" class="d-flex gap-1 text-muted" invisible="currency_id == company_currency_id or not currency_id.l10n_tr_show_buy_rate" groups="base.group_multi_currency">
+                    <field name="company_currency_id" invisible="1 == 1"/>
+                    <field name="l10n_tr_currency_rate_type" invisible="1"/> <!-- Used only by the toggle button below. -->
+                    <field name="l10n_tr_payment_currency_rate" invisible="1"/> <!-- Used only by the widget above via options.rate_field, never shown itself. -->
+                    <widget name="account_currency_exchange_rate" readonly="1" options="{'rate_field': 'l10n_tr_payment_currency_rate'}"/>
+                    <button type="object"
+                            name="l10n_tr_action_toggle_currency_rate_type"
+                            icon="sync_alt"
+                            icon_class="oi-filled me-1"
+                            class="btn btn-link text-dark p-0 ms-2 fw-normal"
+                            title="Click to toggle between the Selling and Buying rate">
+                        <span class="text-muted" invisible="l10n_tr_currency_rate_type != 'sell'">Selling Rate</span>
+                        <span class="text-muted" invisible="l10n_tr_currency_rate_type != 'buy'">Buying Rate</span>
+                    </button>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

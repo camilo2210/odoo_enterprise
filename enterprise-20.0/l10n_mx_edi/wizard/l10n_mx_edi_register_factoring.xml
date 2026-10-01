@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_mx_edi_register_factoring_view_form" model="ir.ui.view">
+        <field name="name">l10n_mx_edi.register.factoring.view.form</field>
+        <field name="model">l10n_mx_edi.register.factoring</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="statement_line_id" invisible="1"/> <!-- To get default value -->
+                <field name="move_line_ids" invisible="1"/> <!-- To get default value and trigger compute -->
+                <field name="line_ids" mode="list">
+                    <list create="0" delete="0" options="{'no_open': True}" editable="bottom" decoration-danger="has_invalid_amount">
+                        <field name="move_line_id" column_invisible="1"/> <!-- so that it is set when creating the lines -->
+                        <field name="partner_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="display_name"/>
+                        <field name="move_line_currency_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="amount_residual_currency"  string="Due"/>
+                        <field name="amount_residual" optional="hide" string="Due (in company)"/>
+                        <field name="amount_trans_currency" string="Amount"/>
+                        <field name="amount" nolabel="1" class="text-start" optional="show" invisible="transaction_currency_id == company_currency_id"/>
+                        <field name="compensation_amount_trans_currency"/>
+                        <field name="compensation_amount" nolabel="1" class="text-start" optional="show" invisible="transaction_currency_id == company_currency_id"/>
+                    </list>
+                </field>
+                <footer>
+                    <button string="Save" class="btn-primary o_form_button_save" data-hotkey="S" special="save"/>
+                    <button string="Discard" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                    <div class="ms-auto me-5 text-center">
+                        <span class="fw-bold">To distribute: </span>
+                        <field name="amount_residual" class="px-2"/>
+                        <field name="company_currency_id" options="{'no_open': True}" invisible="transaction_currency_id != company_currency_id"/>
+                        <span invisible="transaction_currency_id == company_currency_id">
+                            (
+                                <field name="amount_residual_currency" class="px-2"/>
+                                <field name="transaction_currency_id" class="pe-2" options="{'no_open': True}" />
+                            )
+                        </span>
+                    </div>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

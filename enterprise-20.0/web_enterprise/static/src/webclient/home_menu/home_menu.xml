@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+<t t-name="web_enterprise.HomeMenu">
+    <div t-ref="this.rootRef" class="o_home_menu h-100 overflow-auto px-3 d-flex flex-column" t-att-class="{ o_ios_app: this.state.isIosApp }">
+        <input
+            t-ref="this.inputRef"
+            type="text"
+            class="o_home_menu_search_input bg-100 rounded-2 align-self-center mt-2"
+            t-att-class="this.hasTouch ? 'p-2 mb-3' : 'visually-hidden'"
+            data-allow-hotkeys="true"
+            t-on-input="this._onInputSearch"
+            t-on-blur="this._onInputBlur"
+            t-on-click="this._onInputClick"
+            t-on-compositionstart="this._onCompositionStart"
+            role="combobox"
+            t-att-aria-activedescendant="'result_app_' + this.state.focusedIndex"
+            t-att-aria-expanded="this.displayedApps.length ? 'true' : 'false'"
+            t-att-placeholder="this.searchMenuPlaceholder"
+            aria-autocomplete="list"
+            aria-haspopup="listbox"
+            autocomplete="off"
+        />
+        <div class="container px-0 position-relative z-1">
+            <!-- When the subscription has expired, the expiration panel is show over the whole UI instead of here -->
+            <ExpirationPanel t-if="this.subscription.warningType and !this.subscription.isWarningHidden and this.subscription.daysLeft &lt;= 30 and this.subscription.daysLeft > 0 and !this.subscription.sysadmin.replace"/>
+            <SysAdminPanel t-if="this.subscription.daysLeft > 0 and this.subscription.sysadmin.message"/>
+            <div t-if="this.displayedApps.length" role="listbox" class="o_apps row user-select-none mt-md-4 mx-0">
+                <div t-foreach="this.displayedApps" t-as="app" t-key="app.id" class="col-3 col-md-2 o_draggable mb-3 px-0">
+                    <a t-att-id="'result_app_' + app_index"
+                        role="option"
+                        t-att-aria-selected="this.state.focusedIndex === app_index ? 'true' : 'false'"
+                        class="o_app o_menuitem d-flex flex-column rounded-4 justify-content-start align-items-center w-100 p-1 p-md-2"
+                        t-att-class="{o_focused: this.state.focusedIndex === app_index, o_disabled_offline: !this._isAvailable(app)}"
+                        t-att-data-menu-xmlid="app.xmlid"
+                        t-att-href="app.href"
+                        t-on-click.prevent="() => this._onAppClick(app)"
+                        >
+                        <img t-if="app.webIconData" class="o_app_icon rounded-3"
+                            t-attf-src="{{app.webIconData}}"
+                        />
+                        <div t-else="" class="o_app_icon position-relative d-flex justify-content-center align-items-center p-2 rounded-3 ratio ratio-1x1"
+                            t-attf-style="background-color: {{app.webIcon.backgroundColor}};"
+                        >
+                            <i class="oi position-relative w-auto h-auto" t-att-data-icon="app.webIcon.icon" t-attf-style="color: {{app.webIcon.color}};"/>
+                        </div>
+                        <div class="o_caption fw-medium w-100 text-center text-truncate mt-2" t-out="app.label or app.name"/>
+                    </a>
+                </div>
+            </div>
+            <div t-elif="!this.displayedApps.length" id="result_menu_0" role="option" aria-selected="true" class="o_no_result">
+                No result
+            </div>
+        </div>
+    </div>
+</t>
+
+<t t-name="web_enterprise.HomeMenu.CommandPalette.Footer">
+    <span>
+        <span class='fw-bolder text-primary'>TIP</span> — open me anywhere with <span t-out="this.controlKey" class='fw-bolder text-primary'/> + <span class='fw-bolder text-primary'>K</span>
+    </span>
+</t>
+
+</templates>

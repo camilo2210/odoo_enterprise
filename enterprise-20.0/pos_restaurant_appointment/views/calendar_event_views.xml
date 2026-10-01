@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="calendar_event_view_kanban_inherit_pos_restaurant_appointment" model="ir.ui.view">
+        <field name="name">calendar.event.view.kanban.inherit.pos.restaurant.appointment</field>
+        <field name="model">calendar.event</field>
+        <field name="inherit_id" ref="pos_appointment.calendar_event_view_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="inside">
+                <field name="available_capacity"/>
+                <field name="is_conflicted"/>
+                <field name="appointment_type_schedule_based_on"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="calendar_event_view_form_gantt_booking_inherit_pos_restaurant_appointment" model="ir.ui.view">
+        <field name="name">calendar.event.view.form.gantt.booking.inherit.pos.restaurant.appointment</field>
+        <field name="model">calendar.event</field>
+        <field name="inherit_id" ref="pos_appointment.calendar_event_view_form_gantt_booking"/>
+        <field name="arch" type="xml">
+            <field name="resource_ids" position="attributes">
+                <attribute name="widget">many2many_tags_resource</attribute>
+            </field>
+            <xpath expr="//span[hasclass('people-label')]" position="replace">
+                <span>
+                    seats (<field class="oe_inline" name="available_capacity" no_label="1"/> available)
+                </span>
+            </xpath>
+        </field>
+    </record>
+    <record id="calendar_event_view_list_inherit_restaurant_appointment" model="ir.ui.view">
+        <field name="name">calendar.event.list.pos.restaurant.appointment</field>
+        <field name="model">calendar.event</field>
+        <field name="inherit_id" ref="pos_appointment.calendar_event_view_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='answers']" position="after">
+                <field name="available_capacity" column_invisible="1" />
+                <field name="is_conflicted" column_invisible="1" />
+                <field name="appointment_type_schedule_based_on" column_invisible="1" />
+            </xpath>
+            <xpath expr="//list" position="attributes">
+                <attribute name="decoration-danger">is_conflicted</attribute>
+                <attribute name="js_class">pos_res_appointment_list</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

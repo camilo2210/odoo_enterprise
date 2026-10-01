@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<odoo>
+    <!-- TODO remove in master -->
+    <record id="mail_activity_schedule_view_form" model="ir.ui.view">
+        <field name="name">mail.activity.schedule.view.form.inherit.voip</field>
+        <field name="model">mail.activity.schedule</field>
+        <field name="inherit_id" ref="mail.mail_activity_schedule_view_form"/>
+        <field name="arch" type="xml">
+            <data/>
+        </field>
+    </record>
+
+    <record id="voip_activity_schedule_form_view" model="ir.ui.view">
+        <field name="name">voip.activity.schedule.view.form</field>
+        <field name="model">mail.activity.schedule</field>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet class="o_mail_activity_schedule_wizard">
+                    <group invisible="True">
+                        <field name="call_id"/>
+                        <field name="is_in_call"/>
+                        <field name="res_model"/>
+                        <field name="res_ids"/>
+                    </group>
+                    <group>
+                        <field name="res_model_selection" widget="badges_selection" nolabel="1" required="True"/>
+                    </group>
+                    <group>
+                        <group>
+                            <div class="o_outlined d-flex align-items-center mb-2 gap-2" colspan="2">
+                                <i class="oi oi-filled o_voip_activity_schedule_wizard_icon mb-2" data-icon="label" title="Log On"/>
+                            <field name="contact_id" nolabel="1" class="w-100"
+                                widget="many2one_avatar"
+                                domain="contact_id_domain"
+                                required="res_model_selection == 'res.partner'"
+                                invisible="res_model_selection != 'res.partner'"
+                                options="{'no_create': True, 'no_open': True}"/>
+                            </div>
+                            <div class="o_outlined d-flex align-items-baseline mb-2 gap-2" colspan="2">
+                                <i class="oi oi-filled o_voip_activity_schedule_wizard_icon" data-icon="schedule" title="Activity Type"/>
+                                <field name="activity_type_id" nolabel="1" class="w-100"
+                                    domain="activity_type_id_domain"
+                                    required="True"
+                                    readonly="not res_model_selection"
+                                    options="{'no_create': True, 'no_open': True}"/>
+                            </div>
+                            <div class="o_outlined d-flex align-items-baseline mb-2 gap-2" colspan="2">
+                                <i class="oi oi-filled o_voip_activity_schedule_wizard_icon" data-icon="sticky_note_2" title="Summary"/>
+                                <field name="summary" nolabel="1" class="w-100"
+                                    placeholder="e.g. Discuss Proposal"/>
+                            </div>
+                        </group>
+                        <group/>
+                    </group>
+                    <field name="note" class="oe-bordered-editor embedded-editor-height-4" placeholder="Log a note..."/>
+                </sheet>
+                <footer>
+                    <button string="Mark Done" name="action_schedule_activities_done" invisible="is_in_call"
+                        type="object" class="btn-primary" data-hotkey="w"/>
+                    <button string="Mark Done" name="action_schedule_activities" invisible="not is_in_call"
+                        type="object" class="btn-primary" data-hotkey="w"/>
+                    <button string="Discard" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<templates>
+    <t t-name="voip.VoipPipWindow">
+        <div class="o-voip-PipWindow o-voip-calling d-flex flex-column gap-2 vh-100 p-3">
+            <div class="o-voip-PipWindow-mainInfo d-flex align-items-center gap-2">
+                <img class="o-voip-PipWindow-avatar o_avatar object-fit-contain" t-att-class="{ 'o-voip-avatar-bg': this.callerAvatarUrl }" t-att-src="this.callerAvatarUrl or '/base/static/img/avatar_grey.png'" alt=""/>
+                <span class="text-truncate flex-grow-1" t-out="this.callerName"/>
+                <small class="o-voip-PipWindow-timer fw-semibold flex-shrink-0" t-out="this.timerText"/>
+            </div>
+            <div class="o-voip-PipWindow-controls d-flex gap-1 align-items-center justify-content-between">
+                <ActionButton
+                    title="this.keypadButtonTitle"
+                    icon="'dialpad'"
+                    onClick.bind="this.onClickToggleKeypad"
+                    hideLabel="true"
+                    isSmall="true"
+                    innerExtraClass="'rounded ' + (this.state.showKeypad ? 'active' : '')"
+                    disabled="!this.frontSession?.isInProgress"
+                />
+                <ActionButton
+                    title="this.muteButtonTitle"
+                    icon="'mic_off'"
+                    iconClass="'oi-filled'"
+                    onClick.bind="this.onClickMute"
+                    hideLabel="true"
+                    isSmall="true"
+                    innerExtraClass="'rounded ' + (this.frontSession?.isMuted ? 'active' : '')"
+                    disabled="!this.frontSession?.isInProgress"
+                />
+                <ActionButton
+                    title="this.holdButtonTitle"
+                    icon="'pause'"
+                    iconClass="'oi-filled'"
+                    onClick.bind="this.onClickHold"
+                    hideLabel="true"
+                    isSmall="true"
+                    innerExtraClass="'rounded ' + (this.frontSession?.isOnHold ? 'btn-warning' : 'btn-secondary')"
+                    disabled="!this.frontSession?.isInProgress"
+                    type="''"
+                />
+                <ActionButton
+                    title="this.recordButtonTitle"
+                    icon="'graphic_eq'"
+                    onClick.bind="this.onClickRecord"
+                    hideLabel="true"
+                    isSmall="true"
+                    innerExtraClass="'rounded ' + (this.isRecording ? 'btn-info' : 'btn-secondary')"
+                    disabled="!this.canToggleRecording"
+                    type="''"
+                />
+                <ActionButton
+                    title="this.hangupButtonTitle"
+                    icon="'phone'"
+                    iconClass="'o-voip-CallIcon-end oi-filled'"
+                    type="'danger'"
+                    extraClass="'ms-auto'"
+                    isSmall="true"
+                    onClick.bind="this.onClickHangup"
+                    hideLabel="true"
+                />
+            </div>
+            <div t-if="this.state.showKeypad" class="o-voip-PipWindow-keypad grid mt-3">
+                <button t-foreach="this.keypadKeys" t-as="key" t-key="key.key" class="g-col-4 btn btn-secondary d-flex flex-column align-items-center rounded-pill o-voip-PipWindow-keypadKey" t-att-class="{ 'justify-content-center': key.icon }" t-att-disabled="!this.frontSession?.isInProgress" t-on-click="() => this.onClickKeypadKey(key)">
+                    <i t-if="key.icon" class="oi" t-att-data-icon="key.icon"/>
+                    <span t-else="" class="lh-sm" t-out="key.key"/>
+                    <small t-if="key.letters" class="smaller lh-sm opacity-75" t-out="key.letters"/>
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

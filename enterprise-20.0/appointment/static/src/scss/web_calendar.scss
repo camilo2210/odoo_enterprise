@@ -1,0 +1,98 @@
+.o_calendar_container {
+    --Calendar__slotSelection-background: #{rgba($gray-400, .5)};
+
+    .o_calendar_renderer .o_appointment_unavailable_slot {
+        background-color: var(--fc-non-business-color);
+        box-shadow: none !important;
+        cursor: default; // Unavailable slots do not open popover
+        opacity: 1;
+    }
+
+    .o_calendar_renderer .fc-view {
+        .fc-bg-event.o_calendar_slot {
+            opacity: 1;
+        }
+        .fc-day:not(:has(.o_calendar_slot_selection_now)).o_calendar_slot_selection, .o_calendar_slot_selection_now {
+            background-color: var(--Calendar__slotSelection-background);
+        }
+        // set a transparent dark background over the slots when the trash icon is shown
+        .o_calendar_slot_trash_icon {
+            background-color: #00000030;
+        }
+        .o_event.o_calendar_slot {
+            &:not(:has(.o_calendar_subslot)) {
+                border-color: $o-success;
+                background: #{mix($o-success, $o-view-background-color, 50%)};
+            }
+            &:has(.o_calendar_subslot) {
+                border: 0;
+                background: transparent;
+                box-shadow: none;
+                &:hover {
+                    border: inherit;
+                    background: #00000020;
+                }
+            }
+            // give some more space for the action button and let the container add its own margin
+            .fc-event-main {
+                padding: 0;
+                margin: 0;
+            }
+            &.o_calendar_slot_editable {
+                cursor: grab;
+            }
+            .o_calendar_subslots_container {
+                overflow-y: auto;
+                scrollbar-width: thin;
+                scrollbar-color: $o-success transparent;
+            }
+            &:hover .o_calendar_subslot {
+                border-bottom-color: #00000020;
+            }
+            // make "short" or "full" string visible depending on the width of the slot
+            // 120px = arbitrary good-enough size for most languages
+            // this is to avoid having to allow wrapping and then having to compute the height
+            // in JS to make sure everything can fit everytime the subslots change width
+            container-type: inline-size;
+            @container (width < 120px) {
+                .o_appointment_slot_fc_event_title_full {
+                    display: none;
+                }
+                .o_appointment_slot_fc_event_title_short {
+                    display: inline-block !important;
+                }
+            }
+            .o_calendar_subslot {
+                background: #{mix($o-success, $o-view-background-color, 50%)};
+                border: 0;
+                // have the bottom border always present, but hidden by default, to avoid resizing
+                border-bottom: 1px solid transparent;
+                border-left: 1px solid $o-success;
+                border-right: 1px solid $o-success;
+                &.o_calendar_subslot_first {
+                    border-top: 1px solid $o-success;
+                }
+                &.o_calendar_subslot_last {
+                    border-bottom: 1px solid $o-success;
+                }
+                border-radius: 2px;
+                box-sizing: border-box;
+                font-size: 0.70rem;
+            }
+            .o_calendar_subslots_scroll .o_calendar_subslot {
+                min-height: 1.6rem;
+            }
+        }
+    }
+    // disable interaction with calendar events in slot edition mode and while selecting
+    .fc-dayGridYear-view .o_calendar_slot_selection .fc-daygrid-day-frame {
+        pointer-events: none;
+    }
+
+    // "Booking Pages" sidebar: only reveal the row actions on hover
+    .o_calendar_filter_item {
+        &:hover .o_appointment_filter_actions {
+            display: flex !important;
+        }
+    }
+}

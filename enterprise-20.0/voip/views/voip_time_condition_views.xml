@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="voip_time_condition_view_list" model="ir.ui.view">
+        <field name="name">voip.time.condition.list</field>
+        <field name="model">voip.time.condition</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="timezone"/>
+                <field name="callflow_id" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="voip_time_condition_view_form" model="ir.ui.view">
+        <field name="name">voip.time.condition.form</field>
+        <field name="model">voip.time.condition</field>
+        <field name="arch" type="xml">
+            <form string="Time Condition">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Office Hours"/></h1>
+                    </div>
+                    <group>
+                        <field name="timezone"/>
+                    </group>
+                    <field name="has_open_period" invisible="1"/>
+                    <div class="alert alert-warning" role="alert" invisible="has_open_period">
+                        No open period is configured. Calls will always follow the Closed branch.
+                    </div>
+                    <field name="period_ids" mode="list,form" widget="voip_time_condition_periods">
+                        <list>
+                            <field name="mode" string="Type" widget="badge" decoration-success="mode == 'open'" decoration-danger="mode == 'closed'"/>
+                            <field name="week_days" widget="voip_time_condition_period_autocomplete" options="{'selector': 'week_days'}"/>
+                            <field name="month_days" widget="voip_time_condition_period_autocomplete" options="{'selector': 'month_days'}"/>
+                            <field name="months" widget="voip_time_condition_period_autocomplete" options="{'selector': 'months'}"/>
+                            <field name="all_day" column_invisible="1"/>
+                            <field name="hours_start" column_invisible="1"/>
+                            <field name="hours_end" column_invisible="1"/>
+                            <field name="hours_display" widget="voip_time_condition_hours"/>
+                            <control>
+                                <create string="Add an open period" context="{'default_mode': 'open'}"/>
+                                <create string="Add a closed period" context="{'default_mode': 'closed', 'default_month_days': '', 'default_months': ''}"/>
+                            </control>
+                        </list>
+                        <form string="Time Condition Period">
+                            <field name="mode" invisible="1"/>
+                            <div class="o_voip_time_condition_date_fields">
+                                <div class="o_voip_time_condition_date_field">
+                                    <label for="month_days"/>
+                                    <field name="month_days" nolabel="1" widget="voip_time_condition_period_autocomplete" options="{'selector': 'month_days'}"/>
+                                </div>
+                                <div class="o_voip_time_condition_date_field">
+                                    <label for="months"/>
+                                    <field name="months" nolabel="1" widget="voip_time_condition_period_autocomplete" options="{'selector': 'months'}"/>
+                                </div>
+                            </div>
+                            <group col="1" class="o_voip_time_condition_week_days">
+                                <field name="week_days" widget="voip_time_condition_period_autocomplete" options="{'selector': 'week_days'}"/>
+                            </group>
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <field name="all_day" nolabel="1"/>
+                                    <label for="all_day"/>
+                                </div>
+                                <div class="o_voip_time_condition_hours d-flex align-items-center gap-2" invisible="all_day">
+                                    <label for="hours_start" string="From"/>
+                                    <field name="hours_start" nolabel="1" widget="float_time"/>
+                                    <label for="hours_end" string="To"/>
+                                    <field name="hours_end" nolabel="1" widget="float_time"/>
+                                </div>
+                            </div>
+                        </form>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_voip_time_condition" model="ir.actions.act_window">
+        <field name="name">Time Conditions</field>
+        <field name="res_model">voip.time.condition</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="voip_time_condition_menu" name="Time Conditions" parent="voip.voip_pbx_configuration_menu" action="action_voip_time_condition" sequence="12" groups="voip.group_voip_admin"/>
+</odoo>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_production_lot_form_inherit_fsm_stock_subscription" model="ir.ui.view">
+        <field name="name">stock.production.lot.form.inherit.fsm.stock.subscription</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//form/sheet" position="inside">
+                <widget name="web_ribbon" title="Maintained" bg_color="text-bg-success"
+                    groups="planning_field_service_stock_subscription.group_field_service_allow_maintenance_contract"
+                    invisible="not is_maintained" />
+            </xpath>
+
+            <xpath expr="//button[@name='action_view_slots']" position="before">
+                <t groups="sales_team.group_sale_salesman_all_leads">
+                    <button name="action_view_subscriptions" class="oe_stat_button"
+                        groups="planning_field_service_stock_subscription.group_field_service_allow_maintenance_contract"
+                        type="object" icon="refresh" invisible="subscriptions_count == 0">
+                        <span class="o_stat_info">
+                            <field name="subscriptions_count" string="Subscriptions" widget="statinfo"/>
+                        </span>
+                    </button>
+                </t>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_production_lot_view_tree_inherit_fsm_stock_subscription" model="ir.ui.view">
+        <field name="name">stock.production.lot.list.inherit.fsm.stock.subscription</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='delivery_date']" position="after">
+                <field name="is_maintained"
+                    groups="planning_field_service_stock_subscription.group_field_service_allow_maintenance_contract"
+                    optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_production_lot_view_kanban_inherit_fsm_stock_subscription" model="ir.ui.view">
+        <field name="name">stock.production.lot.kanban.inherit.fsm.stock.subscription</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_kanban" />
+        <field name="arch" type="xml">
+            <xpath expr="//t[@t-name='card']" position="inside">
+                <widget name="web_ribbon" title="Maintained" bg_color="text-bg-success"
+                    groups="planning_field_service_stock_subscription.group_field_service_allow_maintenance_contract"
+                    invisible="not is_maintained"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_production_lot_tree_equipment_inherit_fsm_stock_subscription" model="ir.ui.view">
+        <field name="name">stock.lot.list.equipment.inherit.fsm.stock.subscription</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="planning_field_service_stock.view_production_lot_tree_equipment"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='delivery_date']" position="after">
+                <field name="is_maintained" optional="show"
+                    groups="planning_field_service_stock_subscription.group_field_service_allow_maintenance_contract"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

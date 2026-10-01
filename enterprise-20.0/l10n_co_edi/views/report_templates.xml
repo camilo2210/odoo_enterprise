@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="external_layout_standard" inherit_id="web.external_layout_standard">
+        <xpath expr="//div[contains(@t-attf-class, 'header')]//td[t[@t-call='web.company_address_list']]" position="attributes">
+            <attribute name="t-attf-class">align-top text-start {{(company.country_id.code == 'CO' and doc_model == 'account.move' and o.l10n_co_edi_state == 'invoice_accepted' and o.l10n_co_edi_attachment_id) and 'w-100' or ''}}</attribute>
+        </xpath>
+        <xpath expr="//table/tr" position="inside">
+            <t t-if="company.country_id.code == 'CO'
+                     and doc_model == 'account.move'
+                     and o.l10n_co_edi_state == 'invoice_accepted'
+                     and o.l10n_co_edi_attachment_id">
+                <td class="align-top text-end">
+                    <div class="o_company_logo_small">
+                        <t t-call="l10n_co_edi.report_invoice_co_additional_header"/>
+                    </div>
+                </td>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="external_layout_folder" inherit_id="web.external_layout_folder">
+        <xpath expr="//div[@name='company_address']" position="attributes">
+            <attribute name="class">w-25 text-end</attribute>
+        </xpath>
+        <xpath expr="//div[img[hasclass('o_company_logo_big')]]" position="replace">
+            <div t-if="company.country_id.code == 'CO'
+                       and doc_model == 'account.move'
+                       and o.l10n_co_edi_state == 'invoice_accepted'
+                       and o.l10n_co_edi_attachment_id" class="w-75 d-flex">
+                <div class="mt-n2 me-2">
+                    <t t-call="l10n_co_edi.report_invoice_co_additional_header"/>
+                </div>
+                <t>$0</t>
+            </div>
+            <t t-else="">$0</t>
+        </xpath>
+        <xpath expr="//h2" position="attributes">
+            <attribute name="style">font-size: 1.5rem</attribute>
+        </xpath>
+    </template>
+
+    <template id="external_layout_wave" inherit_id="web.external_layout_wave">
+        <xpath expr="//div[@name='company_address']" position="attributes">
+            <attribute name="class">w-25 text-end</attribute>
+        </xpath>
+        <xpath expr="//div[img[hasclass('o_company_logo')]]" position="replace">
+            <div t-if="company.country_id.code == 'CO'
+                       and doc_model == 'account.move'
+                       and o.l10n_co_edi_state == 'invoice_accepted'
+                       and o.l10n_co_edi_attachment_id" class="w-75 d-flex">
+                <div class="mt-n4 me-2">
+                    <t t-call="l10n_co_edi.report_invoice_co_additional_header"/>
+                </div>
+                <t>$0</t>
+            </div>
+            <t t-else="">$0</t>
+        </xpath>
+    </template>
+
+    <template id="external_layout_bubble" inherit_id="web.external_layout_bubble">
+        <xpath expr="//td[hasclass('o_company_tagline')]" position="before">
+            <td t-if="company.country_id.code == 'CO'
+                      and doc_model == 'account.move'
+                      and o.l10n_co_edi_state == 'invoice_accepted'
+                      and o.l10n_co_edi_attachment_id" class="w-25">
+                <div class="mt-n4">
+                    <t t-call="l10n_co_edi.report_invoice_co_additional_header"/>
+                </div>
+            </td>
+        </xpath>
+    </template>
+
+    <template id="external_layout_center" inherit_id="web.external_layout_center">
+        <xpath expr="//div[contains(@t-attf-class, 'header')]//t[@t-call='web.company_address_list']" position="before">
+            <img t-if="company.logo and
+                company.country_id.code == 'CO'
+                and doc_model == 'account.move'
+                and o.l10n_co_edi_state == 'invoice_accepted'
+                and o.l10n_co_edi_attachment_id" class="mb-1" style="max-height: 3rem;" t-att-src="image_data_uri(company.logo)" alt="Logo"/>
+        </xpath>
+        <xpath expr="//div[contains(@t-attf-class, 'header')]//td[2]" position="attributes">
+            <attribute name="t-if">not (company.country_id.code == 'CO'
+                and doc_model == 'account.move'
+                and o.l10n_co_edi_state == 'invoice_accepted'
+                and o.l10n_co_edi_attachment_id)</attribute>
+        </xpath>
+        <xpath expr="//div[contains(@t-attf-class, 'header')]//td[2]" position="after">
+            <t t-if="company.country_id.code == 'CO'
+            and doc_model == 'account.move'
+            and o.l10n_co_edi_state == 'invoice_accepted'
+            and o.l10n_co_edi_attachment_id">
+                <td class="align-top text-center" style="width: 33.3%;">
+                    <t t-call="l10n_co_edi.report_invoice_co_additional_header"/>
+                </td>
+            </t>
+        </xpath>
+        <xpath expr="//t[@t-call='web.external_layout_footer_content']" position="attributes">
+            <attribute name="is_tagline_footer">company.country_id.code == 'CO' and doc_model == 'account.move' and o.l10n_co_edi_state == 'invoice_accepted' and o.l10n_co_edi_attachment_id</attribute>
+        </xpath>
+    </template>
+
+    <template id="external_layout_dual" inherit_id="web.external_layout_dual">
+        <xpath expr="//div[contains(@t-attf-class, 'header')]//td[1]" position="after">
+            <t t-if="company.country_id.code == 'CO'
+                     and doc_model == 'account.move'
+                     and o.l10n_co_edi_state == 'invoice_accepted'
+                     and o.l10n_co_edi_attachment_id">
+                <td class="align-top">
+                    <t t-call="l10n_co_edi.report_invoice_co_additional_header"/>
+                </td>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="external_layout_lines" inherit_id="web.external_layout_lines">
+        <xpath expr="//div[contains(@t-attf-class, 'header')]//td[1]" position="attributes">
+            <attribute name="t-attf-style">{{(company.country_id.code == 'CO' and doc_model == 'account.move' and o.l10n_co_edi_state == 'invoice_accepted' and o.l10n_co_edi_attachment_id) and 'width: 33.3%;' or ''}}</attribute>
+        </xpath>
+        <xpath expr="//div[contains(@t-attf-class, 'header')]//td[2]" position="attributes">
+            <attribute name="t-attf-style">{{(company.country_id.code == 'CO' and doc_model == 'account.move' and o.l10n_co_edi_state == 'invoice_accepted' and o.l10n_co_edi_attachment_id) and 'width: 33.3%;' or ''}}</attribute>
+        </xpath>
+        <xpath expr="//div[contains(@t-attf-class, 'header')]//td[1]" position="after">
+            <t t-if="company.country_id.code == 'CO'
+                     and doc_model == 'account.move'
+                     and o.l10n_co_edi_state == 'invoice_accepted'
+                     and o.l10n_co_edi_attachment_id">
+                <td class="align-top text-center" style="width: 33.3%">
+                    <t t-call="l10n_co_edi.report_invoice_co_additional_header"/>
+                </td>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="external_layout_compact" inherit_id="web.external_layout_compact">
+        <xpath expr="//div[contains(@t-attf-class, 'header')]//t[@t-call='web.company_address_list']" position="before">
+            <img t-if="company.logo and
+                company.country_id.code == 'CO'
+                and doc_model == 'account.move'
+                and o.l10n_co_edi_state == 'invoice_accepted'
+                and o.l10n_co_edi_attachment_id" class="mb-1" style="max-height: 3rem;" t-att-src="image_data_uri(company.logo)" alt="Logo"/>
+        </xpath>
+        <xpath expr="//div[contains(@t-attf-class, 'header')]//td[2]" position="attributes">
+            <attribute name="t-if">not (company.country_id.code == 'CO'
+                and doc_model == 'account.move'
+                and o.l10n_co_edi_state == 'invoice_accepted'
+                and o.l10n_co_edi_attachment_id)</attribute>
+        </xpath>
+        <xpath expr="//div[contains(@t-attf-class, 'header')]//td[2]" position="after">
+            <t t-if="company.country_id.code == 'CO'
+            and doc_model == 'account.move'
+            and o.l10n_co_edi_state == 'invoice_accepted'
+            and o.l10n_co_edi_attachment_id">
+                <td class="align-top text-center" style="width: 33.3%;">
+                    <t t-call="l10n_co_edi.report_invoice_co_additional_header"/>
+                </td>
+            </t>
+        </xpath>
+        <xpath expr="//t[@t-call='web.external_layout_footer_content']" position="attributes">
+            <attribute name="is_tagline_footer">company.country_id.code == 'CO' and doc_model == 'account.move' and o.l10n_co_edi_state == 'invoice_accepted' and o.l10n_co_edi_attachment_id</attribute>
+        </xpath>
+    </template>
+</odoo>

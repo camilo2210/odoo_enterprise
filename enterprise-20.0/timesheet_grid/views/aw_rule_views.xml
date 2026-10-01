@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="action_aw_local_config" model="ir.actions.client">
+            <field name="name">Assistant Local Rules</field>
+            <field name="tag">frequency_viewer</field>
+        </record>
+
+        <record id="action_activitywatch_sync" model="ir.actions.client">
+            <field name="name">Timesheets Assistant</field>
+            <field name="path">assistant</field>
+            <field name="tag">hr_timesheet_activitywatch_action</field>
+        </record>
+
+        <record id="aw_rule_list" model="ir.ui.view">
+            <field name="name">aw.rule.list</field>
+            <field name="model">aw.rule</field>
+            <field name="arch" type="xml">
+                <list string="Assistant Rules" sample="1">
+                    <field name="sequence" widget="handle" groups="hr_timesheet.group_timesheet_manager"/>
+                    <field name="name" placeholder="e.g. Email"/>
+                    <field name="type" widget="aw_rule_type_selection"/>
+                    <field name="regex" width="600"/>
+                    <field name="template" placeholder="e.g. Working on $1"/>
+                    <field name="description" optional="hide"/>
+                    <field name="project_id"
+                        optional="hidden"
+                        placeholder="No Project"
+                        options="{'no_create_edit': True}"
+                        required="task_id"
+                    />
+                    <field name="task_id"
+                        optional="hidden"
+                        placeholder="No Task"
+                        context="{'default_project_id': project_id, 'form_view_ref': 'project.view_task_form_res_partner', 'search_default_project_id': project_id}"
+                        options="{'no_create_edit': True}"
+                        widget="task_with_hours"
+                    />
+                    <field name="always_active" optional="hidden"/>
+                    <field name="side_activity" optional="hidden"/>
+                    <field name="threshold" widget="float_time" options="{'unit': 'minutes'}" optional="hidden"/>
+                    <field name="applies_to" optional="hidden" widget="selection" groups="hr_timesheet.group_timesheet_manager"/>
+                    <field name="company_id"
+                        optional="hidden"
+                        placeholder="Visible to all"
+                        groups="base.group_multi_company"
+                    />
+                    <field name="department_ids"
+                        placeholder="Select a department"
+                        required="applies_to == 'departments'"
+                        widget="many2many_tags"
+                        groups="hr_timesheet.group_timesheet_manager"
+                        invisible="not applies_to == 'departments'"
+                        context="{'default_company_id': company_id}"
+                        options="{'color_field': 'color', 'on_tag_click': 'open_form'}"
+                        nolabel="1"
+                    />
+                </list>
+            </field>
+        </record>
+
+        <record id="aw_rule_kanban" model="ir.ui.view">
+            <field name="name">aw.rule.kanban</field>
+            <field name="model">aw.rule</field>
+            <field name="arch" type="xml">
+                <kanban string="Assistant Rules" sample="1">
+                    <field name="name"/>
+                    <field name="type"/>
+                    <field name="sequence" widget="handle" groups="hr_timesheet.group_timesheet_manager"/>
+                    <t t-name="card">
+                        <div class="oe_kanban_card">
+                            <div class="d-flex align-items-center">
+                                <strong class="o_kanban_record_title">
+                                    <field name="name"/>
+                                </strong>
+                            </div>
+                            <div class="mt-2 text-muted">
+                                <field name="type" widget="aw_rule_type_selection" readonly="1"/>
+                            </div>
+                        </div>
+                    </t>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="aw_rule_form" model="ir.ui.view">
+            <field name="name">aw.rule.form</field>
+            <field name="model">aw.rule</field>
+            <field name="arch" type="xml">
+                <form string="Assistant Rule">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="e.g. Email" readonly="not is_editable"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group string="General Information">
+                                <field name="type" widget="aw_rule_type_selection" readonly="not is_editable"/>
+                                <field name="regex" readonly="not is_editable"/>
+                                <field name="template" placeholder="e.g. Working on $1" readonly="not is_editable"/>
+                                <field name="description" readonly="not is_editable"/>
+                            </group>
+                            <group string="Assignment">
+                                <field name="project_id"
+                                    placeholder="No Project"
+                                    readonly="not is_editable"
+                                    options="{'no_create_edit': True}"
+                                />
+                                <field name="task_id"
+                                    placeholder="No Task"
+                                    readonly="not is_editable"
+                                    context="{'default_project_id': project_id, 'form_view_ref': 'project.view_task_form_res_partner', 'search_default_project_id': project_id}"
+                                    options="{'no_create_edit': True}"
+                                    widget="task_with_hours"
+                                />
+                            </group>
+                        </group>
+                        <group>
+                            <group string="Tracking Behavior">
+                                <field name="always_active" readonly="not is_editable"/>
+                                <field name="side_activity" readonly="not is_editable"/>
+                                <field name="threshold" widget="float_time" options="{'unit': 'minutes'}" readonly="not is_editable"/>
+                            </group>
+                            <group string="Applicability">
+                                <field name="applies_to" widget="radio" options="{'horizontal': true}" groups="hr_timesheet.group_timesheet_manager"/>
+                                <field name="department_ids"
+                                    required="applies_to == 'departments'"
+                                    widget="many2many_tags"
+                                    groups="hr_timesheet.group_timesheet_manager"
+                                    invisible="not applies_to == 'departments'"
+                                    context="{'default_company_id': company_id}"
+                                    options="{'color_field': 'color', 'on_tag_click': 'open_form'}"
+                                />
+                                <field name="company_id"
+                                    placeholder="Visible to all"
+                                    groups="base.group_multi_company"
+                                    readonly="not is_editable"
+                                />
+                            </group>
+                        </group>
+                        <group groups="base.group_no_one">
+                            <group string="Advanced">
+                                <field name="sequence" readonly="not is_editable"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="aw_rule_search" model="ir.ui.view">
+            <field name="name">aw.rule.search</field>
+            <field name="model">aw.rule</field>
+            <field name="arch" type="xml">
+                <search string="Assistant Rules">
+                    <field name="name"/>
+                    <field name="type"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="department_ids"/>
+                    <field name="project_id"/>
+                    <field name="task_id"/>
+                    <field name="regex"/>
+                    <field name="template"/>
+                    <field name="description"/>
+                    <filter string="My Rules" name="filter_my_rules" domain="[('applies_to', '=', 'private')]"/>
+                    <filter string="My Departments" name="filter_applies_to_me" domain="[('is_my_department_rule', '=', True)]"/>
+                    <filter string="Everyone" name="filter_other_rules" domain="[('applies_to', '=', 'everyone')]"/>
+                    <separator/>
+                    <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                    <separator/>
+                    <filter name="group_by_type" context="{'group_by': 'type'}"/>
+                    <filter name="group_by_applies_to" string="Applies To" context="{'group_by': 'applies_to'}"/>
+                    <filter name="group_by_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                    <filter name="group_by_project" context="{'group_by': 'project_id'}"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_aw_rule" model="ir.actions.act_window">
+            <field name="name">Assistant Rules</field>
+            <field name="res_model">aw.rule</field>
+            <field name="path">assistant-rules</field>
+            <field name="search_view_id" ref="aw_rule_search"/>
+            <field name="view_mode">list,kanban,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                No assistant rules found. Let's create one!
+                </p><p>
+                Set up matching rules to label your work activities and automatically link them to projects and tasks.
+                </p>
+                <a href="https://www.odoo.com/documentation/" target="_blank">
+                    Need help? See our documentation
+                </a>
+            </field>
+        </record>
+
+        <record id="action_aw_rule_list" model="ir.actions.act_window.view">
+            <field name="sequence" eval="10"/>
+            <field name="view_mode">list</field>
+            <field name="view_id" ref="aw_rule_list"/>
+            <field name="act_window_id" ref="action_aw_rule"/>
+        </record>
+    </data>
+</odoo>

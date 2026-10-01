@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+    <template id="flxwage_xml_report">
+        <FLXWAGE xmlns="http://socialsecurity.be/xml/ns/FLXWAGE"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" t-att="{'xsi:schemaLocation': 'http://socialsecurity.be/xml/ns/FLXWAGE FLXWAGE_' + schema_year_quarter + '.xsd'}">
+            <Form>
+                <Identification>FLXWAGE</Identification>
+                <FormCreationDate t-out="datetime.date.today()"/>
+                <FormCreationHour t-out="datetime.datetime.now().strftime('%H:%M:%S.000')"/>
+                <AttestationStatus t-out="attestation_status"/>
+                <TypeForm>SU</TypeForm>
+                <Debtor>
+                    <CompanyID t-if="debtor.get('id')" t-out="debtor['id']"/>
+                    <NOSSRegistrationNbr t-if="debtor.get('onss')" t-out="debtor['onss']"/>
+                    <t t-foreach="debtor['beneficiaries']" t-as="beneficiary">
+                        <Beneficiary>
+                            <INSS t-out="beneficiary['niss']"/>
+                            <t t-foreach="beneficiary['relations']" t-as="relation">
+                                <Relation>
+                                    <RelationType>1</RelationType>
+                                    <t t-set="ref" t-value="relation['reference']"/>
+                                    <Reference>
+                                        <ReferenceType t-out="ref['type']"/>
+                                        <ReferenceOrigin t-out="ref['origin']"/>
+                                        <ReferenceNbr t-out="ref['value']"/>
+                                    </Reference>
+                                    <t t-if="relation.get('calculation')">
+                                        <Calculation>
+                                            <CalculationPeriodStartingDate t-out="relation['calculation']['start_date']"/>
+                                            <CalculationPeriodEndingDate t-out="relation['calculation']['end_date']"/>
+                                            <CalculationDate t-out="relation['calculation']['calculation_date']"/>
+                                            <t t-set="feature" t-value="relation['calculation']['caracteristic']"/>
+                                            <Features>
+                                                <ValidityPeriodStartingDate t-out="feature['start_date']"/>
+                                                <ValidityPeriodEndingDate t-out="feature['end_date']"/>
+                                                <EmployerClass t-out="feature['employer_category']"/>
+                                                <WorkerCode t-out="feature['worker_code']"/>
+                                                <t t-foreach="feature['financial_elements']" t-as="fe">
+                                                    <FinancialElement>
+                                                        <FinancialElementType>1</FinancialElementType>
+                                                        <FinancialElementCode t-out="fe['code']"/>
+                                                        <Amount t-out="fe['value']"/>
+                                                    </FinancialElement>
+                                                </t>
+                                            </Features>
+                                        </Calculation>
+                                    </t>
+                                </Relation>
+                            </t>
+                        </Beneficiary>
+                    </t>
+                </Debtor>
+            </Form>
+        </FLXWAGE>
+    </template>
+</data>
+</odoo>

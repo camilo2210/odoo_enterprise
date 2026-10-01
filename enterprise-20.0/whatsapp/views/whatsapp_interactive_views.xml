@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="whatsapp_interactive_view_form" model="ir.ui.view">
+        <field name="name">whatsapp.interactive.view.form</field>
+        <field name="model">whatsapp.interactive</field>
+        <field name="arch" type="xml">
+            <form string="WhatsApp Interactive Template">
+                <header>
+                    <button name="%(whatsapp_preview_action_from_interactive)d" string="Preview"
+                        type="action" target="new"
+                        context="{'active_id': id, 'dialog_size': 'medium'}"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" required="1" placeholder='e.g. "Order Confirmation"'/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="active" invisible="1"/> <!-- Used by Archived ribbon -->
+                            <field name="interactive_type" string="Type" widget="radio"/>
+                            <field name="allowed_user_ids"
+                                   widget="many2many_tags_avatar"
+                                   placeholder="Accessible to all Users"/>
+                        </group>
+                        <group>
+                            <field name="header_type"
+                                invisible="interactive_type in ('list', 'cta_url')"
+                                required="1"/>
+                            <field name="header_type" widget="filterable_selection"
+                                options="{'whitelisted_values': ['none', 'text']}"
+                                invisible="interactive_type not in ('list', 'cta_url')"
+                                required="1"/>
+                            <field name="header_text"
+                                invisible="header_type != 'text'"
+                                required="header_type == 'text'"
+                                placeholder="e.g. Invitation for Meeting"/>
+                            <field name="header_attachment_id"
+                                widget="many2one_binary"
+                                options="{'accepted_file_extensions': 'image/jpeg, image/png'}"
+                                invisible="header_type != 'image'"
+                                required="header_type == 'image'"/>
+                            <field name="header_attachment_id"
+                                widget="many2one_binary"
+                                options="{'accepted_file_extensions': 'video/mp4'}"
+                                invisible="header_type != 'video'"
+                                required="header_type == 'video'"/>
+                            <field name="header_attachment_id"
+                                widget="many2one_binary"
+                                options="{
+                                    'accepted_file_extensions': 'text/plain, application/pdf, application/vnd.ms-powerpoint, application/msword,
+                                    application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.wordprocessingml.document,
+                                    application/vnd.openxmlformats-officedocument.presentationml.presentation,
+                                    application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                                }"
+                                invisible="header_type != 'document'"
+                                required="header_type == 'document'"/>
+                            <field name="footer_text"/>
+                            <field name="list_button_label"
+                                invisible="interactive_type != 'list'"
+                                required="interactive_type == 'list'"
+                                placeholder="e.g. Show options"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page id="body" string="Body" name="body">
+                            <field name="body" placeholder="Hello, here is your order!"/>
+                        </page>
+                        <page id="list_options" string="Buttons" name="list_options" invisible="interactive_type != 'list'">
+                            <field name="button_ids" context="{'default_button_type': 'question'}">
+                                <list editable="bottom" decoration-bf="button_type == 'section'" decoration-it="button_type == 'section'">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="button_type" column_invisible="1"/> <!-- Used by description field attrs -->
+                                    <field name="name" required="1"/>
+                                    <field name="description" invisible="button_type != 'question'"/>
+                                    <control>
+                                        <create name="add_question_control" string="Add an option" context="{'default_button_type': 'question'}"/>
+                                        <create name="add_section_control" string="Add a section" context="{'default_button_type': 'section'}"/>
+                                    </control>
+                                </list>
+                            </field>
+                        </page>
+                        <page id="button_options" string="Buttons" name="button_options" invisible="interactive_type == 'list'">
+                            <field name="button_ids"  context="{'default_button_type': 'url' if interactive_type == 'cta_url' else 'quick_reply'}">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name" required="1"/>
+                                    <field name="website_url"
+                                        placeholder="e.g. https://www.example.com"
+                                        column_invisible="parent.interactive_type != 'cta_url'"
+                                        required="parent.interactive_type == 'cta_url'"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="whatsapp_interactive_view_list" model="ir.ui.view">
+        <field name="name">whatsapp.interactive.view.list</field>
+        <field name="model">whatsapp.interactive</field>
+        <field name="arch" type="xml">
+            <list string="WhatsApp Interactive Template">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="create_uid" widget="many2one_avatar"/>
+                <field name="interactive_type"/>
+                <field name="header_type" optional="hidden"/>
+                <field name="create_date" optional="hidden"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="whatsapp_interactive_view_search" model="ir.ui.view">
+        <field name="name">whatsapp.interactive.view.search</field>
+        <field name="model">whatsapp.interactive</field>
+        <field name="arch" type="xml">
+            <search string="WhatsApp Interactive Template">
+                <field name="name"/>
+                <field name="body"/>
+                <separator/>
+                <filter string="My Interactive Templates" name="my" domain="[('create_uid', '=', uid)]"/>
+                <separator/>
+                <filter string="List of detailed options" name="buttons" domain="[('interactive_type', '=', 'list')]"/>
+                <filter string="List of replies" name="replies" domain="[('interactive_type', '=', 'button')]"/>
+                <filter string="Call-to-action button" name="cta_button" domain="[('interactive_type', '=', 'cta_url')]"/>
+                <separator/>
+                <filter string="Archived" name="filter_archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Type" name="groupby_message_type" domain="[]" context="{'group_by': 'interactive_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="whatsapp_interactive_action" model="ir.actions.act_window">
+        <field name="name">WhatsApp Interactive Template</field>
+        <field name="res_model">whatsapp.interactive</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">
+                No Interactive Template Found!
+            </p>
+            <p>
+                Use the "Send Interactive Message" action in a WhatsApp conversation to pick an interactive template.<br/>
+                Those let your customers pick options from the lists you define (e.g. customer service, ...)
+            </p>
+        </field>
+    </record>
+</odoo>

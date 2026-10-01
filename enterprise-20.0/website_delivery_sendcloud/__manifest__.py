@@ -1,0 +1,16 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+{
+    'name': 'Sendcloud Locations for Website Delivery',
+    'category': 'Shipping Connectors',
+    'summary': 'Allows website customers to choose delivery pick-up points',
+    'description': 'This module allows ecommerce users to choose to deliver to Pick-Up points for the Sendcloud connector.',
+    'depends': ['delivery_sendcloud', 'website_sale_stock'],
+    'data': [
+        'views/delivery_sendcloud_view.xml',
+    ],
+
+    'auto_install': True,
+    'author': 'Odoo S.A.',
+    'license': 'OEEL-1',
+}

@@ -1,0 +1,25 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+{
+    'name': "Marketing Automation Tests",
+    'version': "1.1",
+    'summary': "Test Suite for Automated Marketing Campaigns",
+    'category': "Hidden",
+    'depends': [
+        'ai_marketing_automation',
+        'marketing_automation',
+        'marketing_automation_sms',
+        'marketing_automation_website',
+        'marketing_automation_whatsapp',
+        'test_mail',
+        'test_mail_enterprise',
+        'test_mail_full',
+        'test_mail_sms',
+        'test_mass_mailing',
+    ],
+    'data': [
+        'security/ir.access.csv',
+    ],
+    'author': 'Odoo S.A.',
+    'license': 'OEEL-1',
+}

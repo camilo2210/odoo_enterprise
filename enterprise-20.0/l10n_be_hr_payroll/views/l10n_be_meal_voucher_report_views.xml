@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_be_meal_vouchers_view_list" model="ir.ui.view">
+        <field name="name">l10n_be.meal.vouchers.view.list</field>
+        <field name="model">l10n_be.meal.vouchers.report</field>
+        <field name="arch" type="xml">
+            <list string="Meal Vouchers" default_order="year, month">
+                <field name="year"/>
+                <field name="month"/>
+                <field name="company_id" optional="hide"/>
+                <field name="employee_count"/>
+                <field name="ref" optional="hide"/>
+                <button name="action_download" string="CSV" type="object"
+                    icon="download"
+                    invisible="not export_file_csv"
+                    context="{'field': 'export_file_csv', 'filename': 'export_filename_csv'}"/>
+
+                <button name="action_download" string="XLSX" type="object"
+                    icon="download" 
+                    invisible="not export_file_xlsx"
+                    context="{'field': 'export_file_xlsx', 'filename': 'export_filename_xlsx'}"/>
+                <field name="total_value"/>
+                <field name="voucher_count"/>
+                <field name="state" widget="badge"
+                    decoration-info="state in ['draft', 'ready']"
+                    decoration-success="state == 'done'"
+                    decoration-muted="state == 'canceled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_be_meal_vouchers_view_form" model="ir.ui.view">
+        <field name="name">l10n_be.meal.vouchers.view.form</field>
+        <field name="model">l10n_be.meal.vouchers.report</field>
+        <field name="arch" type="xml">
+            <form string="Meal Vouchers">
+                <header>
+                    <button name="action_set_state" string="Mark as done" type="object" class="oe_highlight" context="{'target_state': 'done'}" invisible="not export_file_csv or state != 'ready'"/>
+                    <button name="action_generate_meal_vouchers_report" string="Generate File" type="object" class="btn btn-primary" invisible="export_file_csv and state != 'draft'"/>
+                    <button name="action_generate_meal_vouchers_report" string="Generate File" type="object" invisible="not export_file_csv or state != 'ready'"/>
+                    <button name="action_set_state" string="Cancel" type="object" context="{'target_state': 'canceled'}" invisible="not export_file_csv or state not in ['done', 'ready']"/>
+                    <button name="action_set_state" string="Reset to draft" type="object" context="{'target_state': 'draft'}" invisible="state != 'canceled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,ready,done"/>
+                </header>
+                <sheet>
+                    <div name="button_box" class="oe_button_box">
+                        <button name="action_open_payslips"
+                            class="oe_stat_button"
+                            icon="attach_money"
+                            type="object"
+                            groups="hr_payroll.group_hr_payroll_user">
+                            <div class="o_stat_info">
+                                Payslips
+                                <span class="o_stat_value">
+                                    <field name="payslips_count"/>
+                                </span>
+                            </div>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <div class="o_row">
+                                <label for="year" string="Period" class="fw-bold me-3"/>
+                                <field name="year" nolabel="1" readonly="state == 'done'"/>
+                                <field name="month" nolabel="1" readonly="state == 'done'"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="ref" string="Reference" placeholder="ex: Order Identifier"/>
+                            <field name="company_id"
+                                   placeholder="My Company"
+                                   readonly="true"
+                                   help="Reports can only be generated from a top level company"
+                            />
+
+                        </group>
+                        <group>
+                            <field name="export_filename_csv" invisible="1"/>
+                            <field name="export_file_csv" filename="export_filename_csv" readonly="1" invisible="not export_file_csv"/>
+                            <field name="export_filename_xlsx" invisible="1"/>
+                            <field name="export_file_xlsx" filename="export_filename_xlsx" readonly="1" invisible="not export_file_xlsx"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="details" string="Details">
+                            <field name="meal_vouchers_line_ids" readonly="1">
+                                <list string="Details" edit="0" create="0" delete="0" no_open="1">
+                                    <field name="employee_id"/>
+                                    <field name="entitlement" width="140px"/>
+                                    <field name="postponed"/>
+                                    <button name="action_open_corrected_payslips" string="Open Payslips" class="btn btn-link" type="object" invisible="not postponed"/>
+                                    <field name="total"/>
+                                    <field name="value" optional="hide"/>
+                                    <field name="total_value" optional="hide"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_be_meal_vouchers_view_search" model="ir.ui.view">
+        <field name="name">l10n_be.meal.vouchers.search</field>
+        <field name="model">l10n_be.meal.vouchers.report</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="year"/>
+                <separator/>
+                <filter string="Current Company" name="filter_current_company"
+                        domain="[('company_id', '=', allowed_company_ids[0])]"
+                        groups="base.group_multi_company"/>
+
+                <group>
+                    <filter string="Year" name="group_by_year" domain="[]" context="{'group_by': 'year'}"/>
+                    <filter string="Company" name="group_by_company" domain="[]"
+                            context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_be_meal_vouchers_action" model="ir.actions.act_window">
+        <field name="name">Meal Vouchers</field>
+        <field name="res_model">l10n_be.meal.vouchers.report</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[
+            '|', 
+            ('company_id', '=', False), 
+            ('company_id', 'child_of', allowed_company_ids[0])
+        ]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                    Create a meal vouchers report
+                </p><p>
+                    The Meal Vouchers report allows employers to generate a summary of meal vouchers granted to employees
+                    for a given period. It helps track the number of vouchers allocated based on worked days and ensures
+                    compliance with Belgian regulations regarding employer and employee contributions.
+                </p>
+        </field>
+    </record>
+
+    <record id="l10n_be_meal_vouchers_server_action" model="ir.actions.server">
+        <field name="name">Meal Vouchers</field>
+        <field name="model_id" ref="model_l10n_be_meal_vouchers_report"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = env['l10n_be.meal.vouchers.report'].action_list_view()
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_l10n_be_meal_vouchers"
+        name="Meal Vouchers"
+        action="l10n_be_meal_vouchers_server_action"
+        parent="l10n_be_hr_payroll.menu_reporting_l10n_be"
+        sequence="21"
+    />
+</odoo>

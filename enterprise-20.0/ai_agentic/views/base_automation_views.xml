@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="base_automation_view_form_inherit_ai" model="ir.ui.view">
+        <field name="name">base.automation.form.inherit.ai</field>
+        <field name="model">base.automation</field>
+        <field name="inherit_id" ref="base_automation.view_base_automation_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="before">
+                <group invisible="not model_id">
+                    <field name="ai_agent_id"
+                        widget="many2one_avatar"
+                        options="{'no_create': True, 'no_create_edit': True, 'no_open': True}"/>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='trg_date_id']" position="attributes">
+                <attribute name="readonly">ai_agent_id and model_name == 'ai.automation.trigger' and trigger == 'on_time'</attribute>
+            </xpath>
+            <xpath expr="//label[@for='trg_date_range']" position="attributes">
+                <attribute name="invisible" add="ai_agent_id and model_name == 'ai.automation.trigger' and trigger == 'on_time'" separator="or"/>
+            </xpath>
+            <xpath expr="//label[@for='trg_date_range']" position="after">
+                <label for="trg_date_range" invisible="not (ai_agent_id and model_name == 'ai.automation.trigger' and trigger == 'on_time')" string="Interval"/>
+            </xpath>
+            <xpath expr="//field[@name='trg_date_range_mode']" position="attributes">
+                <attribute name="invisible" add="ai_agent_id and model_name == 'ai.automation.trigger' and trigger == 'on_time'" separator="or"/>
+            </xpath>
+            <xpath expr="//field[@name='trg_date_range']/.." position="after">
+                <label for="ai_next_trigger_date" string="Next Trigger Date"
+                    invisible="model_name != 'ai.automation.trigger' or trigger != 'on_time'"/>
+                <div invisible="model_name != 'ai.automation.trigger' or trigger != 'on_time'">
+                    <field name="ai_next_trigger_date" class="oe_inline"
+                        required="model_name == 'ai.automation.trigger' and trigger == 'on_time'"/>
+                </div>
+            </xpath>
+            <xpath expr="//page[@name='actions']" position="attributes">
+                <attribute name="invisible">ai_agent_id</attribute>
+            </xpath>
+            <xpath expr="//page[@name='actions']" position="after">
+                <page string="Prompt" name="ai_action_prompt" invisible="not ai_agent_id">
+                    <group>
+                        <field name="ai_action_prompt"
+                            string="Instructions"
+                            widget="ai_prompt"
+                            options="{'model_reference_field': 'model_name'}"
+                            required="ai_agent_id"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="voip.AudioBinaryField">
+        <div class="o-voip-AudioBinaryField d-flex flex-column gap-3">
+            <div t-if="!this.props.readonly" class="d-flex gap-3">
+                <FileUploader acceptedFileExtensions="this.props.acceptedFileExtensions" allowedMIMETypes="this.props.allowedMIMETypes" onUploaded.bind="this.update">
+                    <t t-set-slot="toggler">
+                        <button type="button" class="o-voip-AudioBinaryField-source flex-fill" t-att-class="{'o-voip-AudioBinaryField-source--dragging': this.state.isDragging}" t-on-dragenter.prevent="this.onDragEnter" t-on-dragover.prevent="" t-on-dragleave.prevent="this.onDragLeave" t-on-drop.prevent="this.onDrop">
+                            <span class="o-voip-AudioBinaryField-sourceContent">
+                                <i class="oi" data-icon="upload" aria-hidden="true"/>
+                                <span>Upload</span>
+                            </span>
+                        </button>
+                    </t>
+                </FileUploader>
+                <button type="button" class="o-voip-AudioBinaryField-source flex-fill" t-on-click="this.toggleRecording" t-att-aria-label="this.recordTitle">
+                    <span class="o-voip-AudioBinaryField-sourceContent">
+                        <i t-if="this.state.isRecording" class="oi text-danger" data-icon="stop" aria-hidden="true"/>
+                        <span t-else="" class="o-voip-AudioBinaryField-recordIcon" aria-hidden="true"/>
+                        <span t-out="this.recordLabel"/>
+                    </span>
+                </button>
+            </div>
+            <div t-if="this.props.record.data[this.props.name]" class="d-flex align-items-center gap-2">
+                <button t-if="this.props.record.resId and !this.props.record.dirty" type="button" class="oi btn btn-link" data-icon="download" data-tooltip="Download" aria-label="Download" t-on-click="this.onFileDownload"/>
+                <span class="text-truncate" t-out="this.fileName"/>
+                <button t-if="this.canPlay" type="button" class="btn btn-link" t-on-click="this.togglePlay" t-att-aria-label="this.state.isPlaying ? 'Stop' : 'Play'">
+                    <i class="oi" t-att-data-icon="this.state.isPlaying ? 'stop' : 'play_arrow'" aria-hidden="true"/>
+                </button>
+            </div>
+        </div>
+        <span t-if="this.state.recordingError" class="text-danger small" t-out="this.state.recordingError"/>
+    </t>
+</templates>

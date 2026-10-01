@@ -1,0 +1,18 @@
+{
+    'name': 'Guinea Equatorial - Accounting Reports',
+    'description': """
+Accounting reports for Guinea Equatorial
+============================================
+- Corporate tax report
+    """,
+    'depends': [
+        'account_reports',
+        'l10n_gq',
+    ],
+    'data': [
+        'data/account_return_data.xml',
+    ],
+    'auto_install': True,
+    'author': 'Odoo S.A.',
+    'license': 'OEEL-1',
+}

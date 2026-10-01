@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Overtime: attendances beyond the daily schedule, tagged with the premium pay of the day type.
+             The rules run in sequence order: the day type rules first, then the night windows
+             reclassify the 22:00 - 06:00 portion of both the attendances and the overtime. -->
+        <record id="l10n_vn_time_rule_overtime_public_holiday" model="hr.time.rule">
+            <field name="name">Overtime on Public Holidays</field>
+            <field name="description">Attendances on public holidays are overtime paid at 300% (Labour Code, Art. 98(1)(c)).</field>
+            <field name="sequence">10</field>
+            <field name="country_id" ref="base.vn"/>
+            <field name="calendar_source">employee</field>
+            <field name="apply_monday" eval="False"/>
+            <field name="apply_tuesday" eval="False"/>
+            <field name="apply_wednesday" eval="False"/>
+            <field name="apply_thursday" eval="False"/>
+            <field name="apply_friday" eval="False"/>
+            <field name="apply_saturday" eval="False"/>
+            <field name="apply_sunday" eval="False"/>
+            <field name="apply_on_public_holidays" eval="True"/>
+            <field name="condition_work_entry_type_ids" eval="[(4, ref('hr_work_entry.vn_work_entry_type_attendance'))]"/>
+            <field name="work_entry_type_id" ref="hr_work_entry.vn_work_entry_type_overtime"/>
+            <field name="premium_pay_category_ids" eval="[(4, ref('l10n_vn_hr_payroll.VN_PREMIUM_PAY_PUBLIC_HOLIDAY'))]"/>
+        </record>
+
+        <record id="l10n_vn_time_rule_overtime_weekly_rest" model="hr.time.rule">
+            <field name="name">Overtime on Weekly Rest Days</field>
+            <field name="description">Attendances beyond the schedule on Sundays are overtime paid at 200% (Labour Code, Art. 98(1)(b)). Tick Saturday for employees resting two days a week.</field>
+            <field name="sequence">20</field>
+            <field name="country_id" ref="base.vn"/>
+            <field name="calendar_source">employee</field>
+            <field name="apply_monday" eval="False"/>
+            <field name="apply_tuesday" eval="False"/>
+            <field name="apply_wednesday" eval="False"/>
+            <field name="apply_thursday" eval="False"/>
+            <field name="apply_friday" eval="False"/>
+            <field name="apply_saturday" eval="False"/>
+            <field name="apply_sunday" eval="True"/>
+            <field name="apply_on_public_holidays" eval="False"/>
+            <field name="condition_work_entry_type_ids" eval="[(4, ref('hr_work_entry.vn_work_entry_type_attendance'))]"/>
+            <field name="work_entry_type_id" ref="hr_work_entry.vn_work_entry_type_overtime"/>
+            <field name="premium_pay_category_ids" eval="[(4, ref('l10n_vn_hr_payroll.VN_PREMIUM_PAY_WEEKLY_REST'))]"/>
+        </record>
+
+        <record id="l10n_vn_time_rule_overtime_normal_day" model="hr.time.rule">
+            <field name="name">Overtime on Normal Days</field>
+            <field name="description">Attendances beyond the daily schedule are overtime paid at 150% (Labour Code, Art. 98(1)(a)).</field>
+            <field name="sequence">30</field>
+            <field name="country_id" ref="base.vn"/>
+            <field name="calendar_source">employee</field>
+            <field name="apply_on_public_holidays" eval="False"/>
+            <field name="condition_work_entry_type_ids" eval="[(4, ref('hr_work_entry.vn_work_entry_type_attendance'))]"/>
+            <field name="work_entry_type_id" ref="hr_work_entry.vn_work_entry_type_overtime"/>
+        </record>
+
+        <!-- Night work: 22:00 - 06:00 (Labour Code, Art. 106) -->
+        <record id="l10n_vn_time_rule_night_attendance_evening" model="hr.time.rule">
+            <field name="name">Night Work (22:00 - 24:00)</field>
+            <field name="sequence">40</field>
+            <field name="country_id" ref="base.vn"/>
+            <field name="working_hours_mode">day</field>
+            <field name="timing_start">22</field>
+            <field name="timing_stop">24</field>
+            <field name="condition_work_entry_type_ids" eval="[(4, ref('hr_work_entry.vn_work_entry_type_attendance'))]"/>
+            <field name="work_entry_type_id" ref="hr_work_entry.vn_work_entry_type_attendance"/>
+            <field name="premium_pay_category_ids" eval="[(4, ref('l10n_vn_hr_payroll.VN_PREMIUM_PAY_NIGHT'))]"/>
+        </record>
+
+        <record id="l10n_vn_time_rule_night_attendance_morning" model="hr.time.rule">
+            <field name="name">Night Work (00:00 - 06:00)</field>
+            <field name="sequence">41</field>
+            <field name="country_id" ref="base.vn"/>
+            <field name="working_hours_mode">day</field>
+            <field name="timing_start">0</field>
+            <field name="timing_stop">6</field>
+            <field name="condition_work_entry_type_ids" eval="[(4, ref('hr_work_entry.vn_work_entry_type_attendance'))]"/>
+            <field name="work_entry_type_id" ref="hr_work_entry.vn_work_entry_type_attendance"/>
+            <field name="premium_pay_category_ids" eval="[(4, ref('l10n_vn_hr_payroll.VN_PREMIUM_PAY_NIGHT'))]"/>
+        </record>
+
+        <record id="l10n_vn_time_rule_night_overtime_evening" model="hr.time.rule">
+            <field name="name">Overtime at Night (22:00 - 24:00)</field>
+            <field name="sequence">50</field>
+            <field name="country_id" ref="base.vn"/>
+            <field name="working_hours_mode">day</field>
+            <field name="timing_start">22</field>
+            <field name="timing_stop">24</field>
+            <field name="condition_work_entry_type_ids" eval="[(4, ref('hr_work_entry.vn_work_entry_type_overtime'))]"/>
+            <field name="work_entry_type_id" ref="hr_work_entry.vn_work_entry_type_overtime"/>
+            <field name="premium_pay_category_ids" eval="[(4, ref('l10n_vn_hr_payroll.VN_PREMIUM_PAY_NIGHT'))]"/>
+        </record>
+
+        <record id="l10n_vn_time_rule_night_overtime_morning" model="hr.time.rule">
+            <field name="name">Overtime at Night (00:00 - 06:00)</field>
+            <field name="sequence">51</field>
+            <field name="country_id" ref="base.vn"/>
+            <field name="working_hours_mode">day</field>
+            <field name="timing_start">0</field>
+            <field name="timing_stop">6</field>
+            <field name="condition_work_entry_type_ids" eval="[(4, ref('hr_work_entry.vn_work_entry_type_overtime'))]"/>
+            <field name="work_entry_type_id" ref="hr_work_entry.vn_work_entry_type_overtime"/>
+            <field name="premium_pay_category_ids" eval="[(4, ref('l10n_vn_hr_payroll.VN_PREMIUM_PAY_NIGHT'))]"/>
+        </record>
+    </data>
+</odoo>

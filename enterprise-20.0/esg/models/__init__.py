@@ -1,0 +1,27 @@
+from . import (
+    account_account,
+    account_move,
+    account_move_line,
+    carbon_report,
+    esg_action,
+    esg_action_value_history,
+    esg_activity_type,
+    esg_assignation_line,
+    esg_database,
+    esg_emission_factor,
+    esg_emission_factor_line,
+    esg_emission_source,
+    esg_esrs,
+    esg_gas,
+    esg_metric_to_survey_question,
+    esg_metric,
+    esg_nace,
+    esg_other_emission,
+    esg_report,
+    esg_tag,
+    knowledge_article,
+    res_company,
+    res_config_settings,
+)
+
+from . import res_groups

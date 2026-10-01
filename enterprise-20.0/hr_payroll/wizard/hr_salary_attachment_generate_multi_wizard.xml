@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_salary_attachment_generate_multi_wizard_view_form" model="ir.ui.view">
+        <field name="name">hr.salary.attachment.generate.multi.wizard.form</field>
+        <field name="model">hr.salary.attachment.generate.multi.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Generate salary adjustmensts for multiple employees">
+                <field name="company_id" invisible="1"/>
+                <field name="currency_id" invisible="1"/>
+                <group>
+                    <field name="employee_ids" widget="many2many_avatar_employee"/>
+                    <field name="salary_rule_id" context="{'default_input_usage_payslip': True}"/>
+                    <label for="amount"/>
+                    <span class="d-flex">
+                        <span style="width: 150px">
+                            <field class="o_hr_narrow_field" name="amount"/>
+                        </span>
+                    </span>
+                    <field name="date_start" style="width: 10ch;"/>
+                    <label name="is_recurring" for="is_recurring" string="Repeat"/>
+                    <div name="is_recurring" class="o_row">
+                        <field name="is_recurring"/>
+                        <span invisible="not is_recurring" class="text-muted">Until</span>
+                        <field name="date_estimated_end" class="o_hr_narrow_field" placeholder="End of Contract" invisible="not is_recurring"/>
+                        <span invisible="not date_estimated_end" class="text-muted" name="remaining_time">
+                        (<field name="remaining_time" class="w-auto" invisible="not date_estimated_end"/>)
+                        </span>
+                    </div>
+                    <field name="description" placeholder="Optional reason, or reference"/>
+                </group>
+                <footer>
+                    <button name="action_generate_salary_adjustments" type="object" class="btn-primary" string="Create" accesskey="c"/>
+                    <button special="cancel" close="1" accesskey="j" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_hr_salary_attachment_generate_multi_wizard" model="ir.actions.act_window">
+        <field name="name">Generate Multiple Payslip Adjustments</field>
+        <field name="res_model">hr.salary.attachment.generate.multi.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

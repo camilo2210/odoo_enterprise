@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="account_report_l10n_fr_das2_report" model="account.report">
+            <field name="name">DAS2 Report</field>
+            <field name="name@fr">Formulaire DAS2</field>
+            <field name="country_id" ref="base.fr"/>
+            <field name="custom_handler_model_id" ref="model_l10n_fr_das2_report_handler"/>
+            <field name="filter_unfold_all" eval="True"/>
+            <field name="filter_hide_0_lines">never</field>
+            <field name="default_opening_date_filter">this_year</field>
+            <field name="column_ids">
+                <record id="das2_report_total" model="account.report.column">
+                    <field name="name">Total</field>
+                    <field name="expression_label">total</field>
+                    <field name="sortable" eval="True"/>
+                </record>
+            </field>
+            <field name="line_ids">
+                <record id="das2_report_line" model="account.report.line">
+                    <field name="name">DAS2 Report</field>
+                    <field name="groupby">partner_id, das2_tag_id</field>
+                    <field name="code">das2_report_total</field>
+                    <field name="foldability">always_unfolded</field>
+                    <field name="expression_ids">
+                        <record id="das2_report_line_total" model="account.report.expression">
+                            <field name="label">total</field>
+                            <field name="engine">custom</field>
+                            <field name="formula">_report_engine_das2</field>
+                            <field name="subformula">total</field>
+                            <field name="auditable" eval="True"/>
+                        </record>
+                    </field>
+                </record>
+            </field>
+        </record>
+
+        <record id="action_l10n_fr_das2_report" model="ir.actions.client">
+            <field name="name">DAS2 Report</field>
+            <field name="tag">account_report</field>
+            <field name="path">das2-report</field>
+            <field name="context" eval="{'report_id': ref('l10n_fr_reports.account_report_l10n_fr_das2_report')}" />
+        </record>
+
+        <menuitem id="menu_action_l10n_fr_das2_report" name="DAS2 Report" action="action_l10n_fr_das2_report" groups="account.group_account_readonly,account.group_account_basic" parent="l10n_fr_account.account_reports_fr_statements_menu"/>
+    </data>
+</odoo>

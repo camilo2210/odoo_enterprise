@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="voip_voicemail_view_list" model="ir.ui.view">
+        <field name="name">voip.voicemail.view.list</field>
+        <field name="model">voip.voicemail</field>
+        <field name="arch" type="xml">
+            <list string="Voice Mailboxes" js_class="voip_phone_number_required_list" duplicate="false">
+                <field name="name"/>
+                <field name="user_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="audio_message_id"/>
+                <field name="email"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="voip_voicemail_message_view_list" model="ir.ui.view">
+        <field name="name">voip.voicemail.message.view.list</field>
+        <field name="model">voip.voicemail.message</field>
+        <field name="arch" type="xml">
+            <list string="Messages" create="0" delete="0">
+                <field name="occurred_at" string="Date"/>
+                <field name="caller_id_name" string="Caller ID"/>
+                <field name="caller_id_num" string="Number"/>
+                <field name="duration"/>
+                <field name="recording_filename" string="Recording"/>
+                <field name="recording_version" column_invisible="True"/>
+                <field name="recording" string="" widget="voip_audio_list_play" readonly="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="voip_voicemail_view_form" model="ir.ui.view">
+        <field name="name">voip.voicemail.view.form</field>
+        <field name="model">voip.voicemail</field>
+        <field name="arch" type="xml">
+            <form string="Voice Mailbox" duplicate="false">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_messages" type="object" class="oe_stat_button" icon="graphic_eq" icon_class="oi-filled" invisible="not id">
+                            <field name="message_count" widget="statinfo" string="Messages"/>
+                        </button>
+                    </div>
+                    <div class="d-flex flex-column flex-md-row align-items-start gap-3 mb-3">
+                        <div class="oe_title flex-grow-1">
+                            <label for="name"/>
+                            <h1>
+                                <field name="name" default_focus="1"/>
+                            </h1>
+                        </div>
+                        <field name="mailbox_type" widget="badge" decoration-success="mailbox_type == 'personal'" class="ms-md-auto" nolabel="1"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="user_id" widget="many2one_avatar_user" invisible="mailbox_type != 'personal'"/>
+                            <field name="audio_message_id" placeholder="Default greeting"/>
+                            <field name="email" placeholder="e.g. info@yourcompany.com"/>
+                        </group>
+                        <group>
+                            <field name="pbx_voicemail_number" placeholder="e.g. 1002"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="voip_voicemail_view_search" model="ir.ui.view">
+        <field name="name">voip.voicemail.view.search</field>
+        <field name="model">voip.voicemail</field>
+        <field name="arch" type="xml">
+            <search string="Voice Mailboxes">
+                <field name="name"/>
+                <field name="user_id"/>
+                <field name="audio_message_id"/>
+                <field name="email"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_voip_voicemail" model="ir.actions.act_window">
+        <field name="name">Voice Mailboxes</field>
+        <field name="res_model">voip.voicemail</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder" aria-hidden="true"/>
+            <p>
+                Personal voice mailboxes are automatically created for users and only accessible by them.
+                Shared voice mailboxes can be accessed by multiple users.
+            </p>
+        </field>
+    </record>
+</odoo>

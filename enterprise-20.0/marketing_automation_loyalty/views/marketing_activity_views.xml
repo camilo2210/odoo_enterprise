@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="marketing_activity_view_search" model="ir.ui.view">
+        <field name="name">marketing.activity.view.search.loyalty</field>
+        <field name="model">marketing.activity</field>
+        <field name="inherit_id" ref="marketing_automation.marketing_activity_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='mass_mailing_id']" position="after">
+                <field name="loyalty_program_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="marketing_activity_view_form" model="ir.ui.view">
+        <field name="name">marketing.activity.view.form.loyalty</field>
+        <field name="model">marketing.activity</field>
+        <field name="inherit_id" ref="marketing_automation.marketing_activity_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='server_action_id']" position="after">
+                <field name="loyalty_program_id"
+                    domain="[('program_type', 'in', ['coupons', 'promo_code', 'next_order_coupons'])]"
+                    invisible="activity_type != 'coupon'"/>
+                <field name="loyalty_mail_template_id" domain="[('model', '=', 'loyalty.card')]"
+                    invisible="activity_type != 'coupon'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="marketing_activity_view_form_coupon" model="ir.ui.view">
+        <field name="name">marketing.activity.view.form.coupon</field>
+        <field name="model">marketing.activity</field>
+        <field name="priority">64</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="d-flex align-items-center">
+                        <i class="oi oi-2x mb-auto p-2 bg-300 rounded" data-icon="card_giftcard" title="Coupon icon"/>
+                        <h1 class="ps-1">Coupon</h1>
+                    </div>
+                    <group>
+                        <field name="loyalty_program_id" domain="[('program_type', 'in', ['coupons', 'promo_code', 'next_order_coupons'])]"/>
+                        <field name="loyalty_mail_template_id" domain="[('model', '=', 'loyalty.card')]"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="marketing_activity_open_coupon_form_view" model="ir.actions.act_window">
+        <field name="target">new</field>
+        <field name="name">Activity</field>
+        <field name="res_model">marketing.activity</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="marketing_automation_loyalty.marketing_activity_view_form_coupon"/>
+    </record>
+</odoo>

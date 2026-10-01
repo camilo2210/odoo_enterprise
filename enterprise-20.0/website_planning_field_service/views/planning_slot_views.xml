@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="planning_slot_view_search_service_requests" model="ir.ui.view">
+        <field name="name">planning.slot.view.search.service.requests.inherit.website_planning_field_service</field>
+        <field name="model">planning.slot</field>
+        <field name="priority">20</field>
+        <field name="inherit_id" ref="planning.planning_slot_view_search_service_requests"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='company_id']" position="before">
+                <field name="partner_id"/>
+                <field name="partner_zip"/>
+                <field name="priority" groups="planning.group_planning_manager"/>
+            </xpath>
+            <xpath expr="//group" position="before">
+                <separator/>
+                <filter name="priority" string="Priority" groups="planning.group_planning_manager">
+                    <filter string="Urgent" domain="[('priority', '=', '3')]" name="urgent_priority"/>
+                    <filter string="High" domain="[('priority', '=', '2')]" name="high_priority"/>
+                    <filter string="Medium" domain="[('priority', '=', '1')]" name="medium_priority"/>
+                    <filter string="Low" domain="[('priority', '=', '0')]" name="low_priority"/>
+                </filter>
+            </xpath>
+            <xpath expr="//group/filter[@name='group_by_company']" position="before">
+                <filter name="group_by_customer" string="Customer" context="{'group_by': 'partner_id'}"/>
+                <filter name="group_by_zip" string="ZIP" context="{'group_by': 'partner_zip'}"/>
+                <filter name="group_by_city" string="City" context="{'group_by': 'partner_city'}"/>
+                <filter name="group_by_priority" string="Priority" context="{'group_by': 'priority'}" groups="planning.group_planning_manager"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_slot_view_list_service_requests" model="ir.ui.view">
+        <field name="name">planning.slot.view.list.service.requests.inherit.website_planning_field_service</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_slot_view_list_service_requests"/>
+        <field name="arch" type="xml">
+            <field name="partner_zip" position="attributes">
+                <attribute name="optional">show</attribute>
+            </field>
+            <xpath expr="//field[@name='partner_phone'][1]" position="attributes">
+                <attribute name="optional">show</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_phone'][2]" position="attributes">
+                <attribute name="optional">show</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_phone'][last()]" position="after">
+                <xpath expr="//field[@name='role_id']" position="move"/>
+            </xpath>
+            <field name="priority" position="attributes">
+                <attribute name="optional">show</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="planning_slot_action_service_requests" model="ir.actions.act_window">
+        <field name="name">Service Requests</field>
+        <field name="res_model">planning.slot</field>
+        <field name="path">service-requests</field>
+        <field name="view_mode">list,kanban,activity,form</field>
+        <field name="domain">[('start_datetime', '=', False), ('end_datetime', '=', False)]</field>
+        <field name="context">{
+            'default_start_datetime': False,
+            'default_end_datetime': False,
+            'planning_keep_default_datetime': True,
+            'list_view_ref': 'planning.planning_slot_view_list_service_requests',
+        }</field>
+        <field name="search_view_id" ref="planning.planning_slot_view_search_service_requests"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No service requests yet. Let's create one!
+            </p>
+            <p>
+                Service requests submitted from your website appear here, ready to be scheduled.
+            </p>
+        </field>
+    </record>
+
+    <record id="planning_slot_action_service_requests_view_list" model="ir.actions.act_window.view">
+        <field name="sequence" eval="10"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="planning.planning_slot_view_list_service_requests"/>
+        <field name="act_window_id" ref="planning_slot_action_service_requests"/>
+    </record>
+</odoo>

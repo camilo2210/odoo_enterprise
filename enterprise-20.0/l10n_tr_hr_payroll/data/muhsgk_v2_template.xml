@@ -1,0 +1,125 @@
+<odoo>
+    <data>
+        <template id="muhgsk_v2_partner">
+            <soyadi t-out="partner['last_name']"/>
+            <adi t-out="partner['first_name']"/>
+            <tcKimlikNo t-out="partner['id_number']"/>
+            <ticSicilNo t-out="partner['trade_registry_number']"/>
+            <eposta t-out="partner['email']"/>
+            <alanKodu t-out="partner['area_code']"/>
+            <telNo t-out="partner['phone_number']"/>
+        </template>
+
+        <template id="muhgsk_v2_tax_base_declaration">
+            <matrahBildirimi>
+                <turKodu t-out="declaration['type_code']"/>
+                <gayrisafiTutar t-out="declaration['gross_amount']"/>
+                <kesintiTutari t-out="declaration['withholding_amount']"/>
+            </matrahBildirimi>
+        </template>
+
+        <template id="muhgsk_v2_working_employee">
+            <calisanBilgileri>
+                <calisanBilgisi t-out="employee['employee_code']"/>
+                <toplamCalisan t-out="employee['total_employees']"/>
+                <gelirVergisiMatrahi t-out="employee['income_tax_base']"/>
+                <auIstisnaGV t-out="employee['au_exempted_it']"/>
+                <gelirVergisiKesintisi t-out="employee['income_tax_withholding']"/>
+                <auIstisnaDV t-out="employee['au_exempted_st']"/>
+                <damgaVergisiKesintisi t-out="employee['stamp_tax_withholding']"/>
+            </calisanBilgileri>
+        </template>
+
+        <template id="muhgsk_v2_sgk_employee_info">
+            <sgkCalisanBilgisi>
+                <belgeMahiyet t-out="employee['document_nature']"/>
+                <belgeTuru t-out="employee['document_type']"/>
+                <kanun t-out="employee['law']"/>
+                <isyeriYeniSubeKod t-out="employee['new_branch_code']"/>
+                <isyeriEskiSubeKod t-out="employee['old_branch_code']"/>
+                <isyeriSiraNo t-out="employee['workplace_sequence_number']"/>
+                <isyeriIlKod t-out="employee['workplace_city_code']"/>
+                <isyeriAraciSiraNo t-out="employee['workplace_agent_sequence_number']"/>
+                <sigortaliSicil t-out="employee['insured_registry']"/>
+                <tckno t-out="employee['id_number']"/>
+                <ad t-out="employee['first_name']"/>
+                <soyad t-out="employee['last_name']"/>
+                <gun t-out="employee['days_worked']"/>
+                <uzakCalismaGun t-out="employee['remote_work_days']"/>
+                <hakEdilenUcret t-out="employee['earned_wage']"/>
+                <primIkramiye t-out="employee['bonus_premium']"/>
+                <iseGirisGun t-out="employee['entry_day']"/>
+                <iseGirisAy t-out="employee['entry_month']"/>
+                <istenCikisGun t-out="employee['exit_day']"/>
+                <istenCikisAy t-out="employee['exit_month']"/>
+                <istenCikisNedeni t-out="employee['exit_reason']"/>
+                <meslekKod t-out="employee['occupation_code']"/>
+                <rapCalisti t-out="employee['worked_during_report']"/>
+                <tahakkukNeden t-out="employee['accrual_reason']"/>
+                <hizmetAy t-out="employee['service_month']"/>
+                <hizmetYil t-out="employee['service_year']"/>
+                <ilgiliDonemGvMatrah t-out="employee['related_period_tax_base']"/>
+                <hgv t-out="employee['tax_discount']"/>
+                <aUIstisnaGV t-out="employee['au_exempted_it']"/>
+                <gvKesinti t-out="employee['tax_withholding']"/>
+                <aUIstisnaDV t-out="employee['au_exempted_st']"/>
+                <damgaVKesinti t-out="employee['stamp_tax_withholding']"/>
+            </sgkCalisanBilgisi>
+        </template>
+
+        <template id="muhsgk_v2">
+            <beyanname kodVer="MUHSGK2_10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="MUHSGK2_10.xsd">
+                <genel>
+                    <idari>
+                        <vdKodu t-out="general['administrative']['tax_office_code']"/>
+                        <donem>
+                            <tip t-out="general['administrative']['period']['type']"/>
+                            <yil t-out="general['administrative']['period']['year']"/>
+                            <ay t-out="general['administrative']['period']['month']"/>
+                        </donem>
+                    </idari>
+                    <t t-set="partner" t-value="general['tax_payer']"/>
+                    <mukellef>
+                        <t t-call="l10n_tr_hr_payroll.muhgsk_v2_partner"/>
+                    </mukellef>
+                    <hsv sifat="kendisi">
+                        <t t-call="l10n_tr_hr_payroll.muhgsk_v2_partner"/>
+                    </hsv>
+                    <duzenleyen sifat="kendisi">
+                        <t t-call="l10n_tr_hr_payroll.muhgsk_v2_partner"/>
+                    </duzenleyen>
+                </genel>
+                <ozel>
+                        <subeNo t-out="special['branch_number']"/>
+                        <beyanimVarYok t-out="special['declaration_exists']"/>
+                        <matrahBildirimleri>
+                            <t t-foreach="special['tax_base_declarations']" t-as="declaration">
+                                <t t-call="l10n_tr_hr_payroll.muhgsk_v2_tax_base_declaration"/>
+                            </t>
+                        </matrahBildirimleri>
+                        <toplamGayrisafiTutar t-out="special['total_gross_amount']"/>
+                        <toplamKesintiTutari t-out="special['total_withholding_amount']"/>
+                        <terkinSonrasiTutar t-out="special['amount_after_exemption']"/>
+                        <calisanIsciler>
+                            <t t-foreach="special['working_employees']" t-as="employee">
+                                <t t-call="l10n_tr_hr_payroll.muhgsk_v2_working_employee"/>
+                            </t>
+                        </calisanIsciler>
+                        <matrah t-out="special['tax_base']"/>
+                        <tahakkukEden t-out="special['accrued_amount']"/>
+                        <mahsup t-out="special['offset']"/>
+                        <odenecek t-out="special['payable']"/>
+                        <iadeEdilecek t-out="special['refundable']"/>
+                        <odenecekDamgaVergisi t-out="special['payable_stamp_tax']"/>
+                        <sgkBildirgeleri>
+                            <sgkCalisanBilgileri>
+                                <t t-foreach="special['sgk_employee_info']" t-as="employee">
+                                    <t t-call="l10n_tr_hr_payroll.muhgsk_v2_sgk_employee_info"/>
+                                </t>
+                            </sgkCalisanBilgileri>
+                        </sgkBildirgeleri>
+                    </ozel>
+            </beyanname>
+        </template>
+    </data>
+</odoo>

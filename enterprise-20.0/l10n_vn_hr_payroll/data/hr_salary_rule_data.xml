@@ -1,0 +1,1342 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+    <record id="l10n_vn_salary_rule_section_contractual" model="hr.salary.rule.section">
+        <field name="name">Contractual Allowances (Insurance Base)</field>
+        <field name="sequence">1</field>
+        <field name="struct_ids" eval="[(4, ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary'))]"/>
+    </record>
+
+    <record id="l10n_vn_salary_rule_section_allowances" model="hr.salary.rule.section">
+        <field name="name">Other Allowances and Benefits</field>
+        <field name="sequence">2</field>
+        <field name="struct_ids" eval="[(4, ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary'))]"/>
+    </record>
+
+    <record id="l10n_vn_salary_rule_section_payments" model="hr.salary.rule.section">
+        <field name="name">Bonuses and Other Payments</field>
+        <field name="sequence">3</field>
+        <field name="struct_ids" eval="[(4, ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary'))]"/>
+    </record>
+
+    <record id="l10n_vn_salary_rule_section_deductions" model="hr.salary.rule.section">
+        <field name="name">Deductions</field>
+        <field name="sequence">4</field>
+        <field name="struct_ids" eval="[(4, ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary'))]"/>
+    </record>
+
+    <!-- Wage for the job: the paid time types feed the remuneration, insurance and taxable bases, the rule only
+         displays the remuneration base before any other rule. -->
+    <record id="l10n_vn_rule_basic" model="hr.salary.rule">
+        <field name="name">Basic Salary</field>
+        <field name="code">BASIC</field>
+        <field name="sequence">1</field>
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['VN_REMUNERATION_BASE']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <!-- Wage allowances and fixed supplements agreed in the labour contract: taxable and part of the insurance contribution wage -->
+    <record id="l10n_vn_rule_position_allowance" model="hr.salary.rule">
+        <field name="name">Position Allowance</field>
+        <field name="code">POSITION_ALW</field>
+        <field name="sequence">10</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.ALW'),
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_SI_BASE'),
+            ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_contractual"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_responsibility_allowance" model="hr.salary.rule">
+        <field name="name">Responsibility Allowance</field>
+        <field name="code">RESPONSIBILITY_ALW</field>
+        <field name="sequence">11</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.ALW'),
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_SI_BASE'),
+            ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_contractual"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_hazard_allowance" model="hr.salary.rule">
+        <field name="name">Arduous, Toxic or Hazardous Work Allowance</field>
+        <field name="code">HAZARD_ALW</field>
+        <field name="sequence">12</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.ALW'),
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_SI_BASE'),
+            ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_contractual"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_seniority_allowance" model="hr.salary.rule">
+        <field name="name">Seniority Allowance</field>
+        <field name="code">SENIORITY_ALW</field>
+        <field name="sequence">13</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.ALW'),
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_SI_BASE'),
+            ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_contractual"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_regional_allowance" model="hr.salary.rule">
+        <field name="name">Regional Allowance</field>
+        <field name="code">REGIONAL_ALW</field>
+        <field name="sequence">14</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.ALW'),
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_SI_BASE'),
+            ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_contractual"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_mobility_allowance" model="hr.salary.rule">
+        <field name="name">Mobility Allowance</field>
+        <field name="code">MOBILITY_ALW</field>
+        <field name="sequence">15</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.ALW'),
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_SI_BASE'),
+            ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_contractual"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_attraction_allowance" model="hr.salary.rule">
+        <field name="name">Attraction Allowance</field>
+        <field name="code">ATTRACTION_ALW</field>
+        <field name="sequence">16</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.ALW'),
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_SI_BASE'),
+            ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_contractual"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_fixed_supplement" model="hr.salary.rule">
+        <field name="name">Fixed Contractual Supplement</field>
+        <field name="code">FIXED_SUPPLEMENT</field>
+        <field name="sequence">17</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.ALW'),
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_SI_BASE'),
+            ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_contractual"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <!-- Other allowances: outside the insurance contribution wage, taxable or exempt (within the caps) -->
+    <record id="l10n_vn_rule_meal_allowance" model="hr.salary.rule">
+        <field name="name">Shift Meal Allowance</field>
+        <field name="code">MEAL_ALW</field>
+        <field name="sequence">20</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.ALW'),
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_allowances"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="note">Exempt from personal income tax up to the monthly cap, the excess is taxable.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_fuel_allowance" model="hr.salary.rule">
+        <field name="name">Fuel and Travel Allowance</field>
+        <field name="code">FUEL_ALW</field>
+        <field name="sequence">21</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.ALW'),
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_allowances"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="note">Fixed allowance within the internal policy of the company, exempt from personal income tax.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_phone_allowance" model="hr.salary.rule">
+        <field name="name">Telephone Allowance</field>
+        <field name="code">PHONE_ALW</field>
+        <field name="sequence">22</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.ALW'),
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_allowances"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="note">Fixed allowance within the internal policy of the company, exempt from personal income tax.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_housing_allowance" model="hr.salary.rule">
+        <field name="name">Housing Allowance</field>
+        <field name="code">HOUSING_ALW</field>
+        <field name="sequence">23</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.ALW'),
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_allowances"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="note">Cash housing allowance paid to the employee, fully taxable.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_childcare_allowance" model="hr.salary.rule">
+        <field name="name">Childcare Support</field>
+        <field name="code">CHILDCARE_ALW</field>
+        <field name="sequence">24</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.ALW'),
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_allowances"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_uniform_allowance" model="hr.salary.rule">
+        <field name="name">Cash Uniform Allowance</field>
+        <field name="code">UNIFORM_ALW</field>
+        <field name="sequence">25</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.ALW'),
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_allowances"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="note">Exempt from personal income tax up to the yearly cap per person, the excess is taxable.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_per_diem" model="hr.salary.rule">
+        <field name="name">Business Travel Per Diem</field>
+        <field name="code">PER_DIEM</field>
+        <field name="sequence">26</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.ALW'),
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_allowances"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="note">Fixed per diem within the internal policy of the company, exempt from personal income tax.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_other_taxable_allowance" model="hr.salary.rule">
+        <field name="name">Other Taxable Allowance</field>
+        <field name="code">OTHER_TAXABLE_ALW</field>
+        <field name="sequence">27</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.ALW'),
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_allowances"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_other_exempt_allowance" model="hr.salary.rule">
+        <field name="name">Other Exempt Allowance</field>
+        <field name="code">OTHER_EXEMPT_ALW</field>
+        <field name="sequence">28</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.ALW'),
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_allowances"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="note">Wedding, bereavement and other support payments exempt from personal income tax.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_reimbursement" model="hr.salary.rule">
+        <field name="name">Expense Reimbursement</field>
+        <field name="code">REIMBURSEMENT</field>
+        <field name="sequence">29</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.ALW'),
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_allowances"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_housing_benefit" model="hr.salary.rule">
+        <field name="name">Housing Paid on Behalf of the Employee</field>
+        <field name="code">HOUSING_BENEFIT</field>
+        <field name="sequence">30</field>
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_allowances"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="note">Rent, electricity and water paid by the employer to third parties: not paid out with the net salary, taxable up to 15% of the taxable income.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <!-- Overtime and night work: each worked day line is paid at the rate of its premium pays -->
+    <record id="l10n_vn_rule_overtime_normal_day" model="hr.salary.rule">
+        <field name="name">Overtime - Normal Day</field>
+        <field name="code">OT_NORMAL</field>
+        <field name="sequence">40</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_OVERTIME'),
+        ])]"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+rates = payslip._rule_parameter('l10n_vn_overtime_rates')
+result = payslip._l10n_vn_get_worked_days_amount(overtime=True, day_type='normal') * rates['normal'] / 100
+        </field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_overtime_weekly_rest" model="hr.salary.rule">
+        <field name="name">Overtime - Weekly Rest Day</field>
+        <field name="code">OT_WEEKLY_REST</field>
+        <field name="sequence">41</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_OVERTIME'),
+        ])]"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+rates = payslip._rule_parameter('l10n_vn_overtime_rates')
+result = payslip._l10n_vn_get_worked_days_amount(overtime=True, day_type='weekly_rest') * rates['weekly_rest'] / 100
+result += payslip._get_premium_pay_additional_amount('VN_PREMIUM_PAY_WEEKLY_REST')
+        </field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_overtime_public_holiday" model="hr.salary.rule">
+        <field name="name">Overtime - Public Holiday or Paid Leave Day</field>
+        <field name="code">OT_PUBLIC_HOLIDAY</field>
+        <field name="sequence">42</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_OVERTIME'),
+        ])]"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+rates = payslip._rule_parameter('l10n_vn_overtime_rates')
+result = payslip._l10n_vn_get_worked_days_amount(overtime=True, day_type='public_holiday') * rates['public_holiday'] / 100
+result += payslip._get_premium_pay_additional_amount('VN_PREMIUM_PAY_PUBLIC_HOLIDAY')
+        </field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_night_work" model="hr.salary.rule">
+        <field name="name">Night Work Premium</field>
+        <field name="code">NIGHT_WORK</field>
+        <field name="sequence">43</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_OVERTIME'),
+        ])]"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+rate = payslip._rule_parameter('l10n_vn_night_work_rate')
+result = payslip._l10n_vn_get_worked_days_amount(night=True) * rate / 100
+result += payslip._get_premium_pay_additional_amount('VN_PREMIUM_PAY_NIGHT')
+        </field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="note">Additional 30% of the hourly wage for every hour worked between 22:00 and 06:00, normal hours and overtime alike.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_overtime_night" model="hr.salary.rule">
+        <field name="name">Overtime at Night - Additional Pay</field>
+        <field name="code">OT_NIGHT</field>
+        <field name="sequence">44</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_OVERTIME'),
+        ])]"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+rate = payslip._rule_parameter('l10n_vn_overtime_night_additional_rate')
+base_rates = payslip._rule_parameter('l10n_vn_overtime_night_additional_base_rates')
+result = 0.0
+for day_type, base_rate in base_rates.items():
+    result += payslip._l10n_vn_get_worked_days_amount(overtime=True, day_type=day_type, night=True) * base_rate / 100 * rate / 100
+        </field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="note">Additional 20% of the daytime wage of the day type for the overtime hours worked at night, on top of the overtime and night work pay.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <!-- Net salary agreement: employee deductions borne by the employer, iterated in hr.payslip._get_payslip_lines() -->
+    <record id="l10n_vn_rule_gross_up" model="hr.salary.rule">
+        <field name="name">Gross-up (Net Salary Agreement)</field>
+        <field name="code">GROSS_UP</field>
+        <field name="sequence">50</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.ALW'),
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_SI_BASE'),
+            ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE'),
+        ])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = version.l10n_vn_net_salary</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = l10n_vn_gross_up
+        </field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <!-- Bonuses: taxable in the month of payment, outside the insurance contribution wage -->
+    <record id="l10n_vn_rule_performance_bonus" model="hr.salary.rule">
+        <field name="name">Performance Bonus</field>
+        <field name="code">PERFORMANCE_BONUS</field>
+        <field name="sequence">60</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_payments"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_thirteenth_month_bonus" model="hr.salary.rule">
+        <field name="name">13th Month Salary</field>
+        <field name="code">BONUS_13TH</field>
+        <field name="sequence">61</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_payments"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_tet_bonus" model="hr.salary.rule">
+        <field name="name">Tết Bonus</field>
+        <field name="code">TET_BONUS</field>
+        <field name="sequence">62</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_payments"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_attendance_bonus" model="hr.salary.rule">
+        <field name="name">Attendance Bonus</field>
+        <field name="code">ATTENDANCE_BONUS</field>
+        <field name="sequence">63</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_payments"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_other_bonus" model="hr.salary.rule">
+        <field name="name">Other Bonus</field>
+        <field name="code">OTHER_BONUS</field>
+        <field name="sequence">64</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_payments"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <!-- Termination payments and social insurance benefits -->
+    <record id="l10n_vn_rule_unused_leave_payout" model="hr.salary.rule">
+        <field name="name">Payment of the Untaken Annual Leave</field>
+        <field name="code">UNUSED_LEAVE_PAYOUT</field>
+        <field name="sequence">70</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE')])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_payments"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="note">Exempt from personal income tax from the 2026 tax period.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_severance_allowance" model="hr.salary.rule">
+        <field name="name">Severance Allowance</field>
+        <field name="code">SEVERANCE</field>
+        <field name="sequence">71</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE')])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_payments"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="note">Statutory severance allowance (Labour Code, Art. 46): half a month of average wage per year of service not covered by unemployment insurance, exempt from personal income tax.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_job_loss_allowance" model="hr.salary.rule">
+        <field name="name">Job-loss Allowance</field>
+        <field name="code">JOB_LOSS_ALLOWANCE</field>
+        <field name="sequence">72</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE')])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_payments"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="note">Statutory job-loss allowance (Labour Code, Art. 47): one month of average wage per year of service, at least two months, exempt from personal income tax.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_other_termination_payment" model="hr.salary.rule">
+        <field name="name">Other Termination Payment</field>
+        <field name="code">TERMINATION_OTHER</field>
+        <field name="sequence">73</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE'),
+        ])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_payments"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="note">Termination payments above the statutory allowances, taxable.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <!-- Gross income: everything paid to the employee so far, the deductions come after -->
+    <record id="l10n_vn_rule_gross" model="hr.salary.rule">
+        <field name="name">Gross Income</field>
+        <field name="code">GROSS</field>
+        <field name="sequence">80</field>
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['VN_REMUNERATION_BASE']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <!-- Compulsory insurance: the paid time types and the contractual allowances feed the base, clamped per fund -->
+    <record id="l10n_vn_rule_insurance_base_unpaid_days" model="hr.salary.rule">
+        <field name="name">Compulsory Insurance Base - Unpaid Working Days</field>
+        <field name="code">SI_BASE_UNPAID</field>
+        <field name="sequence">90</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.VN_SI_BASE')])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = payslip._l10n_vn_is_insured()</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = payslip._l10n_vn_get_unpaid_days_wage()
+        </field>
+        <field name="appears_on_payslip">never</field>
+        <field name="note">The contributions are never prorated: a month with fewer than 14 working days without wage contributes on the full monthly wage of the labour contract, the wage of the unpaid days is added back to the base.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_social_insurance_employee" model="hr.salary.rule">
+        <field name="name">Social Insurance</field>
+        <field name="code">SI_EMP</field>
+        <field name="sequence">91</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_INSURANCE_EMP'),
+        ])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = payslip._l10n_vn_is_insured()</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = payslip._l10n_vn_get_insurance_base(categories['VN_SI_BASE'], 'si')
+result_rate = -payslip._rule_parameter('l10n_vn_si_rate_employee')
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_health_insurance_employee" model="hr.salary.rule">
+        <field name="name">Health Insurance</field>
+        <field name="code">HI_EMP</field>
+        <field name="sequence">92</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_INSURANCE_EMP'),
+        ])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = payslip._l10n_vn_is_insured()</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = payslip._l10n_vn_get_insurance_base(categories['VN_SI_BASE'], 'si')
+result_rate = -payslip._rule_parameter('l10n_vn_hi_rate_employee')
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_unemployment_insurance_employee" model="hr.salary.rule">
+        <field name="name">Unemployment Insurance</field>
+        <field name="code">UI_EMP</field>
+        <field name="sequence">93</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('l10n_vn_hr_payroll.VN_INSURANCE_EMP'),
+        ])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = payslip._l10n_vn_is_insured() and (not version.country_id or version.country_id.code == 'VN')</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = payslip._l10n_vn_get_insurance_base(categories['VN_SI_BASE'], 'ui')
+result_rate = -payslip._rule_parameter('l10n_vn_ui_rate_employee')
+        </field>
+        <field name="note">Vietnamese employees only: foreign employees are outside the unemployment insurance scheme.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <!-- Employer contributions -->
+    <record id="l10n_vn_rule_social_insurance_retirement_employer" model="hr.salary.rule">
+        <field name="name">Social Insurance - Retirement and Survivorship (Employer)</field>
+        <field name="code">SI_RETIREMENT_EMPLR</field>
+        <field name="sequence">95</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = payslip._l10n_vn_is_insured()</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = payslip._l10n_vn_get_insurance_base(categories['VN_SI_BASE'], 'si')
+result_rate = payslip._rule_parameter('l10n_vn_si_retirement_rate_employer')
+        </field>
+        <field name="appears_on_payslip">never</field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_social_insurance_sickness_employer" model="hr.salary.rule">
+        <field name="name">Social Insurance - Sickness and Maternity (Employer)</field>
+        <field name="code">SI_SICKNESS_EMPLR</field>
+        <field name="sequence">96</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = payslip._l10n_vn_is_insured()</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = payslip._l10n_vn_get_insurance_base(categories['VN_SI_BASE'], 'si')
+result_rate = payslip._rule_parameter('l10n_vn_si_sickness_maternity_rate_employer')
+        </field>
+        <field name="appears_on_payslip">never</field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_social_insurance_accident_employer" model="hr.salary.rule">
+        <field name="name">Social Insurance - Occupational Accident and Disease (Employer)</field>
+        <field name="code">SI_ACCIDENT_EMPLR</field>
+        <field name="sequence">97</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = payslip._l10n_vn_is_insured()</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = payslip._l10n_vn_get_insurance_base(categories['VN_SI_BASE'], 'si')
+if payroll_config.l10n_vn_reduced_occupational_accident_rate:
+    result_rate = payslip._rule_parameter('l10n_vn_si_occupational_accident_reduced_rate_employer')
+else:
+    result_rate = payslip._rule_parameter('l10n_vn_si_occupational_accident_rate_employer')
+        </field>
+        <field name="appears_on_payslip">never</field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_health_insurance_employer" model="hr.salary.rule">
+        <field name="name">Health Insurance (Employer)</field>
+        <field name="code">HI_EMPLR</field>
+        <field name="sequence">98</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = payslip._l10n_vn_is_insured()</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = payslip._l10n_vn_get_insurance_base(categories['VN_SI_BASE'], 'si')
+result_rate = payslip._rule_parameter('l10n_vn_hi_rate_employer')
+        </field>
+        <field name="appears_on_payslip">never</field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_unemployment_insurance_employer" model="hr.salary.rule">
+        <field name="name">Unemployment Insurance (Employer)</field>
+        <field name="code">UI_EMPLR</field>
+        <field name="sequence">99</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = payslip._l10n_vn_is_insured() and (not version.country_id or version.country_id.code == 'VN')</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = payslip._l10n_vn_get_insurance_base(categories['VN_SI_BASE'], 'ui')
+result_rate = payslip._rule_parameter('l10n_vn_ui_rate_employer')
+        </field>
+        <field name="appears_on_payslip">never</field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <!-- Trade union -->
+    <record id="l10n_vn_rule_union_funding" model="hr.salary.rule">
+        <field name="name">Trade Union Funding (Employer)</field>
+        <field name="code">UNION_FUND</field>
+        <field name="sequence">100</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = payslip._l10n_vn_is_insured()</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = payslip._l10n_vn_get_insurance_base(categories['VN_SI_BASE'], 'si')
+result_rate = payroll_config.l10n_vn_union_fund_rate or payslip._rule_parameter('l10n_vn_union_fund_rate')
+        </field>
+        <field name="appears_on_payslip">never</field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="note">2% of the social insurance wage fund, due with or without a grassroots union. A reduction can be approved for employers in difficulty (Decree 105/2026/ND-CP).</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_union_dues" model="hr.salary.rule">
+        <field name="name">Trade Union Dues</field>
+        <field name="code">UNION_DUES</field>
+        <field name="sequence">101</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('hr_payroll.DED'),
+        ])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = version.l10n_vn_union_member and payslip._l10n_vn_is_insured()</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+contribution_wage = payslip._l10n_vn_get_insurance_base(categories['VN_SI_BASE'], 'si')
+cap = payslip._rule_parameter('l10n_vn_reference_level') * payslip._rule_parameter('l10n_vn_union_dues_cap_rate') / 100
+result = -min(contribution_wage * payslip._rule_parameter('l10n_vn_union_dues_rate') / 100, cap)
+        </field>
+        <field name="note">1% of the contribution wage of the union members, capped at 10% of the base salary.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <!-- Voluntary deductions -->
+    <record id="l10n_vn_rule_voluntary_pension" model="hr.salary.rule">
+        <field name="name">Voluntary Pension Contribution</field>
+        <field name="code">VOLUNTARY_PENSION</field>
+        <field name="sequence">105</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('hr_payroll.DED'),
+        ])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'VOLUNTARY_PENSION' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -inputs['VOLUNTARY_PENSION'].amount
+result_name = inputs['VOLUNTARY_PENSION'].name
+        </field>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_deductions"/>
+        <field name="note">Contribution to a voluntary pension fund withheld from the salary, deductible from the taxable income up to the monthly cap.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <!-- Personal income tax: taxable portion of the partially exempt items -->
+    <record id="l10n_vn_rule_meal_allowance_taxable" model="hr.salary.rule">
+        <field name="name">Shift Meal Allowance - Taxable Portion</field>
+        <field name="code">MEAL_ALW_TAXABLE</field>
+        <field name="sequence">110</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE')])]"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+cap = payslip._rule_parameter('l10n_vn_pit_meal_allowance_cap')
+result = max(result_rules['MEAL_ALW']['total'] - cap, 0)
+        </field>
+        <field name="appears_on_payslip">never</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_uniform_allowance_taxable" model="hr.salary.rule">
+        <field name="name">Cash Uniform Allowance - Taxable Portion</field>
+        <field name="code">UNIFORM_ALW_TAXABLE</field>
+        <field name="sequence">111</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE')])]"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+cap = payslip._rule_parameter('l10n_vn_pit_uniform_allowance_cap')
+paid_this_year = payslip._l10n_vn_get_ytd_line_total(['UNIFORM_ALW'])
+current = result_rules['UNIFORM_ALW']['total']
+result = max(paid_this_year + current - cap, 0) - max(paid_this_year - cap, 0)
+        </field>
+        <field name="appears_on_payslip">never</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_overtime_taxable" model="hr.salary.rule">
+        <field name="name">Overtime and Night Work - Taxable Portion</field>
+        <field name="code">OT_TAXABLE</field>
+        <field name="sequence">112</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE')])]"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+if version.l10n_vn_pit_method == 'flat_non_resident':
+    result = categories['VN_OVERTIME']
+elif payslip._rule_parameter('l10n_vn_pit_overtime_exemption') == 'full':
+    result = 0
+else:
+    # Only the premium above the wage of the normal working hours is exempt
+    result = min(categories['VN_OVERTIME'], payslip._l10n_vn_get_worked_days_amount(overtime=True))
+        </field>
+        <field name="appears_on_payslip">never</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_unused_leave_payout_taxable" model="hr.salary.rule">
+        <field name="name">Payment of the Untaken Annual Leave - Taxable Portion</field>
+        <field name="code">UNUSED_LEAVE_TAXABLE</field>
+        <field name="sequence">113</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE')])]"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+if version.l10n_vn_pit_method == 'flat_non_resident' or not payslip._rule_parameter('l10n_vn_pit_unused_leave_payout_exempt'):
+    result = result_rules['UNUSED_LEAVE_PAYOUT']['total']
+else:
+    result = 0
+        </field>
+        <field name="appears_on_payslip">never</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_housing_benefit_taxable" model="hr.salary.rule">
+        <field name="name">Housing Paid on Behalf of the Employee - Taxable Portion</field>
+        <field name="code">HOUSING_BENEFIT_TAXABLE</field>
+        <field name="sequence">119</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.VN_PIT_TAXABLE')])]"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+cap_rate = payslip._rule_parameter('l10n_vn_pit_housing_benefit_cap_rate')
+# The cap is computed on the taxable income excluding the housing: this rule runs last
+result = min(result_rules['HOUSING_BENEFIT']['total'], categories['VN_PIT_TAXABLE'] * cap_rate / 100)
+        </field>
+        <field name="appears_on_payslip">never</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <!-- Personal income tax: bases -->
+    <record id="l10n_vn_rule_taxable_income" model="hr.salary.rule">
+        <field name="name">Taxable Income</field>
+        <field name="code">TAXABLE_INCOME</field>
+        <field name="sequence">120</field>
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['VN_PIT_TAXABLE']
+        </field>
+        <field name="appears_on_payslip">never</field>
+        <field name="display_in_pdf_extra_info" eval="True"/>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_pit_personal_deduction" model="hr.salary.rule">
+        <field name="name">Personal Deduction</field>
+        <field name="code">PIT_PERSONAL_DEDUCTION</field>
+        <field name="sequence">121</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.VN_PIT_DEDUCTION')])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = version.l10n_vn_pit_method == 'progressive'</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = payslip._rule_parameter('l10n_vn_pit_personal_deduction')
+        </field>
+        <field name="appears_on_payslip">never</field>
+        <field name="display_in_pdf_extra_info" eval="True"/>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_pit_dependant_deduction" model="hr.salary.rule">
+        <field name="name">Dependant Deduction</field>
+        <field name="code">PIT_DEPENDANT_DEDUCTION</field>
+        <field name="sequence">122</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.VN_PIT_DEDUCTION')])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = version.l10n_vn_pit_method == 'progressive' and version.l10n_vn_dependants &gt; 0</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = payslip._rule_parameter('l10n_vn_pit_dependant_deduction')
+result_qty = version.l10n_vn_dependants
+        </field>
+        <field name="appears_on_payslip">never</field>
+        <field name="display_in_pdf_extra_info" eval="True"/>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_pit_pension_deduction" model="hr.salary.rule">
+        <field name="name">Voluntary Pension Deduction</field>
+        <field name="code">PIT_PENSION_DEDUCTION</field>
+        <field name="sequence">123</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.VN_PIT_DEDUCTION')])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = version.l10n_vn_pit_method == 'progressive' and result_rules['VOLUNTARY_PENSION']['total'] &lt; 0</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+cap = payslip._rule_parameter('l10n_vn_pit_voluntary_pension_cap')
+result = min(-result_rules['VOLUNTARY_PENSION']['total'], cap)
+        </field>
+        <field name="appears_on_payslip">never</field>
+        <field name="display_in_pdf_extra_info" eval="True"/>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_charity_deduction" model="hr.salary.rule">
+        <field name="name">Charitable and Humanitarian Contributions</field>
+        <field name="code">CHARITY</field>
+        <field name="sequence">124</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.VN_PIT_DEDUCTION')])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_deductions"/>
+        <field name="appears_on_payslip">never</field>
+        <field name="display_in_pdf_extra_info" eval="True"/>
+        <field name="note">Documented charitable, humanitarian and study-promotion contributions of the employee, deducted from the taxable income of residents.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_assessable_income" model="hr.salary.rule">
+        <field name="name">Assessable Income</field>
+        <field name="code">ASSESSABLE_INCOME</field>
+        <field name="sequence">125</field>
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+taxable_income = result_rules['TAXABLE_INCOME']['total']
+if version.l10n_vn_pit_method == 'progressive':
+    result = max(taxable_income + categories['VN_INSURANCE_EMP'] - categories['VN_PIT_DEDUCTION'], 0)
+else:
+    result = taxable_income
+        </field>
+        <field name="appears_on_payslip">never</field>
+        <field name="display_in_pdf_extra_info" eval="True"/>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_personal_income_tax" model="hr.salary.rule">
+        <field name="name">Personal Income Tax</field>
+        <field name="code">PIT</field>
+        <field name="sequence">130</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('hr_payroll.DED'),
+        ])]"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+taxable_income = result_rules['TAXABLE_INCOME']['total']
+if version.l10n_vn_pit_method == 'flat_non_resident':
+    result = -taxable_income * payslip._rule_parameter('l10n_vn_pit_non_resident_rate') / 100
+elif version.l10n_vn_pit_method == 'flat_casual':
+    if taxable_income &gt;= payslip._rule_parameter('l10n_vn_pit_casual_threshold'):
+        result = -taxable_income * payslip._rule_parameter('l10n_vn_pit_casual_rate') / 100
+    else:
+        result = 0
+else:
+    result = -payslip._l10n_vn_compute_progressive_tax(result_rules['ASSESSABLE_INCOME']['total'])
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <!-- Other deductions -->
+    <record id="l10n_vn_rule_attachment_of_salary" model="hr.salary.rule">
+        <field name="name">Attachment of Salary</field>
+        <field name="code">ATTACH_SALARY</field>
+        <field name="sequence">150</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('hr_payroll.DED'),
+        ])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'ATTACH_SALARY' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -inputs['ATTACH_SALARY'].amount
+result_name = inputs['ATTACH_SALARY'].name
+        </field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_assignment_of_salary" model="hr.salary.rule">
+        <field name="name">Assignment of Salary</field>
+        <field name="code">ASSIG_SALARY</field>
+        <field name="sequence">150</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('hr_payroll.DED'),
+        ])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'ASSIG_SALARY' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -inputs['ASSIG_SALARY'].amount
+result_name = inputs['ASSIG_SALARY'].name
+        </field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_child_support" model="hr.salary.rule">
+        <field name="name">Child Support</field>
+        <field name="code">CHILD_SUPPORT</field>
+        <field name="sequence">150</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('hr_payroll.DED'),
+        ])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'CHILD_SUPPORT' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -inputs['CHILD_SUPPORT'].amount
+result_name = inputs['CHILD_SUPPORT'].name
+        </field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_advance_recovery" model="hr.salary.rule">
+        <field name="name">Salary Advance Recovery</field>
+        <field name="code">ADVANCE_RECOVERY</field>
+        <field name="sequence">160</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('hr_payroll.DED'),
+        ])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'ADVANCE_RECOVERY' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -inputs['ADVANCE_RECOVERY'].amount
+result_name = inputs['ADVANCE_RECOVERY'].name
+        </field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_deductions"/>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_deduction" model="hr.salary.rule">
+        <field name="name">Other Deduction</field>
+        <field name="code">DEDUCTION</field>
+        <field name="sequence">161</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE'),
+            ref('hr_payroll.DED'),
+        ])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'DEDUCTION' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -inputs['DEDUCTION'].amount
+result_name = inputs['DEDUCTION'].name
+        </field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_deductions"/>
+        <field name="note">Wage deductions to compensate damages are capped at 30% of the monthly net wage (Labour Code, Art. 102).</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <!-- Benefits of the social insurance fund advanced by the employer: paid out with the net, outside the gross income -->
+    <record id="l10n_vn_rule_si_benefit_advance" model="hr.salary.rule">
+        <field name="name">Social Insurance Benefit (Advanced)</field>
+        <field name="code">SI_BENEFIT_ADVANCE</field>
+        <field name="sequence">190</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.VN_REMUNERATION_BASE')])]"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="l10n_vn_hr_payroll.l10n_vn_salary_rule_section_payments"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="note">Sickness, maternity or convalescence benefit approved by the social insurance agency and advanced by the employer: paid out with the net salary, neither taxable nor subject to contributions.</field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+
+    <record id="l10n_vn_rule_net" model="hr.salary.rule">
+        <field name="name">Net Salary</field>
+        <field name="code">NET</field>
+        <field name="sequence">200</field>
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['VN_REMUNERATION_BASE']
+        </field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_vn_hr_payroll.hr_payroll_structure_vn_employee_salary')])]"/>
+        <field name="country_id" ref="base.vn"/>
+    </record>
+    </data>
+</odoo>

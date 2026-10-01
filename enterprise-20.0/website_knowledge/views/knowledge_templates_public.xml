@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+    <!-- Article layout -->
+    <template id="website_knowledge.layout" name="Knowledge Public Layout" inherit_id="website.layout" primary="True">
+        <xpath expr="//t[@t-call-assets='web.assets_frontend']" position="replace">
+            <t t-call-assets="website_knowledge.assets_public_knowledge" t-js="false"/>
+        </xpath>
+        <xpath expr="//header" position="before">
+            <t t-set="no_header" t-value="True"/>
+            <t t-set="no_footer" t-value="True"/>
+            <t t-set="no_livechat" t-value="True"/>
+        </xpath>
+        <xpath expr="//body" position="replace">
+            <body class="o_knowledge_public_page">
+                <div id="wrapwrap">
+                    <t t-out="0"/>
+                </div>
+            </body>
+        </xpath>
+    </template>
+
+    <template id="website_knowledge.article_public_content" name="Knowledge Public Article Content">
+        <div class="o_knowledge_public_content d-flex flex-column h-100 bg-white">
+            <!-- Article header -->
+            <header class="o_knowledge_header o_knowledge_header_line d-flex gap-1 d-print-none p-3">
+                <button t-if="show_sidebar" class="o_knowledge_sidebar_enabler_button o_toggle_public_sidebar btn btn-light"
+                    data-tooltip="Show Sidebar" aria-label="Show Sidebar">
+                    <i class="oi" data-icon="left_panel_open" aria-hidden="true"/>
+                </button>
+                <!-- Title -->
+                <div class="o_knowledge_article_display_name min-w-0 text-truncate flex-grow-1 d-flex align-items-center fw-medium">
+                    <i t-if="not article['icon']" class="oi oi-fw text-muted me-1" data-icon="description"/>
+                    <span t-if="article['display_name']" class="text-truncate" t-out="article['display_name']"/>
+                    <span t-else="" class="text-truncate">Untitled</span>
+                </div>
+                <!-- Log In -->
+                <div class="o_knowledge_public_virality nav-item text-center o_no_autohide_item">
+                    <a t-att-href="'/web/login?redirect=/knowledge/article/' + str(article['id'])"
+                        class="o_knowledge_article_log_in btn btn-light text-nowrap">Sign in</a>
+                </div>
+            </header>
+            <main class="o_knowledge_body flex-grow-1">
+                <!-- Article Cover -->
+                <div class="pt-md-5" t-if="not article['cover_image_id']"/>
+                <div t-if="article['cover_image_id']" class="o_knowledge_cover">
+                    <img t-att-src="article['cover_image_url']" t-attf-style="object-position: 50% #{article['cover_image_position'] or 50}%;"/>
+                </div>
+                <!-- Article Icon -->
+                <div t-if="article['icon']" t-attf-class="o_knowledge_icon px-3 #{'o_full_width' if article['full_width'] else ''}">
+                    <t t-out="article['icon']" />
+                </div>
+                <!-- Article Body -->
+                <div t-attf-class="o_knowledge_article px-3 #{'pt-3' if not article['icon'] else ''} #{'o_full_width' if article['full_width'] else ''}">
+                    <div class="o_readonly" t-out="article['body']"/>
+                </div>
+            </main>
+        </div>
+    </template>
+
+    <template id="website_knowledge.article_view_public" name="Knowledge Public">
+        <t t-set="head">
+            <t t-call-assets="website_knowledge.assets_knowledge_print" media="print" t-js="false"/>
+            <t t-out="head"/>
+        </t>
+        <t t-call="website_knowledge.layout" head="head">
+            <div class="o_knowledge_public_view d-flex h-100 bg-100" t-att-data-res_id="article['id']">
+                <div class="o_knowledge_sidebar_container o_knowledge_sidebar_loading bg-100" t-if="show_sidebar"/>
+                <div class="flex-grow-1 min-w-0 o_knowledge_public_content_container">
+                    <t t-call="website_knowledge.article_public_content"/>
+                </div>
+            </div>
+        </t>
+    </template>
+</data>
+</odoo>

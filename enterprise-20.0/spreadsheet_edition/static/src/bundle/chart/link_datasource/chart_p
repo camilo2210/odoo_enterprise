@@ -1,0 +1,63 @@
+<odoo>
+
+    <t t-name="spreadsheet_edition.OdooLinkSelector">
+        <Section title.translate="Link to Odoo">
+            <RadioSelection
+                t-if="this.radioOptions.length > 1"
+                choices="this.radioOptions"
+                selectedValue="this.linkState.type"
+                name="'linkType'"
+                onChange.bind="(value) => this.linkState.type = value"
+            />
+
+            <IrMenuSelector
+                menuId="this.odooMenuId"
+                t-if="this.linkState.type ==='odooMenu'"
+                class="'mt-2'"
+                onValueChanged.bind="this.updateOdooMenu"/>
+
+            <div t-else="" class="d-flex align-items-center mt-2">
+                <AutoComplete t-if="this.linkState.type ==='dataSource'"
+                    class="'w-100'"
+                    sources="this.sources"
+                    placeholder.translate="Select a data source..."
+                    value="this.odooDataSourceName"
+                    onChange.bind="this.selectDataSource"
+                    />
+                <i 
+                    t-if="this.odooDataSourceName"
+                    class="oi btn-link"
+                    data-icon="east"
+                    t-on-click="this.openDataSourceSidePanel"/>
+            </div>
+        </Section>
+    </t>
+
+    <t t-name="spreadsheet_edition.ScorecardChartConfigPanel"
+        t-inherit="o-spreadsheet-ScorecardChartConfigPanel"
+        t-inherit-mode="extension"
+       >
+        <xpath expr="//ChartErrorSection" position="before">
+            <OdooLinkSelector chartId="this.props.chartId"/>
+        </xpath>
+    </t>
+
+    <t t-name="spreadsheet_edition.GaugeChartConfigPanel"
+        t-inherit="o-spreadsheet-GaugeChartConfigPanel"
+        t-inherit-mode="extension"
+       >
+        <xpath expr="//ChartErrorSection" position="before">
+            <OdooLinkSelector chartId="this.props.chartId"/>
+        </xpath>
+    </t>
+
+    <t t-name="spreadsheet_edition.ChartRangeDataSource"
+        t-inherit="o-spreadsheet-ChartRangeDataSource"
+        t-inherit-mode="extension"
+       >
+        <xpath expr="//ChartLabelRange" position="after">
+            <OdooLinkSelector chartId="this.props.chartId"/>
+        </xpath>
+    </t>
+
+</odoo>

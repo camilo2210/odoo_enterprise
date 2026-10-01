@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Employees & related data -->
+        <record id="ph_hr_department_rd" model="hr.department">
+            <field name="name">R&amp;D</field>
+            <field name="company_id" ref="base.demo_company_ph"/>
+        </record>
+        <record id="ph_hr_department_hr" model="hr.department">
+            <field name="name">HR</field>
+            <field name="company_id" ref="base.demo_company_ph"/>
+        </record>
+        <record id="ph_job_developer" model="hr.job">
+            <field name="name">Software Developer</field>
+            <field name="department_id" ref="ph_hr_department_rd"/>
+            <field name="employee_type_id" ref="l10n_ph_hr_payroll.l10n_ph_contract_type_regular"/>
+            <field name="description">We are seeking an innovative R&amp;D Software Developer to design and prototype cutting-edge solutions within our ecosystem.
+                You will drive technical research and feature implementation, ensuring high performance and scalability for our enterprise applications.
+            </field>
+            <field name="company_id" ref="base.demo_company_ph"/>
+        </record>
+        <record id="ph_job_payroll_officer" model="hr.job">
+            <field name="name">Payroll Officer</field>
+            <field name="department_id" ref="ph_hr_department_hr"/>
+            <field name="employee_type_id" ref="l10n_ph_hr_payroll.l10n_ph_contract_type_regular"/>
+            <field name="description">We are looking for a meticulous Payroll Officer to manage compensation, benefits, and tax compliance for our Philippine operations.
+                You will oversee the end-to-end payroll processing, ensuring accuracy in government contributions (SSS, PhilHealth, Pag-IBIG) and timely salary disbursement.
+            </field>
+            <field name="company_id" ref="base.demo_company_ph"/>
+        </record>
+        <record id="ph_work_location" model="hr.work.location">
+            <field name="name">Seventh Floor, Unit 3</field>
+            <field name="location_type">office</field>
+            <field name="address_id" ref="res_partner_ph_work_address"/>
+            <field name="company_id" ref="base.demo_company_ph"/>
+            <field name="l10n_ph_hr_payroll_min_daily_wage">695.00</field>
+        </record>
+
+        <!-- HR Employee -->
+        <record id="res_partner_ph_anna" model="res.partner">
+            <field name="name">Anna Santos</field>
+            <field name="company_id" ref="base.demo_company_ph"/>
+        </record>
+        <record id="res_user_ph_anna" model="res.users">
+            <field name="partner_id" ref="res_partner_ph_anna"/>
+            <field name="login">anna.santos@example.com</field>
+            <field name="password">anna_santos</field>
+            <field name="signature">Anna Santos</field>
+            <field name="company_ids" eval="[(4, ref('base.demo_company_ph'))]"/>
+            <field name="company_id" ref="base.demo_company_ph"/>
+            <field name="group_ids" eval="[(6,0, [ref('base.group_user'), ref('hr_payroll.group_hr_payroll_user')])]"/>
+            <field name="image_1920" type="bytes" file="hr/static/img/employee_jod-image.webp"/>
+        </record>
+        <record id="res_partner_bank_ph_anna" model="res.partner.bank">
+            <field name="account_number">023-4412-11002</field>
+            <field name="allow_out_payment" eval="True"/>
+            <field name="partner_id" ref="res_partner_ph_anna"/>
+            <field name="company_id" ref="base.demo_company_ph"/>
+        </record>
+        <record id="hr_employee_ph_anna" model="hr.employee">
+            <!-- Work info -->
+            <field name="work_contact_id" ref="res_partner_ph_anna"/>
+            <field name="work_email">anna.santos@example.com</field>
+            <field name="work_phone">0922 555 1234</field>
+            <field name="image_1920" type="bytes" file="hr/static/img/employee_jod-image.webp"/>
+            <field name="company_id" ref="base.demo_company_ph"/>
+            <field name="department_id" ref="ph_hr_department_hr"/>
+            <field name="job_id" ref="ph_job_payroll_officer"/>
+            <field name="job_title">Payroll Officer</field>
+            <field name="address_id" ref="res_partner_ph_work_address"/>
+            <field name="work_location_id" ref="ph_work_location"/>
+            <field name="tz">Asia/Manila</field>
+            <!-- Certifications -->
+            <field name="certificate">bachelor</field>
+            <field name="study_field">Human Resources</field>
+            <!-- Personal info -->
+            <field name="private_email">asantos_hr@example.com</field>
+            <field name="name">Anna Santos</field>
+            <field name="birthday" eval="datetime(2000, 2, 14).date()"/>
+            <field name="sex">female</field>
+            <field name="private_street">88 Ortigas Ext.</field>
+            <field name="private_street2">Rosario</field>
+            <field name="private_city">Pasig City</field>
+            <field name="private_country_id" ref="base.ph"/>
+            <field name="private_state_id" ref="base.state_ph_13"/>
+            <field name="private_zip">1609</field>
+            <field name="distance_home_work">5</field>
+            <field name="country_id" ref="base.ph"/>
+            <field name="bank_account_ids" eval="[(4, ref('l10n_ph_hr_payroll.res_partner_bank_ph_anna'))]"/>
+            <field name="place_of_birth">Pasig City</field>
+            <field name="country_of_birth" ref="base.ph"/>
+            <field name="private_phone">0922-123-4567</field>
+            <field name="identification_id">8821 3341 0092</field>
+            <field name="l10n_ph_hr_payroll_philhealth_pin">14-002938472-9</field>
+            <field name="l10n_ph_hr_payroll_sss_number">03-4412110-2</field>
+            <field name="l10n_ph_hr_payroll_pag_ibig_mid">1212-0039-4821</field>
+            <field name="l10n_ph_hr_payroll_work_tin">108-442-921-000</field>
+            <field name="l10n_ph_hr_payroll_rdo_code">043</field>
+            <!-- Payroll info -->
+            <field name="structure_type_id" ref="structure_type_employee_ph"/>
+            <field name="date_version" eval="(DateTime.now() + relativedelta(months=-3, day=1)).strftime('%Y-%m-%d')"/>
+            <field name="contract_date_start" eval="(DateTime.now() + relativedelta(months=-3, day=1)).strftime('%Y-%m-%d')"/>
+            <field name="wage_type">monthly</field>
+            <field name="schedule_pay">semi-monthly</field>
+            <field name="wage">25_000</field>
+            <field name="employee_type_id" ref="l10n_ph_hr_payroll.l10n_ph_contract_type_regular"/>
+            <field name="l10n_ph_hr_payroll_employee_rank">supervisory</field>
+            <field name="l10n_ph_hr_payroll_is_main_employment" eval="True"/>
+            <!-- Settings -->
+            <field name="user_id" ref="res_user_ph_anna"/>
+            <field name="hr_responsible_id" ref="base.user_admin"/>
+            <field name="leave_manager_id" ref="base.user_admin"/>
+        </record>
+        <record id="ph_prev_employment_anna" model="l10n_ph_hr_payroll.previous_employment">
+            <field name="employee_id" ref="hr_employee_ph_anna"/>
+            <field name="version_ids" model="hr.employee" eval="[Command.set(obj(ref('l10n_ph_hr_payroll.hr_employee_ph_anna')).version_id.ids)]"/>
+            <field name="name">TechFlow Solutions Inc.</field>
+            <field name="tin">999-888-777-000</field>
+            <field name="address">123 Business Blvd, Ortigas Center, Pasig City</field>
+            <field name="zip">1605</field>
+            <field name="taxable_income">45000.00</field>
+            <field name="tax_withheld">2500.00</field>
+            <field name="nontax_13th_month">3333.33</field>
+            <field name="taxable_basic_salary">40000.00</field>
+            <field name="taxable_13th_month">0.00</field>
+            <field name="taxable_salaries_other">5000.00</field>
+            <field name="nontax_basic_mwe">0.00</field>
+            <field name="nontax_de_minimis">4500.00</field>
+            <field name="nontax_statutory_contributions">3600.00</field>
+            <field name="nontax_salaries_other">0.00</field>
+        </record>
+        <!-- Manager -->
+        <record id="res_partner_ph_juan" model="res.partner">
+            <field name="name">Juan Reyes</field>
+            <field name="company_id" ref="base.demo_company_ph"/>
+        </record>
+        <record id="res_user_ph_juan" model="res.users">
+            <field name="partner_id" ref="res_partner_ph_juan"/>
+            <field name="login">juan.reyes@example.com</field>
+            <field name="password">juan_reyes</field>
+            <field name="signature">Juan Reyes</field>
+            <field name="company_ids" eval="[(4, ref('base.demo_company_ph'))]"/>
+            <field name="company_id" ref="base.demo_company_ph"/>
+            <field name="group_ids" eval="[(6,0,[ref('base.group_user')])]"/>
+            <field name="image_1920" type="bytes" file="hr/static/img/employee_fme-image.webp"/>
+        </record>
+        <record id="res_partner_bank_ph_juan" model="res.partner.bank">
+            <field name="account_number">001-8821-77341</field>
+            <field name="allow_out_payment" eval="True"/>
+            <field name="partner_id" ref="res_partner_ph_juan"/>
+            <field name="company_id" ref="base.demo_company_ph"/>
+        </record>
+        <record id="hr_employee_ph_juan" model="hr.employee">
+            <!-- Work info -->
+            <field name="work_contact_id" ref="res_partner_ph_juan"/>
+            <field name="work_email">juan.reyes@example.com</field>
+            <field name="work_phone">0917 888 9999</field>
+            <field name="image_1920" type="bytes" file="hr/static/img/employee_fme-image.webp"/>
+            <field name="company_id" ref="base.demo_company_ph"/>
+            <field name="department_id" ref="ph_hr_department_rd"/>
+            <field name="job_id" ref="ph_job_developer"/>
+            <field name="job_title">R&amp;D Manager</field>
+            <field name="address_id" ref="res_partner_ph_work_address"/>
+            <field name="work_location_id" ref="ph_work_location"/>
+            <field name="tz">Asia/Manila</field>
+            <!-- Certifications -->
+            <field name="certificate">doctor</field>
+            <field name="study_field">Computer Science</field>
+            <!-- Personal info -->
+            <field name="private_email">jreyes_rd@example.com</field>
+            <field name="name">Juan Reyes</field>
+            <field name="birthday" eval="datetime(1985, 11, 23).date()"/>
+            <field name="sex">male</field>
+            <field name="private_street">Unit 402 Blue Residences</field>
+            <field name="private_street2">Katipunan Avenue</field>
+            <field name="private_city">Quezon City</field>
+            <field name="private_country_id" ref="base.ph"/>
+            <field name="private_state_id" ref="base.state_ph_13"/>
+            <field name="private_zip">1108</field>
+            <field name="distance_home_work">12</field>
+            <field name="country_id" ref="base.ph"/>
+            <field name="bank_account_ids" eval="[(4, ref('l10n_ph_hr_payroll.res_partner_bank_ph_juan'))]"/>
+            <field name="place_of_birth">Makati City</field>
+            <field name="country_of_birth" ref="base.ph"/>
+            <field name="private_phone">0917-888-0000</field>
+            <field name="identification_id">0034 9982 1102</field>
+            <field name="l10n_ph_hr_payroll_philhealth_pin">19-029485192-8</field>
+            <field name="l10n_ph_hr_payroll_sss_number">02-1882177-3</field>
+            <field name="l10n_ph_hr_payroll_pag_ibig_mid">1210-9482-3310</field>
+            <field name="l10n_ph_hr_payroll_work_tin">294-301-482-000</field>
+            <field name="l10n_ph_hr_payroll_rdo_code">039</field>
+            <field name="l10n_ph_hr_payroll_registered_address">123 Taal View St., Barangay 1, Batangas City, Batangas</field>
+            <field name="l10n_ph_hr_payroll_registered_zip">4200</field>
+            <!-- Payroll info -->
+            <field name="structure_type_id" ref="structure_type_employee_ph"/>
+            <field name="date_version" eval="(DateTime.now() + relativedelta(years=-3, month=6, day=15)).strftime('%Y-%m-%d')"/>
+            <field name="contract_date_start" eval="(DateTime.now() + relativedelta(years=-3, month=6, day=15)).strftime('%Y-%m-%d')"/>
+            <field name="wage_type">monthly</field>
+            <field name="schedule_pay">semi-monthly</field>
+            <field name="wage">45_000</field>
+            <field name="employee_type_id" ref="l10n_ph_hr_payroll.l10n_ph_contract_type_regular"/>
+            <field name="user_id" ref="res_user_ph_juan"/>
+            <field name="resource_calendar_id" ref="calendar_ph_48"/>
+            <field name="l10n_ph_hr_payroll_employee_rank">managerial</field>
+            <field name="l10n_ph_hr_payroll_is_main_employment" eval="True"/>
+            <!-- Settings -->
+            <field name="hr_responsible_id" ref="res_user_ph_anna"/>
+            <field name="leave_manager_id" ref="res_user_ph_anna"/>
+        </record>
+        <!-- Regular Employee -->
+        <record id="res_partner_ph_mary" model="res.partner">
+            <field name="name">Mary dela Cruz</field>
+            <field name="company_id" ref="base.demo_company_ph"/>
+        </record>
+        <record id="res_user_ph_mary" model="res.users">
+            <field name="partner_id" ref="res_partner_ph_mary"/>
+            <field name="login">mary.dcruz@example.com</field>
+            <field name="password">mary_cruz</field>
+            <field name="signature">Mary dela Cruz</field>
+            <field name="company_ids" eval="[(4, ref('base.demo_company_ph'))]"/>
+            <field name="company_id" ref="base.demo_company_ph"/>
+            <field name="group_ids" eval="[(6,0,[ref('base.group_user')])]"/>
+            <field name="image_1920" type="bytes" file="hr/static/img/employee_mit-image.webp"/>
+        </record>
+        <record id="res_partner_bank_ph_mary" model="res.partner.bank">
+            <field name="account_number">000-6615-89455</field>
+            <field name="allow_out_payment" eval="True"/>
+            <field name="partner_id" ref="res_partner_ph_mary"/>
+            <field name="company_id" ref="base.demo_company_ph"/>
+        </record>
+        <record id="hr_employee_ph_mary" model="hr.employee">
+            <!-- Work info -->
+            <field name="work_contact_id" ref="res_partner_ph_mary"/>
+            <field name="work_email">mary.dcruz@example.com</field>
+            <field name="work_phone">0123 456 789</field>
+            <field name="image_1920" type="bytes" file="hr/static/img/employee_mit-image.webp"/>
+            <field name="company_id" ref="base.demo_company_ph"/>
+            <field name="department_id" ref="ph_hr_department_rd"/>
+            <field name="job_id" ref="ph_job_developer"/>
+            <field name="job_title">Software Developer</field>
+            <field name="parent_id" ref="hr_employee_ph_juan"/>
+            <field name="address_id" ref="res_partner_ph_work_address"/>
+            <field name="work_location_id" ref="ph_work_location"/>
+            <field name="tz">Asia/Manila</field>
+            <!-- Certifications -->
+            <field name="certificate">master</field>
+            <field name="study_field">Information Technology</field>
+            <!-- Personal info -->
+            <field name="private_email">mdcruz@example.com</field>
+            <field name="name">Mary dela Cruz</field>
+            <field name="birthday" eval="datetime(1995, 4, 8).date()"/>
+            <field name="sex">female</field>
+            <field name="private_street">37 Apo Street</field>
+            <field name="private_street2">Rm. 1400 Victoria Building</field>
+            <field name="private_city">Manila</field>
+            <field name="private_country_id" ref="base.ph"/>
+            <field name="private_state_id" ref="base.state_ph_01"/>
+            <field name="private_zip">1014</field>
+            <field name="distance_home_work">3</field>
+            <field name="country_id" ref="base.ph"/>
+            <field name="bank_account_ids" eval="[(4, ref('l10n_ph_hr_payroll.res_partner_bank_ph_mary'))]"/>
+            <field name="place_of_birth">Caloocan</field>
+            <field name="country_of_birth" ref="base.ph"/>
+            <field name="private_phone">917-555-0123</field>
+            <field name="identification_id">1234 5678 9012</field>
+            <field name="l10n_ph_hr_payroll_philhealth_pin">22-502938411-4</field>
+            <field name="l10n_ph_hr_payroll_sss_number">34-6615894-5</field>
+            <field name="l10n_ph_hr_payroll_pag_ibig_mid">1211-5502-9183</field>
+            <field name="l10n_ph_hr_payroll_work_tin">402-918-335-000</field>
+            <field name="l10n_ph_hr_payroll_rdo_code">031</field>
+            <field name="l10n_ph_hr_payroll_registered_address">7th Floor, Rufino Pacific Tower, Ayala Avenue, Makati City</field>
+            <field name="l10n_ph_hr_payroll_registered_zip">1223</field>
+            <field name="l10n_ph_hr_payroll_foreign_address">123 Tech Lane, Silicon Valley, CA 94025, USA</field>
+            <!-- Payroll info -->
+            <field name="structure_type_id" ref="structure_type_employee_ph"/>
+            <field name="date_version" eval="(DateTime.now() + relativedelta(month=1, day=1)).strftime('%Y-%m-%d')"/>
+            <field name="contract_date_start" eval="(DateTime.now() + relativedelta(month=1, day=1)).strftime('%Y-%m-%d')"/>
+            <field name="wage_type">monthly</field>
+            <field name="schedule_pay">semi-monthly</field>
+            <field name="wage">12_500</field>
+            <field name="employee_type_id" ref="l10n_ph_hr_payroll.l10n_ph_contract_type_regular"/>
+            <field name="l10n_ph_hr_payroll_employee_rank">rank_and_file</field>
+            <field name="l10n_ph_hr_payroll_is_main_employment" eval="True"/>
+            <!-- Settings -->
+            <field name="user_id" ref="res_user_ph_mary"/>
+            <field name="hr_responsible_id" ref="res_user_ph_anna"/>
+            <field name="leave_manager_id" ref="res_user_ph_juan"/>
+        </record>
+        <!-- Minimum Wage Earner -->
+        <record id="res_partner_ph_jose" model="res.partner">
+            <field name="name">Jose Rizal</field>
+            <field name="company_id" ref="base.demo_company_ph"/>
+        </record>
+        <record id="res_user_ph_jose" model="res.users">
+            <field name="partner_id" ref="res_partner_ph_jose"/>
+            <field name="login">jose.rizal@example.com</field>
+            <field name="password">jose_rizal</field>
+            <field name="signature">Jose Rizal</field>
+            <field name="company_ids" eval="[(4, ref('base.demo_company_ph'))]"/>
+            <field name="company_id" ref="base.demo_company_ph"/>
+            <field name="group_ids" eval="[(6,0,[ref('base.group_user')])]"/>
+            <field name="image_1920" type="bytes" file="hr/static/img/employee_ngh-image.webp"/>
+        </record>
+        <record id="res_partner_bank_ph_jose" model="res.partner.bank">
+            <field name="account_number">000-1122-33445</field>
+            <field name="allow_out_payment" eval="True"/>
+            <field name="partner_id" ref="res_partner_ph_jose"/>
+            <field name="company_id" ref="base.demo_company_ph"/>
+        </record>
+        <record id="hr_employee_ph_jose" model="hr.employee">
+            <!-- Work info -->
+            <field name="work_contact_id" ref="res_partner_ph_jose"/>
+            <field name="work_email">jose.rizal@example.com</field>
+            <field name="work_phone">0918 111 2222</field>
+            <field name="image_1920" type="bytes" file="hr/static/img/employee_ngh-image.webp"/>
+            <field name="company_id" ref="base.demo_company_ph"/>
+            <field name="department_id" ref="ph_hr_department_rd"/>
+            <field name="job_id" ref="ph_job_developer"/>
+            <field name="job_title">Junior Support Staff</field>
+            <field name="parent_id" ref="hr_employee_ph_juan"/>
+            <field name="address_id" ref="res_partner_ph_work_address"/>
+            <field name="work_location_id" ref="ph_work_location"/>
+            <field name="tz">Asia/Manila</field>
+            <!-- Certifications -->
+            <field name="certificate">other</field>
+            <field name="study_field">General Academic Strand</field>
+            <!-- Personal info -->
+            <field name="private_email">jrizal@example.com</field>
+            <field name="name">Jose Rizal</field>
+            <field name="birthday" eval="datetime(1998, 6, 19).date()"/>
+            <field name="sex">male</field>
+            <field name="private_street">123 Dapitan St.</field>
+            <field name="private_street2">Sampaloc</field>
+            <field name="private_city">Manila</field>
+            <field name="private_country_id" ref="base.ph"/>
+            <field name="private_state_id" ref="base.state_ph_01"/>
+            <field name="private_zip">1008</field>
+            <field name="distance_home_work">8</field>
+            <field name="country_id" ref="base.ph"/>
+            <field name="bank_account_ids" eval="[(4, ref('l10n_ph_hr_payroll.res_partner_bank_ph_jose'))]"/>
+            <field name="place_of_birth">Calamba</field>
+            <field name="country_of_birth" ref="base.ph"/>
+            <field name="private_phone">0918-111-2222</field>
+            <field name="identification_id">9988 7766 5544</field>
+            <field name="l10n_ph_hr_payroll_philhealth_pin">10-203040506-7</field>
+            <field name="l10n_ph_hr_payroll_sss_number">01-1122334-4</field>
+            <field name="l10n_ph_hr_payroll_pag_ibig_mid">1213-4455-6677</field>
+            <field name="l10n_ph_hr_payroll_work_tin">333-222-111-000</field>
+            <field name="l10n_ph_hr_payroll_rdo_code">032</field>
+            <field name="l10n_ph_hr_payroll_registered_address">123 Dapitan St., Sampaloc, Manila</field>
+            <field name="l10n_ph_hr_payroll_registered_zip">1008</field>
+            <!-- Payroll info -->
+            <field name="structure_type_id" ref="structure_type_employee_ph"/>
+            <field name="date_version" eval="(DateTime.now() + relativedelta(month=1, day=1)).strftime('%Y-%m-%d')"/>
+            <field name="contract_date_start" eval="(DateTime.now() + relativedelta(month=1, day=1)).strftime('%Y-%m-%d')"/>
+            <field name="wage_type">monthly</field>
+            <field name="schedule_pay">semi-monthly</field>
+            <field name="wage">7000</field>
+            <field name="employee_type_id" ref="l10n_ph_hr_payroll.l10n_ph_contract_type_regular"/>
+            <field name="l10n_ph_hr_payroll_employee_rank">rank_and_file</field>
+            <field name="l10n_ph_hr_payroll_is_main_employment" eval="False"/>
+            <field name="l10n_ph_hr_payroll_minimum_wage_earner" eval="True"/>
+            <field name="user_id" ref="res_user_ph_jose"/>
+            <field name="hr_responsible_id" ref="res_user_ph_anna"/>
+            <field name="leave_manager_id" ref="res_user_ph_juan"/>
+        </record>
+    </data>
+</odoo>

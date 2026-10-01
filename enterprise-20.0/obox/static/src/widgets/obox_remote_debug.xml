@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="obox.RemoteDebugDialog">
+        <Dialog title.translate="Remote Debug">
+            <div t-if="!this.props.enabled" class="d-flex flex-column gap-3">
+                <div>
+                    You can enable remote debug on your Obox by providing a Tailscale token.<br/>
+                    <span><b>Be careful:</b> it enables remote access to your local network to the owner of the token.</span>
+                </div>
+                <div class="d-flex gap-3 w-50">
+                    <label class="form-label">Token</label>
+                    <div class="o_field_widget o_field_char w-100">
+                        <input t-model.proxy="this.state.token" class="o_input" type="text"/>
+                    </div>
+                </div>
+            </div>
+            <div t-else="">
+                Remote debug is enabled, the owner of the token you provided has access to both your Obox
+                and local network. If this is unintended, click on "Disable" below.
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-on-click="this.onSubmit" t-att-disabled="!this.state.token and !this.props.enabled">
+                    <t t-if="this.props.enabled">Disable</t>
+                    <t t-else="">Enable</t>
+                </button>
+                <button class="btn btn-secondary" t-on-click="this.props.close">Discard</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

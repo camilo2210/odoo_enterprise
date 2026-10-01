@@ -1,0 +1,1 @@
+from . import initial_average_wage_update_wizard

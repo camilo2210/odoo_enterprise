@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record model="ir.ui.view" id="view_account_depreciation_model_form">
+        <field name="name">account.depreciation.model.form</field>
+        <field name="model">account.depreciation.model</field>
+        <field name="arch" type="xml">
+            <form string="Asset">
+                <field name="company_id" invisible="1"/>
+                <field name="is_ledger_journal" invisible="1"/>
+                <field name="is_name_custom" invisible="1"/>
+                <field name="has_locking_assets" invisible="1"/>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_model_assets"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="badge"
+                            invisible="not asset_ids">
+                            <field string="Asset(s)" name="asset_ids" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name" name="model_name_label" string="Depreciation Model name"/>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="method" readonly="has_locking_assets"/>
+                            <label for="method_progress_factor" invisible="method in ('linear', 'no_depreciation')"/>
+                            <div invisible="method in ('linear', 'no_depreciation')">
+                                <field class="oe_inline" name="method_progress_factor" widget="percentage" required="method in ('degressive', 'degressive_then_linear')" readonly="has_locking_assets"/>
+                                per year
+                            </div>
+                            <field name="method_mode" string="Based On" widget="radio" options="{'horizontal': True}" invisible="method != 'linear'" readonly="has_locking_assets"/>
+                            <label for="method_number" string="Duration" invisible="method == 'no_depreciation' or (method == 'linear' and method_mode != 'duration')"/>
+                            <div class="o_row" invisible="method == 'no_depreciation' or (method == 'linear' and method_mode != 'duration')">
+                                <field name="method_number" options="{'hide_trailing_zeros': true}" readonly="has_locking_assets"/>
+                                <field name="method_period" nolabel="1" readonly="has_locking_assets"/>
+                            </div>
+                            <label for="method_rate" string="Rate" invisible="method != 'linear' or method_mode != 'rate'"/>
+                            <div class="o_row" invisible="method != 'linear' or method_mode != 'rate'">
+                                <field name="method_rate" widget="percentage" class="oe_inline" readonly="has_locking_assets"/> per
+                                <field name="method_period" nolabel="1" readonly="has_locking_assets"/>
+                            </div>
+                            <field name="prorata_computation_type" invisible="method == 'no_depreciation'"/>
+                            <label for="salvage_value_percent" invisible="method == 'no_depreciation'"/>
+                            <div>
+                                <field name="salvage_value_percent" widget="percentage" class="oe_inline" invisible="method == 'no_depreciation'"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="company_id"
+                                options="{'no_create': True}"
+                                groups="base.group_multi_company"
+                                required="context.get('ledger_journal_only')"
+                                readonly="has_locking_assets and not company_id"
+                                placeholder="All companies"/>
+                            <field name="journal_id"
+                                invisible="method == 'no_depreciation' or context.get('ledger_journal_only')"
+                                domain="[('type', '=', 'general'), ('journal_group_id', '=', False)] if context.get('exclude_ledger_journals') else [('type', '=', 'general')]"/>
+                            <field name="journal_id"
+                                required="1"
+                                invisible="method == 'no_depreciation' or not context.get('ledger_journal_only')"
+                                string="Ledger Journal"
+                                options="{'no_create': True}"
+                                domain="[('type', '=', 'general'), ('journal_group_id', '!=', False), ('journal_group_id', 'not in', context.get('excluded_ledger_group_ids', []))]"/>
+                        </group>
+                        <group string="Ledger" invisible="not is_ledger_journal">
+                            <field name="ledger_depreciation_account_id" placeholder="Same as the asset"/>
+                            <field name="ledger_expense_account_id" placeholder="Same as the asset"/>
+                            <field name="ledger_recovery_account_id" required="is_ledger_journal"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_account_depreciation_model_kanban" model="ir.ui.view">
+        <field name="name">account.depreciation.model.kanban</field>
+        <field name="model">account.depreciation.model</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" sample="1">
+                <templates>
+                    <t t-name="card">
+                        <div class="row mb4">
+                            <field name="name" class="fw-bold fs-5 col-10"/>
+                        </div>
+                        <div class="row">
+                            <div class="col-5">
+                                Method
+                            </div>
+                            <div class="col-7 text-end">
+                                <field name="method"/>
+                            </div>
+                        </div>
+                        <div class="row" t-if="record.method != 'no_depreciation'">
+                            <div class="col-5">
+                                Duration
+                            </div>
+                            <div class="col-7 text-end">
+                                <field name="method_number"/> <field name="method_period"/>
+                            </div>
+                        </div>
+                        <div class="row" t-if="record.method in ['degressive', 'degressive_then_linear']">
+                            <div class="col-5">
+                                Declining factor
+                            </div>
+                            <div class="col-7 text-end">
+                                <field name="method_progress_factor" widget="percentage"/> per year
+                            </div>
+                        </div>
+                        <div class="row" t-if="record.method != 'no_depreciation'">
+                            <div class="col-5">
+                                Computation
+                            </div>
+                            <div class="col-7 text-end">
+                                <field name="prorata_computation_type"/>
+                            </div>
+                        </div>
+                        <div class="row" t-if="record.method != 'no_depreciation'">
+                            <div class="col-5">
+                                Journal
+                            </div>
+                            <div class="col-7 text-end">
+                                <field name="journal_id"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_account_depreciation_model_tree">
+        <field name="name">account.depreciation.model.list</field>
+        <field name="model">account.depreciation.model</field>
+        <field name="arch" type="xml">
+            <list string="Depreciation Models" decoration-muted="not active">
+                <field name="name" string="Depreciation Model"/>
+                <field name="journal_id" string="Journal" optional="show"/>
+                <field name="company_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_account_depreciation_model_search" model="ir.ui.view">
+        <field name="name">account.depreciation.model.search</field>
+        <field name="model">account.depreciation.model</field>
+        <field name="arch" type="xml">
+            <search string="Depreciation Model">
+                <field name="name"/>
+                <field name="method"/>
+                <field name="method_number"/>
+                <field name="method_period" string="Period"/>
+                <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Method" name="method" context="{'group_by':'method'}"/>
+                    <filter string="Journal" name="journal_id" context="{'group_by':'journal_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_account_depreciation_model_form">
+        <field name="name">Depreciation Models</field>
+        <field name="res_model">account.depreciation.model</field>
+        <field name="path">depreciation-models</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_account_depreciation_model_tree')}),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_account_depreciation_model_kanban')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_account_depreciation_model_form')})]"/>
+        <field name="context">{'active_test': False, 'search_default_active': 1}</field>
+        <field name="search_view_id" ref="view_account_depreciation_model_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create new depreciation model
+            </p>
+        </field>
+    </record>
+
+    <menuitem parent="account.account_account_menu" id="menu_action_account_depreciation_model_form" action="action_account_depreciation_model_form" groups="account.group_account_readonly"/>
+
+</odoo>

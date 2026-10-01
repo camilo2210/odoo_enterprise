@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Email template for reminder -->
+        <record id="mail_template_timesheet_reminder_user" model="mail.template">
+            <field name="name">Timesheets: Employee Reminder</field>
+            <field name="model_id" ref="hr.model_hr_employee"/>
+            <field name="subject">Reminder to log your timesheets</field>
+            <field name="email_from">{{ (object.user_id.company_id.partner_id.email_formatted or user.email_formatted) }}</field>
+            <field name="email_to" eval="False"/>
+            <field name="partner_to" eval="False"/>
+            <field name="use_default_to" eval="True"/>
+            <field name="description">Set reminders in settings to notify employees who didn't record their timesheet</field>
+            <field name="body_html" type="html"><t>
+<t t-set="timesheet_hours" t-value="ctx.get('timesheet_hours', 0)"/>
+<t t-set="working_hours" t-value="ctx.get('working_hours', 0)"/>
+Hello <t t-out="object.name or ''">Abigail Peterson</t>,<br/><br/>
+This is a friendly reminder to log your hours for the following period: <t t-out="ctx.get('date_start') or ''">05/05/2021</t> <i class="oi" data-icon="east"/> <t t-out="ctx.get('date_stop') or ''">05/06/2021</t>.
+For the time being, you <t t-if="timesheet_hours != 0">only</t> logged <t t-out="'%d' %int(timesheet_hours)">2</t><t t-if="timesheet_hours % 1 != 0" t-out="':%02d' % (round(timesheet_hours % 1 * 60))">:30</t> hours on the <t t-out="'%d' %int(working_hours)">8</t><t t-if="working_hours % 1 != 0" t-out="':%02d' % (round(working_hours % 1 * 60))">:30</t> requested.<br/>
+<div t-if="ctx.get('action_url')" style="margin: 16px 0px 16px 0px;">
+    <a t-att-href="ctx.get('action_url')"
+        t-attf-style="background-color: {{object.company_id.email_secondary_color or '#875A7B'}};; padding: 8px 16px 8px 16px; text-decoration: none; color: {{object.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px; font-size: 13px;">Fill in your timesheet</a>
+</div>
+<br/>Thank you,<br/>
+<t t-if="user.signature">
+    <div>--<br/><t t-out="user.signature or ''">Mitchell Admin</t></div>
+</t>
+            </t></field>
+            <field name="lang">{{ object.user_id.lang }}</field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+
+        <record id="mail_template_timesheet_reminder" model="mail.template">
+            <field name="name">Timesheets: Approver Reminder</field>
+            <field name="model_id" ref="hr.model_hr_employee"/>
+            <field name="subject">Reminder to validate your team's timesheets</field>
+            <field name="email_from">{{ (object.user_id.company_id.partner_id.email_formatted or user.email_formatted) }}</field>
+            <field name="email_to" eval="False"/>
+            <field name="partner_to" eval="False"/>
+            <field name="use_default_to" eval="True"/>
+            <field name="description">Configure reminders in timesheet settings to remind approvers to validate timesheets</field>
+            <field name="body_html" type="html"><t>
+Hello <t t-out="object.name or ''">Abigail Peterson</t>,<br/><br/>
+This is a friendly reminder to approve your team's timesheets for the following period: <t t-out="ctx.get('date_start') or ''">05/05/2021</t> - <t t-out="ctx.get('date_stop') or ''">06/05/2021</t>.<br/>
+<div t-if="ctx.get('action_url')" style="margin: 16px 0px 16px 0px;">
+    <a t-att-href="ctx.get('action_url')"
+        t-attf-style="background-color: {{object.company_id.email_secondary_color or '#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: {{object.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px; font-size: 13px;">Validate the Timesheets</a>
+</div>
+<br />Thank you,<br/>
+<t t-if="user.signature">
+    <div>--<br/><t t-out="user.signature or ''">Mitchell Admin</t></div>
+</t>
+            </t></field>
+            <field name="lang">{{ object.user_id.lang }}</field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+
+    </data>
+</odoo>

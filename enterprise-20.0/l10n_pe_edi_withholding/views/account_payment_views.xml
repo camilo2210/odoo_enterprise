@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <record id="l10n_pe_edi_withholding_account_payment_form" model="ir.ui.view">
+        <field name="name">l10n_pe_edi_withholding.account.payment.form</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="l10n_account_withholding_tax.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <!-- Warning banner for EDI errors -->
+            <xpath expr="//sheet" position="before">
+                <field name="l10n_pe_edi_warnings" class="o_field_html" widget="actionable_errors" invisible="not l10n_pe_edi_warnings"/>
+            </xpath>
+
+            <!-- Retention number field -->
+            <field name="memo" position="after">
+                <field name="l10n_pe_edi_retention_number" readonly="1" invisible="not (l10n_pe_edi_is_required or l10n_pe_edi_retention_number)"/>
+            </field>
+
+            <field name="withhold" position="attributes">
+                <attribute name="invisible" add="country_code == 'PE'" separator="or"/>
+            </field>
+
+            <field name="withholding_line_ids" position="attributes">
+                <attribute name="readonly" add="country_code == 'PE'" separator="or"/>
+            </field>
+
+            <!-- Send to SUNAT button -->
+            <button name="action_cancel" position="after">
+                <button name="action_l10n_pe_edi_send_retention"
+                    string="Send to SUNAT"
+                    type="object"
+                    class="btn-primary"
+                    invisible="not l10n_pe_edi_is_required"/>
+            </button>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,11 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+{
+    'name': 'Account Invoice Extract Purchase',
+    'category': 'Accounting',
+    'summary': 'Automatically finds the purchase order linked to a vendor bill when using invoice extraction',
+    'depends': ['account_invoice_extract', 'purchase'],
+    'auto_install': True,
+    'author': 'Odoo S.A.',
+    'license': 'OEEL-1',
+}

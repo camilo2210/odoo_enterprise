@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates>
+    <t t-name="hr_holidays_gantt.GanttView.Buttons">
+    </t>
+
+    <t t-name="hr_holidays_gantt.HrHolidaysGanttRenderer" t-inherit="web_gantt.GanttRenderer" t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('o_gantt_cells')]">
+            <HrHolidaysSplitTool position="this.splitToolPosition"/>
+        </xpath>
+    </t>
+
+    <t t-name="hr_holidays_gantt.HrHolidaysGanttRenderer.Pill" t-inherit="web_gantt.GanttRenderer.Pill" t-inherit-mode="primary">
+        <span t-if="pill._progress" position="after">
+            <i t-if="pill.isDeferred" class="oi text-warning o-xsmaller position-absolute m-auto ms-1" data-icon="warning" title="Approved after validation, it will require a payroll correction"/>
+        </span>
+        <xpath expr="//div[hasclass('o_gantt_pill_wrapper')]" position="attributes">
+            <attribute name="t-attf-class" add="#{pill.isLocked ? 'opacity-50' : '' }" />
+        </xpath>
+        <xpath expr="//span[hasclass('o_gantt_pill_title')]" position="attributes">
+            <attribute name="class" remove="o_gantt_pill_title mx-1" add="text-center w-100 overflow-hidden" separator=" "/>
+            <attribute name="t-attf-style">#{pill.isDeferred ? 'position: relative; left: 1.2rem;' : ''}</attribute>
+        </xpath>
+    </t>
+
+    <t t-name="hr_holidays_gantt.HrHolidaysGanttRenderer.RowContent" t-inherit="web_gantt.GanttRenderer.RowContent" t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('o_gantt_cell')]" position="attributes">
+            <attribute name="class" separator=" " add="d-flex position-relative"/>
+            <attribute name="t-on-dblclick.synthetic">(ev) => !row.isGroup and !column.isFolded ? this.onCellDblClicked(column) : undefined</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('o_gantt_cell')]" position="inside">
+            <t t-if="row.availabilities">
+                <t t-set="hours" t-value="this.ganttCellData(row, column)"/>
+                <t t-if="hours">
+                    <span class="text-break fw-bold o_gantt_cell_x h-100 position-absolute
+                        bg-success-light opacity-75 small border-radius-sm"
+                        data-tooltip="Expected hours"
+                        t-att-class="this.ganttAvailCellAttClass(row, column)">
+                        <t t-out="hours"/>
+                    </span>
+                </t>
+            </t>
+        </xpath>
+    </t>
+
+    <t t-name="hr_holidays_gantt.HrHolidaysGanttRenderer.ProgressBarLabel" t-inherit="web_gantt.GanttRenderer.ProgressBarLabel">
+        <xpath expr="//span" position="replace">
+            <span class="o_gantt_progress_bar_label flex-shrink-0 ps-1 me-1 text-nowrap small text-muted"
+                  t-out="progressBar.value_formatted"/>
+        </xpath>
+    </t>
+
+</templates>

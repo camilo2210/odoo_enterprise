@@ -1,0 +1,65 @@
+<templates>
+
+<t t-name="web_studio.OptionsContainer">
+    <div class="o-web-studio-options-container w-100">
+        <div class="o-web-studio-options-container-header w-100 d-flex align-items-center px-2">
+            <h4 class="mb-0 flex-grow-1" t-out="this.props.name"></h4>
+            <div t-if="this.props.slots.header">
+                <t t-call-slot="header"></t>
+            </div>
+        </div>
+        <div class="o-web-studio-options-container-content w-100 d-flex flex-column" t-att-class="this.props.containerClass">
+            <t t-call-slot="default"></t>
+        </div>
+    </div>
+</t>
+
+<t t-name="web_studio.ReportEditor.ReportRecordNavigation">
+    <OptionsContainer name.translate="Preview">
+        <t t-set-slot="header">
+            <Pager t-props="this.previewPagerProps" onUpdate.bind="this.updatePager" />
+        </t>
+        <div class="o_web_studio_sidebar_field o_web_studio_sidebar_text">
+            <label for="name" class="mb-1">Record</label>
+            <div class="position-relative o-web-studio-report-record-selector">
+                <RecordSelector t-props="this.previewSelectorProps" />
+            </div>
+        </div>
+    </OptionsContainer>
+</t>
+
+<t t-name="web_studio.ReportEditor.UndoRedo">
+    <div class="d-flex btn-group">
+        <button type="button" class="oi btn px-2" data-icon="undo"
+            t-att-disabled="!this.props.canUndo()" t-on-click="this.props.undo"
+            title="Undo">
+        </button>
+        <button type="button" class="oi btn px-2" data-icon="redo"
+            t-att-disabled="!this.props.canRedo()" t-on-click="this.props.redo"
+            title="Redo">
+        </button>
+    </div>
+</t>
+
+<t t-name="web_studio.ReportEditor.SaveDiscard">
+    <button type="button" class="btn btn-success px-3 o-web-studio-save-report"
+        t-att-disabled="!this.props.isDirty()" t-on-click="this.props.save">
+        Save
+    </button>
+    <button type="button" class="btn btn-flat o-web-studio-discard-report"
+        t-att-disabled="!this.props.isDirty()" t-on-click="this.props.discard">
+        Discard
+    </button>
+</t>
+
+<t t-name="web_studio.ReportEditor.PrintButton">
+    <button type="button" class="btn btn-accent px-3"
+        t-att-disabled="!this.reportEditorModel.recordToDisplay"
+        t-on-click="this.printPreview"
+        title.translate="Download PDF file"
+    >
+        Print
+    </button>
+</t>
+
+</templates>

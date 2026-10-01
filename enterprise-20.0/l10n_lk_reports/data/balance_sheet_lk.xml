@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo auto_sequence="1">
+    <record id="l10n_lk_bs" model="account.report">
+        <field name="name">Balance Sheet</field>
+        <field name="root_report_id" ref="account_reports.balance_sheet" />
+        <field name="groupby">account_id</field>
+        <field name="filter_unfold_all" eval="True" />
+        <field name="filter_date_range" eval="False" />
+        <field name="filter_journals" eval="True" />
+        <field name="filter_hierarchy">by_default</field>
+        <field name="filter_multi_company">selector</field>
+        <field name="country_id" ref="base.lk" />
+        <field name="custom_handler_model_id" ref="account_reports.model_account_balance_sheet_report_handler" />
+        <field name="column_ids">
+            <record id="l10n_lk_bs_balance" model="account.report.column">
+                <field name="name">Balance</field>
+                <field name="expression_label">balance</field>
+            </record>
+        </field>
+        <field name="line_ids">
+            <!-- Assets -->
+            <record id="l10n_lk_bs_assets" model="account.report.line">
+                <field name="name">Assets</field>
+                <field name="code">LK_A</field>
+                <field name="hierarchy_level">0</field>
+                <field name="aggregation_formula">LK_CA.balance + LK_NCA.balance</field>
+                <field name="children_ids">
+                    <record id="l10n_lk_bs_current_assets" model="account.report.line">
+                        <field name="name">Current Assets</field>
+                        <field name="code">LK_CA</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="expression_ids">
+                            <record id="l10n_lk_bs_current_assets_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('account_id.account_type', 'in', ['asset_current', 'asset_prepayments', 'asset_cash', 'asset_receivable'])]" />
+                                <field name="subformula">sum</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_lk_bs_noncurrent_assets" model="account.report.line">
+                        <field name="name">Non-current Assets</field>
+                        <field name="code">LK_NCA</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="expression_ids">
+                            <record id="l10n_lk_bs_noncurrent_assets_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('account_id.account_type', 'in', ['asset_fixed', 'asset_non_current'])]" />
+                                <field name="subformula">sum</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <!-- Liabilities -->
+            <record id="l10n_lk_bs_liabilities" model="account.report.line">
+                <field name="name">Liabilities</field>
+                <field name="code">LK_L</field>
+                <field name="hierarchy_level">0</field>
+                <field name="aggregation_formula">LK_CL.balance + LK_NCL.balance</field>
+                <field name="children_ids">
+                    <record id="l10n_lk_bs_current_liabilities" model="account.report.line">
+                        <field name="name">Current Liabilities</field>
+                        <field name="code">LK_CL</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="expression_ids">
+                            <record id="l10n_lk_bs_current_liabilities_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('account_id.account_type', 'in', ['liability_current', 'liability_payable', 'liability_credit_card'])]" />
+                                <field name="subformula">-sum</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_lk_bs_noncurrent_liabilities" model="account.report.line">
+                        <field name="name">Non-current Liabilities</field>
+                        <field name="code">LK_NCL</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="expression_ids">
+                            <record id="l10n_lk_bs_noncurrent_liabilities_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('account_id.account_type', '=', 'liability_non_current')]" />
+                                <field name="subformula">-sum</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <!-- Equity and Earnings -->
+            <record id="l10n_lk_bs_equity_earnings" model="account.report.line">
+                <field name="name">Equity And Earnings</field>
+                <field name="code">LK_E</field>
+                <field name="hierarchy_level">0</field>
+                <field name="aggregation_formula">LK_EQU.balance + LK_UE.balance + LK_OCI.balance</field>
+                <field name="children_ids">
+                    <record id="l10n_lk_bs_equity" model="account.report.line">
+                        <field name="name">Equity</field>
+                        <field name="code">LK_EQU</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="expression_ids">
+                            <record id="l10n_lk_bs_equity_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[
+                                    ('account_id.account_type', '=', 'equity'),
+                                    ('account_id.tag_ids', 'not in', [ref('l10n_lk.account_tag_oci')]),
+                                ]" />
+                                <field name="subformula">-sum</field>
+                                <field name="date_scope">from_beginning</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_lk_bs_earnings" model="account.report.line">
+                        <field name="name">Earnings</field>
+                        <field name="code">LK_UE</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="foldability">always_unfolded</field>
+                        <field name="aggregation_formula">LK_CYE.balance + LK_PYE.balance</field>
+                        <field name="children_ids">
+                            <record id="l10n_lk_bs_current_year_earnings" model="account.report.line">
+                                <field name="name">Current Year Unallocated Earnings</field>
+                                <field name="code">LK_CYE</field>
+                                <field name="hierarchy_level">3</field>
+                                <field name="foldability">never_unfolded</field>
+                                <field name="action_id" ref="account_reports.action_account_report_pl" />
+                                <field name="expression_ids">
+                                    <record id="l10n_lk_bs_current_year_earnings_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">domain</field>
+                                        <field name="formula" eval="[
+                                            ('account_id.account_type', 'in', [
+                                                'income', 'income_other', 'expense_direct_cost',
+                                                'expense', 'expense_depreciation', 'expense_other',
+                                                'equity_unaffected',
+                                            ]),
+                                        ]" />
+                                        <field name="subformula">-sum</field>
+                                        <field name="date_scope">from_fiscalyear</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_lk_bs_prev_year_earnings" model="account.report.line">
+                                <field name="name">Previous Years Unallocated Earnings</field>
+                                <field name="code">LK_PYE</field>
+                                <field name="hierarchy_level">3</field>
+                                <field name="foldability">never_unfolded</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_lk_bs_prev_year_earnings_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">domain</field>
+                                        <field name="formula" eval="[
+                                            ('account_id.account_type', 'in', [
+                                                'income', 'income_other', 'expense_direct_cost',
+                                                'expense', 'expense_depreciation', 'expense_other',
+                                                'equity_unaffected',
+                                            ]),
+                                        ]" />
+                                        <field name="subformula">-sum</field>
+                                        <field name="date_scope">to_beginning_of_fiscalyear</field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_lk_bs_oci" model="account.report.line">
+                        <field name="name">Other Comprehensive Income</field>
+                        <field name="code">LK_OCI</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="foldability">always_unfolded</field>
+                        <field name="hide_if_zero" eval="True" />
+                        <field name="aggregation_formula">LK_CTA.balance + LK_OOCI.balance</field>
+                        <field name="children_ids">
+                            <record id="l10n_lk_bs_cta" model="account.report.line">
+                                <field name="name">Cumulative Translation Adjustments</field>
+                                <field name="code">LK_CTA</field>
+                                <field name="hierarchy_level">3</field>
+                                <field name="hide_if_zero" eval="True" />
+                                <field name="expression_ids">
+                                    <record id="l10n_lk_bs_cta_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">custom</field>
+                                        <field name="formula">_report_engine_cumulative_translation_adjustment</field>
+                                        <field name="subformula">balance</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_lk_bs_other_oci" model="account.report.line">
+                                <field name="name">Other OCI</field>
+                                <field name="code">LK_OOCI</field>
+                                <field name="hierarchy_level">3</field>
+                                <field name="hide_if_zero" eval="True" />
+                                <field name="expression_ids">
+                                    <record id="l10n_lk_bs_other_oci_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">domain</field>
+                                        <field name="formula" eval="[
+                                            ('account_id.account_type', '=', 'equity'),
+                                            ('account_id.tag_ids', 'in', [ref('l10n_lk.account_tag_oci')]),
+                                        ]" />
+                                        <field name="subformula">-sum</field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <!-- Total Liabilities and Equity -->
+            <record id="l10n_lk_bs_total_liabilities_equity" model="account.report.line">
+                <field name="name">Total Liabilities and Equity</field>
+                <field name="code">LK_LE</field>
+                <field name="hierarchy_level">0</field>
+                <field name="aggregation_formula">LK_L.balance + LK_E.balance</field>
+            </record>
+        </field>
+    </record>
+</odoo>

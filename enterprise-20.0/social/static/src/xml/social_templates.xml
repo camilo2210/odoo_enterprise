@@ -1,0 +1,605 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Comments Modal -->
+
+    <t t-name="social.StreamPostComments">
+        <Dialog t-if="this.state.displayModal" title="this.props.title" footer="false" size="'md'" bodyClass="this.bodyClass">
+            <t t-call="social.StreamPostCommentsOriginalPost"/>
+            <t t-if="!this.commentsDisabled">
+                <t t-component="this.commentReplyComponent"
+                    originalPost="this.originalPost"
+                    mediaSpecificProps="this.mediaSpecificProps"
+                    classes="'p-3'"
+                    onAddComment.bind="this.onAddComment"
+                    preventAddComment.bind="this.preventAddComment"/>
+                <div class="py-3">
+                    <div class="o_social_comments_messages px-3">
+                        <t t-component="this.commentListComponent"
+                            comments="this.comments"
+                            mediaSpecificProps="this.mediaSpecificProps"
+                            originalPost="this.originalPost"
+                            preventAddComment.bind="this.preventAddComment"
+                            error="this.props.error"/>
+                    </div>
+                    <a t-if="this.state.showLoadMoreComments" href="#" t-on-click="this.loadMoreComments"
+                        class="o_social_load_more_comments px-3 text-center">
+                        <i class="oi oi-filled p-1" data-icon="forum"/><span>Load more comments...</span>
+                    </a>
+                </div>
+            </t>
+            <div t-else="" class="text-black-50 text-center border-top pt-3">
+                <span>New comments are disabled</span>
+            </div>
+        </Dialog>
+    </t>
+
+    <t t-name="social.StreamPostCommentsOriginalPost">
+        <div class="o_social_comments_modal_original_post p-3 bg-view">
+            <div class="d-flex gap-3 justify-content-between mb-2">
+                <div class="d-flex gap-3">
+                    <span class="o_social_original_post_author_image o_social_author_image position-relative d-block rounded overflow-hidden"/>
+                    <div>
+                        <a t-if="this.originalPost.author_link.value"
+                            class="o_social_original_post_author d-flex align-items-center"
+                            t-att-href="this.originalPost.author_link.value"
+                            t-att-title="this.authorTitle"
+                            target="_blank">
+                            <b class="text-truncate" t-out="this.authorTitle"/>
+                        </a>
+                        <div t-else="" class="o_social_original_post_author d-flex align-items-center">
+                            <span class="text-truncate" t-out="this.authorTitle"/>
+                        </div>
+                        <a t-att-href="this.originalPost.post_link.value"
+                            class="o_social_post_published_date text-muted"
+                            target="_blank">
+                        <time class="small"
+                            t-out="this.originalPost.formatted_published_date.value"
+                            t-att-title="this.originalPost.published_date.value"/>
+                        </a>
+                    </div>
+                </div>
+                <div class="o_social_icon_dropdown dropdown o_social_manage_post">
+                    <button t-if="this.isEditable || this.isDeletable"
+                        class="btn dropdown-toggle"
+                        type="button"
+                        id="stream_post_actions"
+                        data-bs-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false">
+                        <i class="oi" data-icon="more_vert"/>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end"
+                        aria-labelledby="stream_post_actions">
+                        <a t-if="this.isEditable"
+                            class="dropdown-item text-decoration-none"
+                            href="#"
+                            t-on-click.prevent=" () => this.state.isEditMode = true">
+                            Edit
+                        </a>
+                        <a t-if="this.isDeletable"
+                            class="dropdown-item text-decoration-none"
+                            href="#"
+                            t-on-click.prevent="this.onDeletePost">
+                            Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="o_social_comments_modal_original_post_content flex-grow-1">
+                <div name="o_social_original_post_message_body" class="o_social_original_post_message_body">
+                    <div t-if="this.state.isEditMode" class="pe-4 pb-2">
+                        <textarea
+                            class="o_social_add_comment form-control mx-2 my-1"
+                            placeholder="Edit Your Post"
+                            t-on-keydown="this.onEditPost">
+                            <t t-out="this.state.message"/>
+                        </textarea>
+                        <small class="o_social_textarea_message text-600">
+                            Press Enter to edit. Press Shift+Enter to insert a Line Break.
+                        </small>
+                    </div>
+                    <div t-elif="this.state.message"
+                        t-out="this._formatCommentStreamPost(this.state.message)"
+                        class="o_social_original_post_message_text overflow-auto mb-2"/>
+                    <div t-if="this.originalPost.stream_post_attachment_ids.raw_value.length > 0"
+                        class="o_social_stream_post_content o_social_stream_post_content_clickable d-flex mb-3 mx-n3 overflow-hidden">
+                        <t t-set="content_attachment_json" t-value="this.JSON.parse(this.originalPost.stream_post_content_json.raw_value)"/>
+                        <t t-foreach="content_attachment_json.length > 2 ? content_attachment_json.slice(0, 2) : content_attachment_json" t-as="content" t-key="content_index">
+                            <t t-if="content_index == 1 &amp;&amp; content_attachment_json.length > 2">
+                                <a class="o_social_original_post_content_more position-relative d-flex ms-1" t-on-click.stop="() => this.onClickMoreMedias(content_index, content_attachment_json)">
+                                    <img t-att-src="content.thumbnail_url or content.url" alt="Post Attachment" />
+                                    <div class="o_social_stream_post_content_more_overlay position-absolute d-flex align-items-center justify-content-center h-100 w-100 m-0 h1">
+                                        +<t t-out="content_attachment_json.length - 2"/>
+                                    </div>
+                                </a>
+                            </t>
+                            <img t-elif="content.type == 'image'" class="o_social_original_post_single" t-att-src="content.url" alt="Post Image" t-on-click.stop="() => this.onClickMoreMedias(content_index, content_attachment_json)"/>
+                            <video t-else="" class="o_social_original_post_single" t-att-src="content.url" alt="Post Video" controls="controls"/>
+                        </t>
+                    </div>
+                    <a t-if="this.originalPost.link_url.value"
+                        class="o_social_stream_post_link p-3 d-flex bg-100"
+                        t-att-href="this.originalPost.link_url.value"
+                        target="_blank">
+                        <img t-if="this.originalPost.link_image_url.raw_value"
+                            class="me-3 flex-shrink-0"
+                            t-att-src="this.originalPost.link_image_url.raw_value"
+                            alt="Link Image"/>
+                        <div class="o_social_stream_post_link_text">
+                            <div class="o_social_stream_post_link_title h3 text-truncate"
+                                t-out="this.originalPost.link_title.raw_value"/>
+                            <p t-if="this.originalPost.link_description.raw_value"
+                                class="o_social_stream_post_link_description"
+                                t-out="this.originalPost.link_description.raw_value"/>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <div t-name="social.StreamPostCommentsReply" class="o_social_write_reply bg-view">
+        <form t-attf-class="d-flex flex-nowrap align-items-start {{ this.props.classes }}">
+            <div class="o_social_author_image position-relative rounded flex-shrink-0 overflow-hidden me-2">
+                <img t-if="this.authorPictureSrc" t-att-src="this.authorPictureSrc"
+                     t-att-title="this.isCommentReply ? ('Write a reply as ' + this.props.mediaSpecificProps.accountName) : ('Write comment as ' + this.props.mediaSpecificProps.accountName)" />
+            </div>
+            <div class="o_social_reply_container position-relative flex-grow-1">
+                <div class="f-flex align-items-stretch">
+                    <t t-set="write_reply_text">Write a reply...</t>
+                    <t t-set="write_comment_text">Write a comment...</t>
+                    <textarea
+                        name="message" t-ref="this.autofocusRef"
+                        t-attf-data-id="comment_reply_{{ this.isCommentReply || this.isCommentEdit ? this.comment.id : 'new' }}"
+                        t-att-data-existing-attachment-id="this.existingAttachmentId"
+                        t-att-data-is-comment-edit="this.isCommentEdit"
+                        t-att-data-is-comment-reply="this.isCommentReply"
+                        t-att-data-comment-id="this.isCommentReply || this.isCommentEdit ? this.comment.id : null"
+                        class="o_social_add_comment o_social_comment_message form-control pe-5"
+                        t-att-placeholder="this.isCommentReply ? write_reply_text : write_comment_text"
+                        t-att-disabled="this.state.disabled"
+                        t-on-keydown="this._onAddComment"
+                        t-att-value="this.state.value"/>
+                    <div class="o_social_comment_controls">
+                        <div t-if="this.canAddImage" class="o_social_comment_add_image o_social_subtle_btn pt-2 px-3">
+                            <FileUploader
+                                inputName="'attachment'"
+                                acceptedFileExtensions="'image/*'"
+                                onUploaded.bind="this._onImageChange"
+                            >
+                                <t t-set-slot="toggler">
+                                    <i class="oi" data-icon="image" title="Add an image"/>
+                                </t>
+                            </FileUploader>
+                        </div>
+                        <div class="o_social_emoji_dropdown o_social_subtle_btn pt-1 px-3 text-center" t-ref="this.emojiPickerRef">
+                            <i class="oi" data-icon="sentiment_satisfied"/>
+                        </div>
+                    </div>
+                </div>
+                <div t-if="this.state.attachmentSrc" class="o_social_comment_image_preview py-4">
+                    <div class="d-inline-block position-relative">
+                        <img class="border shadow" style="max-height: 150px" t-att-src="this.state.attachmentSrc"/>
+                        <span t-if="!this.state.disabled" class="o_social_comment_remove_image btn btn-dark position-absolute rounded-circle mt-2 me-2" style="right: 0"
+                              t-on-click="this._onImageRemove">
+                            <i class="oi" data-icon="close"/>
+                        </span>
+                    </div>
+                </div>
+                <div name="o_social_textarea_helper"
+                     t-attf-class="o_social_textarea_helper d-flex align-items-center {{ this.isCommentEdit? 'mt-3 mb-5' : 'mt-2' }}">
+                    <small class="o_social_textarea_message text-600">
+                        Press Enter to post. Press Shift+Enter to insert a Line Break.
+                    </small>
+                    <div t-if="this.isCommentEdit" class="o_social_comment_commands ms-3">
+                        <a class="btn btn-sm btn-link p-0" href="#" t-on-click.prevent="this.props.toggleEditMode">
+                            Discard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div t-name="social.StreamPostCommentsWrapper">
+        <t t-if="this.comments.length">
+            <t t-foreach="this.comments" t-as="comment" t-key="comment_index">
+                <t t-component="this.commentComponent"
+                    comment="comment"
+                    originalPost="this.props.originalPost"
+                    toggleUserLikes.bind="this.toggleUserLikes"
+                    mediaSpecificProps="this.props.mediaSpecificProps"
+                    onDeleteComment="() => this.comments.splice(comment_index, 1)"
+                    preventAddComment="this.props.preventAddComment"/>
+            </t>
+        </t>
+        <t t-else="">
+            <div class="o_social_no_comment_message text-black-50 text-center">
+                <t t-if="this.props.error" t-out="this.props.error"/>
+                <t t-else="">No comments yet.</t>
+            </div>
+        </t>
+    </div>
+
+    <div t-name="social.StreamPostComment"
+        t-att-data-comment-id="this.comment.id"
+        t-att-data-existing-attachment-id="this.comment.attachment &amp;&amp; this.comment.attachment.type === 'photo' &amp;&amp; this.comment.attachment.target ? this.comment.attachment.target.id : null"
+        t-att-data-existing-attachment-src="this.comment.attachment &amp;&amp; this.comment.attachment.type === 'photo' ? this.comment.attachment.media.image.src : null"
+        class="o_social_comment mb-3"
+        t-att-class="{'o_social_root_comment': this.props.isSubComment}">
+
+        <t t-if="this.state.isEditMode" t-component="this.commentReplyComponent"
+           comment="this.comment"
+           originalPost="this.props.originalPost"
+           initialValue="this.comment.message"
+           isCommentEdit="true"
+           mediaSpecificProps="this.props.mediaSpecificProps"
+           toggleEditMode.bind="this._toggleEditMode"
+           onAddComment.bind="this._onEditComment"
+           preventAddComment="this.props.preventAddComment"/>
+
+        <div t-else="" class="o_social_comment_wrapper d-flex align-items-start">
+            <div class="o_social_author_image position-relative rounded flex-shrink-0 me-2 overflow-hidden">
+                <img t-if="this.authorPictureSrc" t-att-src="this.authorPictureSrc" t-att-title="this.comment.from.name" />
+            </div>
+
+            <div class="flex-grow-1">
+                <div class="o_social_comment_content">
+                    <div class="o_social_comment_message">
+                        <a t-att-href="this.authorLink"
+                           class="o_social_comment_author_name fw-bold"
+                           t-out="this.comment.from.name"
+                           target="_blank"/>
+                        <span class="mx-1 o_social_comment_published_date">&#183;</span>
+                        <a t-att-href="this.link"
+                           target="_blank"
+                           class="o_social_comment_published_date">
+                           <small t-att-title="this.comment.created_time"
+                                  t-out="this.comment.formatted_created_time"/>
+                        </a>
+                        <span t-if="this.comment.likes?.summary.total_count" class="o_social_comment_likes_total badge rounded-pill ms-1 py-1">
+                            <i t-attf-class="oi {{ this.likesClass }} me-1" t-att-data-icon="this.likesIcon" title="Likes"/>
+                            <span class="o_social_likes_count" t-out="this.comment.likes.summary.total_count"/>
+                        </span>
+
+                        <div t-if="this.comment.message || this.comment.attachment"
+                            class="d-flex flex-grow-1">
+                            <t t-set="originalMessage" t-value="this.comment.message"/>
+                            <div t-attf-class="d-flex flex-grow-1 justify-content-start align-items-center">
+                                <div>
+                                    <div class="o_social_comment_text text-break"
+                                        t-att-data-original-message="originalMessage"
+                                        t-out="this.formatComment(this.comment.message)"/>
+                                    <div t-if="this.comment.attachment" class="o_social_comment_attachment mt-3">
+                                        <a t-if="this.comment.attachment.type === 'share'"
+                                            class="o_social_stream_post_link text-reset shadow mb-3 d-block overflow-hidden"
+                                            t-att-href="this.comment.attachment.target.url"
+                                            target="_blank">
+                                            <img t-att-src="this.comment.attachment.media.image.src" class="img-fluid" alt="Link Image" />
+                                            <div class="o_social_stream_post_link_text bg-white p-2">
+                                                <h5 class="o_social_stream_post_link_title"><b t-out="this.comment.attachment.title"/></h5>
+                                                <p class="o_social_stream_post_link_description" t-out="this.comment.attachment.description"/>
+                                            </div>
+                                        </a>
+                                        <img t-if="this.comment.attachment.type === 'photo'" class="o_social_comment_image img-fluid shadow mb-3"
+                                            t-att-src="this.comment.attachment.media.image.src" alt="Comment Image"
+                                            target="_blank">
+                                        </img>
+                                        <a t-elif="comment.attachment.type === 'animated_image_video'"
+                                            t-att-href="this.link" target="_blank">
+                                            <img class="o_social_comment_image img-fluid shadow mb-3"
+                                                t-att-src="comment.attachment.media.image.src" alt="Comment GIF">
+                                            </img>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div t-if="this.isManageable()" class="o_social_icon_dropdown o_social_manage_comment dropdown">
+                                    <button class="btn dropdown-toggle"
+                                        type="button" t-attf-id="post_actions_{{ this.comment.id }}"
+                                        data-bs-toggle="dropdown"
+                                        aria-haspopup="true"
+                                        aria-expanded="false">
+                                        <i class="oi" data-icon="more_vert"/>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-end" t-attf-aria-labelledby="post_actions_{{ this.comment.id }}">
+                                        <a t-if="this.isEditable" class="dropdown-item text-decoration-none" href="#" t-on-click.prevent="this._toggleEditMode">Edit</a>
+                                        <a t-if="this.isDeletable" class="dropdown-item text-decoration-none" href="#" t-on-click.prevent="this._deleteComment">Delete</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="o_social_comment_commands">
+                            <t t-if="this.isLikable">
+                                <a t-attf-class="o_social_comment_like btn btn-sm btn-link px-0 {{ this.comment.user_likes ? 'o_social_comment_user_likes' : '' }}"
+                                   href="#" t-on-click.prevent="() => this.props.toggleUserLikes(this.comment)">
+                                    Like
+                                </a>
+                                <span class="mx-1">&#183;</span>
+                            </t>
+                            <a class="o_social_comment_reply btn btn-sm btn-link px-0" href="#"
+                               t-on-click.prevent="this.props._onReplyComment || this._onReplyComment"> Reply </a>
+                            <span t-if="this.comment.comments and this.comment.comments.data.length and !this.action.showSubComment"
+                                  class="o_social_comment_load_replies" t-on-click.prevent="this._onLoadReplies">
+                                <span class="mx-1">&#183;</span>
+                                <a class="btn btn-sm btn-link px-0" href="#">
+                                    <i class="oi oi-filled me-1" data-icon="forum"/>View <t t-out="this.comment.comments.data.length"/> replies...
+                                </a>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div t-if="!this.props.isSubComment" class="ps-5 mt-2">
+            <div t-if="this.comment.comments and this.action.showSubComment" class="o_social_comment_replies mt-4">
+                <t t-foreach="this.comment.comments.data" t-as="innerComment" t-key="innerComment_index">
+                    <t t-component="this.commentComponent"
+                       comment="innerComment"
+                       originalPost="this.props.originalPost"
+                       isSubComment="true"
+                       _onReplyComment.bind="this._onReplyComment"
+                       mediaSpecificProps="this.props.mediaSpecificProps"
+                       toggleUserLikes="() => this.props.toggleUserLikes(innerComment)"
+                       preventAddComment="this.props.preventAddComment"
+                       onDeleteComment="() => this.comment.comments.data.splice(innerComment_index, 1)"/>
+                </t>
+            </div>
+            <div t-if="this.action.showReplyComment" class="o_social_write_comment_reply">
+                <t t-component="this.commentReplyComponent"
+                   comment="this.comment"
+                   originalPost="this.props.originalPost"
+                   isCommentReply="true"
+                   mediaSpecificProps="this.props.mediaSpecificProps"
+                   classes="'pe-5 mb-5'"
+                   onAddComment="(newComment) => this.comment.comments.data.push(newComment)"
+                   preventAddComment="this.props.preventAddComment"/>
+            </div>
+        </div>
+    </div>
+
+    <!-- Social Stream Modal -->
+
+    <div t-name="social.AddSocialStreamDialog">
+        <t t-set="title" t-if="this.props.isSocialManager">Connect a new Account</t>
+        <t t-set="title" t-else="">Add a Stream from an existing account</t>
+        <Dialog title="title" footer="false" size="'sm'" modalRef="this.modalRef">
+            <div class="o_social_add_stream_form">
+                <t t-if="this.props.socialAccounts.length !== 0">
+                    <div t-if="this.props.isSocialManager">
+                        <t t-call="social.AddStreamMedia"/>
+                    </div>
+                    <h4 t-if="this.props.isSocialManager">or add an already connected account</h4>
+                    <div class="o_social_add_stream_accounts list-group">
+                        <button
+                            t-foreach="this.props.socialAccounts"
+                            t-as="socialAccount"
+                            t-key="socialAccount_index"
+                            class="list-group-item list-group-item-action"
+                            tabindex="-1">
+                            <div class="o_social_account_card d-flex align-items-center" t-att-data-media-id="socialAccount.media_id[0]" t-att-data-account-id="socialAccount.id" t-on-click.prevent="this._onClickSocialAccount">
+                                <img width="24" t-attf-src="/web/image/social.media/{{ socialAccount.media_id[0] }}/image/24x24" class="me-4"/>
+                                <img t-if="socialAccount.has_image" t-attf-src="/web/image/social.account/{{ socialAccount.id }}/image/32x32" class="o_social_account_image rounded-circle border me-2" />
+                                <h4 t-out="socialAccount.name" class="o_social_account_name fw-bold flex-grow-1 m-0"/>
+                                <button t-if="this.props.isSocialManager"
+                                    class="oi btn border-0 o_social_remove_account" data-icon="close"
+                                    t-on-click.stop="() => this._onDeleteAccount(socialAccount.id)"
+                                    title="Remove the account"/>
+                            </div>
+                        </button>
+                    </div>
+                </t>
+                <t t-else="" t-call="social.AddStreamMedia" />
+            </div>
+        </Dialog>
+    </div>
+
+    <t t-name="social.AddStreamCompany" t-if="this.props.companies &amp;&amp; this.props.companies.length &gt; 1">
+        for
+        <select class="o_social_add_stream_form_select form-select w-25 ms-1" name="company_id">
+            <option t-att-value="this.props.companies[0].id" t-out="this.props.companies[0].name" selected="1"/>
+            <option t-foreach="this.props.companies.slice(1)" t-as="company" t-key="company_index" t-att-value="company.id" t-out="company.name"/>
+            <option value="0">All Companies</option>
+        </select>
+    </t>
+
+    <div t-name="social.AddStreamMedia" class="o_social_media_cards w-100 justify-content-between">
+        <t t-foreach="this.medias" t-as="media" t-key="media_index">
+            <div class="o_social_media card text-center align-items-center mb-3 p-1 pt-3"
+                t-att-data-media-id="media.id"
+                t-on-click.prevent="() => this._onClickSocialMedia(media.id)">
+                <div class="position-relative w-100">
+                    <img
+                        width="48"
+                        height="48"
+                        t-attf-src="/web/image/social.media/{{ media.id }}/image/48x48"
+                        class="mb-2"/>
+                </div>
+                <h5 t-out="media.name" class="o_social_media_name mb-0" />
+            </div>
+        </t>
+    </div>
+
+    <!-- Media Carousel Modal -->
+
+    <t t-name="social.MediaCarouselDialog">
+        <Dialog title="this.props.title" footer="false" bodyClass="'bg-view'" withBodyPadding="false">
+            <t t-set="multiple_medias" t-value="this.props.medias.length > 1"/>
+            <div id="o_stream_post_media_carousel"
+                 t-attf-class="o_stream_post_media_carousel carousel slide carousel-dark {{ multiple_medias ? 'o_stream_post_images_carousel_multi' : '' }}"
+                 data-bs-interval="false">
+                <ol t-if="multiple_medias" class="carousel-indicators">
+                    <t t-foreach="this.props.medias" t-as="media" t-key="media_index">
+                        <li data-bs-target="#o_stream_post_media_carousel"
+                            t-att-data-bs-slide-to="media_index"
+                            t-attf-class="{{ media_index === this.props.activeIndex ? 'active' : '' }}"/>
+                    </t>
+                </ol>
+                <div class="carousel-inner h-100 d-flex align-items-center justify-content-center">
+                    <t t-foreach="this.props.medias" t-as="media" t-key="media_index">
+                        <div t-attf-class="carousel-item m-0 w-auto {{ media_index === this.props.activeIndex ? 'active' : '' }}">
+                            <img t-if="media.type === 'image'" t-att-src="media.url" alt="Image Url" />
+                            <video t-else="" t-att-src="media.url" alt="Video Url" controls="controls"/>
+                        </div>
+                    </t>
+                </div>
+                <a t-if="multiple_medias" class="carousel-control-prev" href="#o_stream_post_media_carousel" role="button" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"/>
+                    <span class="visually-hidden">Previous</span>
+                </a>
+                <a t-if="multiple_medias" class="carousel-control-next" href="#o_stream_post_media_carousel" role="button" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"/>
+                    <span class="visually-hidden">Next</span>
+                </a>
+            </div>
+        </Dialog>
+    </t>
+
+    <!-- Kanban View -->
+
+    <t t-name="social.KanbanHeader" t-inherit="web.KanbanHeader">
+        <xpath expr="//div[hasclass('o_column_title')]" position="before">
+            <img t-if="this.group.groupByField.name === 'stream_id'" height="20" t-attf-src="/web/image/social.stream/{{ this.group.value }}/media_image/20x20" class="o_kanbanheader_media_image mr8"/>
+        </xpath>
+    </t>
+
+    <t t-name="StreamPostKanbanView.buttons" t-inherit="web.KanbanView.Buttons">
+        <xpath expr="." position="inside">
+            <button  t-if="this.hasAccounts" type="button" class="btn btn-primary o_stream_post_kanban_new_post" t-on-click.prevent="this._onNewPost">
+                New Post
+            </button>
+            <button t-if="this.hasAccounts" type="button" class="btn btn-secondary o_stream_post_kanban_refresh_now" t-att-disabled="this.state.disableSyncButton" t-on-click.prevent="this._onRefreshStats">
+                <span>Refresh</span>
+                <i t-if="this.state.disableSyncButton" class="oi oi-spin mx-1 align-middle" data-icon="autorenew"/>
+                <i t-else="" class="oi mx-1 align-middle" data-icon="refresh"/>
+            </button>
+        </xpath>
+    </t>
+
+    <t t-name="social.SocialKanbanView" t-inherit="web.KanbanView" t-inherit-mode="primary">
+        <xpath expr="//Layout" position="attributes">
+            <attribute name="className">this.model.useSampleModel ? 'o_view_sample_data o_social_stream_post_kanban_view_wrapper'
+                : 'o_social_stream_post_kanban_view_wrapper'</attribute>
+        </xpath>
+        <xpath expr="//t[@t-component='this.props.Renderer']" position="before">
+            <NewContentRefreshBanner
+                refreshRequired="this.state.refreshRequired"
+                onClickRefresh.bind="this._refreshView"
+            />
+            <StreamPostDashboard
+                accounts="this.state.accounts"
+                isSocialManager="this.isSocialManager"
+                onNewStream="this._onNewStream.bind(this)"
+            />
+        </xpath>
+    </t>
+
+    <t t-name="social.NewContentRefreshBanner">
+        <a class="o_social_stream_post_kanban_new_content alert alert-info mb-0 text-center border-bottom py-2"
+           t-att-class="{'d-none': !this.props.refreshRequired}" href="#" t-on-click="this.props.onClickRefresh">
+            New content available
+            <i class="oi ms-2 me-1" data-icon="refresh"/>
+            <b>Click to refresh.</b>
+        </a>
+    </t>
+
+    <t t-name="social.KanbanDashboard">
+        <section class="o_social_stream_post_kanban_before d-flex flex-nowrap border-bottom border-top position-sticky start-0 overflow-x-auto overflow-y-hidden" t-ref="this.dashboardRef">
+            <div t-foreach="this.props.accounts" t-as="socialAccount" t-key="socialAccount_index"
+                 class="o_social_stream_stat_box flex-shrink-0 w-auto d-flex flex-column border-end bg-view">
+                <div class="pt-3 pb-2 px-4 d-flex justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <img class="me-2" height="20" t-attf-src="/web/image/social.media/{{ socialAccount.media_id[0] }}/image/20x20" alt="Social Media"/>
+                        <h5 class="o_social_stream_post_author_name d-block text-truncate m-0" t-out="socialAccount.name" t-att-title="socialAccount.name"/>
+                    </div>
+                    <div class="d-flex align-items-center ms-4">
+                        <a t-if="socialAccount.stats_link" t-att-href="socialAccount.stats_link" class="small" target="_blank">
+                            Insights
+                        </a>
+                        <t t-set="connecting_problem_content">It appears there is an issue with the Social Media link, click here to link the account again</t>
+                        <a t-if="socialAccount.is_media_disconnected"
+                            href="#"
+                            class="o_social_account_link_disconnected text-danger ms-4"
+                            t-att-data-media-id="socialAccount.media_id[0]"
+                            data-bs-toggle="popover" title="Connecting Problem"
+                            t-att-data-bs-content="connecting_problem_content"
+                            t-on-click.prevent="() => this._onRelinkAccount(socialAccount)">
+                            <i class="oi" data-icon="link_off"/>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-nowrap flex-grow-1 px-4 pt-2 pb-3">
+                    <t t-set="audience_content">Number of Followers of your channel</t>
+                    <div t-if="this._hasAudience(socialAccount)"
+                        class="d-flex align-items-center pe-3"
+                        data-bs-toggle="popover" title="Audience"
+                        t-att-data-bs-content="audience_content">
+                        <t t-call="social.AccountsStatsValue"
+                            icon="'crisis_alert'"
+                            value="socialAccount.audience"
+                            trend="socialAccount.audience_trend"/>
+                    </div>
+                    <t t-set="engagement_content">Number of times people have engaged with your posts (likes, comments, shares,...)</t>
+                    <div t-if="this._hasEngagement(socialAccount)"
+                        t-attf-class="d-flex align-items-center justify-content-center {{ this._hasStories(socialAccount) ? 'px-3' : 'ps-3' }}"
+                        data-bs-toggle="popover" title="Engagement"
+                        t-att-data-bs-content="engagement_content">
+                        <t t-call="social.AccountsStatsValue"
+                            icon="'show_chart'"
+                            value="socialAccount.engagement"
+                            trend="socialAccount.engagement_trend"/>
+                    </div>
+                    <t t-if="this._hasStories(socialAccount)">
+                        <t t-set="stories_content">Number of times people who have engaged with your channel have created stories on their friends' or followers' feed (Shares, Reposts...)</t>
+                        <div class="d-flex align-items-center justify-content-end ps-3"
+                            data-bs-toggle="popover" title="Stories"
+                            t-att-data-bs-content="stories_content">
+                            <t t-call="social.AccountsStatsValue"
+                                icon="'edit_square'"
+                                value="socialAccount.stories"
+                                trend="socialAccount.stories_trend"/>
+                        </div>
+                    </t>
+                </div>
+            </div>
+            <div class="o_social_connect_account" t-if="this.props.accounts?.length">
+                <div class="border-end bg-view h-100 d-flex align-items-center">
+                    <button class="btn btn-link m-auto" t-on-click="() => this.props.onNewStream()">
+                        + Add
+                    </button>
+                </div>
+            </div>
+        </section>
+    </t>
+
+    <t t-name="social.AccountsStatsValue">
+        <div class="d-flex align-items-baseline">
+            <i class="oi text-600 me-1" t-att-data-icon="icon"/>
+            <b class="social_account_stat_value" t-out="this.formatStatValue(value)"/>
+            <t t-if="socialAccount.has_trends">
+                <t t-set="isNeutral" t-value="trend == 0"/>
+                <t t-set="isUp" t-value="trend > 0"/>
+                <small t-attf-class="ms-2 fw-bold {{ isNeutral? '' : isUp ? 'text-success' : 'text-danger' }}">
+                    <t t-out="trend"/>%
+                    <t t-if="!isNeutral"><i class="oi" t-attf-data-icon="{{ isUp ? 'arrow_drop_up' : 'arrow_drop_down' }}" style="line-height: 1"/></t>
+                </small>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="social.SocialPostCommonRenderer.event">
+        <div class="d-flex align-items-center">
+            <img
+                t-foreach="rawRecord.media_ids || []"
+                t-as="media_id"
+                t-key="media_id_index"
+                class="img me-1"
+                height="15"
+                width="15"
+                t-attf-src="/web/image/social.media/#{media_id}/image/15x15"
+                alt="Media"/>
+        </div>
+        <div class="o_event_title" t-out="title"/>
+    </t>
+</templates>

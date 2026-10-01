@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="stock_picking_list" model="ir.ui.view">
+        <field name="name">Lazada Picking List</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree"/>
+        <field name="arch" type="xml">
+            <field name="state" position="after">
+                <field
+                    name="lazada_package_status"
+                    widget="badge"
+                    decoration-info="lazada_package_status in ['draft', 'confirmed', 'processing']"
+                    decoration-success="lazada_package_status == 'delivered'"
+                    decoration-danger="lazada_package_status == 'canceled'"
+                    optional="hide"
+                />
+            </field>
+        </field>
+    </record>
+
+    <record id="stock_picking_form" model="ir.ui.view">
+        <field name="name">lazada.picking.form</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <sheet position="before">
+                <div
+                    class="alert alert-warning text-center"
+                    role="alert"
+                    invisible="not lazada_order_ref or lazada_package_status != 'manual'"
+                >
+                    This order contains unsupported order status.
+                    Please process the order manually on Lazada.
+                </div>
+            </sheet>
+            <xpath expr="//button[@name='button_validate'][1]" position="attributes">
+                <attribute
+                    name="invisible"
+                    add="lazada_order_ref and not lazada_label_attachment_ids"
+                    separator=" or "
+                />
+            </xpath>
+            <xpath expr="//button[@name='button_validate'][2]" position="attributes">
+                <attribute
+                    name="invisible"
+                    add="lazada_order_ref and not lazada_label_attachment_ids"
+                    separator=" or "
+                />
+            </xpath>
+            <button name="action_cancel" position="before">
+                <button
+                    name="action_pack_lazada_package"
+                    string="Pack Lazada Package"
+                    type="object"
+                    class="btn-primary"
+                    invisible="not lazada_order_ref
+                                or lazada_package_status != 'draft'
+                                or state == 'cancel'"
+                />
+                <button
+                    name="action_fetch_shipping_label"
+                    string="Download Shipping Label (Lazada)"
+                    type="object"
+                    class="btn-primary"
+                    invisible="not lazada_order_ref
+                                or lazada_package_status not in ['confirmed', 'processing', 'delivered']
+                                or lazada_label_attachment_ids
+                                or state == 'cancel'"
+                />
+                <button
+                    name="action_fetch_shipping_label"
+                    string="Download Shipping Label (Lazada)"
+                    type="object"
+                    class="btn-secondary"
+                    invisible="not lazada_order_ref
+                                or lazada_package_status not in ['confirmed', 'processing', 'delivered']
+                                or not lazada_label_attachment_ids
+                                or state == 'cancel'"
+                />
+            </button>
+
+            <div name="button_box" position="after">
+                <field
+                    name="lazada_package_status"
+                    widget="badge"
+                    decoration-info="lazada_package_status in ('draft', 'confirmed', 'processing')"
+                    decoration-success="lazada_package_status == 'delivered'"
+                    decoration-danger="lazada_package_status == 'canceled'"
+                    decoration-warning="lazada_package_status == 'manual'"
+                    class="float-end"
+                    invisible="not lazada_order_ref"
+                />
+            </div>
+
+            <field name="origin" position="after">
+                <field name="lazada_order_ref" invisible="not lazada_order_ref"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="action_fetch_shipping_label" model="ir.actions.server">
+        <field name="name">Fetch Shipping Label (Lazada)</field>
+        <field name="model_id" ref="model_stock_picking"/>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">records.action_fetch_shipping_label()</field>
+    </record>
+
+</odoo>

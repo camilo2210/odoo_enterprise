@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rating_rating_view_search_appointment" model="ir.ui.view">
+        <field name="name">rating.rating.view.search.appointment</field>
+        <field name="model">rating.rating</field>
+        <field name="inherit_id" ref="rating.rating_rating_view_search"/>
+        <field name="mode">primary</field>
+        <field name="priority">64</field>
+        <field name="arch" type="xml">
+            <field name="res_name" position="attributes">
+                <attribute name="string">Appointment</attribute>
+            </field>
+            <field name="res_name" position="after">
+                <field name="feedback" string="Comment"/>
+                <field name="appointment_resource_ids" string="Resource"/>
+            </field>
+            <xpath expr="//field[@name='rated_partner_id']" position="after">
+                <field name="parent_res_name" position="move"/>
+            </xpath>
+            <field name="parent_res_name" position="attributes">
+                <attribute name="string">Appointment Type</attribute>
+            </field>
+            <field name="rated_partner_id" position="attributes">
+                <attribute name="string">Rated User</attribute>
+            </field>
+            <field name="partner_id" position="attributes">
+                <attribute name="string">Booker</attribute>
+            </field>
+            <filter name="responsible" position="attributes">
+                <attribute name="string">Rated User</attribute>
+                <attribute name="domain">[('appointment_schedule_based_on', '=', 'users')]</attribute>
+            </filter>
+            <filter name="customer" position="attributes">
+                <attribute name="string">Customer</attribute>
+            </filter>
+            <filter name="resource" position="replace"/>
+            <filter name="responsible" position="after">
+                <filter name="customer" position="move"/>
+            </filter>
+            <filter name="rating_text" position="after">
+                <filter string="Appointment Type" name="res_appointment_type" context="{'group_by': 'parent_res_name'}"/>
+            </filter>
+        </field>
+    </record>
+
+    <record id="rating_rating_view_list_appointment" model="ir.ui.view">
+        <field name="name">rating.rating.view.list.appointment</field>
+        <field name="model">rating.rating</field>
+        <field name="inherit_id" ref="rating.rating_rating_view_tree"/>
+        <field name="mode">primary</field>
+        <field name="priority">64</field>
+        <field name="arch" type="xml">
+            <field name="rated_partner_id" position="attributes">
+                <attribute name="string">Staff Member</attribute>
+            </field>
+            <field name="res_name" position="attributes">
+                <attribute name="string">Appointment</attribute>
+            </field>
+            <field name="parent_res_name" position="attributes">
+                <attribute name="string">Appointment Type</attribute>
+            </field>
+            <field name="partner_id" position="attributes">
+                <attribute name="string">Booker</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="rating_rating_view_form_appointment" model="ir.ui.view">
+        <field name="name">rating.rating.view.form.appointment</field>
+        <field name="model">rating.rating</field>
+        <field name="inherit_id" ref="rating.rating_rating_view_form_text"/>
+        <field name="mode">primary</field>
+        <field name="priority">64</field>
+        <field name="arch" type="xml">
+            <field name="parent_ref" position="before">
+                <field name="appointment_schedule_based_on" invisible="1"/>
+            </field>
+            <field name="parent_ref" position="attributes">
+                <attribute name="string">Appointment</attribute>
+                <attribute name="readonly">1</attribute>
+            </field>
+            <field name="parent_ref" position="after">
+                <field name="rated_partner_id" position="move"/>
+                <field name="appointment_resource_ids"
+                       string="Booked resource"
+                       widget="many2many_tags"
+                       readonly="1"
+                       invisible="appointment_schedule_based_on != 'resources'"/>
+                <field name="rated_on" position="move"/>
+            </field>
+            <field name="rated_partner_id" position="attributes">
+                <attribute name="string">Booked User</attribute>
+                <attribute name="readonly">1</attribute>
+                <attribute name="invisible">appointment_schedule_based_on == 'resources'</attribute>
+            </field>
+            <field name="partner_id" position="attributes">
+                <attribute name="string">Customer</attribute>
+                <attribute name="readonly">1</attribute>
+            </field>
+            <field name="rated_on" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </field>
+            <field name="resource_ref" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <field name="consumed" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <field name="is_internal" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <xpath expr="//label[@for='publisher_comment']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='publisher_comment']/parent::div" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <field name="feedback" position="attributes">
+                <attribute name="string">Comment</attribute>
+                <attribute name="readonly">1</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="rating_rating_view_kanban_appointment" model="ir.ui.view">
+        <field name="name">rating.rating.view.kanban.appointment</field>
+        <field name="model">rating.rating</field>
+        <field name="inherit_id" ref="rating.rating_rating_view_kanban"/>
+        <field name="mode">primary</field>
+        <field name="priority">64</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='rated_partner_name']" position="before">
+                <field name="appointment_schedule_based_on" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='rated_partner_name']" position="replace">
+                <div class="pb-1" invisible="appointment_schedule_based_on == 'resources'">
+                    <field name="rated_partner_name" class="fw-bolder"/>
+                </div>
+                <div class="pb-1" invisible="appointment_schedule_based_on != 'resources'">
+                    <field name="appointment_resource_ids" widget="many2many_tags" class="fw-bolder"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="rating_rating_action_appointment" model="ir.actions.act_window">
+        <field name="name">Appointment Ratings</field>
+        <field name="res_model">rating.rating</field>
+        <field name="path">appointment-ratings</field>
+        <field name="view_mode">kanban,list,pivot,graph,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('rating_rating_view_kanban_appointment')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('rating_rating_view_list_appointment')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('rating_rating_view_form_appointment')})
+        ]"/>
+        <field name="search_view_id" ref="rating_rating_view_search_appointment"/>
+        <field name="context">{
+            'pivot_measures': ['rating', '__count__'],
+        }</field>
+        <field name="domain">[('consumed', '=', True), ('res_model', '=', 'calendar.event')]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">
+                No ratings yet!
+            </p>
+            <p>
+                Ratings given by bookers after their appointments will appear here.
+            </p>
+        </field>
+    </record>
+</odoo>

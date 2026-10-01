@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Standalone copy of web.login_layout rather than an inherit of it: the website module
+         replaces web.login_layout's body with website.layout, which only renders when the endpoint
+         declares `website=True` (it reads `website` out of the render values). A `primary` inherit
+         would NOT escape that - a primary view is built from its parent's *combined* arch, so the
+         website extension is baked into the copy too. The OAuth endpoints must stay
+         website-agnostic, so this branches off web.frontend_layout directly. -->
+    <template id="oauth_layout" name="OAuth Layout">
+        <t t-set="head">
+            <meta name="viewport" content="width=device-width, initial-scale=1"/>
+            <t t-call-assets="web.assets_frontend" t-js="false"/>
+        </t>
+        <t t-call="web.layout" head="head" title="title" html_data="{'style': 'height: 100%;'}" body_classname.f="bg-100">
+            <div class="container py-5">
+                <div class="card border-0 mx-auto bg-100" style="max-width: 320px;">
+                    <div class="card-body">
+                        <div class="text-center pb-3 border-bottom mb-4">
+                            <img src="/web/binary/company_logo" alt="Logo" style="max-height:120px; max-width: 100%; width:auto"/>
+                        </div>
+                        <t t-out="0"/>
+                        <div class="text-center small mt-4 pt-3 border-top">
+                            <a href="https://www.odoo.com?utm_source=db&amp;utm_medium=auth" target="_blank">Powered by <span>Odoo</span></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="mx-auto" style="max-width: 320px;">
+                    <t t-out="footer_note"/>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="consent" name="OAuth Consent">
+        <t t-set="title">Grant Access</t>
+        <t t-set="footer_note">
+            <p class="smaller text-muted text-break text-center mt-3 mb-0">
+                You will be redirected to
+                <span class="font-monospace" t-out="params['redirect_uri']"/>
+            </p>
+        </t>
+        <t t-call="ai_mcp.oauth_layout" title="title" footer_note="footer_note">
+            <h1 class="h4 text-center mb-4">Grant Access</h1>
+            <p>
+                <strong t-out="client_name"/> is requesting access to your Odoo
+                account for
+                <strong>MCP (Model Context Protocol)</strong>.
+            </p>
+            <form method="post" action="/oauth/authorize/submit_consent" target="_top" id="oauth_consent_form">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <t t-foreach="params.items()" t-as="param">
+                    <input type="hidden" t-att-name="param[0]" t-att-value="param[1]"/>
+                </t>
+                <div class="mt-4">
+                    <label class="form-label"><strong t-out="client_name"/> access expires after:</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        <t t-foreach="durations" t-as="duration">
+                            <input type="radio" class="btn-check" name="duration"
+                                t-att-id="'oauth_duration_%s' % duration[0]"
+                                t-att-value="duration[0]"
+                                t-att-checked="'checked' if duration[0] == default_duration else None"/>
+                            <label class="btn btn-sm btn-outline-primary"
+                                t-att-for="'oauth_duration_%s' % duration[0]" t-out="duration[1]"/>
+                        </t>
+                    </div>
+                </div>
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" name="allow" value="true" class="btn btn-primary">Allow</button>
+                    <button type="submit" name="allow" value="false" class="btn btn-secondary">Deny</button>
+                </div>
+            </form>
+            <div id="oauth_consent_spinner" class="position-fixed top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center bg-white bg-opacity-75">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Authorizing...</span>
+                </div>
+            </div>
+            <script type="text/javascript">
+                // Add a spinner to prevent users from clicking submit multiple times quickly which will show an error 
+                // "Unknown auth code" because the first request deleted the code already after it has been processed.
+                document.getElementById("oauth_consent_form").addEventListener("submit", () => {
+                    document.getElementById("oauth_consent_spinner").classList.replace("d-none", "d-flex");
+                });
+            </script>
+        </t>
+    </template>
+</odoo>

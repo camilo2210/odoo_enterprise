@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_hk_rental_view_form" model="ir.ui.view">
+        <field name="name">l10n_hk.rental.form</field>
+        <field name="model">l10n_hk.rental</field>
+        <field name="arch" type="xml">
+            <form string="Rental">
+                <header invisible="not id">
+                    <field name="state" widget="statusbar"/>
+                    <widget name="attach_document" string="Attach Payment Proof" action="action_attach_payment_proofs" highlight="1" invisible="lease_type != 'reimbursement' or state == 'draft'"/>
+                    <button name="action_confirm_rental" string="Confirm" type="object" class="oe_highlight"
+                            invisible="state != 'draft'" groups="hr.group_hr_user"/>
+                    <button name="action_reset_to_draft" string="Set To Draft" type="object"
+                            invisible="state == 'draft'" groups="hr.group_hr_user"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_similar_rentals_list" type="object" class="oe_stat_button" icon="home" groups="hr.group_hr_user" invisible="not similar_rental_ids">
+                            <field name="similar_rentals_count" string="Similar Rentals" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <div class="alert alert-warning d-flex align-items-center" role="alert" invisible="not similar_rentals_monthly_rent_too_high" groups="hr.group_hr_user">
+                        <span>
+                            The total monthly rent amount of this rental and the other ones sharing the same address is above the actual rental amount.
+                        </span>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="active"/>
+                    <div class="oe_title pe-0 w-100 mw-100" name="title">
+                        <h1 class="d-flex flex-row justify-content-between">
+                            <field name="name" class="text-truncate" placeholder="Rental Reference" readonly="state != 'draft'"/>
+                        </h1>
+                    </div>
+                    <group name="top_info">
+                        <group name="top_info_left">
+                            <!-- Defaults to the user creating the rental, and non-hr user shouldn't edit it to anything else. -->
+                            <field name="employee_id" widget="many2one_avatar_employee" readonly="not is_hr_user or state != 'draft'" groups="hr.group_hr_user"/>
+                            <label for="date_start" string="Rental Period" readonly="not is_hr_user"/>
+                            <div class="o_row">
+                                <field name="date_start" class="oe_inline" readonly="not is_hr_user or state != 'draft'"/>
+                                <i class="oi mx-2" data-icon="east" aria-label="Arrow icon" title="Arrow" invisible="not date_start"/>
+                                <field name="date_end" class="oe_inline" invisible="not date_start" readonly="not is_hr_user"/>
+                            </div>
+                            <field name="lease_type" readonly="not is_hr_user or state != 'draft'"/>
+                            <field name="currency_id" invisible="1"/> <!-- For the monetary fields -->
+                        </group>
+                        <group name="top_info_right">
+                            <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="not is_hr_user or state != 'draft'"/>
+                            <field name="monthly_rent_amount" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="not is_hr_user or state != 'draft'" invisible="lease_type != 'reimbursement'" required="lease_type == 'reimbursement' and state == 'draft'"/>
+                            <field name="co_pay_amount" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="not is_hr_user or state != 'draft'" invisible="lease_type != 'co_payment'" required="lease_type == 'co_payment' and state == 'draft'"/>
+                            <field name="valid_up_to_date" invisible="lease_type != 'reimbursement'" readonly="not is_hr_user"/>
+                        </group>
+                    </group>
+                    <group name="bottom_info" string="Rental Details">
+                        <group name="bottom_info_left">
+                            <field name="nature" readonly="not is_hr_user or state != 'draft'"/>
+                            <field name="landlord_name" readonly="not is_hr_user or state != 'draft'" required="lease_type == 'reimbursement' and state == 'draft'"/>
+                            <field name="lease_agreement_file" string="Lease Agreement" readonly="not is_hr_user or state != 'draft'" required="lease_type == 'reimbursement' and state == 'draft'"/>
+                            <field name="stamped_duty_file" string="Stamped Duty" readonly="not is_hr_user or state != 'draft'" required="lease_type == 'reimbursement' and state == 'draft'" />
+                        </group>
+                        <group name="bottom_info_right">
+                            <label for="street" string="Address"/>
+                            <div class="o_address_format">
+                                <field name="state_id" class="o_address_hk_state" placeholder="Region" options="{'no_open': True, 'no_create': True}" readonly="not is_hr_user or state != 'draft'"/>
+                                <field name="district" placeholder="District" class="o_address_hk_district" readonly="not is_hr_user or state != 'draft'"/>
+                                <field name="street" placeholder="Street No. &amp; Name" class="o_address_street" readonly="not is_hr_user or state != 'draft'"/>
+                                <field name="estate" placeholder="Estate/Village" class="o_address_hk_estate" readonly="not is_hr_user or state != 'draft'"/>
+                                <field name="building" placeholder="Building" class="o_address_hk_building" readonly="not is_hr_user or state != 'draft'"/>
+                                <field name="block" placeholder="Block/Tower" class="o_address_hk_block" readonly="not is_hr_user or state != 'draft'"/>
+                                <field name="floor" placeholder="Floor" class="o_address_hk_floor" readonly="not is_hr_user or state != 'draft'"/>
+                                <field name="flat" placeholder="Flat/Unit" class="o_address_hk_flat" readonly="not is_hr_user or state != 'draft'"/>
+                            </div>
+                            <field name="address" nolabel="1" colspan="2" readonly="not is_hr_user"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter reload_on_attachment="True"/>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_hk_rental_view_tree" model="ir.ui.view">
+        <field name="name">l10n_hk.rental.list</field>
+        <field name="model">l10n_hk.rental</field>
+        <field name="arch" type="xml">
+            <list string="Rentals" sample="1" decoration-muted="not active">
+                <header>
+                    <button name="action_confirm_rental" type="object" string="Confirm" groups="hr.group_hr_user"/>
+                    <button name="action_reset_to_draft" type="object" string="Set To Draft" groups="hr.group_hr_user"/>
+                </header>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="employee_id" readonly="1" widget="many2one_avatar_employee"/>
+                <field name="name" readonly="1"/>
+                <field name="lease_type" readonly="1" optional="hide"/>
+                <field name="amount" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="monthly_rent_amount" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}" optional="hide"/>
+                <field name="co_pay_amount" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}" optional="hide"/>
+                <field name="nature" readonly="1" optional="hide"/>
+                <field name="date_start" readonly="1"/>
+                <field name="date_end" readonly="1"/>
+                <field name="valid_up_to_date" readonly="1" optional="hide"/>
+                <!-- The check on date_end is a simple way to notice 'expired' rentals. It's not super accurate, but it should suffice and keep things simple -->
+                <field name="state" readonly="1" widget="badge" decoration-info="state == 'draft'" decoration-muted="not active" decoration-warning="date_end" decoration-success="state == 'confirmed'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_hk_rental_view_search" model="ir.ui.view">
+        <field name="name">l10n_hk.rental.search</field>
+        <field name="model">l10n_hk.rental</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="address"/>
+                <filter name="filter_my_rentals" string="My Rentals" domain="[('employee_id.user_id', '=', uid)]"/>
+                <separator/>
+                <filter name="filter_is_confirmed" string="Running" domain="[('state', '=', 'confirmed'), '|', ('date_end', '=', False), ('date_end', '&gt;=', 'today')]"/>
+                <filter name="filter_is_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_is_inactive" string="Archived" domain="[('active', '=', False)]"/>
+                <filter name="group_by_employee" string="Employee" context="{'group_by': 'employee_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_l10n_hk_rental" model="ir.actions.act_window">
+        <field name="name">Rentals</field>
+        <field name="res_model">l10n_hk.rental</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+            Create a new rental
+            </p>
+        </field>
+    </record>
+</odoo>

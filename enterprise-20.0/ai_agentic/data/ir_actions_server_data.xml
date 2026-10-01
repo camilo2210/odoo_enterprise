@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_actions_server_ai_run_automation" model="ir.actions.server">
+        <field name="name">AI Tool: Run Automation</field>
+        <field name="ai_tool_name">ai_tool_run_trigger</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">ai['result'] = record._ai_tool_run_automation(ai, base_automation_id)</field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Running the automation</field>
+        <field name="ai_tool_description">
+            Runs a time-based automation right now, exactly as its schedule would: spawns an duplicate of the agent that executes the actions instructions in a headless run, and shows the result of it in the chat.
+            Use it when the user asks to run, test or try an automation now, instead of ever executing the automation's steps yourself in the conversation. Only time-based automations (scheduled actions and time rules) can run on demand; an event-based rule is tested by creating or updating a record that matches its trigger.
+            After creating a time-based automation, offer the user to run it once by CALLING this tool right away: its confirmation card ("Run" / "Not now") is the offer. Never ask "should I run it?" in your message text instead, that leaves the user without the Run button.
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "base_automation_id": {
+                    "type": "integer",
+                    "description": "Id of the automation to run."
+                }
+            },
+            "required": ["base_automation_id"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_ai_create_update_automation" model="ir.actions.server">
+        <field name="name">AI Tool: Create or Update Automation</field>
+        <field name="ai_tool_name">ai_tool_create_update_automation</field>
+        <field name="state">code</field>
+        <field name="code">ai['result'] = record._ai_tool_create_update_automation(ai, automation_id, name, description, active, trigger, ai_action_prompt, explanation)</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Working on your automation</field>
+        <field name="ai_tool_description">
+            Create and update persistent automations for actions you should perform later, repeatedly or in response to record event. Use this tool when the user asks you to perform an action or send a reminder at a future time, on a recurring schedule, or when records are created, changed, deleted, messaged, or meet specified conditions.
+            When creating a new automation, `name`, `description`, `trigger`, `ai_action_prompt` and `explanation` are required.
+            When editing an existing automation, `automation_id` and `explanation` are required. For the other parameters, only provide the ones that need to be updated.
+            ## Trigger type
+            Prefer the time-based triggers (`on_time_created`, `on_time_updated`, `on_time`) over the synchronous ones (`on_create`, `on_create_or_write`): they run shortly after the event instead of during the user's save. "When a ticket is created, …" is `on_time_created` with a 1 minute delay; "whenever a lead is updated, …" is `on_time_updated`. Use `on_create` / `on_create_or_write` only when the user explicitly asks for an immediate, synchronous action, or for a transition on specific fields that needs `filter_pre_domain`.
+            ## Trigger examples
+            - Tag every new ticket (preferred creation trigger): `{"trigger": {"type": "on_time_created", "target_model": "helpdesk.ticket", "date_offset_or_interval": {"amount": 1, "unit": "minutes"}}}`
+            - Trigger when the tag "Bug" is added on my tasks (a field transition, hence `on_create_or_write`): `{"trigger": {"type": "on_create_or_write", "observed_fields": ["tag_ids"], "filter_pre_domain": "[('tag_ids', 'not in', ['Bug'])]", "filter_domain": "[('tag_ids', 'in', ['Bug']), ('user_id', '=', 3)]"}}` (if the ID of the user is 3).
+            - Trigger the day before the expected closing date: `{"trigger": {"type": "on_time", "observed_fields": "date_deadline", "date_offset_or_interval": {"direction": "before", "amount": 1, "unit": "day"}}}`
+            - Trigger on creation if the record is unassigned: `{"trigger": {"type": "on_time_created", "filter_domain": "[('user_id', '=', False)]", "date_offset_or_interval": {"amount": 5, "unit": "minutes"}}}`
+            - Trigger on each Monday: `{"trigger": {"type": "on_schedule", "date_offset_or_interval": {"amount": 7, "unit": "day", "next_trigger_date": "2026-08-24 09:00:00"}}}` (if next Monday is 2026-08-24)
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "automation_id": {
+                    "type": "integer",
+                    "description": "The ID of the `base.automation` record to update. Leave empty to create a new one"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Name of the automation"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Short description of the automation. It should explain when the automation triggers, and what it does when triggered"
+                },
+                "active": {
+                    "type": "boolean",
+                    "description": "Whether the automation should be enabled or disabled"
+                },
+                "trigger": {
+                    "type": "object",
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "description": "When the automation should trigger. PREFER the time-based triggers: they run the agent shortly after the event, without blocking the user's save.\n- When a record is created ('when a ticket is created, …'): `on_time_created`, with a short delay in `date_offset_or_interval` (e.g. 1 minute). This is the default choice for creation.\n- When a record is created or updated ('whenever a lead changes, …'): `on_time_updated`, same short delay. This is the default choice for updates.\n- Only when the user EXPLICITLY asks the action to happen immediately, synchronously, during the save itself: `on_create` or `on_create_or_write`. `on_create_or_write` is also required for a transition on specific fields (needs `filter_pre_domain` / `filter_domain`).\n- When archived or unarchived: `on_archive` or `on_unarchive`\n- When a value changes in the UI before the record is saved: `on_change`\n- On deletion: `on_unlink`\n- When an external message is received on or sent from a record: `on_message_received` or `on_message_sent` (internal notes and system notifications are excluded)\n- Relative to a date or datetime field: `on_time`\n- On a clock-based recurrence: `on_schedule`"
+                        },
+                        "target_model": {
+                            "type": "string",
+                            "description": "Technical name of the model on which the automation should trigger (eg. `crm.lead`). Leave empty for clock-based recurrent triggers."
+                        },
+                        "filter_pre_domain": {
+                            "type": "string",
+                            "description": "Serialized Odoo domain a record must match before an update. Only allowed and optional for `on_create_or_write` (ignored when a record is created), `on_message_received` and `on_message_sent`."
+                        },
+                        "filter_domain": {
+                            "type": "string",
+                            "description": "Serialized Odoo domain a record must match when the automation is evaluated. Only allowed and optional for `on_create`, `on_create_or_write`, `on_archive`, `on_unarchive`, `on_change`, `on_unlink`, `on_time`, `on_time_created`, and `on_time_updated`."
+                        },
+                        "observed_fields": {
+                            "anyOf": [
+                                {
+                                    "type": "array",
+                                    "description": "List of fields of the target model whose modification should trigger the automation. Optional for `on_create_or_write` (leave empty to observe all fields) and required for `on_change_fields`.",
+                                    "items": {"type": "string"}
+                                },
+                                {
+                                    "type": "string",
+                                    "description": "Datetime field to observe, for `on_time`."
+                                }
+                            ]
+                        },
+                        "date_offset_or_interval": {
+                            "type": "object",
+                            "description": "For time-based triggers, the offset at which the automation should trigger (eg. 'the day before the value of the deadline field'). For `on_schedule`, use it to set the interval at which the automation should trigger (eg. 'Every monday'), and set the `next_trigger_date`.",
+                            "properties": {
+                                "direction": {
+                                    "type": "string",
+                                    "enum": ["before", "after"]
+                                },
+                                "amount": {
+                                    "type": "integer",
+                                    "description": "amount of units"
+                                },
+                                "unit": {
+                                    "type": "string",
+                                    "enum": ["minutes", "hour", "day", "month"]
+                                },
+                                "next_trigger_date": {
+                                    "type": "string",
+                                    "description": "The next datetime at which the automation should trigger (UTC). Only for `on_schedule`."
+                                }
+                            },
+                            "required": ["amount", "unit"]
+                        }
+                    },
+                    "required": []
+                },
+                "ai_action_prompt": {
+                    "type": "string",
+                    "description": "The prompt that the agent (you) will receive when the automation triggers.\n- Must be a detailed prompt written in HTML markup: `&lt;h3&gt;` headings, `&lt;ol&gt;`/`&lt;ul&gt;` lists, `&lt;p&gt;` paragraphs. NEVER use Markdown syntax (`###`, `**bold**`, `1.` lists): the field renders HTML only, Markdown shows as raw text.\n- It should start with a short sentence saying why the agent is invoked. Eg. \"This automation runs because the tag `Bug` was added on the lead\" or \"This automation runs every Monday\".\n- It should contain the steps to take, in execution order, and should end by asking to provide a short summary of what was accomplished.\n- You can inline record field values using `&lt;span data-ai-field=\"field.path\"&gt;Label&lt;/span&gt;`, never with a bare `{{field.path}}`, which might save some information-retrieval steps when the automation is fired. This is not supported with clock-based automations (use the information-retrieval skill instead). Make sure to adapt it if the trigger type changes.\n- Embed an \"Execution context\" block containing useful resolved models, field names, and stable IDs as raw integers, to remove the need for information-retrieval calls.\n- When a step creates a record that has `partner_id`, also set `partner_invoice_id` and `partner_shipping_id` explicitly to the same ID, to avoid the onchange cascade that hangs on newly created customers.\n- When the request references incoming messages, emails, or replies, direct the agent to read the record's chatter (its latest messages), not a stored field like `description`.\n- Do not add a step that posts a chatter note or message explaining what was done, unless the user explicitly asked for one: the run already reports its reasoning in the automation chat.\n- When a step must email someone, direct the agent to create a `mail.mail` record (`email_to`, `subject`, and `body_html`; queued and sent automatically), never a `mail.message`: that is an internal chatter note and sends nothing."
+                },
+                "explanation": {
+                    "type": "string",
+                    "description": "An explanation of the tool call. It MUST end asking for user's CONFIRMATION"
+                }
+            },
+            "required": ["explanation"]
+        }
+        </field>
+    </record>
+</odoo>

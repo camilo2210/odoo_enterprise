@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data noupdate="1">
+        <record id="ir_actions_server_create_hr_applicant" model="ir.actions.server" forcecreate="0">
+            <field name="name">Create an Applicant</field>
+            <field name="model_id" ref="documents.model_documents_document"/>
+            <field name="group_ids" eval="[Command.link(ref('base.group_user'))]"/>
+            <field name="state">multi</field>
+            <field name="child_ids">
+                <record id="ir_actions_server_create_hr_applicant_code" model="ir.actions.server" forcecreate="0">
+                    <field name="name">Create an Applicant</field>
+                    <field name="model_id" ref="documents.model_documents_document"/>
+                    <field name="usage">documents_embedded</field>
+                    <field name="state">code</field>
+                    <field name="code">
+action = records.document_hr_recruitment_create_hr_applicant()
+                    </field>
+                </record>
+            </field>
+        </record>
+        <function model="documents.document" name="action_folder_embed_action" eval="[
+            ref('documents_hr_recruitment.document_recruitment_folder'),
+            ref('documents_hr_recruitment.ir_actions_server_create_hr_applicant'),
+        ]"/>
+    </data>
+</odoo>

@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+
+    <record id="product_category_renting" model="product.category">
+        <field name="name">Rental</field>
+    </record>
+
+    <record id="pa_breakfast" model="product.attribute">
+        <field name="name">Breakfast</field>
+        <field name="create_variant">no_variant</field>
+        <field name="value_ids">
+            <record id="pav_breakfast_yes" model="product.attribute.value">
+                <field name="name">Yes</field>
+                <field name="default_extra_price">20</field>
+            </record>
+            <record id="pav_breakfast_no" model="product.attribute.value">
+                <field name="name">No</field>
+            </record>
+        </field>
+    </record>
+
+    <!-- Rental products -->
+
+    <record id="spa_access" model="product.product">
+        <field name="name">Spa Access</field>
+        <field name="description_sale">Half-day access to spa facilities including sauna and relaxation area.</field>
+        <field name="categ_id" ref="product.product_category_services"/>
+        <field name="type">service</field>
+        <field name="default_code">SERV-SPA</field>
+        <field name="image_1920" type="bytes" file="sale_renting/static/img/spa_access.jpg"/>
+        <field name="purchase_ok">False</field>
+        <field name="list_price">30.00</field>
+    </record>
+
+    <record id="luxury_room_template" model="product.template">
+        <field name="name">Luxury Room</field>
+        <field name="categ_id" ref="sale_renting.product_category_renting"/>
+        <field name="type">service</field>
+        <field name="default_code">RENT-PLANNING-NIGHT</field>
+        <field name="image_1920" type="bytes" file="sale_renting/static/img/luxury_room.jpg"/>
+        <field name="purchase_ok">False</field>
+        <field name="rent_periodicity">nights</field>
+        <field name="pickup_time">15</field>
+        <field name="return_time">10</field>
+        <field name="list_price">250.00</field>
+        <field name="attribute_line_ids" model="base" eval="[
+            Command.create({
+                'attribute_id': ref('sale_renting.pa_breakfast'),
+                'value_ids': [Command.set(obj().env.ref('sale_renting.pa_breakfast').value_ids.ids)],
+            }),
+        ]"/>
+        <field name="optional_product_ids" model="base" eval="[
+            Command.set(obj().env.ref('sale_renting.spa_access').product_tmpl_id.ids),
+        ]"/>
+    </record>
+
+    <record id="premium_bike" model="product.product">
+        <field name="name">Premium Bike</field>
+        <field name="categ_id" ref="sale_renting.product_category_renting"/>
+        <field name="type">consu</field>
+        <field name="default_code">RENT-WEEK</field>
+        <field name="image_1920" type="bytes" file="sale_renting/static/img/premium_bike.jpg"/>
+        <field name="purchase_ok">False</field>
+        <field name="rent_periodicity">weeks</field>
+        <field name="pickup_time">14</field>
+        <field name="return_time">10</field>
+        <field name="list_price">100.00</field>
+    </record>
+
+    <record id="projector_template" model="product.template">
+        <field name="name">Projector</field>
+        <field name="categ_id" ref="sale_renting.product_category_renting"/>
+        <field name="type">consu</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="default_code">RENT-HOUR</field>
+        <field name="image_1920" type="bytes" file="sale_renting/static/img/projector.jpg"/>
+        <field name="purchase_ok">False</field>
+        <field name="rent_periodicity">hours</field>
+        <field name="pickup_time">9</field>
+        <field name="return_time">18</field>
+        <field name="list_price">20.00</field>
+        <field name="attribute_line_ids" eval="[
+            Command.create({
+                'attribute_id': ref('product.pa_brand'),
+                'value_ids': [Command.set([ref('product.pav_brand_philips')])],
+            }),
+        ]"/>
+    </record>
+
+    <record id="printer_template" model="product.template">
+        <field name="name">Printer</field>
+        <field name="categ_id" ref="sale_renting.product_category_renting"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="default_code">RENT-SERIAL</field>
+        <field name="description_sale">Compact laser printer with fast output</field>
+        <field name="image_1920" type="bytes" file="sale_renting/static/img/printer.jpg"/>
+        <field name="purchase_ok">False</field>
+        <field name="rent_periodicity">hours</field>
+        <field name="pickup_time">9</field>
+        <field name="return_time">18</field>
+        <field name="list_price">30.00</field>
+        <field name="attribute_line_ids" eval="[
+            Command.create({
+                'attribute_id': ref('product.pa_brand'),
+                'value_ids': [Command.set([ref('product.pav_brand_canon')])],
+            }),
+        ]"/>
+    </record>
+
+    <function model="ir.model.data" name="_update_xmlids">
+        <value model="base" eval="[
+            {
+                'xml_id': f'sale_renting.{xmlid}',
+                'record': obj().env.ref(f'sale_renting.{xmlid}_template').product_variant_id,
+                'noupdate': True,
+            }
+            for xmlid in ['luxury_room', 'projector', 'printer']
+        ]"/>
+    </function>
+
+    <!-- Rental Sale orders -->
+    <!-- All dates are computed based on company timezone: Europe/Brussels (UTC+1). -->
+
+    <!-- Draft SO -->
+
+    <record id="rental_order_1" model="sale.order">
+        <field name="partner_id" ref="base.res_partner_2"/>
+        <field name="user_id" ref="base.user_demo"/>
+        <field name="team_id" ref="sales_team.team_sales_department"/>
+        <field name="date_order" eval="datetime.now() - relativedelta(months=3)"/>
+        <field name="rental_start_date" eval="datetime.now().replace(hour=14, minute=0, second=0)"/>
+        <field name="rental_return_date" eval="
+            datetime.now().replace(hour=9, minute=0, second=0) + relativedelta(days=3)
+        "/>
+        <field name="order_line">
+            <record id="rental_order_1_line_1" model="sale.order.line">
+                <field name="product_id" ref="luxury_room"/>
+                <field name="product_no_variant_attribute_value_ids" search="[
+                    ('product_tmpl_id', '=', ref('sale_renting.luxury_room_template')),
+                    ('product_attribute_value_id', '=', ref('sale_renting.pav_breakfast_yes')),
+                ]"/>
+                <field name="product_uom_qty">1</field>
+            </record>
+        </field>
+    </record>
+
+    <!-- Confirmed SO -->
+
+    <record id="rental_order_2" model="sale.order">  <!-- Late return -->
+        <field name="partner_id" ref="base.res_partner_2"/>
+        <field name="partner_invoice_id" ref="base.res_partner_2"/>
+        <field name="partner_shipping_id" ref="base.res_partner_2"/>
+        <field name="user_id" ref="base.user_admin"/>
+        <field name="team_id" ref="sales_team.team_sales_department"/>
+        <field name="date_order" eval="datetime.now() - relativedelta(months=3)"/>
+        <field name="rental_start_date" eval="
+            datetime.now().replace(hour=8, minute=0, second=0) - relativedelta(days=5)
+        "/>
+        <field name="rental_return_date" eval="
+            datetime.now().replace(hour=17, minute=0, second=0) - relativedelta(days=1)
+        "/>
+        <field name="tag_ids" eval="[
+            Command.set([ref('sales_team.categ_oppor3'), ref('sales_team.categ_oppor7')])
+        ]"/>
+        <field name="order_line">
+            <record id="rental_order_2_line_1" model="sale.order.line">
+                <field name="product_id" ref="projector"/>
+                <field name="product_uom_qty">3</field>
+                <field name="qty_delivered">2</field>  <!-- Partial pickup -->
+            </record>
+            <record id="rental_order_2_line_2" model="sale.order.line">  <!-- Includes non-rental product -->
+                <field name="product_id" ref="product.product_delivery_01"/>
+                <field name="product_uom_qty">2</field>
+            </record>
+        </field>
+    </record>
+
+    <record id="rental_order_2_activity" model="mail.activity">
+        <field name="res_id" ref="rental_order_2"/>
+        <field name="res_model_id" ref="sale_renting.model_sale_order"/>
+        <field name="activity_type_id" ref="mail.mail_activity_data_todo"/>
+        <field name="date_deadline" eval="datetime.now()"/>
+        <field name="summary">Follow-up on upsell</field>
+        <field name="create_uid" ref="base.user_admin"/>
+        <field name="user_id" ref="base.user_admin"/>
+    </record>
+
+    <record id="rental_order_3" model="sale.order"> <!-- Already picked-up -->
+        <field name="partner_id" ref="base.res_partner_1"/>
+        <field name="partner_invoice_id" ref="base.res_partner_1"/>
+        <field name="partner_shipping_id" ref="base.res_partner_1"/>
+        <field name="user_id" ref="base.user_admin"/>
+        <field name="team_id" ref="sales_team.team_sales_department"/>
+        <field name="date_order" eval="datetime.now() - relativedelta(months=2)"/>
+        <field name="rental_start_date" eval="
+            datetime.now().replace(hour=8, minute=0, second=0) - relativedelta(days=5)
+        "/>
+        <field name="rental_return_date" eval="
+            datetime.now().replace(hour=17, minute=0, second=0) + relativedelta(days=5)
+        "/>
+        <field name="tag_ids" eval="[
+            Command.set([ref('sales_team.categ_oppor3'), ref('sales_team.categ_oppor7')])
+        ]"/>
+        <field name="order_line">
+            <record id="rental_order_3_line_1" model="sale.order.line">
+                <field name="product_id" ref="projector"/>
+                <field name="product_uom_qty">2</field>
+                <field name="qty_delivered">2</field>
+            </record>
+        </field>
+    </record>
+
+    <!-- Confirm rental orders -->
+    <function
+        model="sale.order"
+        name="action_confirm"
+        eval="[[ref('rental_order_2'), ref('rental_order_3')]]"
+        context="{'action_no_send_mail': True}"
+    />
+
+</odoo>

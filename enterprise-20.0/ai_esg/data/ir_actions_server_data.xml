@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_emission_factors_ai_auto_assignment" model="ir.actions.server">
+        <field name="name">Assign with AI</field>
+        <field name="model_id" ref="esg.model_esg_carbon_emission_report"/>
+        <field name="binding_model_id" ref="esg.model_esg_carbon_emission_report"/>
+        <field name="binding_view_types">list,kanban</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = records.action_ai_assign_emission_factors()
+        </field>
+        <field name="group_ids" eval="[(4, ref('esg.esg_group_manager'))]"/>
+    </record>
+
+    <record id="emission_factors_ai_auto_assignment" model="ir.actions.server">
+        <field name="name">Server Action: Assign with AI</field>
+        <field name="model_id" ref="esg.model_esg_carbon_emission_report"/>
+        <field name="state">ai</field>
+        <field name="ai_tool_ids" eval="[
+            (4, ref('ai_esg.ir_actions_server_ai_esg_get_emission_sources')),
+            (4, ref('ai_esg.ir_actions_server_ai_esg_get_emission_factor')),
+            (4, ref('ai_esg.ir_actions_server_ai_esg_assign_emission_factors_to_carbon_line')),
+        ]"/>
+        <field name="ai_action_prompt">
+        <![CDATA[
+            Here is an emission line whose name is <span data-ai-field="name">Name</span>, its associated account is <span data-ai-field="account_id.name">Account Name</span>, its product category is <span data-ai-field="product_category_id.complete_name">Product Category Name</span> and its partner is <span data-ai-field="partner_id.name">Partner Name</span> from the country <span data-ai-field="partner_id.country_id.name">Partner Country Name</span>.
+            Moreover, its unit of measure is <span data-ai-field="uom_id.name">Unit of Measure Name</span>, its currency is <span data-ai-field="currency_id.name">Currency Name</span> and its company is <span data-ai-field="company_id.name">Company Name</span>.
+            Here are the instructions to following in the order:
+            First, determine the most relevant scope for this emission line between 'direct', 'indirect' or 'indirect_others' based on the given emission line data. key: 'direct' means Direct Emission (Scope 1), key: 'indirect' means Indirect Emission (Scope 2) and key: 'indirect_others' means Other Indirect Emission (Scope 3).
+            Secondly, determine the most relevant emission sources among the ones filtered by the scope (using the key) given in the previous step, and the emission line data. Select maximum 10 sources.
+            Thirdly, determine the most relevant emission factor among the ones filtered by the sources given in the previous step, and the emission line data. Try to match the most relevant fields such as name, uom_name, currency_name, region, company_name, etc.
+            Finally, assign the emission factor field of the emission line to the emission factor you found in the previous step.
+        ]]>
+        </field>
+    </record>
+</odoo>
+

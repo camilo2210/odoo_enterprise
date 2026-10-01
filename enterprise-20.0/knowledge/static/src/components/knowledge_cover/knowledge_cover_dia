@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates id="template" xml:space="preserve">
+<t t-name="knowledge.KnowledgeCoverDialog">
+    <Dialog contentClass="this.contentClass" size="this.size" title.translate="Choose a nice cover" modalRef="this.modalRef">
+        <KnowledgeCoverSelector articleCoverId="this.props.articleCoverId"
+                                save.bind="this.save"
+                                searchTerm="this.props.articleName"
+                                selectMedia="(media) => this.selectedMedia.set(media)"
+                                setAbortUploadsCallback="(abortFunc) => (this.abortUploads = abortFunc)"
+                                modalRef="this.modalRef"
+                                id="''"
+                                selectedMedia="this.selectedMedia()"/>
+        <t t-set-slot="footer">
+            <button class="btn btn-secondary" t-on-click="() => this.close()">Discard</button>
+        </t>
+    </Dialog>
+</t>
+
+<t t-name="knowledge.CoversListTemplate" t-inherit="html_editor.ImagesListTemplate" t-inherit-mode="primary">
+    <xpath expr="//t[@t-foreach='this.state.attachments']" position="replace">
+        <t t-foreach="this.state.attachments" t-as="attachment" t-key="attachment.id">
+            <AutoResizeCover t-if="!attachment.original_id or this.state.showOptimized"
+                             id="attachment.id"
+                             isOptimized="!!attachment.original_id"
+                             isRemovable="true"
+                             onRemoved.bind="this.onRemoved"
+                             src="attachment.thumbnail_src or attachment.image_src"
+                             name="attachment.name"
+                             title="attachment.name"
+                             altDescription="attachment.altDescription"
+                             model="attachment.res_model"
+                             resId="attachment.res_id"
+                             minRowHeight="this.MIN_ROW_HEIGHT"
+                             onImageClick="() => this.onClickAttachment(attachment)"/>
+        </t>
+    </xpath>
+</t>
+</templates>

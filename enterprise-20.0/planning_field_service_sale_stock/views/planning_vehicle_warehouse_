@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_planning_vehicle_warehouse_list" model="ir.ui.view">
+        <field name="name">planning.vehicle.warehouse.list</field>
+        <field name="model">planning.vehicle.warehouse</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="warehouse_id"
+                       options="{'no_quick_create': True}"
+                       domain="['|', ('vehicle_mapping_ids', '=', False), ('vehicle_mapping_ids', '=', id)]"/>
+                <field name="user_ids"
+                       readonly="not warehouse_id" 
+                       widget="many2many_avatar_user" 
+                       domain="[ ('group_ids', 'in', [%(planning.group_planning_user)d, %(planning.group_planning_manager)d]), ('company_ids', 'in', company_id), '|', '!', ('vehicle_warehouse_ids.company_id', '=', company_id), ('vehicle_warehouse_ids', '=', id) ]"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_planning_vehicle_warehouse_kanban" model="ir.ui.view">
+        <field name="name">planning.vehicle.warehouse.kanban</field>
+        <field name="model">planning.vehicle.warehouse</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <templates>
+                    <t t-name="card">
+                        <main>
+                            <span class="d-flex fw-bold fs-5">
+                                <field name="warehouse_id"/>
+                            </span>
+                        </main>
+                        <footer class="mt-2">
+                            <div class="ms-auto">
+                            <field name="user_ids" 
+                                   widget="many2many_avatar_user"
+                                   readonly="not warehouse_id"
+                                   domain="[ ('group_ids', 'in', [%(planning.group_planning_user)d, %(planning.group_planning_manager)d]), ('company_ids', 'in', company_id), '|', '!', ('vehicle_warehouse_ids.company_id', '=', company_id), ('vehicle_warehouse_ids', '=', id) ]"/>
+                            </div>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_planning_vehicle_warehouse_form" model="ir.ui.view">
+        <field name="name">planning.vehicle.warehouse.form</field>
+        <field name="model">planning.vehicle.warehouse</field>
+        <field name="arch" type="xml">
+            <form string="Vehicle Warehouse">
+                <sheet>
+                    <group>                        
+                        <field name="warehouse_id" 
+                               options="{'no_quick_create': True}"
+                               domain="['|', ('vehicle_mapping_ids', '=', False), ('vehicle_mapping_ids', '=', id)]"/>
+                        <field name="user_ids" 
+                               widget="many2many_avatar_user"
+                               readonly="not warehouse_id"
+                               domain="[ ('group_ids', 'in', [%(planning.group_planning_user)d, %(planning.group_planning_manager)d]), ('company_ids', 'in', company_id), '|', '!', ('vehicle_warehouse_ids.company_id', '=', company_id), ('vehicle_warehouse_ids', '=', id) ]"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_planning_vehicle_warehouse_search" model="ir.ui.view">
+        <field name="name">planning.vehicle.warehouse.search</field>
+        <field name="model">planning.vehicle.warehouse</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="warehouse_id"/>
+                <field name="user_ids"/>
+            </search>
+        </field>
+    </record>
+</odoo>

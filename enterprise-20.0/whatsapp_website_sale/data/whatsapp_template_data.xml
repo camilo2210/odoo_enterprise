@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<odoo noupdate="1">
+    <record id="whatsapp_template_abandoned_cart" model="whatsapp.template" forcecreate="0">
+        <field name="name">Abandoned Cart</field>
+        <field name="template_name">abandoned_cart</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="header_type">text</field>
+        <field name="header_text">Your cart is waiting for you!</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="use_default_recipient" eval="True"/>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="body">
+Hello {{1}},
+
+You left something in your cart. Complete your order here: {{2}}
+
+Thank you.
+        </field>
+        <field name="variable_ids" eval="[
+            Command.create({
+                'name': '{{1}}',
+                'demo_value': 'John Doe',
+                'line_type': 'body',
+                'field_type': 'field',
+                'field_name': 'partner_id'
+            }),
+            Command.create({
+                'name': '{{2}}',
+                'demo_value': 'https://...',
+                'line_type': 'body',
+                'field_type': 'portal_url'
+            }),
+        ]"/>
+    </record>
+</odoo>

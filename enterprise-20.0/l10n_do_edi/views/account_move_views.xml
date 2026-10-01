@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="account_move_form_view_inherit_l10n_do_edi" model="ir.ui.view">
+        <field name="name">account.move.form.view.inherit.l10n_do_edi</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <div id="alerts" position="after">
+                <div class="m-0" invisible="not l10n_do_edi_warnings">
+                    <field name="l10n_do_edi_warnings" class="o_field_html" widget="actionable_errors"/>
+                </div>
+            </div>
+            <xpath expr="//group[@id='header_right_group']" position="inside">
+                <field name="l10n_do_edi_income_type"
+                       readonly="state == 'posted'"
+                       required="l10n_latam_use_documents and country_code == 'DO'"
+                       invisible="not l10n_latam_use_documents or country_code != 'DO'"/>
+                <field name="l10n_do_edi_modification_code"
+                       readonly="state == 'posted'"
+                       required="l10n_latam_use_documents and l10n_latam_document_internal_type in ['credit_note','debit_note'] and country_code == 'DO'"
+                       invisible="not l10n_latam_use_documents or l10n_latam_document_internal_type not in ['credit_note','debit_note'] or country_code != 'DO'"/>
+                <label for="l10n_do_edi_state"
+                       invisible="not l10n_latam_use_documents or country_code != 'DO'"/>
+                <div class="o_row"
+                     invisible="not l10n_latam_use_documents or country_code != 'DO'">
+                    <field name="l10n_do_edi_state"/>
+                    <button name="action_l10n_do_edi_request_dgii_status"
+                            string="Request DGII status"
+                            type="object"
+                            class="btn-link mb-1 px-0"
+                            icon="refresh"
+                            invisible="l10n_do_edi_state != 'infile_accepted' or company_id.l10n_do_edi_web_service_env == 'demo'"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_invoice_tree_inherit_l10n_do_edi" model="ir.ui.view">
+        <field name="name">account.invoice.list.inherit.l10n_do_edi</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_invoice_tree"/>
+        <field name="arch" type="xml">
+            <field name="status_in_payment" position="after">
+                <field name="l10n_do_edi_state"
+                       widget="badge"
+                       decoration-success="l10n_do_edi_state in ['dgii_accepted']"
+                       decoration-danger="l10n_do_edi_state in ['infile_rejected', 'dgii_rejected']"
+                       invisible="country_code != 'DO'"/>
+            </field>
+        </field>
+    </record>
+</odoo>

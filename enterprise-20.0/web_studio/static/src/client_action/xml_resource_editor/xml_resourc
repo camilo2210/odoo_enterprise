@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<templates>
+    <t t-name="web_studio.XmlResourceEditor">
+        <div class="o_web_studio_sidebar o_web_studio_xml_editor h-100 d-flex flex-column">
+            <div class="o_web_studio_xml_resource_selector p-2">
+                <SelectMenu
+                    class="'o_web_studio_xml_resource_select_menu text-light'"
+                    value="this.state.currentResourceId"
+                    choices="this.state.resourcesOptions"
+                    onSelect.bind="this.onResourceChange"
+                    required="true"
+                />
+                <button t-if="this.props.canSave" t-on-click="this.onSaveClick" class="btn btn-primary">Save</button>
+                <button t-on-click="this.onCloseClick" class="btn btn-secondary">Close</button>
+            </div>
+            <ResizablePanel class="'h-100'" minWidth="this.minWidth" initialWidth="this.props.initialWidth">
+                <div class="o_web_studio_code_editor_info p-3">
+                    <div class="d-flex justify-content-between">
+                        <p t-if="this.props.title" class="mb-0 text-light" t-out="this.props.title" />
+                        <button class="btn btn-sm btn-link p-0" type="button" t-on-click="this.onFormat">Format</button>
+                        <t t-if="this.props.slots and this.props.slots.additionalControlButtons" t-call-slot="additionalControlButtons" currentResource="{...this.getResourceFromId(this.state.currentResourceId)}"/>
+                    </div>
+                    <t t-if="this.props.displayAlerts">
+                        <div t-foreach="this.alerts" t-as="alert" t-key="alert" t-if="alert_value.display" class="alert alert-warning d-flex justify-content-between mt-3" role="alert">
+                            <p class="mb-0" t-out="alert_value.message" />
+                            <button type="button" class="btn-close ms-2" aria-label="Close" t-on-click="() => this.hideAlert(alert)" />
+                        </div>
+                    </t>
+                </div>
+                <CodeEditor
+                    mode="'qweb'"
+                    modeOptions="this.modeOptions"
+                    sessionId="this.state.currentResourceId"
+                    value="this.arch"
+                    onChange.bind="this.onCodeChange"
+                    theme="'monokai'"
+                    class="'o_web_studio_code_editor'"
+                    invalidLocators="this.invalidLocators or undefined"
+                />
+            </ResizablePanel>
+        </div>
+    </t>
+
+    <t t-name="web_studio.ViewSelector" t-inherit="web.SelectMenu" >
+        <xpath expr="//t[@t-foreach='this.state.displayedOptions']" position="attributes">
+            <attribute name="t-foreach">this.getMainViews()</attribute>
+        </xpath>
+    </t>
+
+    <t t-name="web_studio.ViewSelector.ChoiceItemRecursive">
+        <t t-set="level" t-value="level or 0"/>
+        <t t-call="web_studio.ViewSelector.ChoiceItem" />
+        <t t-set="sublevel" t-value="level + 1" />
+
+        <t t-set="children" t-value="this.getInherited(choice)" />
+        <t t-foreach="children" t-as="subChoice" t-key="subChoice_index">
+            <t t-call="{{ this.constructor.choiceItemTemplate }}"
+                level="sublevel"
+                choice="subChoice"
+                mode="'inherits'"/>
+        </t>
+
+        <t t-set="composedBy" t-value="this.getComposedBy(choice)" />
+        <t t-foreach="composedBy" t-as="subChoice" t-key="subChoice_index">
+            <t t-call="{{ this.constructor.choiceItemTemplate }}"
+                level="sublevel"
+                choice="subChoice"
+                mode="'composes'"/>
+        </t>
+    </t>
+
+    <t t-name="web_studio.ViewSelector.ChoiceItem" t-inherit="web.SelectMenu.ChoiceItem">
+        <xpath expr="./*[1]" position="before">
+            <t t-set="level" t-value="level or 0"/>
+        </xpath>
+
+        <xpath expr="//DropdownItem//div" position="attributes">
+            <attribute name="t-att-class">choice.resource.active ? "" : "text-decoration-line-through"</attribute>
+        </xpath>
+
+        <xpath expr="//DropdownItem//div" position="before">
+            <div t-attf-style="margin-left: {{ (level*10) + 5 }}px;" class="me-2">
+                <span class="d-block fw-bold" style="font-size: 0.7em;">
+                    <t t-if="this.mode==='inherits'">
+                        <i class="oi me-2" data-icon="account_tree"/>Modified by:
+                    </t>
+                    <t t-elif="this.mode==='composes'">
+                        <i class="oi me-2" data-icon="play_arrow"/>Uses:
+                    </t>
+                </span>
+            </div>
+        </xpath>
+    </t>
+</templates>

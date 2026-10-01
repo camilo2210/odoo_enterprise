@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_ae_eos_benefit_wizard_view_form" model="ir.ui.view">
+        <field name="name">l10n.ae.eos.benefit.wizard.view.form</field>
+        <field name="model">l10n.ae.eos.benefit.wizard</field>
+        <field name="arch" type="xml">
+            <form string="End of Service Benefit Report">
+                <div class="alert alert-warning" role="alert" invisible="not issues">
+                    The departure date of some employees is before the selected end date.
+                </div>
+                <group class="w-50">
+                    <label for="date_to" string="To Date"/>
+                    <div>
+                        <field name="date_to"/>
+                    </div>
+                    <field name="employee_ids" widget="many2many_avatar_user" options="{'no_create': True}" placeholder="All Employees"/>
+                    <field name="state_xlsx" invisible="1"/>
+                </group>
+                <div class="mt-4">
+                    <field name="eosb_filename_xlsx" invisible="1"/>
+                    <h2 invisible="not eosb_xlsx" class="oe_inline w-100 mb-2">Generation Complete</h2>
+                    <span invisible="not eosb_xlsx or state_xlsx != 'done'" class="w-100">
+                        Download the EOS Benefit XLSX file: <field name="eosb_xlsx" readonly="1" filename="eosb_filename_xlsx"/>
+                    </span>
+                </div>
+                <footer>
+                    <button name="export_report_xlsx" string="Export to XLSX" type="object" class="btn-primary" invisible="state_xlsx != 'draft'" data-hotkey="e"/>
+                    <button name="export_report_xlsx" string="Export to XLSX" type="object" invisible="state_xlsx != 'done'" data-hotkey="r"/>
+                    <button special="cancel" type="object" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_ae_eos_benefit_wizard_action" model="ir.actions.act_window">
+        <field name="name">End of Service Benefit Report</field>
+        <field name="res_model">l10n.ae.eos.benefit.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_type">report</field>
+    </record>
+
+    <menuitem
+        id="menu_l10n_ae_eos_benefit_wizard"
+        name="EOS Benefit"
+        action="l10n_ae_eos_benefit_wizard_action"
+        parent="l10n_ae_hr_payroll.menu_reporting_l10n_ae"
+        sequence="10"
+    />
+</odoo>

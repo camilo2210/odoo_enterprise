@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_analytic_lines_service_search" model="ir.ui.view">
+        <field name="name">account.analytic.line.services.search.inherit.sale.timesheet.enterprise</field>
+        <field name="model">account.analytic.line</field>
+        <field name="inherit_id" ref="sale.view_analytic_lines_service_search"/>
+        <field name="arch" type="xml">
+            <filter name="today" position="after">
+                <separator/>
+                <filter name="nonvalidated" string="Draft" domain="[('validated', '=', False)]"/>
+                <filter name="validated" string="Validated" domain="[('validated', '=', True)]"/>
+            </filter>
+        </field>
+    </record>
+
+    <record id="account_analytic_line_view_search" model="ir.ui.view">
+        <field name="name">sale_timesheet_enterprise.account.analytic.line.search</field>
+        <field name="model">account.analytic.line</field>
+        <field name="inherit_id" ref="sale_timesheet.account_analytic_line_view_search"/>
+        <field name="arch" type="xml">
+            <filter name="my_team_timesheet" position="replace"/>
+            <filter name="nonvalidated" position="replace"/>
+            <filter name="validated" position="replace"/>
+        </field>
+    </record>
+
+    <record id="timesheet_view_tree_colored_inherit_sale_timesheet_enterprise" model="ir.ui.view">
+        <field name="name">account.analytic.line.list.timesheet.grid.inherit.sale.timesheet.enterprise</field>
+        <field name="model">account.analytic.line</field>
+        <field name="inherit_id" ref="timesheet_grid.timesheet_view_tree_colored"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="js_class">my_timesheets_kpi_leaderboard_list</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="timesheet_kanban_view_inherit_sale_timesheet_enterprise" model="ir.ui.view">
+        <field name="name">account.analytic.line.kanban.timesheet.grid.inherit.sale.timesheet.enterprise</field>
+        <field name="model">account.analytic.line</field>
+        <field name="inherit_id" ref="timesheet_grid.view_kanban_account_analytic_line_inherit_timesheet_grid"/>
+        <field name="arch" type="xml">
+            <xpath expr="/kanban" position="attributes">
+                <attribute name="js_class">my_timesheets_kpi_leaderboard_kanban</attribute>
+            </xpath>
+            <xpath expr="/kanban/progressbar" position="before">
+                <field name="is_billable_select"/>
+            </xpath>
+            <xpath expr="/kanban/progressbar" position="attributes">
+                <attribute name="field">is_billable_select</attribute>
+                <attribute name="colors">{ "true": "success", "false": 300 }</attribute>
+            </xpath>
+            <xpath expr="//div[@name='ts_footer']" position="attributes">
+                <attribute name="t-attf-title">#{record.is_billable_select.raw_value =='true' ? 'Billable' : 'Non-billable'}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='unit_amount']" position="attributes">
+                <attribute name="decoration-success">is_billable</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Grid View -->
+    <record id="timesheet_view_grid" model="ir.ui.view">
+        <field name="name">sale_timesheet_enterprise.account.analytic.line.grid.inherit</field>
+        <field name="model">account.analytic.line</field>
+        <field name="inherit_id" ref="timesheet_grid.timesheet_view_grid" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='employee_id']" position="after">
+                <field name="so_line" type="row" invisible="1" widget="timesheet_many2one" />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="timesheet_view_grid_by_project" model="ir.ui.view">
+        <field name="name">sale_timesheet_enterprise.account.analytic.line.grid.project</field>
+        <field name="model">account.analytic.line</field>
+        <field name="inherit_id" ref="timesheet_grid.timesheet_view_grid_by_project" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='employee_id']" position="after">
+                <field name="so_line" type="row" invisible="1" widget="timesheet_many2one" />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="timesheet_view_grid_by_employee" model="ir.ui.view">
+        <field name="name">sale_timesheet_enterprise.account.analytic.line.grid.employee</field>
+        <field name="model">account.analytic.line</field>
+        <field name="inherit_id" ref="timesheet_grid.timesheet_view_grid_by_employee" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='task_id']" position="after">
+                <field name="so_line" type="row" invisible="1" widget="timesheet_many2one" />
+            </xpath>
+        </field>
+    </record>
+    <record id="quick_create_account_analytic_line_form" model="ir.ui.view">
+        <field name="name">sale_timesheet.account.analytic.line.kanban.quick_create</field>
+        <field name="model">account.analytic.line</field>
+        <field name="inherit_id" ref="hr_timesheet.quick_create_account_analytic_line_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='unit_amount']" position="after">
+                <field name="is_billable" string="Billable" widget="boolean_toggle" invisible="not project_id or not allow_billable"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="timesheet_action_from_sales_order_item_kanban" model="ir.actions.act_window.view">
+        <field name="sequence" eval="15"/>
+        <field name="view_mode">grid</field>
+        <field name="view_id" ref="timesheet_grid.timesheet_view_grid_by_employee"/>
+        <field name="act_window_id" ref="sale_timesheet.timesheet_action_from_sales_order_item"/>
+    </record>
+</odoo>

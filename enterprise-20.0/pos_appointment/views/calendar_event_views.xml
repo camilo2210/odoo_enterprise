@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="calendar_event_view_form_gantt_booking" model="ir.ui.view">
+        <field name="name">calendar.event.view.form.gantt.booking</field>
+        <field name="model">calendar.event</field>
+        <field name="mode">primary</field>
+        <field name="priority" eval="30"/>
+        <field name="inherit_id" ref="appointment.calendar_event_view_form_gantt_booking"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="class"
+                    remove="o_calendar_event_form_quick_create_width"
+                    add="o_pos_appointment_form_quick_create"
+                    separator=" "/>
+                <attribute name="js_class">pos_appointment_quick_create_form_view</attribute>
+            </xpath>
+            <xpath expr="//span[./field[@name='allday']]" position="replace"/>
+            <xpath expr="//div[./field[@name='partner_ids']]" position="replace"/>
+            <xpath expr="//div[./field[@name='total_capacity_reserved']]" position="after">
+                <div class="o_outlined d-flex align-items-baseline mb-2 gap-2">
+                    <i class="oi oi-filled" data-icon="person" title="Customer"/>
+                    <field name="partner_ids" nolabel="1" class="w-100" widget="many2many_tags" context="{'form_view_ref': 'point_of_sale.view_partner_form_pos_ui'}" placeholder="Customer"/>
+                </div>
+                <div class="o_outlined d-flex align-items-baseline mb-2 gap-2">
+                    <i class="oi oi-filled" data-icon="phone" title="Phone"/>
+                    <field name="phone_number" nolabel="1" class="w-100" widget="phone" placeholder="Phone"/>
+                </div>
+            </xpath>
+            <xpath expr="//div[./field[@name='total_capacity_reserved']]" position="replace">
+                <div class="o_outlined d-flex align-items-baseline mb-2 gap-2">
+                    <i class="oi oi-filled" data-icon="group" title="People"/>
+                    <div class="o_cell">
+                        <field name="waiting_list_capacity" nolabel="1"/>
+                        <span class="people-label ms-2">people</span>
+                    </div>
+                </div>
+            </xpath>
+            <xpath expr="//div[./field[@name='appointment_status']]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="calendar_event_view_gantt_booking_resource" model="ir.ui.view">
+        <field name="name">calendar.event.view.gantt.booking.resource.pos.appointment</field>
+        <field name="model">calendar.event</field>
+        <field name="mode">primary</field>
+        <field name="inherit_id" ref="appointment.calendar_event_view_gantt_booking_resource"/>
+        <field name="arch" type="xml">
+            <xpath expr="//gantt" position="attributes">
+                <attribute name="form_view_id">%(pos_appointment.calendar_event_view_form_gantt_booking)d</attribute>
+                <attribute name="js_class">pos_appointment_booking_gantt</attribute>
+                <attribute name="card"/>
+            </xpath>
+            <xpath expr="//gantt" position="inside">
+                <field name="answers"/>
+                <field name="phone_number"/>
+                <field name="waiting_list_capacity"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="calendar_event_view_tree" model="ir.ui.view">
+        <field name="name">calendar.event.view.tree.pos.appointment</field>
+        <field name="model">calendar.event</field>
+        <field name="mode">primary</field>
+        <field name="inherit_id" ref="calendar.view_calendar_event_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="create">0</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="calendar_event_view_list" model="ir.ui.view">
+        <field name="name">calendar.event.list.pos.appointment</field>
+        <field name="model">calendar.event</field>
+        <field name="inherit_id" ref="calendar.view_calendar_event_tree"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="replace">
+                <list string="Bookings" multi_edit="1" js_class="pos_appointment_list">
+                    <field name="name" string="Name" decoration-bf="1" readonly="recurrency"/>
+                    <field name="phone_number" string="Phone" optional="show"/>
+                    <field name="start" string="Arrival" readonly="1"/>
+                    <field name="waiting_list_capacity" string="Guests" sum="Total Guest" />
+                    <field name="stop" string="End Time" optional="hide" />
+                    <field name="resource_ids" widget="card.many2many_tags" readonly="1"/>
+                    <field name="notes" readonly="recurrency" class="description-one-line"/>
+                    <field name="appointment_status" string="Status" widget="pos_appointment_badge" decoration-muted="appointment_status == 'booked'" decoration-success="appointment_status == 'attended'" decoration-danger="appointment_status in ('cancelled', 'no_show')"/>
+                    <field name="answers" readonly="recurrency" class="description-one-line" optional="hide" />
+                </list>
+            </xpath>
+        </field>
+    </record>
+    <record id="calendar_event_view_kanban" model="ir.ui.view">
+    <field name="name">calendar.event.view.kanban.pos.appointment</field>
+    <field name="model">calendar.event</field>
+    <field name="inherit_id" ref="appointment.calendar_event_view_kanban"/>
+    <field name="mode">primary</field>
+    <field name="priority" eval="30"/>
+    <field name="arch" type="xml">
+        <kanban position="attributes">
+            <attribute name="default_order">start</attribute>
+            <attribute name="js_class">pos_kanban</attribute>
+        </kanban>
+        <kanban position="inside">
+            <field name="answers"/>
+            <field name="name" />
+            <field name="notes" />
+            <field name="resource_ids" />
+            <field name="start" />
+            <field name="stop" />
+            <field name="id" />
+            <field name="phone_number" />
+            <field name="waiting_list_capacity"/>
+        </kanban>
+        <xpath expr="//div[@t-if='record.appointment_type_manage_capacity.raw_value']" position="replace">
+            <div class="rounded bg-300 p-1">
+                <field name="waiting_list_capacity"/>p
+            </div>
+        </xpath>
+        <xpath expr="//div/field[@name='resource_ids']" position="replace"/>
+        <xpath expr="//div[hasclass('o_appointment_calendar_event_kanban_data_container')]" position="attributes">
+            <attribute name="class" add="col-8" separator=" "/>
+        </xpath>
+        <xpath expr="//div[hasclass('o_appointment_calendar_event_kanban_data_container')]" position="after">
+            <div class="d-flex align-items-end flex-column col-4 text-end ps-0">
+                <div class="d-flex gap-1 mb-1">
+                    <div class="o_kanban_record_colored px-2 py-1 rounded align-self-start text-nowrap"
+                        t-attf-class="{{ {'booked': 'o_kanban_color_2', 'attended': 'o_kanban_color_10', 'no_show': 'o_kanban_color_1'}[record.appointment_status.raw_value] }}">
+                        <t t-if="record.appointment_status.raw_value == 'booked'">Waiting</t>
+                        <t t-elif="record.appointment_status.raw_value == 'attended'">Check In</t>
+                        <t t-elif="record.appointment_status.raw_value == 'no_show'">No show</t>
+                    </div>
+                </div>
+                <span>
+                    <field name="resource_ids" widget="card.many2many_tags" readonly="1" class="mt-1 mb-2" />
+                </span>
+            </div>
+        </xpath>
+    </field>
+    </record>
+    <record id="calendar_event_view_graph_pos_appointment" model="ir.ui.view">
+        <field name="name">calendar.event.view.graph.pos.appointment</field>
+        <field name="model">calendar.event</field>
+        <field name="inherit_id" ref="appointment.calendar_event_view_graph"/>
+        <field name="mode">primary</field>
+        <field name="priority" eval="30"/>
+        <field name="arch" type="xml">
+            <graph position="attributes">
+                <attribute name="string">Bookings</attribute>
+                <attribute name="js_class">pos_appointment_graph</attribute>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_calendar_event_search" model="ir.ui.view">
+        <field name="name">calendar.event.view.search</field>
+        <field name="model">calendar.event</field>
+        <field name="arch" type="xml">
+            <search string="Search Meetings">
+                <filter name="unassigned" string="Unassigned" domain="[('resource_ids', '=', False)]"/>
+                <separator/>
+                <filter name="booked" string="Booked" domain="[('appointment_status', '=', 'booked')]"/>
+                <filter name="checkedin" string="Checked-In" domain="[('appointment_status', '=', 'attended')]"/>
+                <filter name="noshow" string="No Show" domain="[('appointment_status', '=', 'no_show')]"/>
+                <separator/>
+                <filter name="morning" string="Morning" domain="[('start','&gt;', context.get('morning_time')), ('start','&lt;', context.get('afternoon_time'))]"/>
+                <filter name="afternoon" string="Afternoon" domain="[('start','>=', context.get('afternoon_time')), ('start','&lt;', context.get('evening_time'))]"/>
+                <filter name="evening" string="Evening" domain="[('start','>=', context.get('evening_time')), ('start','&lt;', context.get('endday_time'))]"/>
+                <separator/>
+                <filter name="mybookings" string="My Bookings" domain="[('partner_ids.user_ids', 'in', [uid])]"/>
+                <group>
+                    <filter name="responsible" string="Responsible"  domain="[]" context="{'group_by': 'user_id'}"/>
+                    <filter name="guest" string="Amount of guests"  domain="[]" context="{'group_by': 'waiting_list_capacity'}"/>
+                    <filter name="status" string="Status"  domain="[]" context="{'group_by': 'appointment_status'}"/>
+                    <filter name="date" string="Date"  domain="[]" context="{'group_by': 'start'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

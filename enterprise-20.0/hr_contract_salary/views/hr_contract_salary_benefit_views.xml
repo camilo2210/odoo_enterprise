@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_contract_benefit_view_form" model="ir.ui.view">
+        <field name="name">hr.contract.salary.benefit.view.form</field>
+        <field name="model">hr.contract.salary.benefit</field>
+        <field name="inherit_id" ref="hr_payroll.hr_contract_benefit_view_form"/>
+        <field name="arch" type="xml">
+            <field name="view_ids" position="before">
+                <field name="is_configurable_benefit"/>
+            </field>
+            <sheet position="inside">
+                <notebook invisible="not is_configurable_benefit">
+                    <page string="Salary Configurator Display" name="display">
+                        <group>
+                            <group>
+                                <field name="benefit_ids" string="Depends On" placeholder="No dependency" widget="many2many_tags"/>
+                                <field name="show_name"/>
+                                <field name="icon" placeholder="No icon" invisible="not show_name"/>
+                                <field name="folded" invisible="source != 'field'"/>
+                                <field name="fold_label" invisible="not folded or source != 'field'"/>
+                                <field name="fold_res_field_id" invisible="not folded or source != 'field'" options="{'no_create': True, 'no_edit': True, 'no_open': True}"/>
+                                <field name="always_show_description"/>
+                            </group>
+                            <group>
+                                <field name="uom" widget="radio" options='{"horizontal": true}' required="is_configurable_benefit"/>
+                                <field name="display_type" placeholder="Select a display type" required="is_configurable_benefit"/>
+                                <field name="value_type" widget="radio" options='{"horizontal": true}' invisible="display_type not in ['dropdown', 'dropdown-group', 'radio']"/>
+                                <field name="value_ids" invisible="display_type != 'dropdown-group'">
+                                    <list editable="bottom">
+                                        <control>
+                                            <create name="add_line_control" string="Add a line"/>
+                                            <create name="add_section_control" string="Add a section" context="{'default_display_type': 'section'}"/>
+                                        </control>
+                                        <field name="display_type" column_invisible="True"/>
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="name"/>
+                                        <field name="value"
+                                            invisible="display_type == 'section'"
+                                            required="display_type != 'section'"/>
+                                    </list>
+                                </field>
+                                <field name="value_ids" invisible="display_type not in ['dropdown', 'radio']">
+                                    <list editable="bottom">
+                                        <control>
+                                            <create name="add_line_control" string="Add a line"/>
+                                        </control>
+                                        <field name="display_type" column_invisible="True"/>
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="name"/>
+                                        <field name="value"
+                                            invisible="display_type == 'section'"
+                                            required="display_type != 'section'"/>
+                                        <field name="selector_highlight"
+                                            invisible="display_type == 'section' or benefit_display_type == 'dropdown'"
+                                            required="display_type != 'section' and benefit_display_type != 'dropdown'"
+                                            column_invisible="parent.display_type == 'dropdown'"/>
+                                        <field name="always_show_description"
+                                            invisible="display_type == 'section' or benefit_display_type == 'dropdown'"
+                                            column_invisible="parent.display_type == 'dropdown'"/>
+                                    </list>
+                                </field>
+                                <field name="manual_res_field_id" placeholder="No field" invisible="display_type != 'manual' or source != 'field'" options="{'no_create': True, 'no_edit': True, 'no_open': True}"/>
+                                <field name="manual_field" invisible="1"/>
+                                <field name="slider_min" invisible="display_type != 'slider'"/>
+                                <field name="slider_max" invisible="display_type != 'slider'"/>
+                                <field name="slider_step" invisible="display_type != 'slider'"/>
+                            </group>
+                        </group>
+                        <separator string="Description"/>
+                        <field name="description" placeholder="No description"/>
+                    </page>
+                    <page string="Actions" name="actions">
+                        <group>
+                            <group string="Activity">
+                                <field name="activity_type_id" placeholder="No activity type" options="{'no_create_edit': True}"/>
+                                <field name="activity_creation" widget="radio" invisible="not activity_type_id" required="activity_type_id"/>
+                                <field name="activity_creation_type" widget="radio" invisible="not activity_type_id" required="activity_type_id"/>
+                                <field name="activity_responsible_id" placeholder="Select a responsible person" options="{'no_create_edit': True}" invisible="not activity_type_id" required="activity_type_id"/>
+                            </group>
+                            <group string="Sign">
+                                <field name="sign_template_id" placeholder="No signature requested"/>
+                                <field name="sign_copy_partner_id" placeholder="Not sending copy" invisible="not sign_template_id"
+                                       options="{'no_quick_create': True}"
+                                       context="{'show_email': True, 'form_view_ref': 'base.view_partner_simple_form'}"/>
+                                <field name="sign_frenquency" widget="radio" invisible="not sign_template_id"/>
+                            </group>
+                            <group string="Documents">
+                                <field name="requested_documents_field_ids"
+    placeholder="No requested document"
+    options="{'no_create': True, 'no_edit': True, 'no_open': True}"
+    groups="base.group_system"
+    widget="many2many_tags"/>
+                                <label for="requested_documents_fields_string"
+                                    class="m-0"
+                                    groups="!base.group_system"/>
+                                <div groups="!base.group_system"
+                                    class="alert alert-warning m-0 w-100" role="alert">
+                                    <span>
+                                        This field can only be modified by a server administrator, contact them if these field requires modifications.
+                                    </span>
+                                    <span invisible="requested_documents_fields_string">
+                                        There are currently no requested fields.
+                                    </span>
+                                    <span invisible="not requested_documents_fields_string">
+                                        The current requested documents are the followings: <field name="requested_documents_fields_string" nolabel="1"/>
+                                    </span>
+                                </div>
+                            </group>
+                        </group>
+                    </page>
+                </notebook>
+            </sheet>
+        </field>
+    </record>
+
+    <record id="hr_contract_benefit_view_search" model="ir.ui.view">
+        <field name="name">hr.contract.salary.benefit.view.search</field>
+        <field name="model">hr.contract.salary.benefit</field>
+        <field name="inherit_id" ref="hr_payroll.hr_contract_benefit_view_search"/>
+        <field name="arch" type="xml">
+            <filter name="archived" position="after">
+                <filter name="not_configurable_ids" string="Is Not Configurable" domain="[('is_configurable_benefit', '=', False)]"/>
+                <filter name="configurable_ids" string="Is Configurable" domain="[('is_configurable_benefit', '!=', False)]"/>
+            </filter>
+        </field>
+    </record>
+
+    <menuitem
+        id="salary_package_menu"
+        name="Salary Package Configurator"
+        parent="hr_payroll.menu_hr_payroll_configuration"
+        sequence="100"/>
+
+</odoo>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="email_template_sync_reminder" model="mail.template">
+            <field name="name">Bank connection expiration reminder</field>
+            <field name="subject">Your bank connection is expiring soon</field>
+            <field name="email_from">{{ object.company_id.email_formatted or user.email_formatted }}</field>
+            <field name="email_to">{{ object.renewal_contact_email }}</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="model_id" ref="account_online_synchronization.model_account_journal"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="email_layout_xmlid">mail.mail_notification_light</field>
+            <field name="body_html" type="html">
+                <div style="font-size: 14px;">
+                    <t t-set="base_url" t-value="object.get_base_url()"></t>
+                    <p>
+                        Dear <t t-out="object.bank_account_id.holder_name or ''">Marc Demo</t>,<br/><br/>
+                        The connection between <b><a t-att-href='base_url' t-out="base_url or ''">https://yourcompany.odoo.com</a></b>
+                        and <t t-out="object.account_online_link_id.name or ''">Belfius</t>
+                        <t t-if="not object.expiring_synchronization_due_day">expired.</t>
+                        <t t-else="">expires in <t t-out="object.expiring_synchronization_due_day or ''">10</t> days.</t>
+                    </p>
+                    <p>Renew your consent to keep using bank synchronization seamlessly with Odoo.</p>
+                    <t t-set="renew_concent_url" t-value="base_url + '/renew_consent/%s?access_token=%s' % (object.id, object.access_token)"/>
+                    <div style="margin:16px auto; text-align:center">
+                        <a t-att-href="renew_concent_url"
+                           t-attf-style="padding: 8px 16px 8px 16px; border-radius: 3px; background-color: {{object.company_id.email_secondary_color or '#875A7B'}}; text-align:center; text-decoration:none; color: {{object.company_id.email_primary_color or '#FFFFFF'}};">
+                            Renew Consent
+                        </a>
+                    </div>
+                    <p>This is an automated email sent by Odoo Accounting to remind you before a bank sync consent expiration.</p>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>

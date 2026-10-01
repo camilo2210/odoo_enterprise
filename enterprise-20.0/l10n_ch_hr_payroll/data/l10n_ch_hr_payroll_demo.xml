@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="base.demo_company_ch" model="res.company" forcecreate="1">
+        <field name="name">My Swiss Company</field>
+        <field name="currency_id" ref="base.EUR"/>
+        <field name="street">Leberngasse 21</field>
+        <field name="zip">4600</field>
+        <field name="city">Olten</field>
+        <field name="country_id" ref="base.ch"/>
+        <field name="currency_id" ref="base.CHF"/>
+        <field name="l10n_ch_uid">CHE-999.999.996</field>
+    </record>
+
+    <record id="base.user_admin" model="res.users">
+        <field name="company_ids" eval="[(4, ref('base.demo_company_ch'))]"/>
+    </record>
+
+    <record id="base.user_demo" model="res.users">
+        <field name="company_ids" eval="[(4, ref('base.demo_company_ch'))]"/>
+    </record>
+
+    <record id="res_partner_ch_work_address" model="res.partner">
+        <field name="name">CH Office</field>
+        <field name="street">Grienbachstrasse 17</field>
+        <field name="city">Zugerberg</field>
+        <field name="zip">6300</field>
+        <field name="state_id" ref="base.state_ch_zg"/>
+        <field name="country_id" ref="base.ch"/>
+        <field name="company_id" ref="base.demo_company_ch"/>
+    </record>
+
+    <record id="l10n_ch_location_unit_demo" model="l10n.ch.location.unit">
+        <field name="company_id" ref="base.demo_company_ch"/>
+        <field name="partner_id" ref="res_partner_ch_work_address"/>
+    </record>
+
+    <record id="l10n_ch_salary_certificate_profile_demo" model="l10n.ch.salary.certificate.profile">
+        <field name="name">My Swiss Company Profile</field>
+        <field name="company_id" ref="base.demo_company_ch"/>
+        <field name="valid_from">2025-01-01</field>
+        <field name="l10n_ch_cs_free_transport" eval="True"/>
+        <field name="l10n_ch_cs_free_meals" eval="True"/>
+    </record>
+
+    <record id="l10n_ch_laa_insurance_line_rate_demo" model="l10n.ch.accident.insurance.line.rate">
+        <field name="date_from">2025-01-01</field>
+        <field name="occupational_male_rate">1</field>
+        <field name="non_occupational_male_rate">1</field>
+    </record>
+
+    <record id="l10n_ch_laa_group_demo" model="l10n.ch.accident.group">
+        <field name="name">LAA Group A</field>
+        <field name="group_unit">A</field>
+        <field name="line_ids" eval="[(4, ref('l10n_ch_laa_insurance_line_rate_demo'))]"/>
+    </record>
+   
+
+    <record id="l10n_ch_laa_insurance_demo" model="l10n.ch.accident.insurance">
+        <field name="name">Accident Insurance UVG Helvetia</field>
+        <field name="company_id" ref="base.demo_company_ch"/>
+        <field name="insurance_code">HEL-UVG-102938</field>
+        <field name="customer_number">70045678</field>
+        <field name="contract_number">HEL-UVG-2025-01</field>
+        <field name="laa_group_ids" eval="[(4, ref('l10n_ch_laa_group_demo'))]"/>
+    </record>
+
+    <record id="l10n_ch_lpp_insurance_demo" model="l10n.ch.lpp.insurance">
+        <field name="name">LPP Insurance AK Bern</field>
+        <field name="company_id" ref="base.demo_company_ch"/>
+        <field name="insurance_code">LPP-BERN-001</field>
+        <field name="customer_number">80012345</field>
+        <field name="contract_number">LPP-2025-98765</field>
+    </record>
+
+    <record id="l10n_ch_social_insurance_avs_line_demo" model="l10n.ch.social.insurance.avs.line">
+        <field name="date_from">2025-01-01</field>
+    </record>
+
+    <record id="l10n_ch_social_insurance_ac_line_demo" model="l10n.ch.social.insurance.ac.line">
+        <field name="date_from">2025-01-01</field>
+    </record>
+
+    <record id="l10n_ch_social_insurance_avs_retirement_rente_demo" model="l10n.ch.social.insurance.avs.retirement.rente">
+        <field name="date_from">2025-01-01</field>
+    </record>
+
+    <record id="l10n_ch_social_insurance_avs_ac_threshold_demo" model="l10n.ch.social.insurance.avs.ac.threshold">
+        <field name="date_from">2025-01-01</field>
+    </record>
+
+    <record id="l10n_ch_social_insurance_avs_acc_threshold_demo" model="l10n.ch.social.insurance.avs.acc.threshold">
+        <field name="date_from">2025-01-01</field>
+    </record>
+
+    <record id="l10n_ch_social_insurance_demo" model="l10n.ch.social.insurance">
+        <field name="name">Social Insurance AK Bern</field>
+        <field name="company_id" ref="base.demo_company_ch"/>
+        <field name="insurance_code">002.000</field>
+        <field name="member_number">100-9976.9</field>
+        <field name="avs_line_ids" eval="[(4, ref('l10n_ch_social_insurance_avs_line_demo'))]"/>
+        <field name="ac_line_ids" eval="[(4, ref('l10n_ch_social_insurance_ac_line_demo'))]"/>
+        <field name="l10n_ch_avs_rente_ids" eval="[(4, ref('l10n_ch_social_insurance_avs_retirement_rente_demo'))]"/>
+        <field name="l10n_ch_avs_ac_threshold_ids" eval="[(4, ref('l10n_ch_social_insurance_avs_ac_threshold_demo'))]"/>
+        <field name="l10n_ch_avs_acc_threshold_ids" eval="[(4, ref('l10n_ch_social_insurance_avs_acc_threshold_demo'))]"/>
+        <field name="laa_insurance_id" ref="l10n_ch_laa_insurance_demo"/>
+        <field name="laa_insurance_from">2025-01-01</field>
+        <field name="lpp_insurance_id" ref="l10n_ch_lpp_insurance_demo"/>
+        <field name="lpp_insurance_from">2025-01-01</field>
+    </record>
+
+    <record id="l10n_ch_compensation_fund_line_demo" model="l10n.ch.compensation.fund.line">
+        <field name="date_from">2025-01-01</field>
+    </record>
+
+    <record id="l10n_ch_compensation_fund_demo" model="l10n.ch.compensation.fund">
+        <field name="name">Compensation Fund AK Bern</field>
+        <field name="company_id" ref="base.demo_company_ch"/>
+        <field name="insurance_code">CF-001</field>
+        <field name="member_number">300-123456</field>
+        <field name="caf_line_ids" eval="[(4, ref('l10n_ch_compensation_fund_line_demo'))]"/>
+    </record>
+
+    <record id="l10n_ch_sickness_insurance_line_A1_rate_demo" model="l10n.ch.sickness.insurance.line.rate">
+        <field name="date_from">2025-01-01</field>
+    </record>
+
+    <record id="l10n_ch_sickness_insurance_line_A1_demo" model="l10n.ch.sickness.insurance.line">
+        <field name="solution_name">A1</field>
+        <field name="solution_type">A</field>
+        <field name="solution_number">1</field>
+        <field name="rate_ids" eval="[(4, ref('l10n_ch_sickness_insurance_line_A1_rate_demo'))]"/>
+    </record>
+
+    <record id="l10n_ch_sickness_insurance_line_A2_rate_demo" model="l10n.ch.sickness.insurance.line.rate">
+        <field name="date_from">2025-01-01</field>
+    </record>
+
+    <record id="l10n_ch_sickness_insurance_line_A2_demo" model="l10n.ch.sickness.insurance.line">
+        <field name="solution_name">A2</field>
+        <field name="solution_type">A</field>
+        <field name="solution_number">2</field>
+        <field name="rate_ids" eval="[(4, ref('l10n_ch_sickness_insurance_line_A2_rate_demo'))]"/>
+    </record>
+
+    <record id="l10n_ch_sickness_insurance_demo" model="l10n.ch.sickness.insurance">
+        <field name="name">Sickness Insurance</field>
+        <field name="company_id" ref="base.demo_company_ch"/>
+        <field name="insurance_code">SI-001</field>
+        <field name="customer_number">400-654321</field>
+        <field name="contract_number">SI-2025-12345</field>
+        <field name="line_ids" eval="[(4, ref('l10n_ch_sickness_insurance_line_A1_demo')), (4, ref('l10n_ch_sickness_insurance_line_A2_demo'))]"/>
+    </record>
+
+    <record id="l10n_ch_additional_accident_insurance_line_A1_rate_demo" model="l10n.ch.additional.accident.insurance.line.rate">
+        <field name="date_from">2025-01-01</field>
+    </record>
+
+     <record id="l10n_ch_additional_accident_insurance_line_A1_demo" model="l10n.ch.additional.accident.insurance.line">
+        <field name="solution_name">A1</field>
+        <field name="solution_type">A</field>
+        <field name="solution_number">1</field>
+        <field name="rate_ids" eval="[(4, ref('l10n_ch_additional_accident_insurance_line_A1_rate_demo'))]"/>
+    </record>
+
+    <record id="l10n_ch_additional_accident_insurance_line_A2_rate_demo" model="l10n.ch.additional.accident.insurance.line.rate">
+        <field name="date_from">2025-01-01</field>
+    </record>
+
+     <record id="l10n_ch_additional_accident_insurance_line_A2_demo" model="l10n.ch.additional.accident.insurance.line">
+        <field name="solution_name">A2</field>
+        <field name="solution_type">A</field>
+        <field name="solution_number">2</field>
+        <field name="rate_ids" eval="[(4, ref('l10n_ch_additional_accident_insurance_line_A2_rate_demo'))]"/>
+    </record>
+
+    <record id="l10n_ch_additional_accident_insurance_demo" model="l10n.ch.additional.accident.insurance">
+        <field name="name">Additional Accident Insurance</field>
+        <field name="company_id" ref="base.demo_company_ch"/>
+        <field name="insurance_code">AAI-001</field>
+        <field name="customer_number">500-789012</field>
+        <field name="contract_number">AAI-2025-67890</field>
+        <field name="line_ids" eval="[(4, ref('l10n_ch_additional_accident_insurance_line_A1_demo')), (4, ref('l10n_ch_additional_accident_insurance_line_A2_demo'))]"/>
+    </record>
+
+    <record id="res_partner_employee_mark" model="res.partner">
+        <field name="name">Mark Frank</field>
+        <field name="country_id" ref="base.ch"/>
+        <field name="company_id" ref="base.demo_company_ch"/>
+    </record>
+
+    <record id="res_partner_bank_employee_mark" model="res.partner.bank">
+        <field name="account_number">CH930076201162</field>
+        <field name="bank_name">Swiss Bank</field>
+        <field name="bank_bic">SBHHCHMMXXX</field>
+        <field name="street">Bahnhofstrasse 7</field>
+        <field name="city">Zurich</field>
+        <field name="zip">8001</field>
+        <field name="partner_id" ref="l10n_ch_hr_payroll.res_partner_employee_mark"/>
+        <field name="company_id" ref="base.demo_company_ch"/>
+        <field name="allow_out_payment">True</field>
+    </record>
+
+    <record id="employee_mark_frank" model="hr.employee">
+        <field name="name" model="res.partner" eval="obj(ref('l10n_ch_hr_payroll.res_partner_employee_mark')).name"/>
+        <field name="company_id" ref="base.demo_company_ch"/>
+        <field name="work_phone">41 79 123 45 67</field>
+        <field name="work_email" model="res.partner" eval="obj(ref('l10n_ch_hr_payroll.res_partner_employee_mark')).name.replace(' ', '.').lower() + '@example.com'"/>
+        <field name="work_contact_id" ref="l10n_ch_hr_payroll.res_partner_employee_mark"/>
+        <field name="birthday">1990-01-01</field>
+        <field name="sex">male</field>
+        <field name="country_id" ref="base.ch"/>
+        <field name="job_id" ref="hr.job_developer"/>
+        <field name="bank_account_ids" eval="[(4, ref('l10n_ch_hr_payroll.res_partner_bank_employee_mark'))]"/>
+        <field name="private_street">Bahnhofstrasse 1</field>
+        <field name="private_zip">6003</field>
+        <field name="private_city">Luzern</field>
+        <field name="private_state_id" ref="base.state_ch_lu"/>
+        <field name="private_country_id" ref="base.ch"/>
+        <field name="l10n_ch_canton">LU</field>
+        <field name="l10n_ch_municipality">1061</field>
+        <field name="marital">single</field>
+        <field name="l10n_ch_marital_from">2025-01-01</field>
+        <field name="l10n_ch_location_unit_id" ref="l10n_ch_location_unit_demo"/>
+        <field name="registration_number">1341</field>
+        <field name="lang">en_US</field>
+        <field name="contract_date_start">2025-01-01</field>
+        <field name="employee_type_id" ref="l10n_ch_hr_payroll.l10n_ch_contract_type_indefiniteSalaryMth"/>
+        <field name="l10n_ch_has_monthly" eval="True"/>
+        <field name="wage">15000</field>
+        <field name="l10n_ch_thirteen_month" eval="True"/>
+        <field name="l10n_ch_current_occupation_rate">100</field>
+        <field name="l10n_ch_weekly_hours">40</field>
+        <field name="l10n_ch_social_insurance_id" ref="l10n_ch_social_insurance_demo"/>
+        <field name="l10n_ch_compensation_fund_id" ref="l10n_ch_compensation_fund_demo"/>
+        <field name="l10n_ch_laa_group" model="l10n.ch.accident.group" search="[('insurance_id', '=', ref('l10n_ch_laa_insurance_demo'))]"/>
+        <field name="l10n_ch_additional_accident_insurance_line_ids" eval="[(4, ref('l10n_ch_additional_accident_insurance_line_A1_demo')), (4, ref('l10n_ch_additional_accident_insurance_line_A2_demo'))]"/>
+        <field name="l10n_ch_sickness_insurance_line_ids" eval="[(4, ref('l10n_ch_sickness_insurance_line_A1_demo')), (4, ref('l10n_ch_sickness_insurance_line_A2_demo'))]"/>
+        <field name="l10n_ch_lpp_insurance_id" ref="l10n_ch_lpp_insurance_demo"/>
+        <field name="l10n_ch_lpp_entry_valid_as_of">2025-01-01</field>
+        <field name="lpp_employee_amount">500</field>
+        <field name="lpp_company_amount">500</field>
+        <field name="l10n_ch_salary_certificate_profiles" eval="[(4, ref('l10n_ch_salary_certificate_profile_demo'))]"/>
+    </record>
+
+    <record id="contract_wage_WT_1034_mark" model="l10n.ch.hr.contract.wage">
+        <field name="version_id" model="hr.version" search="[('employee_id', '=', ref('employee_mark_frank'))]"/>
+        <field name="salary_rule_id" ref="l10n_ch_hr_payroll.l10n_ch_elm_1034"/>
+        <field name="uom">currency</field>
+        <field name="amount">400</field>
+    </record>
+
+    <record id="contract_wage_WT_5400_mark" model="l10n.ch.hr.contract.wage">
+        <field name="version_id" model="hr.version" search="[('employee_id', '=', ref('employee_mark_frank'))]"/>
+        <field name="salary_rule_id" ref="l10n_ch_hr_payroll.l10n_ch_elm_rule_5400"/>
+        <field name="description">LPCFam</field>
+        <field name="uom">percentage</field>
+        <field name="amount">1</field>
+    </record>
+
+    <record id="contract_wage_WT_7400_mark" model="l10n.ch.hr.contract.wage">
+        <field name="version_id" model="hr.version" search="[('employee_id', '=', ref('employee_mark_frank'))]"/>
+        <field name="salary_rule_id" ref="l10n_ch_hr_payroll.l10n_ch_elm_rule_7400"/>
+        <field name="description">LPCFam Employer</field>
+        <field name="uom">percentage</field>
+        <field name="amount">1</field>
+    </record>
+
+    <record id="contract_wage_WT_1910_mark" model="l10n.ch.hr.contract.wage">
+        <field name="version_id" model="hr.version" search="[('employee_id', '=', ref('employee_mark_frank'))]"/>
+        <field name="salary_rule_id" ref="l10n_ch_hr_payroll.l10n_ch_elm_1910"/>
+        <field name="uom">currency</field>
+        <field name="amount">400</field>
+    </record>
+
+    <record id="contract_wage_WT_5080_mark" model="l10n.ch.hr.contract.wage">
+        <field name="version_id" model="hr.version" search="[('employee_id', '=', ref('employee_mark_frank'))]"/>
+        <field name="salary_rule_id" ref="l10n_ch_hr_payroll.l10n_ch_elm_rule_5080"/>
+        <field name="uom">currency</field>
+        <field name="amount">400</field>
+    </record>
+
+    <record id="hr_payslip_demo_mark_january_2025" model="hr.payslip">
+        <field name="date_from" eval="time.strftime('2025-01-01')"/>
+        <field name="date_to" eval="time.strftime('2025-01-31')"/>
+        <field name="employee_id" ref="employee_mark_frank"/>
+        <field name="company_id" ref="base.demo_company_ch"/>
+    </record>
+
+    <record id="hr_payslip_demo_mark_february_2025" model="hr.payslip">
+        <field name="date_from" eval="time.strftime('2025-02-01')"/>
+        <field name="date_to" eval="time.strftime('2025-02-28')"/>
+        <field name="employee_id" ref="employee_mark_frank"/>
+        <field name="company_id" ref="base.demo_company_ch"/>
+    </record>
+
+    <record id="hr_payslip_demo_mark_march_2025" model="hr.payslip">
+        <field name="date_from" eval="time.strftime('2025-03-01')"/>
+        <field name="date_to" eval="time.strftime('2025-03-31')"/>
+        <field name="employee_id" ref="employee_mark_frank"/>
+        <field name="company_id" ref="base.demo_company_ch"/>
+    </record>
+
+    <record id="hr_payslip_demo_mark_april_2025" model="hr.payslip">
+        <field name="date_from" eval="time.strftime('2025-04-01')"/>
+        <field name="date_to" eval="time.strftime('2025-04-30')"/>
+        <field name="employee_id" ref="employee_mark_frank"/>
+        <field name="company_id" ref="base.demo_company_ch"/>
+    </record>
+
+    <record id="hr_payslip_demo_mark_may_2025" model="hr.payslip">
+        <field name="date_from" eval="time.strftime('2025-05-01')"/>
+        <field name="date_to" eval="time.strftime('2025-05-31')"/>
+        <field name="employee_id" ref="employee_mark_frank"/>
+        <field name="company_id" ref="base.demo_company_ch"/>
+    </record>
+
+    <record id="hr_payslip_demo_mark_june_2025" model="hr.payslip">
+        <field name="date_from" eval="time.strftime('2025-06-01')"/>
+        <field name="date_to" eval="time.strftime('2025-06-30')"/>
+        <field name="employee_id" ref="employee_mark_frank"/>
+        <field name="company_id" ref="base.demo_company_ch"/>
+    </record>
+
+    <record id="hr_payslip_demo_mark_july_2025" model="hr.payslip">
+        <field name="date_from" eval="time.strftime('2025-07-01')"/>
+        <field name="date_to" eval="time.strftime('2025-07-31')"/>
+        <field name="employee_id" ref="employee_mark_frank"/>
+        <field name="company_id" ref="base.demo_company_ch"/>
+    </record>
+
+    <record id="hr_payslip_demo_mark_august_2025" model="hr.payslip">
+        <field name="date_from" eval="time.strftime('2025-08-01')"/>
+        <field name="date_to" eval="time.strftime('2025-08-31')"/>
+        <field name="employee_id" ref="employee_mark_frank"/>
+        <field name="company_id" ref="base.demo_company_ch"/>
+    </record>
+
+    <record id="hr_payslip_demo_mark_september_2025" model="hr.payslip">
+        <field name="date_from" eval="time.strftime('2025-09-01')"/>
+        <field name="date_to" eval="time.strftime('2025-09-30')"/>
+        <field name="employee_id" ref="employee_mark_frank"/>
+        <field name="company_id" ref="base.demo_company_ch"/>
+    </record>
+
+    <record id="hr_payslip_demo_mark_october_2025" model="hr.payslip">
+        <field name="date_from" eval="time.strftime('2025-10-01')"/>
+        <field name="date_to" eval="time.strftime('2025-10-31')"/>
+        <field name="employee_id" ref="employee_mark_frank"/>
+        <field name="company_id" ref="base.demo_company_ch"/>
+    </record>
+
+    <record id="hr_payslip_demo_mark_november_2025" model="hr.payslip">
+        <field name="date_from" eval="time.strftime('2025-11-01')"/>
+        <field name="date_to" eval="time.strftime('2025-11-30')"/>
+        <field name="employee_id" ref="employee_mark_frank"/>
+        <field name="company_id" ref="base.demo_company_ch"/>
+    </record>
+
+    <record id="hr_payslip_demo_mark_december_2025" model="hr.payslip">
+        <field name="date_from" eval="time.strftime('2025-12-01')"/>
+        <field name="date_to" eval="time.strftime('2025-12-31')"/>
+        <field name="employee_id" ref="employee_mark_frank"/>
+        <field name="company_id" ref="base.demo_company_ch"/>
+    </record>
+
+    <function model="hr.payslip" name="compute_sheet" eval="[[p.id for p in [
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_january_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_february_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_march_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_april_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_may_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_june_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_july_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_august_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_september_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_october_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_november_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_december_2025'),
+    ] if p.state == 'draft']]"/>
+
+    <function model="hr.payslip" name="action_payslip_done" eval="[[p.id for p in [
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_january_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_february_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_march_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_april_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_may_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_june_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_july_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_august_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_september_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_october_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_november_2025'),
+        obj().env.ref('l10n_ch_hr_payroll.hr_payslip_demo_mark_december_2025'),
+    ] if p.state == 'draft']]"/>   
+</odoo>

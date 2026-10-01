@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_payrun_payslip_kanban_card_view" model="ir.ui.view">
+        <field name="name">hr.payslip.run.view.kanban.inherit.l10n.be.hr.payroll</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="inherit_id" ref="hr_payroll.hr_payrun_payslip_kanban_card_view"/>
+        <field name="arch" type="xml">
+            <templates position="before">
+                <field name="l10n_be_display_eco_voucher_button" invisible="1"/>
+                <field name="l10n_be_display_flexi_button" invisible="1"/>
+            </templates>
+            <button name="action_draft" position="after">
+                <button string="Eco-Vouchers" name="action_l10n_be_eco_vouchers" type="object" invisible="not l10n_be_display_eco_voucher_button"/>
+                <button string="Flexi@Work" name="action_create_and_show_flxwage_declaration" type="object"
+                        class="btn btn-secondary" invisible="not l10n_be_display_flexi_button or state != '02_close'"/>
+                <button string="Flexi@Work" name="action_create_and_show_flxwage_declaration" type="object"
+                        class="btn btn-primary" options="{'is_priority': True}" invisible="not l10n_be_display_flexi_button or state != '03_paid'"/>
+            </button>
+
+            <xpath expr="//div[hasclass('o_payrun_metrics')]/div[.//field[@name='total_employer_cost']]//span" position="attributes">
+                <attribute name="invisible" add="country_code == 'BE'" separator="or"/>
+            </xpath>
+
+            <xpath expr="//div[hasclass('o_payrun_metrics')]/div[.//field[@name='total_employer_cost']]//span" position="after">
+                <span invisible="country_code != 'BE'">Total Cost</span>
+            </xpath>
+
+            <xpath expr="//div[hasclass('o_payrun_metrics')]/div[.//field[@name='net_sum']]" position="before">
+                <div class="d-flex flex-column align-items-start" invisible="country_code != 'BE'">
+                    <div class="o_payrun_metric_label small text-muted">
+                        <span>NSSO Contribution</span>
+                    </div>
+                    <div class="o_payrun_metric_value">
+                        <field name="l10n_be_onns_contribution" widget="payrun_kpi"/>
+                    </div>
+                </div>
+                <div class="d-flex flex-column align-items-start" invisible="country_code != 'BE'">
+                    <div class="o_payrun_metric_label small text-muted">
+                        <span>Withholding Taxes</span>
+                    </div>
+                    <div class="o_payrun_metric_value">
+                        <field name="l10n_be_withholding_taxes" widget="payrun_kpi"/>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_payslip_run_view_list" model="ir.ui.view">
+        <field name="name">hr.payslip.run.view.list.inherit.l10n.be.hr.payroll</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="inherit_id" ref="hr_payroll.hr_payslip_run_view_list"/>
+        <field name="arch" type="xml">
+            <field name="net_sum" position="before">
+                <field name="l10n_be_onns_contribution" string="NSSO" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total NSSO"/>
+                <field name="l10n_be_withholding_taxes" string="Withholding Taxes" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total Withholding"/> </field>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,7 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+from . import account_asset
+from . import account_asset_variant
+from . import account_move
+from . import fleet_vehicle_log_services
+from . import fleet_vehicle

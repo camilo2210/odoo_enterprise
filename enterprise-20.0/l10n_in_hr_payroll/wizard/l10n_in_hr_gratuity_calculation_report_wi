@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_in_hr_gratuity_calculation_report_form_view" model="ir.ui.view">
+        <field name="name">Gratuity Calculation</field>
+        <field name="model">l10n.in.gratuity.calculation.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Gratuity Calculation">
+                <footer>
+                    <button name="action_generate_xlsx" string="Export XLSX" type="object" class="btn-primary disabled" data-hotkey="q" invisible="employee_ids"/>
+                    <button name="action_generate_xlsx" string="Export XLSX" type="object" class="btn-primary" data-hotkey="q" invisible="not employee_ids"/>
+                    <button class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+                <group class="mt-2">
+                    <field name="selection_mode"/>
+                    <field name="all_employee_ids" widget="many2many_tags" invisible="selection_mode != 'employee'" placeholder="All Employees"/>
+                    <field name="department_id" invisible="selection_mode != 'department'"/>
+                    <field name="job_id" invisible="selection_mode != 'job_position'"/>
+                    <field name="struct_id" invisible="selection_mode != 'salary_structure'"/>
+                    <field name="tag_ids" invisible="selection_mode != 'employee_tag'" widget="many2many_tags"/>
+                    <separator string="Employees" />
+                    <field name="employee_ids" nolabel="1" colspan="2">
+                        <list no_open="True" create="False">
+                            <field name="name" string="Employee Name"/>
+                            <field name="work_email" string="Work Email"/>
+                            <field name="department_id" string="Department"/>
+                            <field name="job_id" string="Job Position"/>
+                        </list>
+                    </field>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_in_gratuity_calculation_report_wizard_action" model="ir.actions.act_window">
+            <field name="name">Gratuity Calculation Report</field>
+            <field name="res_model">l10n.in.gratuity.calculation.report.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem
+            name="Gratuity Calculation Report"
+            parent="l10n_in_hr_payroll.menu_reporting_l10n_in"
+            action="l10n_in_gratuity_calculation_report_wizard_action"
+            sequence="7"
+            id="l10n_in_gratuity_calculation_report_wizard_menu"
+            groups="hr_payroll.group_hr_payroll_manager,hr_payroll.group_hr_payroll_user"
+           />
+</odoo>

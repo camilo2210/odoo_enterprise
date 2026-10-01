@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_move_line_tree" model="ir.ui.view">
+        <field name="name">account.move.line.list</field>
+        <field name="model">account.move.line</field>
+        <field name="inherit_id" ref="account_accountant.view_move_line_tree"/>
+        <field name="mode">extension</field>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="turn_as_asset" type="object" string="Create Asset" groups="account.group_account_user" data-hotkey="c"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_account_form_asset_inherit" model="ir.ui.view">
+        <field name="name">account.account.form</field>
+        <field name="model">account.account</field>
+        <field name="inherit_id" ref="account.view_account_form"/>
+        <field name="arch" type="xml">
+            <group name="technical_settings" position="after">
+                <group name="asset" string="Depreciation" invisible="not can_create_asset">
+                    <field name="depreciation_model_id" string="Depreciation" options="{'no_quick_create': True}" context="{'exclude_ledger_journals': True}"/>
+                    <field name="asset_depreciation_account_id" required="display_asset_accounts"/>
+                    <field name="asset_expense_account_id" required="display_asset_accounts"/>
+                    <field name="ledger_depreciation_model_ids"
+                        string="Multi-Ledgers"
+                        widget="many2many_tags"
+                        context="{'ledger_journal_only': True, 'default_company_id': current_company_id}"
+                        options="{'no_quick_create': True, 'on_tag_click': 'open_form'}"
+                        />
+                </group>
+            </group>
+        </field>
+    </record>
+</odoo>

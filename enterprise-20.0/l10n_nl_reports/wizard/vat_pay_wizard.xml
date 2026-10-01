@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_nl_vat_pay_wizard_form" model="ir.ui.view">
+        <field name="name">l10n_nl_reports.vat_pay_wizard_view_form</field>
+        <field name="model">l10n_nl_reports.vat.pay.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <div class="alert alert-warning" invisible="not show_warning_missing_vat_number" role="alert">
+                    <span>
+                        The <a type="object" name="action_open_company_configuration_wizard">company</a> VAT number is missing; no payment communication can be created. 
+                    </span>
+                </div>
+                <div class="alert alert-info" invisible="not show_vat_balance" role="alert">
+                    <span>
+                        The VAT balance is <field class="oe_inline" name="vat_balance"/> due to prior VAT credit.
+                        <widget name="account_return_wizard_button" call="action_deduct_receivable_amount" class="btn btn-link btn-group p-0 py-2" string="Click here"/> to pay this amount. 
+                    </span>
+                </div>
+                <group>
+                    <group>
+                        <field name="currency_id" invisible="1"/> <!-- used as the currency for amount -->
+                        <field name="partner_id" readonly="1"/>
+                        <field name="amount_to_pay" readonly="1"/>
+                        <field name="account_number" readonly="1"/>
+                        <field name="communication" readonly="1"/>
+                    </group>
+                    <group class="d-none d-md-block">
+                        <div colspan="2">
+                            <field name="qr_code" readonly="1" no_label="1"/>
+                        </div>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_mark_as_paid" string="Mark as Recovered" type="object" class="btn-primary" data-hotkey="q" invisible="not is_recoverable"/>
+                    <button name="action_mark_as_paid" string="Mark Paid" type="object" class="btn-primary" data-hotkey="q" invisible="is_recoverable"/>
+                    <button name="action_send_email_instructions" string="Send" type="object" class="btn-secondary" data-hotkey="s" invisible="is_recoverable"/>
+                    <button class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

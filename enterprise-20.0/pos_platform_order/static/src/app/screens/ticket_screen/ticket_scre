@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="pos_platform_order.TicketScreen" t-inherit="point_of_sale.TicketScreen" t-inherit-mode="extension">
+        <xpath expr="//td[hasclass('order-name')]" position="replace">
+            <td class="order-name platform-order-name">
+                <div class="d-flex align-items-center">
+                    <div t-if="order.isPlatformOrder" class="flex-shrink-0 me-3">
+                        <ProviderLogo provider="order.platform_order_provider_id" />
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="fw-bolder" t-out="order.getName()" />
+                        <div class="small text-muted" t-out="order.pos_reference" />
+                        <div t-if="order.isPlatformOrder" t-out="order.platformOrderStatus" t-attf-class="badge rounded order-status {{order.orderStatusClass}}" />
+                    </div>
+                </div>
+            </td>
+        </xpath>
+        <xpath expr="//div[hasclass('mobileOrderList')]//div[hasclass('order-name')]" position="replace">
+            <div class="order-name platform-order-name p-2 d-flex flex-column flex-grow-1 justify-content-center align-items-start">
+                <div class="d-flex align-items-center">
+                    <div t-if="order.isPlatformOrder" class="flex-shrink-0 me-1">
+                        <ProviderLogo provider="order.platform_order_provider_id" />
+                    </div>
+                    <div class="fw-bolder" t-out="order.getName()" />
+                </div>
+                <div class="small text-muted" t-out="order.pos_reference" />
+                <div t-if="order.isPlatformOrder" t-out="order.platformOrderStatus" t-attf-class="badge rounded order-status {{order.orderStatusClass}}" />
+            </div>
+        </xpath>
+        <xpath expr="//td[@name='delete-column']" position="attributes">
+            <attribute name="class" add="align-middle" separator=" " />
+        </xpath>
+        <xpath expr="//button[hasclass('button', 'load-order-button', 'validation')]" position="replace">
+            <t t-if="_selectedSyncedOrder and _selectedSyncedOrder.isPlatformOrder">
+                <button class="button validation accept-order-button w-100 btn btn-lg btn-primary py-3"
+                    t-if="this.showAcceptOrderButton"
+                    t-att-disabled="this.selectedOrderExpiration.isExpired"
+                    t-on-click="() => this.onAcceptOrderClicked(_selectedSyncedOrder)">
+                    <span class="mb-2">Accept Order</span>
+                    <div t-if="!this.selectedOrderExpiration.isExpired" class="progress fs-6 fw-bold position-relative" style="height: 25px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated"
+                            role="progressbar"
+                            t-att-aria-valuenow="this.selectedOrderExpiration.remainingTimePercentage"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                            t-attf-style="width: #{this.selectedOrderExpiration.remainingTimePercentage}%;">
+                        </div>
+                        <span class="position-absolute w-100 align-self-center" t-attf-class="#{this.selectedOrderExpiration.remainingTimePercentage &lt; 50 ? 'text-primary' : ''}" t-out="this.selectedOrderExpiration.formattedRemainingTime"/>
+                    </div>
+                </button>
+                <button class="button validation set-food-ready-button w-100 btn btn-lg btn-primary py-3"
+                    t-if="_selectedSyncedOrder.canSetFoodReady"
+                    t-att-disabled="_selectedSyncedOrder.platform_order_food_ready"
+                    t-on-click="() => this.onMarkFoodReadyClicked(_selectedSyncedOrder)">
+                    <span class="d-block">
+                        <t t-if="_selectedSyncedOrder.platform_order_food_ready">Food Is Ready</t>
+                        <t t-else="">Set Food Ready</t>
+                    </span>
+                </button>
+            </t>
+            <t t-else="">$0</t>
+        </xpath>
+        <xpath expr="//button[hasclass('btn-switchpane', 'load-order-button')]" position="replace">
+            <t t-if="_selectedSyncedOrder and _selectedSyncedOrder.isPlatformOrder">
+                <button class="btn-switchpane accept-order-button primary btn btn-primary btn-lg lh-lg w-50 py-3"
+                    t-if="this.showAcceptOrderButton"
+                    t-att-disabled="this.selectedOrderExpiration.isExpired"
+                    t-on-click="() => this.onAcceptOrderClicked(_selectedSyncedOrder)">
+                    <span class="mb-2">Accept Order</span>
+                    <div t-if="!this.selectedOrderExpiration.isExpired" class="progress fs-6 fw-bold position-relative" style="height: 25px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated"
+                            role="progressbar"
+                            t-att-aria-valuenow="this.selectedOrderExpiration.remainingTimePercentage"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                            t-attf-style="width: #{this.selectedOrderExpiration.remainingTimePercentage}%;">
+                        </div>
+                        <span class="position-absolute w-100 align-self-center" t-attf-class="#{this.selectedOrderExpiration.remainingTimePercentage &lt; 50 ? 'text-primary' : ''}" t-out="this.selectedOrderExpiration.formattedRemainingTime"/>
+                    </div>
+                </button>
+                <button class="btn-switchpane set-food-ready-button primary btn btn-primary btn-lg lh-lg w-50 py-3"
+                    t-if="_selectedSyncedOrder.canSetFoodReady"
+                    t-att-disabled="_selectedSyncedOrder.platform_order_food_ready"
+                    t-on-click="() => this.onMarkFoodReadyClicked(_selectedSyncedOrder)">
+                    <span class="d-block">
+                        <t t-if="_selectedSyncedOrder.platform_order_food_ready">Food Is Ready</t>
+                        <t t-else="">Set Food Ready</t>
+                    </span>
+                </button>
+            </t>
+            <t t-else="">$0</t>
+        </xpath>
+    </t>
+</templates>

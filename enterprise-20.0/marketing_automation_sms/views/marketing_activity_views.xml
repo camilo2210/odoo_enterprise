@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="marketing_activity_view_form" model="ir.ui.view">
+        <field name="name">marketing.activity.view.form.sms</field>
+        <field name="model">marketing.activity</field>
+        <field name="inherit_id" ref="marketing_automation.marketing_activity_view_form"/>
+        <field name="mode">extension</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='mass_mailing_id']" position="after">
+                <label for="mass_mailing_id" string="SMS Template" invisible="activity_type != 'sms'"/>
+                <field name="mass_mailing_id" invisible="activity_type != 'sms'" class="ps-1"
+                            domain="[
+                                ('mailing_model_id', '=', model_id),
+                                ('use_in_marketing_automation', '=', True),
+                                ('mailing_type', '=', mass_mailing_id_mailing_type),
+                                ('campaign_id', '=', utm_campaign_id),
+                                ('state', '=', 'done'),
+                            ]"
+                            context="{
+                                'default_state': 'done',
+                                'default_mailing_model_id': model_id,
+                                'default_use_in_marketing_automation': True,
+                                'default_campaign_id': utm_campaign_id,
+                                'default_mailing_type': mass_mailing_id_mailing_type}"
+                            options="{'no_quick_create': True}"
+                            placeholder="Pick or Create a Template..."
+                            nolabel="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="marketing_activity_view_form_mailing" model="ir.ui.view">
+        <field name="name">marketing.activity.view.form.mailing.sms</field>
+        <field name="model">marketing.activity</field>
+        <field name="inherit_id" ref="marketing_automation.marketing_activity_view_form_mailing"/>
+        <field name="mode">extension</field>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('o_marketing_activity_title')]" position="inside">
+                <div class="d-flex align-items-center" invisible="activity_type != 'sms'">
+                    <i class="oi oi-2x mb-auto p-2 bg-300 rounded" data-icon="forum" title="SMS icon"/>
+                    <h1 class="ps-1"><field name="name"/></h1>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='server_action_id']" position="after">
+                <label for="mass_mailing_id" string="SMS Template" invisible="activity_type != 'sms'"/>
+                <field name="mass_mailing_id" invisible="activity_type != 'sms'" class="ps-1"
+                            widget="mailing_many2one"
+                            domain="[
+                                ('mailing_model_id', '=', model_id),
+                                ('use_in_marketing_automation', '=', True),
+                                ('mailing_type', '=', mass_mailing_id_mailing_type),
+                                ('campaign_id', '=', utm_campaign_id),
+                                ('state', '=', 'done'),
+                            ]"
+                            context="{
+                                'default_state': 'done',
+                                'default_mailing_model_id': model_id,
+                                'default_use_in_marketing_automation': True,
+                                'default_campaign_id': utm_campaign_id,
+                                'default_mailing_type': mass_mailing_id_mailing_type}"
+                            options="{'no_quick_create': True}"
+                            placeholder="Pick or Create a Template..."
+                            nolabel="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

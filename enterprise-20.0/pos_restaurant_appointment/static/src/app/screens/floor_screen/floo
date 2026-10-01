@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="pos_restaurant_appointment.FloorScreen" t-inherit="pos_restaurant.floor_screen_element" t-inherit-mode="extension">
+        <xpath expr="//div[contains(@t-attf-class, 'o_fp_table')]" position="attributes">
+            <attributes name="t-attf-class" add="{{this.pos.selectedTables.includes(table.id) ? 'text-bg-success' : ''}}" separator=" "/>
+        </xpath>
+        <xpath expr="//div[contains(@t-attf-class, 'o_fp_table')]" position="inside">
+            <t t-set="firstAppointment" t-value="table.firstAppointment"/>
+            <div
+                t-if="firstAppointment and firstAppointment.appointment_status !== 'attended' and !this.floorPlanStore.isKanban()"
+                t-att-data-appointment-id="firstAppointment.id"
+                t-on-click="this.onClickAppointment"
+                class="appointment-label d-flex flex-column justify-content-center bg-opacity-50 mt-2 py-1 rounded position-absolute top-100 start-50 translate-middle-x"
+                t-attf-class="{{ this.pos.isAppointmentTransferMode and firstAppointment.id === this.pos.bookingSelectionAppointment?.id ? 'text-bg-info' : 'text-bg-light' }}"
+                style="width: 100%; font-size: 0.775rem;"
+                title="Long press to reassign"
+                >
+                <div class="text-center d-flex flex-column align-items-center justify-content-between w-100">
+                    <span class="flex-shrink-0 p-0">
+                        <t t-out="this.pos.getTime(firstAppointment.start)"/>
+                        [<t t-out="firstAppointment.waiting_list_capacity"/>p]
+                    </span>
+                    <span class="px-2 py-0 text-truncate flex-shrink-1 w-100">
+                        <t t-out="firstAppointment.attendeeName"/>
+                    </span>
+                </div>
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('table-timer-badge')]" position="attributes">
+            <attribute name="t-if" separator=" and " add="!this.pos.isAppointmentTransferMode and !this.floorPlanStore.isKanban()"/>
+        </xpath>
+        <xpath expr="//div[hasclass('o_fp_table_number')]" position="after">
+            <t t-set="firstAppointment" t-value="table.firstAppointment"/>
+            <t t-set="isFloorPlanKanban" t-value="this.floorPlanStore.isKanban()"/>
+            <div
+                t-if="isFloorPlanKanban and (this.state.tableTimer[table.id] or firstAppointment) or (this.pos.isAppointmentTransferMode and table?.appointment_resource_id?.capacity)"
+                t-att-data-appointment-id="firstAppointment.id"
+                t-on-click="this.onClickAppointment"
+                class="appointment-info-label d-flex align-items-center justify-content-center flex-column position-absolute start-0 end-0 bottom-0 py-1 mx-2 lh-sm"
+                style="font-size: 0.775rem;"
+                >
+                <div class="d-flex align-items-center px-1 rounded flex-column " t-attf-class="{{this.getTimerClasses(table)}}">
+                    <div class="px-0 py-0 pb-0" t-attf-class="{{firstAppointment and isFloorPlanKanban ? 'pb-0' : ''}}">
+                    <span t-if="firstAppointment and firstAppointment.appointment_status !== 'attended' and isFloorPlanKanban" class="text-start rounded p-0 me-1">
+                        <t t-out="this.pos.getTime(firstAppointment.start)"/>
+                    </span>
+                    <span
+                        t-if="this.pos.isAppointmentTransferMode and table?.appointment_resource_id?.capacity and this.pos.bookingSelectionAppointment">
+                        <t t-out="table.appointment_resource_id.capacity"/>p
+                    </span>
+                    <span t-if="this.state.tableTimer[table.id] and !this.pos.isAppointmentTransferMode" class="bg-transparent text-center rounded p-0">
+                        <t t-out="this.state.tableTimer[table.id]"/>
+                    </span>
+                    </div>
+                    <t t-if="firstAppointment and firstAppointment.appointment_status !== 'attended' and isFloorPlanKanban">
+                        <div class="px-0 pb-0 pt-0 d-flex align-items-center justify-content-center w-100">
+                            <span class="me-1" t-if="!this.pos.isAppointmentTransferMode" t-out="'[' + firstAppointment.waiting_list_capacity + 'p]'"/>
+                            <span class="flex-grow-1 text-truncate" t-if="(!this.pos.isAppointmentTransferMode or firstAppointment.id === this.pos.bookingSelectionAppointment?.id)" t-out="firstAppointment.attendeeName"/>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </xpath>
+    </t>
+</templates>

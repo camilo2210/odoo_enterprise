@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="hr_payroll.ActionableWarningLine">
+        <t t-out="warning.message"/>
+        <t t-if="warning.action" class="d-flex">
+            <t t-set="actionText" t-value="warning.action_text"/>
+            <ViewButton t-if="warning.action.type === 'object'" record="this.props.record" className="'btn-link p-0 lh-1'"
+                        clickParams="{type: 'object', name: warning.action.name, args: warning.action.args, context: warning.action.context}">
+                <t t-set-slot="contents">
+                    <i class="oi ms-1" data-icon="east"/>
+                    <span class="ms-1" t-out="actionText"/>
+                </t>
+            </ViewButton>
+            <a t-else="" class="fw-bold" href="#" t-on-click.prevent.stop="() => this.handleOnClick(warning)">
+                <i class="oi ms-1" data-icon="east"/>
+                <span class="ms-1" t-out="actionText"/>
+            </a>
+        </t>
+    </t>
+
+    <t t-name="hr_payroll.ActionableWarnings">
+        <t t-if="this.inListView">
+            <t t-if="this.displayedWarnings.length">
+                <div class="d-flex align-items-center">
+                    <t t-set="warning" t-value="this.displayedWarnings[0]"/>
+                    <span t-attf-class="d-flex flex-row text-{{warning.level}}">
+                        <t t-call="hr_payroll.ActionableWarningLine"/>
+                    </span>
+                    <t t-if="this.remainingCount > 0">
+                        <span t-attf-class="ms-2 text-{{warning.level}} link p-0">
+                            (<t t-out="this.remainingCount"/> more…)
+                        </span>
+                    </t>
+                </div>
+            </t>
+        </t>
+        <t t-else="">
+            <t t-set="warnings" t-value="this.warningsByLevel"/>
+            <t t-foreach="['danger','warning']" t-as="level" t-key="level">
+                <t t-if="warnings[level].length">
+                    <div t-attf-class="alert alert-{{level}} mb-1" role="alert">
+                        <t t-foreach="warnings[level]" t-as="warning" t-key="warning.id">
+                            <div class="d-flex flex-row">
+                                <t t-call="hr_payroll.ActionableWarningLine"/>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </t>
+</templates>

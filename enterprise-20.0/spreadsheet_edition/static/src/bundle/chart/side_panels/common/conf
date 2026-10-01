@@ -1,0 +1,43 @@
+<odoo>
+    <t t-name="spreadsheet_edition.OdooChartDataSourceConfigPanel">
+        <Section t-if="!this.chartData().isModelValid">
+            <ValidationMessages messages="[this.invalidChartModel]" msgType="'error'" />
+            <button class="mx o-button o-button-primary mt-2 m-1" t-on-click="this.delete">Delete Chart</button>
+        </Section>
+        <t t-else="">
+            <Section class="'pt-0'">
+                <t t-foreach="this.getLabelRangeOptions()" t-as="option" t-key="option.name">
+                    <Checkbox
+                        name="option.name"
+                        label="option.label"
+                        value="option.value"
+                        onChange="option.onChange"
+                        className="'mt-2'"
+                        disabled="option.disabled"
+                    />
+                </t>
+            </Section>
+            <Section title.translate="Model">
+                <div><t t-out="this.chartData().modelDisplayName" /> (<t t-out="this.model" />)</div>
+            </Section>
+            <Section title.translate="Domain">
+                <DomainSelector resModel="this.model" domain="this.domain" t-key="'odoo_chart_' + this.props.chartId" />
+                <div class="btn btn-link o_edit_domain" t-on-click="this.openDomainEdition">
+                    <i class="oi me-1" data-icon="east"/>Edit domain
+                </div>
+            </Section>
+            <RelatedFiltersSection
+                resModel="this.model"
+                dataSourceId="this.props.chartId"
+                dataSourceType="'chart'"
+            />
+            <OdooLinkSelector chartId="this.props.chartId"/>
+            <Section class="'pt-1'">
+                <div class="o_pivot_last_update text-muted">
+                    <i>Last updated at <t t-out="this.getLastUpdate()" /></i>
+                </div>
+                <br />
+            </Section>
+        </t>
+    </t>
+</odoo>

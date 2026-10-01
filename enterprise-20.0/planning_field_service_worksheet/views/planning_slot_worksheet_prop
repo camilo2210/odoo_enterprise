@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="planning_slot_worksheet_properties_display">
+        <div name="worksheet properties" style="page-break-inside: avoid">
+            <br/>
+            <h3 class="mt-2 mb-2" data-anchor="true">Worksheet</h3>
+            <t t-foreach="props_formatted" t-as="prop">
+                <t t-if="prop.get('type') == 'studio_columns'">
+                    <div class="row mb-3">
+                        <t t-foreach="prop['columns']" t-as="col">
+                            
+                            <div t-attf-class="col-6 {{ 'pe-4' if col_index == 0 else 'ps-4' }}">
+                                <t t-foreach="col" t-as="c_prop">
+                                    <t t-set="is_c_separator" t-value="c_prop.get('type') == 'separator'"/>
+                                    <div t-attf-class="o_worksheet_row row mb-2 {{ 'my-3 pt-4' if is_c_separator else '' }}">
+                                        <div t-attf-class="fw-bold {{ 'h5' if is_c_separator else 'col-lg-3 col-12' }}" style="width: 25%">
+                                            <span t-out="c_prop['name']"/>
+                                        </div>
+                                        <div t-if="not is_c_separator" class="col-lg-9 col-12" style="width: 75%">
+                                            <t t-if="c_prop['type'] in ('signature', 'image')">
+                                                <img class="img img-fluid" alt="Binary file" t-attf-src="data:image/png;base64,{{c_prop.get('value', '')}}" t-if="c_prop.get('value')" style=""/>
+                                            </t>
+                                            <t t-elif="c_prop['type'] == 'binary'">
+                                                <a t-if="c_prop.get('value')" t-attf-href="/web/content/#{doc._name}/#{doc.id}/#{c_prop['value']['field']}?download=true" target="_blank" class="text-decoration-none">
+                                                    <span t-out="c_prop['value']['filename']"/>
+                                                </a>
+                                            </t>
+                                            <t t-elif="c_prop['type']=='tags'">
+                                                <t t-foreach="c_prop['value']" t-as="tag">
+                                                    <span class='badge rounded-pill' t-attf-style="{{tag['style']}}" t-out="tag['name']"/>
+                                                </t>
+                                            </t>
+                                            <t t-elif="c_prop['type']=='boolean'">
+                                                <input type='checkbox' t-att-checked="c_prop['value'] == True" t-att-disabled="c_prop.get('readonly', False)"/>
+                                            </t>
+                                            <t t-elif="c_prop['type'] == 'html'">
+                                                <div t-out="c_prop['value']"/>
+                                            </t>
+                                            <t t-else="">
+                                                <span t-out="c_prop['value']"/>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+                <t t-else="">
+                    <t t-set="is_separator" t-value="prop.get('type') == 'separator'"/>
+                    <div t-attf-class="o_worksheet_row row mb-2 {{ 'my-3 pt-4' if is_separator else '' }}">
+                        <div t-attf-class="fw-bold {{ 'h5' if is_separator else 'col-lg-3 col-12 w-25' }}">
+                            <span t-out="prop['name']"/>
+                        </div>
+                        <div t-if="not is_separator" class="col-lg-9 col-12 w-75">
+                            <t t-if="prop['type'] in ('signature', 'image')">
+                                <img class="img img-fluid" alt="Binary file" t-attf-src="data:image/png;base64,{{prop.get('value', '')}}" t-if="prop.get('value')" style=""/>
+                            </t>
+                            <t t-elif="prop['type'] == 'binary'">
+                                <a t-if="prop.get('value')" t-attf-href="/web/content/#{doc._name}/#{doc.id}/#{prop['value']['field']}?download=true" target="_blank" class="text-decoration-none">
+                                    <span t-out="prop['value']['filename']"/>
+                                </a>
+                            </t>
+                            <t t-elif="prop['type']=='tags'">
+                                <t t-foreach="prop['value']" t-as="tag">
+                                    <span class='badge rounded-pill' t-attf-style="{{tag['style']}}" t-out="tag['name']"/>
+                                </t>
+                            </t>
+                            <t t-elif="prop['type']=='boolean'">
+                                <input type='checkbox' t-att-checked="prop['value'] == True" t-att-disabled="prop.get('readonly', False)"/>
+                            </t>
+                            <t t-elif="prop['type'] == 'html'">
+                                <div t-out="prop['value']"/>
+                            </t>
+                            <t t-else="">
+                                <span t-out="prop['value']"/>
+                            </t>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </div>
+    </template>
+</odoo>

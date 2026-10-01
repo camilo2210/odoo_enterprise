@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="hr_payroll_warning_missing_employee_fields_errors" model="hr.payroll.warning">
+            <field name="name">Missing Employee Fields Errors</field>
+            <field name="description">Errors for employees missing required fields in their payroll records.</field>
+            <field name="country_id" ref="base.eg"/>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_eg_hr_payroll.model_hr_payslip"/>
+            <field name="warning_color_class">danger</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+eg_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'EG')
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', eg_companies.ids),
+])
+payslips = payslips.filtered(lambda p: p._origin)
+warning_records = self.env['hr.payslip']
+warning_details = defaultdict(list)
+for payslip in payslips:
+    employee_fields = payslip.employee_id._fields
+    if not payslip.employee_id.identification_id:
+        warning_records |= payslip
+        warning_details[payslip].append({
+            'message': _get_payroll_translation("Missing field '%(field_label)s' to print ETA-form2.", field_label=employee_fields['identification_id'].string),
+            'action_text': _get_payroll_translation('Employee'),
+            'action': payslip.employee_id._get_records_action(),
+            'level': 'danger',
+        })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_missing_employee_fields_warnings" model="hr.payroll.warning">
+            <field name="name">Missing Employee Fields Warnings</field>
+            <field name="description">Warnings for employees missing non-required fields in their payroll records.</field>
+            <field name="country_id" ref="base.eg"/>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_eg_hr_payroll.model_hr_payslip"/>
+            <field name="warning_color_class">warning</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+eg_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'EG')
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', eg_companies.ids),
+])
+payslips = payslips.filtered(lambda p: p._origin)
+warning_records = self.env['hr.payslip']
+warning_details = defaultdict(list)
+for payslip in payslips:
+    warning_fields = ["passport_id", "l10n_eg_ssn", "job_title"]
+    employee_fields = payslip.employee_id._fields
+    for field in warning_fields:
+        if not payslip.employee_id[field]:
+            warning_records |= payslip
+            warning_details[payslip].append({
+                'message': _get_payroll_translation("Missing field '%(field_label)s' to print ETA-form2.", field_label=employee_fields[field].string),
+                'action_text': _get_payroll_translation('Employee'),
+                'action': payslip.employee_id._get_records_action(),
+                'level': 'warning',
+            })
+            </field>
+        </record>
+    </data>
+</odoo>

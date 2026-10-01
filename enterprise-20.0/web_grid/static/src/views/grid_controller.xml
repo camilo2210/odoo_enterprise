@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<templates>
+    <t t-name="web_grid.Buttons">
+        <div class="d-flex o_grid_buttons">
+            <div class="me-2" t-if="this.displayAddALine">
+                <button class="btn btn-primary o_grid_button_add"
+                        type="button"
+                        t-on-click="() => this.createRecord()">
+                    Add a Line
+                </button>
+            </div>
+            <t t-call="web_grid.CustomButtons" t-if="this.props.archInfo.buttons.length"/>
+        </div>
+    </t>
+    <t t-name="web_grid.CustomButtons">
+        <div class="o_grid_custom_buttons me-2">
+            <t t-foreach="this.props.archInfo.buttons" t-as="button" t-key="button.id">
+                <ViewButton
+                    t-if="!button.invisible"
+                    className="button.className"
+                    clickParams="button.clickParams"
+                    defaultRank="button.defaultRank"
+                    icon="button.icon"
+                    iconClass="button.iconClass"
+                    string="button.string"
+                    title="button.title"
+                    record="this.model.record"
+                />
+            </t>
+        </div>
+    </t>
+    <t t-name="web_grid.GridView">
+        <div t-ref="this.rootRef" t-attf-class="o_grid_view {{ this.uiService.isSmall ? 'o_action_delegate_scroll' : '' }} {{this.props.className}}">
+            <Layout className="(this.model.useSampleModel ? 'o_view_sample_data' : '')" display="this.props.display">
+                <t t-set-slot="control-panel-additional-actions">
+                    <CogMenu/>
+                </t>
+                <t t-set-slot="control-panel-buttons">
+                    <t t-call="{{ this.props.buttonTemplate }}"/>
+                </t>
+                <t t-set-slot="control-panel-actions">
+                    <SearchBar toggler="this.searchBarToggler"/>
+                </t>
+                <t t-set-slot="control-panel-navigation-additional">
+                    <t t-component="this.searchBarToggler.component" t-props="this.searchBarToggler.props"/>
+                </t>
+                <t t-set-slot="default" t-slot-scope="layout">
+                    <t t-if="this.displayNoContent">
+                        <ActionHelper noContentHelp="this.props.info.noContentHelp"/>
+                    </t>
+                    <t t-if="this.hasDisplayableData">
+                        <t t-component="this.props.Renderer"
+                           options="this.options"
+                           model="this.model"
+                           sections="this.model.sectionsArray"
+                           columns="this.columns"
+                           rows="this.model.itemsArray"
+                           sectionField="this.model.sectionField"
+                           rowFields="this.model.rowFields"
+                           measureField="this.props.archInfo.measureField"
+                           isEditable="this.isEditable"
+                           createInline="this.props.archInfo.activeActions.create and this.props.archInfo.createInline and !this.displayNoContent"
+                           createRecord.bind="this.createRecord"
+                           widgetPerFieldName="this.props.archInfo.widgetPerFieldName"
+                           openAction="this.props.archInfo.openAction"
+                           contentRef="layout.contentRef"
+                           ranges="this.model.ranges"
+                           state="this.state"
+                           toggleWeekendVisibility.bind="this.toggleWeekendVisibility"
+                        />
+                    </t>
+                </t>
+            </Layout>
+        </div>
+    </t>
+</templates>

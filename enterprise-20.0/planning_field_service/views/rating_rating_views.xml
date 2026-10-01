@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="rating_rating_view_tree_planning_field_service" model="ir.ui.view">
+        <field name="name">rating.rating.list.planning.field.service</field>
+        <field name="model">rating.rating</field>
+        <field name="inherit_id" ref="rating.rating_rating_view_tree"/>
+        <field name="mode">primary</field>
+        <field name="priority">64</field>
+        <field name="arch" type="xml">
+            <field name="res_name" position="attributes">
+                <attribute name="string">Shift</attribute>
+            </field>
+            <field name="parent_res_name" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+            </field>
+            <field name="rated_partner_id" position="attributes">
+                <attribute name="string">Employee</attribute>
+                <attribute name="widget">many2one_avatar</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="rating_rating_view_form_planning_field_service" model="ir.ui.view">
+        <field name="name">rating.rating.form.planning.field.service</field>
+        <field name="model">rating.rating</field>
+        <field name="inherit_id" ref="rating.rating_rating_view_form_text"/>
+        <field name="mode">primary</field>
+        <field name="priority">64</field>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="edit">0</attribute>
+            </xpath>
+            <field name="resource_ref" position="before">
+                <field name="rated_partner_id" position="move"/>
+            </field>
+            <field name="rated_partner_id" position="attributes">
+                <attribute name="string">Employee</attribute>
+                <attribute name="readonly">1</attribute>
+            </field>
+            <field name="resource_ref" position="attributes">
+                <attribute name="string">Shift</attribute>
+            </field>
+            <field name="resource_ref" position="after">
+                <field name="feedback" position="move"/>
+            </field>
+            <field name="feedback" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </field>
+            <field name="partner_id" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </field>
+            <field name="rated_on" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </field>
+            <field name="parent_ref" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <field name="is_internal" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <field name="consumed" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <field name="publisher_comment" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <xpath expr="//label[@for='publisher_comment']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="rating_rating_view_pivot_planning_field_service" model="ir.ui.view">
+        <field name="name">rating.rating.view.pivot.planning.field.service</field>
+        <field name="model">rating.rating</field>
+        <field name="inherit_id" ref="rating.rating_rating_view_pivot"/>
+        <field name="mode">primary</field>
+        <field name="priority">64</field>
+        <field name="arch" type="xml">
+            <field name="rated_on" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <field name="rating" position="attributes">
+                <attribute name="string">Rating (1-5)</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="rating_rating_view_graph_planning_field_service" model="ir.ui.view">
+        <field name="name">rating.rating.view.graph.planning.field.service</field>
+        <field name="model">rating.rating</field>
+        <field name="inherit_id" ref="rating.rating_rating_view_graph"/>
+        <field name="mode">primary</field>
+        <field name="priority">64</field>
+        <field name="arch" type="xml">
+            <field name="rated_on" position="replace">
+                <field name="rated_partner_id"/>
+            </field>
+            <field name="rating" position="attributes">
+                <attribute name="string">Rating (1-5)</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="rating_rating_view_search_planning_field_service" model="ir.ui.view">
+        <field name="name">rating.rating.search.planning.field.service</field>
+        <field name="model">rating.rating</field>
+        <field name="inherit_id" ref="rating.rating_rating_view_search"/>
+        <field name="mode">primary</field>
+        <field name="priority">64</field>
+        <field name="arch" type="xml">
+            <field name="rated_partner_id" position="after">
+                <field name="res_name" position="move"/>
+            </field>
+            <field name="rated_partner_id" position="attributes">
+                <attribute name="string">Employee</attribute>
+            </field>
+            <field name="parent_res_name" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <xpath expr="//filter[@name='responsible']" position="after">
+                <filter name="rating_text" position="move"/>
+                <filter name="resource" position="move"/>
+                <filter name="customer" position="move"/>
+            </xpath>
+            <xpath expr="//filter[@name='responsible']" position="attributes">
+                <attribute name="string">Employee</attribute>
+            </xpath>
+            <xpath expr="//filter[@name='resource']" position="attributes">
+                <attribute name="string">Shift</attribute>
+            </xpath>
+            <xpath expr="//filter[@name='filter_rated_on']" position="attributes">
+                <attribute name="default_period">custom_rated_on_last_30_days</attribute>
+            </xpath>
+            <xpath expr="//filter[@name='month']" position="attributes">
+                <attribute name="context">{'group_by':'rated_on:month'}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="rating_rating_action_planning_field_service" model="ir.actions.act_window">
+        <field name="name">Customer Ratings</field>
+        <field name="res_model">rating.rating</field>
+        <field name="path">shift-ratings</field>
+        <field name="view_mode">kanban,list,pivot,graph,form</field>
+        <field name="domain">[('consumed', '=', True), ('res_model', '=', 'planning.slot')]</field>
+        <field name="search_view_id" ref="rating_rating_view_search_planning_field_service"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">
+                No customer ratings yet
+            </p>
+            <p>
+                Measure your customer satisfaction by sending rating requests when interventions are done.
+            </p>
+        </field>
+        <field name="context">{'search_default_filter_rated_on': 1}</field>
+    </record>
+
+    <record id="rating_rating_action_planning_field_service_kanban" model="ir.actions.act_window.view">
+        <field name="sequence" eval="5"/>
+        <field name="view_mode">kanban</field>
+        <field name="act_window_id" ref="rating_rating_action_planning_field_service"/>
+        <field name="view_id" ref="rating.rating_rating_view_kanban"/>
+    </record>
+
+    <record id="rating_rating_action_planning_field_service_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="10"/>
+        <field name="view_mode">list</field>
+        <field name="act_window_id" ref="rating_rating_action_planning_field_service"/>
+        <field name="view_id" ref="planning_field_service.rating_rating_view_tree_planning_field_service"/>
+    </record>
+
+    <record id="rating_rating_action_planning_field_service_form" model="ir.actions.act_window.view">
+        <field name="sequence" eval="40"/>
+        <field name="view_mode">form</field>
+        <field name="act_window_id" ref="rating_rating_action_planning_field_service"/>
+        <field name="view_id" ref="planning_field_service.rating_rating_view_form_planning_field_service"/>
+    </record>
+
+    <record id="rating_rating_action_planning_field_service_pivot" model="ir.actions.act_window.view">
+        <field name="sequence" eval="40"/>
+        <field name="view_mode">pivot</field>
+        <field name="act_window_id" ref="rating_rating_action_planning_field_service"/>
+        <field name="view_id" ref="planning_field_service.rating_rating_view_pivot_planning_field_service"/>
+    </record>
+
+    <record id="rating_rating_action_planning_field_service_graph" model="ir.actions.act_window.view">
+        <field name="sequence" eval="40"/>
+        <field name="view_mode">graph</field>
+        <field name="act_window_id" ref="rating_rating_action_planning_field_service"/>
+        <field name="view_id" ref="planning_field_service.rating_rating_view_graph_planning_field_service"/>
+    </record>
+
+</odoo>

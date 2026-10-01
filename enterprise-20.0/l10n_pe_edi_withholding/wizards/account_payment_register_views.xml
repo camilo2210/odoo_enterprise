@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <record id="l10n_pe_edi_withholding_account_payment_register_form" model="ir.ui.view">
+        <field name="name">account.payment.register.form.inherit.l10n_pe_edi_withholding</field>
+        <field name="model">account.payment.register</field>
+        <field name="inherit_id" ref="l10n_account_withholding_tax.view_account_payment_register_form"/>
+        <field name="arch" type="xml">
+            <field name="withhold" position="attributes">
+                <attribute name="invisible" add="country_code == 'PE'" separator="or"/>
+            </field>
+            <!-- Hide the editable list for PE and show a read-only copy instead.
+                 Making the One2many itself readonly breaks downstream computes
+                 (sequence/outstanding account clear, AML prepare never runs). -->
+            <field name="withholding_line_ids" position="attributes">
+                <attribute name="invisible" add="country_code == 'PE'" separator="or"/>
+            </field>
+            <field name="withholding_line_ids" position="before">
+                <field name="withholding_line_ids" nolabel="1" colspan="2"
+                       invisible="country_code != 'PE'">
+                    <list create="false" delete="false" edit="false" no_open="1">
+                        <field name="account_id"
+                               column_invisible="parent.withholding_hide_tax_base_account"
+                               width="184px"/>
+                        <field name="base_amount"/>
+                        <field name="tax_id" width="92px"/>
+                        <field name="amount" sum="Total Withheld Amount"/>
+                    </list>
+                </field>
+            </field>
+        </field>
+    </record>
+</odoo>

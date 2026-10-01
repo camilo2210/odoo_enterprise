@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_sa_gosi_wage_update_view_form" model="ir.ui.view">
+        <field name="name">l10n.sa.gosi.wage.update.view.form</field>
+        <field name="model">l10n.sa.gosi.wage.update</field>
+        <field name="arch" type="xml">
+            <form string="GOSI wage update sheet">
+                <sheet>
+                    <field name="line_ids" options="{'no_open': True, 'no_create_edit': True}">
+                            <list create="0" edit="0" no_open="1">
+                                <field name="employee_id" widget="many2one_avatar_employee" string="Contributor"/>
+                                <field name="identification_number"/>
+                                <field name="wage"/>
+                                <field name="housing"/>
+                                <field name="other_allowance"/>
+                            </list>
+                    </field>
+                    <group class="w-50">
+                        <field name="state_xlsx" invisible="1"/> <!--Needed in order to display the download link and change the export button shape-->
+                    </group>
+                    <div class="mt-4">
+                        <field name="gosi_filename_xlsx" invisible="1"/> <!--Needed in for the downloadable filename-->
+                        <h2 invisible="not gosi_xlsx" class="oe_inline w-100 mb-2">Generation Complete</h2>
+                        <span invisible="not gosi_xlsx or state_xlsx != 'done'" class="w-100">
+                            Download the GOSI wage update XLSX file: <field name="gosi_xlsx" readonly="1" filename="gosi_filename_xlsx"/>
+                        </span>
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="export_report_xlsx" string="Export to XLSX" type="object" class="btn-primary" invisible="state_xlsx != 'draft'" data-hotkey="e"/>
+                    <button name="export_report_xlsx" string="Export to XLSX" type="object" invisible="state_xlsx != 'done'" data-hotkey="r"/>
+                    <button special="cancel" type="object" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_sa_gosi_wage_update_action" model="ir.actions.act_window">
+        <field name="name">GOSI wage update sheet</field>
+        <field name="res_model">l10n.sa.gosi.wage.update</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_type">report</field>
+    </record>
+    <menuitem
+        id="menu_l10n_sa_gosi_wage_update_sheet"
+        name="GOSI Wages Sheet"
+        action="l10n_sa_gosi_wage_update_action"
+        parent="l10n_sa_hr_payroll.menu_reporting_l10n_sa"
+        sequence="15"
+    />
+</odoo>

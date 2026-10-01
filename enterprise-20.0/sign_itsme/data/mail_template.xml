@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="sign_template_mail_not_enough_credits_itsme" 
+                  inherit_id="sign.sign_template_mail_not_enough_credits">
+            <xpath expr="//td/p[last()]" position="attributes">
+                <attribute name="t-if">record.role_id.auth_method != 'itsme'</attribute>
+            </xpath>
+            <xpath expr="//td/p[last()]" position="after">
+                <p t-if="record.role_id.auth_method == 'itsme'">
+                    Itsme signer identification credits can be purchased on 
+                    <a t-att-href="record.env['iap.account'].get_credits_url(service_name='itsme_proxy')"
+                       target="_blank"
+                       style="color:#428BCA; text-decoration:underline;">
+                        this page</a>.
+                </p>
+            </xpath>
+
+        </template>
+
+        <template id="sign_template_mail_completed_itsme"
+                  inherit_id="sign.sign_template_mail_completed">
+            <xpath expr="//table/tr[last()]" position="after">
+                <tr t-if="'itsme_qes' in record.request_item_ids.role_id.mapped('auth_method')">
+                    <td valign="top">
+                        <p style="color:#666666; font-size:13px;">
+                            This document was signed with an itsme® qualified electronic signature.
+                            To verify the signature, open it in a PDF reader such as Adobe Acrobat
+                            or another compatible PDF reader.
+                        </p>
+                    </td>
+                </tr>
+            </xpath>
+        </template>
+    </data>
+</odoo>

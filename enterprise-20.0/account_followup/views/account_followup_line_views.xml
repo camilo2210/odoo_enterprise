@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_account_followup_followup_line_tree" model="ir.ui.view">
+        <field name="name">account_followup.followup.line.list</field>
+        <field name="model">account_followup.followup.line</field>
+        <field name="arch" type="xml">
+            <list string="Follow-up Steps" >
+                <field name="display_delay"/>
+                <field name="reminder_timing"/>
+                <field name="send_email"/>
+                <field name="send_sms"/>
+                <field name="create_activity" column_invisible="1"/>
+                <field name="activity_type_id" string="Activity" invisible="not create_activity"/>
+                <field name="company_id"  groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_account_followup_followup_line_form" model="ir.ui.view">
+        <field name="name">account_followup.followup.line.form</field>
+        <field name="model">account_followup.followup.line</field>
+        <field name="arch" type="xml">
+            <form string="Follow-up Steps">
+                <sheet>
+                    <div class="oe_inline">
+                        Remind <field name="display_delay" style="width: 50px;"/> days <field name="reminder_timing" style="width: 150px;"/>
+                    </div>
+                    <notebook>
+                        <page string="Notification" name="notification">
+                            <group col="3">
+                                <group string="Actions" name="actions" colspan="2" col="3">
+                                    <group colspan="1">
+                                        <field name="send_email"/>
+                                        <field name="send_sms"/>
+                                    </group>
+                                    <group colspan="2">
+                                        <field name="mail_template_id" string="Email Template" invisible="not send_email"/>
+                                        <field name="sms_template_id" invisible="not send_sms"/>
+                                    </group>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Activity" name="activity">
+                            <group>
+                                <group name="options">
+                                    <field name="create_activity"/>
+                                    <field name="activity_default_responsible_type"
+                                           invisible="not create_activity"/>
+                                </group>
+                                <group name="notes" invisible="not create_activity">
+                                    <field name="activity_type_id" required="create_activity"/>
+                                    <field name="activity_summary" required="create_activity"/>
+                                </group>
+                                <field name="activity_note" nolabel="1" placeholder="Activity Notes"
+                                       invisible="not create_activity"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_account_followup_line_filter" model="ir.ui.view">
+        <field name="name">account.followup.line.select</field>
+        <field name="model">account_followup.followup.line</field>
+        <field name="arch" type="xml">
+            <search string="Search Follow-up">
+                <field name="company_id" groups="base.group_multi_company"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_account_followup_line_definition_form" model="ir.actions.act_window">
+        <field name="name">Invoice Reminders</field>
+        <field name="res_model">account_followup.followup.line</field>
+        <field name="path">follow-up-levels</field>
+        <field name="search_view_id" ref="view_account_followup_line_filter"/>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Define reminders and their related actions
+          </p><p>
+            For each step, specify the actions to be taken and delay in days. It is
+            possible to use print and e-mail templates to send specific messages to
+            the customer.
+          </p>
+      </field>
+    </record>
+
+    <menuitem
+        action="action_account_followup_line_definition_form"
+        id="account_followup_menu"
+        name="Invoice Reminders"
+        parent="account.account_account_menu"
+        groups="account.group_account_manager"
+        sequence="11"/>
+</odoo>

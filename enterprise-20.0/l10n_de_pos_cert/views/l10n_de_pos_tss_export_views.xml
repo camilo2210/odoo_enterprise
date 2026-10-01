@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="l10n_de_pos_tss_export_view_form" model="ir.ui.view">
+        <field name="name">l10n_de_pos.tss_export.form.view</field>
+        <field name="model">l10n_de_pos.tss_export</field>
+        <field name="arch" type="xml">
+            <form string="TSS export form">
+                <header>
+                    <button name="l10n_de_action_refresh_state" string="Refresh State" class="oe_highlight"
+                            type="object" invisible="state not in ['pending', 'working']"/>
+                    <button name="l10n_de_action_download_export" string="Download Export" class="oe_highlight"
+                            type="object" invisible="state != 'completed'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,working,completed"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="start_datetime" readonly="state"/>
+                            <field name="end_datetime" readonly="state"/>
+                            <field name="config_id" string="TSS" readonly="state" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="l10n_de_fiskaly_export_uuid"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_de_pos_tss_export_view_search" model="ir.ui.view">
+        <field name="name">l10n_de_pos.tss_export.search.view</field>
+        <field name="model">l10n_de_pos.tss_export</field>
+        <field name="arch" type="xml">
+            <search string="TSS export">
+                <field name="config_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_de_pos_tss_export_view_list" model="ir.ui.view">
+        <field name="name">l10n_de_pos.tss_export.list.view</field>
+        <field name="model">l10n_de_pos.tss_export</field>
+        <field name="arch" type="xml">
+            <list string="TSS export">
+                <field name="create_date"/>
+                <field name="state" widget="badge" decoration-warning="state == 'cancelled'" decoration-success="state == 'completed'" decoration-danger="state == 'error'"/>
+                <field name="start_datetime"/>
+                <field name="end_datetime"/>
+                <field name="config_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_l10n_de_pos_tss_export" model="ir.actions.act_window">
+        <field name="name">TSS Exports</field>
+        <field name="res_model">l10n_de_pos.tss_export</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

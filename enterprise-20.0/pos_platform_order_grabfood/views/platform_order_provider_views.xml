@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="platform_order_provider_form_inherit" model="ir.ui.view">
+        <field name="name">platform.order.provider.form.inherit.pos_platform_order_grabfood</field>
+        <field name="model">platform.order.provider</field>
+        <field name="inherit_id" ref="pos_platform_order.view_platform_order_provider_form"/>
+        <field name="arch" type="xml">
+            <group name="provider_credentials" position='inside'>
+                <group invisible="code != 'grabfood'" string="Credentials from GrabFood" colspan="2">
+                    <group>
+                        <field name="grabfood_client_id"
+                            string="Client ID"
+                            required="code == 'grabfood' and state != 'disabled'"/>
+                        <field name="grabfood_client_secret"
+                            string="Client Secret"
+                            required="code == 'grabfood' and state != 'disabled'"
+                            password="True"/>
+                        <button name="action_grabfood_test_connection" type="object" icon="link">
+                            Test Connection
+                        </button>
+                    </group>
+                </group>
+            </group>
+            <page name="credentials" position="after">
+                <page string="Oauth" name="oauth" groups="base.group_no_one" invisible="code != 'grabfood'">
+                    <group string="Credentials to GrabFood">
+                        <group>
+                            <field name="grabfood_partner_client_id" string="Partner Client ID" widget="CopyClipboardChar" />
+                            <field name="grabfood_partner_client_secret" string="Partner Client Secret" password="True" widget="CopyClipboardChar" />
+                            <button name="action_grabfood_generate_access_token" type="object" icon="key" confirm="Are you sure you want to generate new credentials? This action and discarding current set of credential is irreversible, your existing connection with provider's stores could be lost and re-configuration would be needed.">
+                                Generate Credentials
+                            </button>
+                        </group>
+                    </group>
+                    <group string="Webhook Urls" colspan="2">
+                        <group>
+                            <field name="grabfood_get_menu_endpoint" string="Get Menu Endpoint" widget="CopyClipboardURL"/>
+                            <field name="grabfood_submit_order_endpoint" string="Submit Order Endpoint" widget="CopyClipboardURL"/>
+                            <field name="grabfood_push_order_state_endpoint" string="Push Order State Endpoint" widget="CopyClipboardURL"/>
+                            <field name="grabfood_oauth_token_endpoint" string="Oauth Token Endpoint" widget="CopyClipboardURL"/>
+                        </group>
+                        <group>
+                            <field name="grabfood_menu_sync_endpoint" string="Menu Sync Endpoint" widget="CopyClipboardURL"/>
+                            <field name="grabfood_push_menu_endpoint" string="Push Menu Endpoint" widget="CopyClipboardURL"/>
+                            <field name="grabfood_integration_status_endpoint" string="Integration Status Endpoint" widget="CopyClipboardURL"/>
+                        </group>
+                    </group>
+                </page>
+            </page>
+        </field>
+    </record>
+
+</odoo>

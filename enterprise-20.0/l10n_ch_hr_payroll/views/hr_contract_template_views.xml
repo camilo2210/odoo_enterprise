@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_contract_template_form_view" model="ir.ui.view">
+        <field name="name">hr.contract.template.view.form.inherit.l10n.ch.hr.payroll</field>
+        <field name="model">hr.version</field>
+        <field name="inherit_id" ref="hr.hr_contract_template_form_view"/>
+        <field name="arch" type="xml">
+            <group name="salary_info" position="inside">
+                <group name="ch_salary_info" string="Salary Information" invisible="country_code != 'CH'">
+                    <label for="l10n_ch_has_monthly"/>
+                    <div class="o_row mw-50" name="wage">
+                        <field name="l10n_ch_has_monthly"/>
+                        <field name="wage" widget="monetary" options="{'currency_field': 'currency_id'}" class="oe_inline o_hr_narrow_field" readonly="not l10n_ch_has_monthly" force_save="1"/>
+                        <span class="mb-3 text-muted">/ month</span>
+                    </div>
+
+                    <label for="l10n_ch_has_hourly"/>
+                    <div class="o_row mw-50" name="hourly_wage">
+                        <field name="l10n_ch_has_hourly"/>
+                        <field name="hourly_wage" widget="monetary" options="{'currency_field': 'currency_id'}" class="oe_inline o_hr_narrow_field" readonly="not l10n_ch_has_hourly" no_label="1" force_save="1"/>
+                        <span class="mb-3 text-muted">/ hour</span>
+                    </div>
+
+                    <label for="l10n_ch_has_lesson"/>
+                    <div class="o_row mw-50" name="l10n_ch_lesson_wage">
+                        <field name="l10n_ch_has_lesson"/>
+                        <field name="l10n_ch_lesson_wage" widget="monetary" options="{'currency_field': 'currency_id'}" class="o_hr_narrow_field" readonly="not l10n_ch_has_lesson" force_save="1"/>
+                        <span class="mb-3 text-muted">/ lesson</span>
+                    </div>
+
+                    <label for="l10n_ch_contractual_holidays_rate" invisible="not l10n_ch_has_hourly and not l10n_ch_has_lesson"/>
+                    <div class="o_row" name="l10n_ch_contractual_holidays_rate" invisible="not l10n_ch_has_hourly and not l10n_ch_has_lesson">
+                        <field name="l10n_ch_contractual_holidays_rate" class="o_hr_narrow_field"/>
+                        <span>%</span>
+                    </div>
+                    <label for="l10n_ch_contractual_public_holidays_rate" invisible="not l10n_ch_has_hourly and not l10n_ch_has_lesson"/>
+                    <div class="o_row" name="l10n_ch_contractual_public_holidays_rate" invisible="not l10n_ch_has_hourly and not l10n_ch_has_lesson">
+                        <field name="l10n_ch_contractual_public_holidays_rate" class="o_hr_narrow_field"/>
+                        <span>%</span>
+                    </div>
+                    <field name="l10n_ch_contractual_vacation_pay" invisible="not l10n_ch_has_hourly and not l10n_ch_has_lesson"/>
+                    <field name="l10n_ch_thirteen_month" widget="boolean_toggle" string="13th Month"/>
+                    <field name="l10n_ch_14th_month" widget="boolean_toggle" string="14th Month"/>
+                    <label for="l10n_ch_contractual_13th_month_rate" invisible="not l10n_ch_thirteen_month"/>
+                    <div class="o_row" name="l10n_ch_contractual_13th_month_rate" invisible="not l10n_ch_thirteen_month">
+                        <field name="l10n_ch_contractual_13th_month_rate" class="o_hr_narrow_field"/>
+                        <span>%</span>
+                    </div>
+                </group>
+            </group>
+
+            <xpath expr="//field[@name='employee_type_id']" position="before">
+                <field name="l10n_ch_location_unit_id" string="Workplace" invisible="country_code != 'CH'" options="{'no_quick_create': True}"/>
+            </xpath>
+            <field name="wage_type" position="attributes">
+                <attribute name="invisible">country_code == 'CH'</attribute>
+            </field>
+            <field name="schedule_pay" position="attributes">
+                <attribute name="invisible">country_code == 'CH'</attribute>
+            </field>
+
+            <!-- Remove {hourly_,}wage as they appear in the Salary Information group -->
+            <xpath expr="//div[@name='wage']" position="attributes">
+                <attribute name="invisible" add="country_code == 'CH'" separator="or"/>
+            </xpath>
+            <xpath expr="//label[@for='wage']" position="attributes">
+                <attribute name="invisible" add="country_code == 'CH'" separator="or"/>
+            </xpath>
+            <xpath expr="//div[@name='hourly_wage']" position="attributes">
+                <attribute name="invisible" add="country_code == 'CH'" separator="or"/>
+            </xpath>
+            <xpath expr="//label[@for='hourly_wage']" position="attributes">
+                <attribute name="invisible" add="country_code == 'CH'" separator="or"/>
+            </xpath>
+
+            <xpath expr="//field[@name='resource_calendar_id']" position="after">
+                <field name="irregular_working_time" invisible="country_code != 'CH'"/>
+                <field name="l10n_ch_current_occupation_rate" invisible="country_code != 'CH' or irregular_working_time" />
+                <field name="l10n_ch_weekly_hours" invisible="country_code != 'CH' or irregular_working_time"/>
+                <field name="l10n_ch_weekly_lessons" invisible="country_code != 'CH' or irregular_working_time"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page name="insurances" string="Insurances" invisible="country_code != 'CH'" groups="hr_payroll.group_hr_payroll_user">
+                    <group>
+                        <group string="Social Insurance">
+                            <field name="l10n_ch_social_insurance_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="l10n_ch_avs_status"/>
+                        </group>
+                        <group string="Compensation Fund">
+                            <field name="l10n_ch_compensation_fund_id" string="Compensation Fund" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group string="Accident Insurance">
+                            <field name="l10n_ch_laa_group" string="LAA Group" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="laa_solution_number" string="LAA Solution" widget="radio"/>
+                        </group>
+                        <group string="Additional Insurances">
+                            <field name="l10n_ch_additional_accident_insurance_line_ids" widget="many2many_tags" options="{'no_create':True}"/>
+                            <field name="l10n_ch_sickness_insurance_line_ids" widget="many2many_tags" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                    </group>
+                    <group string="LPP">
+                        <group colspan="4">
+                            <group string="LPP Status">
+                                <field name="l10n_ch_lpp_not_insured"/>
+                                <field name="l10n_ch_lpp_insurance_id" invisible="l10n_ch_lpp_not_insured" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="l10n_ch_lpp_entry_valid_as_of" invisible="not l10n_ch_lpp_insurance_id or l10n_ch_lpp_not_insured"/>
+                                <field name="l10n_ch_lpp_entry_reason" invisible="not l10n_ch_lpp_insurance_id or l10n_ch_lpp_not_insured"/>
+                                <field name="l10n_ch_lpp_withdrawal_reason" invisible="not l10n_ch_lpp_not_insured or not l10n_ch_lpp_insurance_id"/>
+                                <field name="l10n_ch_lpp_withdrawal_valid_as_of" invisible="not l10n_ch_lpp_not_insured or not l10n_ch_lpp_insurance_id"/>
+                                <field name="l10n_ch_lpp_solutions" invisible="not l10n_ch_lpp_insurance_id or l10n_ch_lpp_not_insured" widget="many2many_tags" options="{'no_create':True}"/>
+                            </group>
+                            <group string="Contributions" invisible="not l10n_ch_lpp_insurance_id or l10n_ch_lpp_not_insured">
+                                <label for="lpp_employee_amount"/>
+                                <div class="o_row mw-50" name="lpp_employee_amount">
+                                    <field name="lpp_employee_amount" required="l10n_ch_lpp_solutions" class="o_hr_narrow_field" nolabel="1"/>
+                                    <span>CHF / Month</span>
+                                </div>
+                                <label for="lpp_company_amount"/>
+                                <div class="o_row mw-50" name="lpp_company_amount">
+                                    <field name="lpp_company_amount" required="l10n_ch_lpp_solutions" class="o_hr_narrow_field" nolabel="1"/>
+                                    <span>CHF / Month</span>
+                                </div>
+                            </group>
+                            <group string="Mutations" invisible="not l10n_ch_lpp_insurance_id or l10n_ch_lpp_not_insured">
+                                <field name="l10n_ch_lpp_mutations" nolabel="1" colspan="4">
+                                    <list editable="bottom">
+                                        <field name="reason"/>
+                                        <field name="valid_as_of"/>
+                                    </list>
+                                </field>
+                            </group>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

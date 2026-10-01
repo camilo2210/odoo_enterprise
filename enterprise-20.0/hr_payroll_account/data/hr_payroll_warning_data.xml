@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="hr_payroll_warning_no_journal" model="hr.payroll.warning">
+            <field name="name">No Journal</field>
+            <field name="description">Payslip has no journal defined</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll_account.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+payslips_without_journal = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', self.env.companies.ids),
+    ('state', '!=', 'paid'),
+    ('struct_id', '!=', False),
+    ('journal_id', '=', False),
+])
+warning_details = defaultdict(list)
+warning_records = payslips_without_journal
+for payslip in payslips_without_journal:
+    warning_details[payslip].append({
+        'message': _get_payroll_translation("No Journal on Structure"),
+        'action_text': _get_payroll_translation("Structure"),
+        'action': payslip.struct_id._get_records_action(target='new'),
+        'level': 'warning',
+    })
+            </field>
+        </record>
+    </data>
+</odoo>

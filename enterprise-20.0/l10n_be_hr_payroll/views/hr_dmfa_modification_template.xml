@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+   <template id="dmfa_modification_xml_report">
+        <DmfAUpdate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" t-att="{'xsi:noNamespaceSchemaLocation': 'DmfAUpdate_' + schema_year_quarter + '.xsd'}">
+            <Form>
+                <Identification>DMFAUPD</Identification>
+                <FormCreationDate t-out="datetime.date.today()"/>
+                <FormCreationHour t-out="datetime.datetime.now().strftime('%H:%M:%S.000')"/>
+                <AttestationStatus>1</AttestationStatus>
+                <TypeForm>SU</TypeForm>
+                <Reference>
+                    <ReferenceType>1</ReferenceType>
+                    <ReferenceOrigin>1</ReferenceOrigin>
+                    <ReferenceNbr t-out="data.name"/>
+                </Reference>
+                <EmployerDeclarationUpdate>
+                    <Quarter t-out="quarter_repr"/>
+                    <NOSSRegistrationNbr t-out="onss_registration_number"/>
+                    <Trusteeship>0</Trusteeship>
+                    <CompanyID t-out="l10n_be_company_number"/>
+                    <EmployerDeclarationPID t-out="onss_employer_declaration_id"/>
+                    <Justification>Justification</Justification>
+                    <t t-foreach="natural_persons" t-as="person">
+                        <t t-call="l10n_be_hr_payroll.NaturalPersonUpdate"/>
+                    </t>
+                    <t t-foreach="company_vehicles" t-as="vehicle">
+                        <t t-call="l10n_be_hr_payroll.CompanyVehicleUpdate"/>
+                    </t>
+                    <ContributionUnrelatedToNPUpdate t-if="group_insurance_basis != '00000000000'">
+                        <CUNPUpdateAction t-if="group_insurance_basis != '00000000000'">
+                            <UnrelatedEmployerClass t-out="employer_class"/>
+                            <UnrelatedWorkerCode>865</UnrelatedWorkerCode>
+                            <UnrelatedCalculationBasis t-out="group_insurance_basis"/>
+                            <UnrelatedAmount t-out="group_insurance_amount"/>
+                            <UpdateAction>0</UpdateAction>
+                        </CUNPUpdateAction>
+                    </ContributionUnrelatedToNPUpdate>
+                </EmployerDeclarationUpdate>
+            </Form>
+        </DmfAUpdate>
+   </template>
+   <template id='NaturalPersonUpdate'>
+        <NaturalPersonUpdate>
+            <NaturalPersonSequenceNbr t-out="person.sequence"/>
+            <INSS t-out="person.identification_id"/>
+            <NaturalPersonUserReference />
+            <NaturalPersonPID t-out="person.natural_person_pid"/>
+            <DeclNaturalPersonPID t-out="person.decl_natural_person_pid"/> 
+            <DeclNaturalPersonVersionNbr t-out="person.version_number"/>
+            <Justification t-out="person.worker_records[0].state.modification_justification"/>
+            <t t-foreach="person.worker_records" t-as="worker">
+                <t t-call="l10n_be_hr_payroll.WorkerRecordUpdate"/>
+            </t>
+        </NaturalPersonUpdate>
+   </template>
+   <template id="CompanyVehicleUpdate">
+        <CompanyVehicleUpdateAction>
+            <CompanyVehicle />
+            <CompanyVehicleVersionNbr t-out="company_vehicle.version_number"/>
+            <UpdateAction>0</UpdateAction>
+        </CompanyVehicleUpdateAction>
+   </template>
+   <template id="WorkerRecordUpdate">
+        <WorkerRecordUpdate>
+            <WorkerRecordUpdateAction>
+                <EmployerClass t-out="employer_class"/>
+                <WorkerCode t-out="worker.worker_code"/>
+                <NOSSQuarterStartingDate t-out="quarter_start"/>
+                <NOSSQuarterEndingDate t-out="quarter_end"/>
+                <Border t-out="worker.frontier_worker"/>
+                <t t-if="worker.activity_with_risk != -1">
+                    <ActivityWithRisk t-out="worker.activity_with_risk"/>
+                </t>
+                <!-- See 00042: Deprecated since 2014-->
+                <t t-if="worker.local_unit_id != -1">
+                    <LocalUnitID t-out="worker.local_unit_id"/>
+                </t>
+                <UpdateAction t-out="worker.state.worker_record_data[worker.worker_code]['update_action']"/> 
+                <t t-foreach="worker.state.worker_record_data[worker.worker_code]['occupations']" t-as="occupation">
+                    <t t-call="l10n_be_hr_payroll.OccupationUpdate"/>
+                </t>
+                <t t-foreach="worker.state.worker_record_data[worker.worker_code]['contributions']" t-as="contribution">
+                    <t t-call="l10n_be_hr_payroll.WorkerContributionUpdate"/>
+                </t>
+                <t t-foreach="worker.state.worker_record_data[worker.worker_code]['deductions']" t-as="deduction">
+                    <t t-call="l10n_be_hr_payroll.WorkerDeductionUpdate"/>
+                </t>
+                <t t-foreach="worker.state.worker_record_data[worker.worker_code]['student_contributions']" t-as="contribution">
+                    <t t-call="l10n_be_hr_payroll.StudentContributionUpdate"/>
+                </t>
+            </WorkerRecordUpdateAction>
+        </WorkerRecordUpdate>
+    </template>
+
+    <template id="WorkerContributionUpdate">
+        <!-- 90001: Bloc fonctionnel permettant de déclarer les cotisations dues pour une ligne travailleur. -->
+        <WorkerContribution>
+            <ContributionWorkerCode t-out="contribution['worker_code']"/>
+            <ContributionType t-out="contribution['contribution_type']"/>
+            <t t-if="contribution['calculation_basis'] != -1">
+                <ContributionCalculationBasis t-out="contribution['calculation_basis']"/>  <!-- Probably not required -->
+            </t>
+            <ContributionAmount t-out="contribution['amount']"/>
+            <t t-if="contribution['first_hiring_date'] != -1">
+                <FirstHiringDate t-out="['first_hiring_date']"/>
+            </t>
+        </WorkerContribution>
+    </template>
+
+    <template id="WorkerDeductionUpdate">
+        <!-- 90110 Bloc fonctionnel permettant de déclarer les déductions demandées pour une ligne travailleur.
+            Une déduction ligne travailleur donnée (un code déduction) ne peut se retrouver qu'une seule fois par ligne travailleur.
+        -->
+        <WorkerDeduction>
+            <DeductionCode t-out="deduction['code']"/>
+            <t t-if="deduction['deduction_calculation_basis'] != -1">
+                <DeductionCalculationBasis t-out="deduction['deduction_calculation_basis']"/>
+            </t>
+            <DeductionAmount t-out="deduction['deduction_amount']"/>
+            <t t-if="deduction['deduction_right_starting_date'] != -1">
+                <DeductionRightStartingDate t-out="deduction['deduction_right_starting_date']"/>
+            </t>
+            <t t-if="deduction['manager_cost_nbr_months'] != -1">
+                <ManagementCostNbrMonths t-out="deduction['manager_cost_nbr_months']"/>
+            </t>
+            <t t-if="deduction['replace_inss'] != -1">
+                <ReplacedINSS t-out="deduction['replace_inss']"/>
+            </t>
+            <t t-if="deduction['applicant_inss'] != -1">
+                <ApplicantINSS t-out="deduction['applicant_inss']"/>
+            </t>
+            <t t-if="deduction['certificate_origin'] != -1">
+                 <CertificateOrigin t-out="deduction['certificate_origin']"/>
+            </t>
+             <!-- DeductionDetail: Check annexe 4 to see if mandatory -->
+        </WorkerDeduction>
+    </template>
+
+    <template id='OccupationUpdate'>
+        <OccupationUpdate>
+            <OccupationSequenceNbr t-out="occupation['sequence']"/>
+            <OccupationStartingDate t-out="occupation['date_start']"/>
+            <t t-if="occupation['date_stop'] != -1">
+                <OccupationEndingDate t-out="occupation['date_stop']"/>
+            </t>
+            <JointCommissionNbr t-out="occupation['commission']"/>
+            <WorkingDaysSystem t-out="occupation['days_per_week']"/>
+            <ContractType t-out="occupation['is_parttime']"/>
+            <t t-if="occupation['ref_mean_working_hours'] != -1">
+                <RefMeanWorkingHours t-out="occupation['ref_mean_working_hours']"/>
+            </t>
+            <MeanWorkingHours t-out="occupation['mean_working_hours']"/>
+            <t t-if="occupation['reorganisation_measure'] != -1">
+                <ReorganisationMeasure t-out="occupation['reorganisation_measure']"/>
+            </t>
+            <t t-if="occupation['employment_promotion'] != -1">
+                <EmploymentPromotion t-out="occupation['employment_promotion']"/>
+            </t>
+            <t t-if="occupation['worker_status'] != -1">
+                <WorkerStatus t-out="occupation['worker_status']"/>
+            </t>
+            <Retired t-out="occupation['retired']"/>
+            <t t-if="occupation['apprenticeship'] != -1">
+                <Apprenticeship t-out="occupation['apprenticeship']"/>
+            </t>
+            <t t-if="occupation['remun_method'] != -1">
+                <RemunMethod t-out="occupation['remun_method']"/>
+            </t>
+            <t t-if="occupation['position_code'] != -1">
+                <PositionCode t-out="occupation['position_code']"/>
+            </t>
+            <t t-if="occupation['flying_staff_class'] != -1">
+                <FlyingStaffClass t-out="occupation['flying_staff_class']"/>
+            </t>
+            <t t-if="occupation['TenthOrTwelfth'] != -1">
+                <TenthOrTwelfth t-out="occupation['TenthOrTwelfth']"/>
+            </t>
+            <t t-if="occupation['ActivityCode'] != -1">
+                <ActivityCode t-out="occupation['ActivityCode']"/>
+            </t>
+            <OccupationVersionNbr t-out="occupation['version_number']"/>
+            <LocalUnitID t-out="occupation['work_place']"/>
+            <t t-if="occupation['days_justification'] != -1">
+                <DaysJustification t-out="occupation['days_justification']"/>
+            </t>
+            <t t-foreach="occupation['occupation_informations']" t-as="info">
+                <t t-call="l10n_be_hr_payroll.OccupationInformations"/>
+            </t>
+            <t t-foreach="occupation['remunerations']" t-as="remuneration">
+                <t t-call="l10n_be_hr_payroll.RemunUpdate"/>
+            </t>
+            <t t-foreach="occupation['occupation_deductions']" t-as="occupation_deduction">
+                <t t-call="l10n_be_hr_payroll.OccupationDeductionUpdate"/>
+            </t>
+        </OccupationUpdate>
+    </template>
+    <template id="RemunUpdate">
+        <!-- 90019 Bloc fonctionnel permettant de déclarer les rémunérations d'un travailleur pour une occupation de la ligne travailleur.
+        Une rémunération donnée (une combinaison code rémunération / fréquence en mois de paiement de la prime / pourcentage de la rémunération sur base annuelle) ne peut se retrouver qu'une seule fois par occupation.
+         -->
+        <Remun>
+            <RemunSequenceNbr t-out="remuneration['sequence']"/>
+            <RemunCode t-out="remuneration['code']"/>
+            <t t-if="remuneration['frequency'] != -1">
+                <BonusPaymentFrequency t-out="remuneration['frequency']"/>
+            </t>
+            <t t-if="remuneration['percentage_paid'] != -1">
+                <PercentagePaid t-out="remuneration['percentage_paid']"/>
+            </t>
+            <RemunAmount t-out="remuneration['amount'] if remuneration['code'] != '012' else '0' + remuneration['amount'][1:]"/>
+        </Remun>
+    </template>
+
+    <template id="OccupationDeductionUpdate">
+        <!-- Bloc fonctionnel permettant de déclarer les déductions demandées pour une occupation. -->
+        <OccupationDeduction>
+            <DeductionCode t-out="occupation_deduction['deduction_code']"/>
+            <DeductionCalculationBasis t-if="occupation_deduction['deduction_calculation_basis'] != -1" t-out="occupation_deduction['deduction_calculation_basis']"/>
+            <DeductionAmount t-if="occupation_deduction['deduction_amount'] != -1" t-out="occupation_deduction['deduction_amount']"/>
+            <DeductionRightStartingDate t-if="occupation_deduction['deduction_right_starting_date'] != -1" t-out="occupation_deduction['deduction_right_starting_date']"/>
+            <ManagementCostNbrMonths t-if="occupation_deduction['management_cost_nbr_months'] != -1" t-out="occupation_deduction['management_cost_nbr_months']"/>
+            <ReplacedINSS t-if="occupation_deduction['replaced_inss'] != -1" t-out="occupation_deduction['replaced_inss']"/>
+            <ApplicantINSS t-if="occupation_deduction['applicant_inss'] != -1" t-out="occupation_deduction['applicant_inss']"/>
+            <CertificateOrigin t-if="occupation_deduction['certificate_origin'] != -1" t-out="occupation_deduction['certificate_origin']"/>
+        </OccupationDeduction>
+    </template>
+    <template id="StudentContributionUpdate">
+        <!-- 90003: Bloc fonctionnel permettant de déclarer la cotisation de solidarité due pour un étudiant. -->
+        <StudentContribution>
+            <StudentRemunAmount t-out="contribution['student_remun_amount']"/>
+            <StudentContributionAmount t-out="contribution['student_contribution_amount']"/>
+            <t t-if="contribution['student_nbr_days'] != -1">
+                <StudentNbrDays t-out="contribution['student_nbr_days']"/>
+            </t>
+            <StudentHoursNbr t-out="contribution['student_hours_nbr']"/>
+            <LocalUnitID t-out="contribution['local_unit_id']"/>
+        </StudentContribution>
+    </template>
+</data>
+</odoo>

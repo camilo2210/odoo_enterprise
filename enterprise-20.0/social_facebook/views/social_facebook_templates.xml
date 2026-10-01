@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+    <template id="facebook_preview" t-name="Facebook Preview">
+        <div class="o_social_preview o_social_facebook_preview bg-white border rounded overflow-hidden"
+            t-if="not facebook_post_as_story">
+            <div class="o_social_preview_header d-flex mx-3 mt-3 mb-2">
+                <span class="o_social_preview_icon_wrapper d-inline-block rounded-circle overflow-hidden me-2">
+                    <i class="oi oi-2x text-white pt-1" data-icon="oi_facebook"/>
+                </span>
+
+                <div class="o_social_preview_author">
+                    <b class="d-block mb-2">Facebook Page</b>
+                    <div class="text-muted o_social_preview_description">
+                        Published by Facebook Page •
+                        <a t-if="live_post_link" t-attf-href="#{live_post_link}" target="blank"><time t-out="published_date"/></a>
+                        <t t-else=""><time t-out="published_date"/></t> • <i class="oi" data-icon="public"/>
+                    </div>
+                </div>
+            </div>
+            <div class="o_social_preview_message pb-1 mx-3" t-if="not facebook_post_as_story" t-out="message"/>
+            <a t-att-href="link_preview.get('url')" target="_blank">
+                <div t-attf-class="o_social_stream_post_content d-flex overflow-hidden
+                    {{link_preview.get('url') and 'o_social_stream_post_content_clickable'}}">
+                    <t t-foreach="image_urls" t-as="image_url" >
+                        <div t-if="image_url_index == 1 and len(image_urls) > 2" class="o_social_stream_post_content_more position-relative d-flex ms-1">
+                            <img t-att-src="image_url" alt="Post Image" />
+                            <div class="o_social_stream_post_content_more_overlay d-flex align-items-center h-100 w-100 text-white justify-content-center position-absolute h1 m-0 pe-none">
+                                +<t t-out="len(image_urls) - 2"/>
+                            </div>
+                        </div>
+                        <div t-elif="image_url_index &lt; 2" class="w-100">
+                            <img t-att-src="image_url" alt="Post Image"  />
+                        </div>
+                    </t>
+                </div>
+                <div t-if="link_preview"
+                    class="o_social_facebook_preview_article w-100 px-3 py-2 d-block text-dark">
+                    <small t-out="link_preview['domain']" class="text-uppercase"/>
+                    <div t-if="link_preview.get('title')" class="fw-bold" t-out="link_preview['title']"/>
+                    <small t-if="link_preview.get('description')" t-out="link_preview['description']"/>
+                </div>
+            </a>
+            <div t-if="facebook_first_comment" class="o_social_comment px-3 py-2 w-100 bg-white">
+                <hr class="my-2"/>
+                <span>1 Comment</span>
+            </div>
+        </div>
+        <div t-elif="image_urls" class="o_social_preview o_social_facebook_preview overflow-hidden o_social_story m-auto h-100 rounded d-flex flex-column justify-content-between">
+            <!-- Story preview -->
+            <div>
+                <div class="o_social_preview_progress d-flex flex-row justify-content-around align-items-center text-white">
+                    <hr class="my-1"/>
+                    <hr class="my-1"/>
+                    <hr class="my-1"/>
+                </div>
+                <div class="d-flex flex-row align-items-center text-white p-1 o_social_header">
+                    <span class="o_social_preview_icon_wrapper d-inline-block rounded-circle overflow-hidden me-2">
+                        <i class="oi oi-2x" data-icon="oi_facebook"/>
+                    </span>
+                    <b class="me-1">My Page</b> <span>7h</span>
+                </div>
+            </div>
+            <div class="d-flex flex-row align-items-center w-100 justify-content-between flex-grow-1 overflow-hidden">
+                <img t-att-src="image_urls[0]" class="w-100 object-fit-contain"/>
+            </div>
+        </div>
+    </template>
+</data>
+</odoo>

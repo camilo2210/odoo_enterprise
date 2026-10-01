@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ai_add_knowledge_articles_form" model="ir.ui.view">
+        <field name="name">ai.add.knowledge.articles.view.form</field>
+        <field name="model">ai.add.knowledge.articles</field>
+        <field name="arch" type="xml">
+            <form string="Add Knowledge Articles">
+                <group>
+                    <field
+                        name="article_ids"
+                        widget="many2many_tags"
+                        domain="[('is_template', '=', False), ('is_article_item', '=', False), ('user_has_access', '=', True)]"
+                        options="{'no_create': True, 'no_create_edit': True}"
+                        placeholder="Select articles you want to use as sources..."
+                    />
+                    <field name="include_children" string="Include child articles" invisible="not has_child_articles" widget="boolean_toggle"/>
+                    <div class="d-flex text-muted" invisible="not has_child_articles">
+                        <field name="total_articles" readonly="1" class="oe_inline"/>
+                        <span class="ms-1">articles selected</span>
+                    </div>
+                </group>
+                <footer>
+                    <button string="Add from Knowledge" type="object" class="btn-primary" name="action_add_knowledge_articles"/>
+                    <button string="Discard" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_ai_add_knowledge_articles" model="ir.actions.act_window">
+        <field name="name">Add Knowledge Articles</field>
+        <field name="res_model">ai.add.knowledge.articles</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="ai_knowledge.view_ai_add_knowledge_articles_form"/>
+        <field name="target">new</field>
+        <field name="context">{'dialog_size': 'medium'}</field>
+    </record>
+</odoo>

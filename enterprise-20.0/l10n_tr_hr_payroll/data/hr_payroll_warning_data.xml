@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_payroll_warning_missing_tr_mandatory_fields" model="hr.payroll.warning">
+        <field name="name">Missing Mandatory Fields TR</field>
+        <field name="description">Required Turkish payroll settings or employee fields are missing.</field>
+        <field name="country_id" ref="base.tr"/>
+        <field name="display_on_dashboard" eval="False"/>
+        <field name="display_on_model" eval="True"/>
+        <field name="model_id" ref="l10n_tr_hr_payroll.model_hr_payslip"/>
+        <field name="warning_color_class">danger</field>
+        <field name="warning_type">python</field>
+        <field name="evaluation_code">
+tr_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'TR')
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', tr_companies.ids),
+])
+warning_records = self.env['hr.payslip']
+warning_details = defaultdict(list)
+for payslip in payslips:
+    issues = payslip._issue_tr_missing_mandatory_fields()
+    if issues:
+        warning_records |= payslip
+        warning_details[payslip] = issues
+        </field>
+    </record>
+</odoo>

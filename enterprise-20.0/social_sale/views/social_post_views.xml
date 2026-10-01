@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+    <record id="social_post_view_form" model="ir.ui.view">
+        <field name="name">social.post.view.form.inherit.social.sale</field>
+        <field name="model">social.post</field>
+        <field name="inherit_id" ref="social.social_post_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[hasclass('o_social_post_likes_stat_btn')]" position="before">
+                <button class="oe_stat_button" name="action_redirect_to_quotations"  type="object"
+                    icon="shopping_cart" groups="sales_team.group_sale_salesman">
+                    <field name="sale_quotation_count" string="Quotations" widget="statinfo"/>
+                </button>
+                <button class="oe_stat_button" name="action_redirect_to_invoiced"  type="object"
+                    icon="edit_square" groups="sales_team.group_sale_salesman">
+                    <div class="o_form_field o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="currency_id" invisible="1"/> <!-- Needed for the monetary widget of the sale_invoiced_amount field. -->
+                            <field name="sale_invoiced_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                        </span>
+                        <span class="o_stat_text">Invoiced</span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+    <record id="social_post_view_card" model="ir.ui.view">
+        <field name="name">social.post.view.card.inherit.social.sale</field>
+        <field name="model">social.post</field>
+        <field name="inherit_id" ref="social.social_post_view_card"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('o_social_post_stats')]" position="attributes">
+                <attribute name="class" add="justify-content-between" separator=" "/>
+            </xpath>
+            <xpath expr="//div[hasclass('o_social_post_stats')]//*[hasclass('o_social_post_schedule_date')]" position="before">
+                <div class="d-flex justify-content-between py-1 border-top small" groups="sales_team.group_sale_salesman">
+                    Quotations:<field name="sale_quotation_count" class="fw-bold" />
+                </div>
+                <div class="d-flex justify-content-between py-1 border-top small" groups="sales_team.group_sale_salesman">
+                    Revenues:
+                    <field name="currency_id" invisible="1"/> <!-- Needed for the monetary widget of the sale_invoiced_amount field. -->
+                    <field name="sale_invoiced_amount" widget="monetary" options="{'currency_field': 'currency_id'}" class="fw-bold"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</data>
+</odoo>

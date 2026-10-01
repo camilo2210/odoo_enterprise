@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="company_information" inherit_id="account_reports.company_information" primary="True">
+        <xpath expr="." position="inside">
+            <span>
+                <t t-if="env.company.l10n_ph_is_vat_registered">(VAT REG TIN)</t>
+                <t t-else="">(NON-VAT REG TIN)</t>
+            </span>
+            <t t-if="env.company">
+                <div>Phone / Mobile: <span t-out="env.company.phone or 'N/A'"/></div>
+            </t>
+            <div> Reporting Period: <span t-out="options.get('date', {}).get('date_from', '')"/> - <span t-out="options.get('date', {}).get('date_to', '')"/></div>
+        </xpath>
+    </template>
+
+    <template id="internal_layout" inherit_id="account_reports.internal_layout" primary="True">
+        <xpath expr="//div[hasclass('o_footer_font_size')]" position="replace">
+            <div class="row o_footer_font_size">
+                <div class="col-3">
+                    <span t-out="env.user.name"/>
+                </div>
+                <div class="col-3"> Odoo <span t-out="app_version"/> (Enterprise Edition) </div>
+                <div class="col-2">
+                    <span t-out="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M')"/>
+                </div>
+                <div class="col-2 text-center">
+                    <span t-out="company.name"/>
+                </div>
+                <div class="col-2 text-end">
+                    <ul class="list-inline">
+                        <li class="list-inline-item">
+                            <span class="page"/>
+                        </li>
+                        <li class="list-inline-item">/</li>
+                        <li class="list-inline-item">
+                            <span class="topage"/>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>

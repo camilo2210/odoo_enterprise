@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_attendance_biometric_event_tree" model="ir.ui.view">
+        <field name="name">hr.attendance.biometric.event.tree</field>
+        <field name="model">hr.attendance.biometric.event</field>
+        <field name="arch" type="xml">
+            <list string="Biometric Events" create="0" edit="0" default_order="create_date desc, id desc"
+                  decoration-success="state == 'processed'"
+                  decoration-danger="state == 'error'">
+                <header>
+                    <button name="action_process_attendances"
+                            type="object"
+                            string="Process"
+                            class="btn-primary"/>
+                </header>
+                <field name="punch_datetime"/>
+                <field name="employee_id" widget="many2one_avatar_employee"/>
+                <field name="employee_code"/>
+                <field name="provider" widget="badge"/>
+                <field name="state" widget="badge"
+                        decoration-info="state == 'received'" decoration-success="state == 'processed'" decoration-danger="state == 'error'"/>
+                <field name="attendance_id" optional="show"/>
+                <field name="device_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_hr_attendance_biometric_event_form" model="ir.ui.view">
+        <field name="name">hr.attendance.biometric.event.form</field>
+        <field name="model">hr.attendance.biometric.event</field>
+        <field name="arch" type="xml">
+            <form string="Biometric Event" create="0" edit="0">
+                <header>
+                    <button name="action_process_attendances"
+                            string="Process"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state in ['processed', 'error']"/>
+                    <field name="state" widget="statusbar" statusbar_visible="received,processed,error"/>
+                </header>
+
+                <div class="alert alert-danger" role="alert" invisible="state != 'error' or not warning_note">
+                    <field name="warning_note" readonly="1" nolabel="1"/>
+                </div>
+
+                <sheet>
+                    <widget name="web_ribbon" title="Processed" bg_color="text-bg-success"
+                            invisible="state != 'processed' or not attendance_id"/>
+                    <group>
+                        <group string="Attendance Details">
+                            <field name="employee_id" widget="many2one_avatar_employee" readonly="1"/>
+                            <field name="employee_code" readonly="1"/>
+                            <field name="punch_datetime" string="Punch Time" readonly="1"/>
+                            <field name="attendance_id" readonly="1" invisible="not attendance_id"/>
+                        </group>
+                        <group string="Biometric Details">
+                            <field name="provider" readonly="1"/>
+                            <field name="device_id" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_hr_attendance_biometric_event_search" model="ir.ui.view">
+        <field name="name">hr.attendance.biometric.event.search</field>
+        <field name="model">hr.attendance.biometric.event</field>
+        <field name="arch" type="xml">
+            <search string="Biometric Events">
+                <field name="employee_id"/>
+                <field name="employee_code"/>
+                <field name="provider"/>
+                <field name="state"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <separator/>
+                <filter string="Received" name="received" domain="[('state', '=', 'received')]"/>
+                <filter string="Processed" name="processed" domain="[('state', '=', 'processed')]"/>
+                <filter string="Errors" name="errors" domain="[('state', '=', 'error')]"/>
+                <separator/>
+                <filter string="Today" name="today" date="punch_datetime"/>
+                <group>
+                    <filter string="Punch Date" name="group_punch_date" context="{'group_by': 'punch_datetime:month'}"/>
+                    <filter string="Employee" name="group_employee" context="{'group_by': 'employee_id'}"/>
+                    <filter string="Provider" name="group_provider" context="{'group_by': 'provider'}"/>
+                    <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Company" name="group_company" context="{'group_by': 'company_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_hr_attendance_biometric_event" model="ir.actions.act_window">
+        <field name="name">Biometric Events</field>
+        <field name="res_model">hr.attendance.biometric.event</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company_id', 'in', allowed_company_ids)]</field>
+        <field name="view_id" ref="view_hr_attendance_biometric_event_tree"/>
+        <field name="search_view_id" ref="view_hr_attendance_biometric_event_search"/>
+        <field name="context">
+            {
+                'search_default_group_punch_date': 1,
+                'search_default_group_employee': 1
+            }
+        </field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No biometric events found</p>
+            <p>Biometric punches are stored here before they are processed into attendances.</p>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_hr_attendance_biometric_event"
+        name="Biometric Events"
+        parent="hr_attendance.menu_hr_attendance_view_attendances_management"
+        action="action_hr_attendance_biometric_event"
+        sequence="30"/>
+</odoo>

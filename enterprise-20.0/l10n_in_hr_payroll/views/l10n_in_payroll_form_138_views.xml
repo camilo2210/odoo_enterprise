@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="generate_form_138_current_fy_quarters_action_server" model="ir.actions.server">
+        <field name="name">Generate Form 138 Records</field>
+        <field name="model_id" ref="model_l10n_in_payroll_form_138"/>
+        <field name="state">code</field>
+        <field name="code">
+action = model._create_forms_138_for_current_year()
+        </field>
+    </record>
+
+    <record id="l10n_in_payroll_form_138_view_search" model="ir.ui.view">
+        <field name="name">l10n.in.payroll.form.138.view.search</field>
+        <field name="model">l10n.in.payroll.form.138</field>
+        <field name="arch" type="xml">
+            <search string="Search Form 138">
+                <field name="financial_year_start"/>
+                <field name="quarter"/>
+                <field name="state"/>
+                <filter
+                    string="Previous FY"
+                    name="previous_fy"
+                    domain="[('financial_year_start', '=', context_today().year - 1 if context_today().month &gt; 3 else context_today().year - 1)]"
+                />
+                <filter
+                    string="Current FY"
+                    name="current_fy"
+                    domain="[('financial_year_start', '=', context_today().year if context_today().month &gt; 3 else context_today().year - 1)]"
+                />
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Done" name="done" domain="[('state', '=', 'done')]"/>
+                <filter string="Has Text File" name="has_text_file" domain="[('txt_file', '!=', False)]"/>
+                <separator/>
+                <group>
+                    <filter string="Status" name="groupby_state" context="{'group_by': 'state'}"/>
+                    <filter string="Financial Year" name="groupby_financial_year" context="{'group_by': 'financial_year_start'}"/>
+                    <filter string="Quarter" name="groupby_quarter" context="{'group_by': 'quarter'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_in_payroll_form_138_view_kanban" model="ir.ui.view">
+        <field name="name">l10n.in.payroll.form.138.view.kanban</field>
+        <field name="model">l10n.in.payroll.form.138</field>
+        <field name="arch" type="xml">
+            <kanban
+                js_class="form_138_kanban"
+                class="o_form_138_kanban"
+                quick_create="0"
+                records_draggable="0"
+                can_open="0"
+                group_create="false"
+                sample="1">
+                <header>
+                    <button
+                        name="%(generate_form_138_current_fy_quarters_action_server)d"
+                        type="action"
+                        string="Generate For Current FY"
+                        class="btn btn-secondary"
+                        display="always"
+                    />
+                </header>
+                <field name="company_id"/>
+                <field name="financial_year_start"/>
+                <field name="quarter"/>
+                <field name="state"/>
+                <field name="challan_ids"/>
+                <templates>
+                    <t t-name="card" class="card m-auto my-2 border-1 rounded-3">
+                        <div class="card-body p-3">
+                            <div class="d-flex flex-row align-items-center justify-content-center gap-3">
+                                <div class="d-flex flex-column gap-2 flex-grow-1">
+                                    <div class="d-flex flex-wrap align-items-center gap-2">
+                                        <span class="badge rounded-pill px-3 py-2 border">
+                                            <field name="quarter"/>
+                                        </span>
+                                        <span class="badge rounded-pill px-3 py-2 fw-semibold border"
+                                            t-att-class="record.state.raw_value === 'done' ? 'text-success' : 'text-warning'">
+                                            <field name="state"/>
+                                        </span>
+                                        <span class="text-muted small">
+                                            FY <field name="financial_year_start"/>
+                                        </span>
+                                    </div>
+                                    <div class="row row-cols-1 row-cols-md-2 g-2">
+                                        <div class="col">
+                                            <div class="rounded-3 h-100 p-2 bg-light">
+                                                <div class="text-muted text-uppercase small fw-semibold mb-1">Deposit Period</div>
+                                                <div class="fw-semibold fs-6">
+                                                    <field
+                                                        name="quarter_date_start"
+                                                        widget="daterange"
+                                                        options="{'end_date_field': 'quarter_date_end'}"
+                                                        nolabel="1"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="rounded-3 h-100 p-2 bg-light">
+                                                <div class="text-muted text-uppercase small fw-semibold mb-1">Due Date</div>
+                                                <div class="fw-semibold fs-6">
+                                                    <field name="quarter_due_date"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-column align-items-stretch align-items-lg-end gap-2">
+                                    <div class="text-muted small text-lg-end">
+                                        <span class="fw-semibold text-dark">
+                                            <t t-out="record.challan_ids.raw_value ? record.challan_ids.raw_value.length : 0"/>
+                                        </span>
+                                        Challans
+                                    </div>
+                                    <button type="object"
+                                            name="action_open_details"
+                                            class="btn btn-primary px-4 align-self-start">
+                                        Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="l10n_in_payroll_form_138_view_form" model="ir.ui.view">
+        <field name="name">l10n.in.payroll.form.138.view.form</field>
+        <field name="model">l10n.in.payroll.form.138</field>
+        <field name="arch" type="xml">
+            <form string="Form 138">
+                <header>
+                    <button string="Mark as Done" class="btn btn-primary" type="object" name="action_mark_as_done"
+                        invisible="state == 'done'"/>
+                    <button name="generate_138_txt_file" type="object" string="Generate Text File" class="btn-primary"
+                        invisible="state != 'done' or txt_file"/>
+                    <button name="generate_138_txt_file" type="object" string="Generate Text File" class="btn-secondary"
+                        invisible="state != 'done' or not txt_file"/>
+                    <button string="Set to Draft" class="btn btn-secondary" type="object" name="action_set_to_draft"
+                        invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <div invisible="quarter != 'q4'" class="alert alert-warning" role="alert">
+                    This quarter's text file is generated using government provided data format <b>v7.5</b> (since FY 2010-11)
+                </div>
+                <div invisible="quarter == 'q4'" class="alert alert-warning" role="alert">
+                    This quarter's text file is generated using government provided data format <b>v1.2</b> (since FY 2026-27)
+                </div>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="financial_year_start" readonly="state == 'done'"/>
+                            <field name="quarter" widget="radio" options="{'horizontal': True}" readonly="state == 'done'"/>
+                            <label for="quarter_date_start" string="Quarter Period"/>
+                            <field
+                                name="quarter_date_start"
+                                widget="daterange"
+                                options="{'end_date_field': 'quarter_date_end'}"
+                                nolabel="1"
+                            />
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company" readonly="state == 'done'"/>
+                            <field name="txt_filename" invisible="1"/>
+                            <field name="txt_file" filename="txt_filename"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="challans" string="Challans">
+                            <field
+                                name="challan_ids"
+                                widget="many2many"
+                                readonly="state == 'done'"
+                                domain="[('company_id', '=', company_id), ('challan_date_from', '&gt;=', quarter_date_start), ('challan_date_to', '&lt;=', quarter_date_end)]"
+                                create="0"
+                            />
+                        </page>
+                        <page name="regular_statement" string="Regular Statement">
+                            <group>
+                                <field name="has_regular_statement_for_earlier_period" readonly="state == 'done'"/>
+                                <field name="previous_regular_statement_token_no" readonly="state == 'done'" invisible="not has_regular_statement_for_earlier_period"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_in_payroll_form_138_view_list" model="ir.ui.view">
+        <field name="name">l10n.in.payroll.form.138.view.list</field>
+        <field name="model">l10n.in.payroll.form.138</field>
+        <field name="arch" type="xml">
+            <list sample="1">
+                <header>
+                    <button
+                        name="%(generate_form_138_current_fy_quarters_action_server)d"
+                        type="action"
+                        string="Generate For Current FY"
+                        class="btn btn-secondary"
+                        display="always"
+                    />
+                </header>
+                <field name="financial_year_start"/>
+                <field name="quarter"/>
+                <field name="quarter_date_start"/>
+                <field name="quarter_date_end"/>
+                <field name="quarter_due_date"/>
+                <field name="state" widget="badge" decoration-primary="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_l10n_in_payroll_form_138" model="ir.actions.act_window">
+        <field name="name">Form 138</field>
+        <field name="res_model">l10n.in.payroll.form.138</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="path">form-138</field>
+        <field name="domain">[('company_id', 'in', allowed_company_ids)]</field>
+        <field name="context">{'search_default_current_fy': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_neutral_face">
+                No Forms Found :(
+            </p>
+            <p>
+                Click "Generate For Current FY" to generate the quarterly Form 138 records for the current financial year.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_l10n_in_payroll_form_138"
+        name="Form 138"
+        action="action_l10n_in_payroll_form_138"
+        parent="l10n_in_hr_payroll.menu_reporting_l10n_in"
+        groups="hr_payroll.group_hr_payroll_manager,hr_payroll.group_hr_payroll_user"
+        sequence="320"
+    />
+
+</odoo>

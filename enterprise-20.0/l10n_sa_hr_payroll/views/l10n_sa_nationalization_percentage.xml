@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_sa_nationalization_percentage_view_list" model="ir.ui.view">
+        <field name="name">l10n.sa.nationalization.percentage.view.list</field>
+        <field name="model">l10n.sa.nationalization.percentage</field>
+        <field name="arch" type="xml">
+            <list string="Nationalization Percentages" sample="1">
+                <field name="name" decoration-bf="1"/>
+                <field name="date"/>
+                <field name="department_ids" widget="many2many_tags" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="saudization_rate" widget="percentage" decoration-bf="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_sa_nationalization_percentage_view_form" model="ir.ui.view">
+        <field name="name">l10n.sa.nationalization.percentage.view.form</field>
+        <field name="model">l10n.sa.nationalization.percentage</field>
+        <field name="arch" type="xml">
+            <form string="Nationalization Percentage">
+                <header>
+                    <button string="Compute" name="action_compute_rate" class="btn-primary"
+                        type="object" data-hotkey="q" invisible="saudi_employee_ids"
+                        confirm="Minimum wages are considered as per department specification" />
+                    <button string="Compute" name="action_compute_rate" class="btn-secondary"
+                        type="object" data-hotkey="q" invisible="not saudi_employee_ids" />
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_employees" type="object" class="oe_stat_button"
+                            icon="group" icon_class="oi-filled" invisible="saudi_employees_count == 0">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="saudi_employees_count" />
+                                </span>
+                                <span class="o_stat_text">Employees</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="department_ids" placeholder="All" widget="many2many_tags" options="{'no_create': True}"/>
+                            <field name="date" placeholder="Today"/>
+                        </group>
+                        <group>
+                            <field name="excluded_employee_domain" groups="base.group_no_one"
+                                widget="domain" options="{'foldable': True, 'model': 'hr.employee'}"/>
+                            <field name="saudization_rate" readonly="1" class="o_hr_percentage_narrow_field" widget="percentage"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_l10n_sa_nationalization_percentage" model="ir.actions.act_window">
+        <field name="name">Nationalization Percentage</field>
+        <field name="res_model">l10n.sa.nationalization.percentage</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_l10n_sa_nationalization_percentage"
+              name="Nationalization Percentage"
+              action="action_l10n_sa_nationalization_percentage"
+              parent="hr.hr_menu_hr_reports"
+              sequence="50"/>
+</odoo>

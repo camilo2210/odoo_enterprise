@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="hr_holidays_gantt.HrHolidaysGanttMultiSelectionButtons" t-inherit="web.MultiSelectionButtons" t-inherit-mode="primary">
+        <xpath expr="//button[@data-tooltip='Add']" position="replace">
+            <button class="btn btn-secondary" data-tooltip="Add" t-on-click="() => this.onAdd()" t-ref="this.addButtonRef">
+                Apply
+            </button>
+            <button t-if="this.props.reactive.onPlan" class="btn btn-secondary" data-tooltip="Plan" t-on-click="() => this.props.reactive.onPlan()">
+                Plan
+            </button>
+        </xpath>
+        <b t-out="this.props.reactive.nbSelected" position="replace">
+            <b t-out="this.props.reactive.nbSelectedCells"/>
+        </b>
+
+        <xpath expr="//div[hasclass('o_multi_selection_buttons')]" position="inside">
+            <div t-if="this.props.reactive.nbSelectedRows &gt;= 1" class="ms-3 d-flex align-items-center flex-row gap-1">
+                <t t-foreach="this.props.reactive.workTypes" t-as="workEntryType" t-key="workEntryType.id">
+                    <t t-call="hr_holidays_gantt.QuickAddButton"/>
+                </t>
+            </div>
+        </xpath>
+    </t>
+
+    <t t-name="hr_holidays_gantt.QuickAddButton">
+        <button class="btn rounded-1 d-flex flex-column align-items-center justify-content-center text-center o_hr_holidays_gantt_quick_add_btn"
+                t-attf-class="o_gantt_color_#{workEntryType.color}"
+                t-attf-data-tooltip="Add #{workEntryType.name}"
+                t-on-click="() => this.onQuickAddDirect(workEntryType)">
+            <span class="text-truncate w-100" t-out="workEntryType.display_code || workEntryType.name"/>
+            <span t-if="workEntryType.requires_allocation" class="lh-1 text-muted smaller w-100">
+                <t t-out="workEntryType.remaining_leaves"/> <t t-out="workEntryType.unit"/> left
+            </span>
+        </button>
+    </t>
+
+</templates>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_be_281_mapping_view_list" model="ir.ui.view">
+        <field name="name">l10n.be.281.mapping.view.list</field>
+        <field name="model">l10n.be.281.mapping</field>
+        <field name="arch" type="xml">
+            <list string="Fiscal Mapping" editable="bottom">
+                <field name="declaration_code"/>
+                <field name="tag"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="evaluation_type"/>
+                <field name="evaluation_value" optional="show"/>
+                <field name="salary_rule_ids" widget="many2many_tags" optional="show" invisible="evaluation_type != 'salary_rule'"/>
+                <field name="control_mapping_ids" widget="many2many_tags" optional="show"/>
+                <field name="is_monetary" optional="hide"/>
+                <field name="skip_if_falsy" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_be_281_mapping_view_form" model="ir.ui.view">
+        <field name="name">l10n.be.281.mapping.view.form</field>
+        <field name="model">l10n.be.281.mapping</field>
+        <field name="arch" type="xml">
+            <form string="Fiscal Mapping">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="declaration_code"/>
+                            <field name="tag"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                        <group>
+                            <field name="evaluation_type"/>
+                            <field name="is_monetary" invisible="evaluation_type != 'python'"/>
+                            <field name="skip_if_falsy"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="salary_rule_ids" widget="many2many_tags"
+                            invisible="evaluation_type != 'salary_rule'"
+                            required="evaluation_type == 'salary_rule'"/>
+                        <field name="control_mapping_ids" widget="many2many_tags"
+                            invisible="evaluation_type != 'control'"
+                            required="evaluation_type == 'control'"/>
+                    </group>
+                    <field name="evaluation_value"
+                        invisible="evaluation_type != 'python'"
+                        required="evaluation_type == 'python'"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_be_281_mapping_view_search" model="ir.ui.view">
+        <field name="name">l10n.be.281.mapping.view.search</field>
+        <field name="model">l10n.be.281.mapping</field>
+        <field name="arch" type="xml">
+            <search string="Fiscal Mapping">
+                <field name="tag"/>
+                <field name="declaration_code"/>
+                <field name="evaluation_value"/>
+                <filter string="Salary Rule" name="filter_salary_rule" domain="[('evaluation_type', '=', 'salary_rule')]"/>
+                <filter string="Python" name="filter_python" domain="[('evaluation_type', '=', 'python')]"/>
+                <filter string="Control" name="filter_control" domain="[('evaluation_type', '=', 'control')]"/>
+                <separator/>
+                <filter string="Declaration" name="group_by_declaration_code" context="{'group_by': 'declaration_code'}"/>
+                <filter string="Evaluation Type" name="group_by_evaluation_type" context="{'group_by': 'evaluation_type'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_be_281_mapping_action" model="ir.actions.act_window">
+        <field name="name">Fiscal Mapping</field>
+        <field name="res_model">l10n.be.281.mapping</field>
+        <field name="view_mode">list,form</field>
+        <field name="target">current</field>
+    </record>
+
+    <menuitem
+        id="l10n_be_281_mapping_menu"
+        name="Fiscal Mapping"
+        action="l10n_be_281_mapping_action"
+        parent="menu_l10n_be_hr_payroll_configuration"
+        groups="base.group_no_one"
+        sequence="150"/>
+
+</odoo>

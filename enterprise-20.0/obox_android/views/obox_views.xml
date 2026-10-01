@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="obox_view_kanban" model="ir.ui.view">
+        <field name="name">obox.obox.view.kanban.inherit.obox_android</field>
+        <field name="model">obox.obox</field>
+        <field name="inherit_id" ref="obox.obox_view_kanban"/>
+        <field name="arch" type="xml">
+            <field name="internal_websocket_channel" position="after">
+                <field name="local_address" invisible="1" />  <!-- Used to have the url in the widget -->
+            </field>
+        </field>
+    </record>
+
+    <record id="obox_form" model="ir.ui.view">
+        <field name="name">obox.obox.form.inherit.obox_android</field>
+        <field name="model">obox.obox</field>
+        <field name="inherit_id" ref="obox.obox_form"/>
+        <field name="arch" type="xml">
+            <field name="remote_debug_enabled" position="before">
+                <field name="local_address" invisible="1" />  <!-- Used by the obox_status / obox_action_button widgets -->
+            </field>
+            <xpath expr="//header/widget[@function='action_discover_devices']" position="attributes">
+                <attribute name="invisible">platform != 'rpi'</attribute>
+            </xpath>
+            <xpath expr="//header/widget[@function='action_discover_devices']" position="after">
+                <widget name="obox_action_button" function="action_sync_obox" class="btn-secondary btn-toolbar" invisible="not is_android"/>
+            </xpath>
+            <xpath expr="//header/widget[@function='action_restart_obox']" position="attributes">
+                <attribute name="invisible">platform != 'rpi'</attribute>
+            </xpath>
+            <xpath expr="//header/widget[@name='obox_remote_debug']" position="attributes">
+                <attribute name="invisible">platform != 'rpi'</attribute>
+            </xpath>
+            <xpath expr="//header/widget[@name='obox_remote_debug']" position="after">
+                <widget name="obox_action_button" function="action_kiosk_reload" class="btn-secondary btn-toolbar" string="Reload Kiosk" invisible="not android_kiosk_enabled"/>
+                <widget name="obox_action_button" function="action_kiosk_lock_screen" class="btn-secondary btn-toolbar" string="Lock Screen" invisible="not android_kiosk_enabled or android_locked_by_admin"/>
+                <widget name="obox_action_button" function="action_kiosk_unlock_screen" class="btn-secondary btn-toolbar" string="Unlock Screen" invisible="not android_kiosk_enabled or not android_locked_by_admin"/>
+            </xpath>
+            <xpath expr="//sheet//field[@name='local_ip']" position="after">
+                <field name="local_port" readonly="true" groups="base.group_no_one" options="{'enable_formatting': false}" />
+                <field name="platform" readonly="true" />
+            </xpath>
+            <xpath expr="//sheet//field[@name='services']" position="after">
+                <button class="btn-link ps-0" icon="east" type="object" name="action_open_kiosk_pin_wizard" string="Change Kiosk PIN" invisible="not android_kiosk_enabled or not has_kiosk_pin"/>
+            </xpath>
+            <page name="devices" position="after">
+                <page string="Device Info" name="device_info" groups="base.group_no_one" invisible="not is_android">
+                    <group>
+                        <group string="Device">
+                            <field name="android_model"/>
+                            <field name="android_manufacturer"/>
+                            <field name="android_processor"/>
+                            <field name="android_version"/>
+                            <field name="android_app_version"/>
+                            <field name="android_id" groups="base.group_no_one"/>
+                            <field name="android_locale"/>
+                            <field name="android_timezone"/>
+                            <field name="android_is_device_owner"/>
+                            <field name="android_kiosk_enabled"/>
+                            <field name="android_locked_by_admin"/>
+                            <field name="android_uptime"/>
+                            <field name="device_state_date"/>
+                            <field name="config_synced"/>
+                        </group>
+                        <group string="Network">
+                            <field name="android_network_type"/>
+                            <field name="android_wifi_ssid" invisible="not android_is_wifi"/>
+                            <field name="android_signal_level" invisible="not android_is_wifi"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Screen &amp; Audio">
+                            <field name="android_screen_on"/>
+                            <field name="android_brightness"/>
+                            <field name="android_resolution"/>
+                            <field name="android_audio_volume"/>
+                        </group>
+                        <group string="Battery">
+                            <field name="android_battery_level"/>
+                            <field name="android_battery_charging"/>
+                            <field name="android_battery_plugged"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Memory &amp; Storage">
+                            <field name="android_memory_used"/>
+                            <field name="android_memory_total"/>
+                            <field name="android_storage_used"/>
+                            <field name="android_storage_total"/>
+                        </group>
+                        <group string="WebView">
+                            <field name="android_webview_provider"/>
+                            <field name="android_webview_version"/>
+                            <field name="android_webview_ua" groups="base.group_no_one"/>
+                        </group>
+                    </group>
+                </page>
+                <page string="Screenshot" name="screenshot" groups="base.group_no_one" invisible="not is_android">
+                    <widget name="obox_action_button" function="action_request_screenshot" class="btn-secondary btn-toolbar"/>
+                    <div invisible="not screenshot" class="mt-3">
+                        <div class="mb-2">
+                            <field name="screenshot" readonly="1" widget="image" style="max-width:400px" nolabel="1"/>
+                        </div>
+                        <field name="screenshot_date" nolabel="1"/>
+                    </div>
+                </page>
+                <page string="Logs" name="logs" groups="base.group_no_one" invisible="not is_android">
+                    <widget name="obox_action_button" function="action_request_logs" class="btn-secondary btn-toolbar"/>
+                    <div invisible="not log_file" class="mt-3">
+                        <div class="mb-2">
+                            <field name="log_file" filename="log_file_name" readonly="1"/>
+                        </div>
+                        <field name="log_file_date"/>
+                    </div>
+                </page>
+            </page>
+        </field>
+    </record>
+
+    <record id="obox_list" model="ir.ui.view">
+        <field name="name">obox.obox.list.inherit.obox_android</field>
+        <field name="model">obox.obox</field>
+        <field name="inherit_id" ref="obox.obox_list"/>
+        <field name="arch" type="xml">
+            <field name="serial_number" position="after">
+                <field name="platform" />
+            </field>
+        </field>
+    </record>
+</odoo>

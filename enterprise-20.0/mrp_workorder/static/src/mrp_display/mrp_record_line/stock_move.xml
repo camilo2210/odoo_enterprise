@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="mrp_workorder.StockMove">
+        <li class="o_mrp_record_line list-group-item d-flex justify-content-between align-items-center gap-3 cursor-pointer border-0"
+            t-on-click="this.onClick">
+            <span class="o_line_label text-wrap text-break" t-att-class="this.isComplete ? 'text-decoration-line-through opacity-25' : ''" t-out="this.label"/>
+            <div class="d-flex align-items-center gap-1 mb-auto text-nowrap">
+                <span class="o_line_value d-flex flex-column align-items-end me-1 fw-bold lh-sm" t-att-class="{
+                    'text-danger': this.quantityDone > this.toConsumeQuantity, 'text-warning': this.quantityDone &amp;&amp; this.quantityDone lt this.toConsumeQuantity
+                }">
+                    <span class="o_mrp_record_line_qty">
+                        <t t-if="(this.quantityDone || this.isComplete) &amp;&amp; this.quantityDone !== this.toConsumeQuantity"
+                           t-out="this.quantityDone + ' / '"/>
+                        <t t-out="this.toConsumeQuantity"/>
+                    </span>
+                    <span class="o_mrp_record_line_uom ms-1 small fw-normal"
+                          t-att-class="{'text-muted': !(this.quantityDone > this.toConsumeQuantity)}"
+                          t-out="this.uom"/>
+                </span>
+                <button t-if="this.hasInstruction" t-on-click.stop="this.showWorksheet" class="o_btn_icon btn btn-outline-secondary">
+                        <i class="oi" data-icon="info" role="img"/>
+                </button>
+                <button class="o_btn_icon btn" t-attf-class="{{this.qualityCheckProps.isCurrent ? 'btn-primary' : 'btn-outline-secondary'}}">
+                    <i class="oi" t-att-class="{'oi-filled': this.icon === 'edit'}" t-att-data-icon="this.icon" role="img"/>
+                </button>
+            </div>
+        </li>
+        <li t-foreach="this.visibleMoveLines" t-as="line" t-key="line.resId" t-on-click="() => this.editQuantity(line)"
+            class="o_mrp_record_line o_mrp_record_line_indented list-group-item position-relative d-flex justify-content-between align-items-center gap-3 border-0 cursor-pointer">
+            <span class="o_line_label ms-3 text-wrap text-break" t-att-class="{'text-muted': this.quantityDone >= this.toConsumeQuantity}">
+                <t t-if="!this.byproduct &amp;&amp; line.data.location_id" t-out="line.data.location_id.display_name"/>
+                <t t-if="!this.byproduct &amp;&amp; line.data.location_id &amp;&amp; line.data.lot_id"> / </t>
+                <t t-if="line.data.lot_id" t-out="line.data.lot_id.display_name"/>
+            </span>
+            <div class="d-flex align-items-center gap-1 mb-auto text-nowrap">
+                <span class="o_line_value d-flex flex-column align-items-end me-1 fw-bold lh-sm">
+                    <span class="o_mrp_record_line_qty" t-out="line.data.quantity"/>
+                    <span class="o_mrp_record_line_uom small fw-normal text-muted" t-out="this.uom"/>
+                </span>
+                <button class="o_btn_icon btn btn-outline-secondary">
+                    <i class="oi oi-filled" data-icon="edit" role="img"/>
+                </button>
+            </div>
+        </li>
+    </t>
+</templates>

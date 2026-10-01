@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        ==========================================================
+        BENCHMARK: Payroll Payrun Generation
+        ==========================================================
+        Prepares a large draft payrun with many eligible employee
+        records and no existing payslips.
+
+        This dataset targets hr.payslip.run._generate_payslips().
+    -->
+    <record id="benchmark_payrun_generation" model="populate.blueprint">
+        <field name="name">Benchmark: Payroll Payrun Generation</field>
+        <field name="definition_xml" type="xml">
+            <create model="hr.payroll.structure.type" count="1" id="bench_payroll_structure_type" scale="False" parallel="False">
+                <field name="name" eval="'Benchmark Payroll Structure Type'"/>
+                <field name="country_id" eval="False"/>
+                <field name="default_schedule_pay" eval="'monthly'"/>
+                <field name="wage_type" eval="'monthly'"/>
+                <field name="default_work_entry_type_id" eval="env.ref('hr_work_entry.generic_work_entry_type_attendance').id"/>
+                <field name="default_resource_calendar_id" eval="env.company.resource_calendar_id.id or env.ref('resource.resource_calendar_std').id"/>
+            </create>
+
+            <create model="hr.payroll.structure" count="1" id="bench_payroll_structure" scale="False" parallel="False">
+                <field name="name" eval="'Benchmark Payroll Structure'"/>
+                <field name="code" eval="'BENCH_PAYROLL'"/>
+                <field name="type_id" ref="bench_payroll_structure_type"/>
+                <field name="country_id" eval="False"/>
+                <field name="use_worked_day_lines" eval="True"/>
+                <field name="rule_ids" eval="[]"/>
+            </create>
+
+            <create model="hr.employee" count="1000" id="bench_payroll_employees">
+                <value name="counter" generator="misc.counter" start="1"/>
+                <field name="name" eval="f'Benchmark Payroll Employee {counter:05}'"/>
+                <field name="company_id" eval="env.company.id"/>
+                <field name="date_version" eval="'2026-01-01'"/>
+                <field name="contract_date_start" eval="'2026-01-01'"/>
+                <field name="structure_type_id" ref="bench_payroll_structure_type"/>
+                <field name="resource_calendar_id" eval="env.company.resource_calendar_id.id or env.ref('resource.resource_calendar_std').id"/>
+                <field name="schedule_pay" eval="'monthly'"/>
+                <field name="wage_type" eval="'monthly'"/>
+                <value name="currency_id" eval="env.company.currency_id.id"/>
+                <field name="wage" start="2500.0" end="8500.0" distribution="normal(mean=5000, std=1200)"/>
+                <field name="review_state" eval="'1_reviewed'"/>
+            </create>
+
+            <create model="hr.payslip.run" count="1" id="bench_payroll_payrun" scale="False" parallel="False">
+                <field name="name" eval="'Benchmark Payroll Payrun - March 2026'"/>
+                <field name="date_start" eval="'2026-03-01'"/>
+                <field name="date_end" eval="'2026-03-31'"/>
+                <field name="structure_id" ref="bench_payroll_structure"/>
+                <field name="company_id" eval="env.company.id"/>
+            </create>
+        </field>
+    </record>
+
+    <!--
+        ==========================================================
+        BENCHMARK: Payroll Batch Payslip Compute
+        ==========================================================
+        Prepares a large draft payrun with one draft payslip per
+        generated employee.
+
+        This dataset targets the batch paths that consume generated
+        work-entry values:
+            - hr.payslip._compute_worked_days_line_ids()
+            - hr.payslip._get_payslip_lines(), through compute_sheet()
+    -->
+    <record id="benchmark_payslip_batch_compute" model="populate.blueprint">
+        <field name="name">Benchmark: Payroll Batch Payslip Compute</field>
+        <field name="definition_xml" type="xml">
+            <create model="hr.payroll.structure.type" count="1" id="bench_payroll_compute_structure_type" scale="False" parallel="False">
+                <field name="name" eval="'Benchmark Payroll Compute Structure Type'"/>
+                <field name="country_id" eval="False"/>
+                <field name="default_schedule_pay" eval="'monthly'"/>
+                <field name="wage_type" eval="'monthly'"/>
+                <field name="default_work_entry_type_id" eval="env.ref('hr_work_entry.generic_work_entry_type_attendance').id"/>
+                <field name="default_resource_calendar_id" eval="env.company.resource_calendar_id.id or env.ref('resource.resource_calendar_std').id"/>
+            </create>
+
+            <create model="hr.payroll.structure" count="1" id="bench_payroll_compute_structure" scale="False" parallel="False">
+                <field name="name" eval="'Benchmark Payroll Compute Structure'"/>
+                <field name="code" eval="'BENCH_PAYROLL_COMPUTE'"/>
+                <field name="type_id" ref="bench_payroll_compute_structure_type"/>
+                <field name="country_id" eval="False"/>
+                <field name="use_worked_day_lines" eval="True"/>
+                <field name="rule_ids" eval="[]"/>
+            </create>
+
+            <create model="hr.employee" count="1000" id="bench_payroll_compute_employees" scale="False">
+                <value name="counter" generator="misc.counter" start="1" unique="True"/>
+                <field name="name" eval="f'Benchmark Payroll Compute Employee {counter:05}'"/>
+                <field name="company_id" eval="env.company.id"/>
+                <field name="date_version" eval="'2026-01-01'"/>
+                <field name="contract_date_start" eval="'2026-01-01'"/>
+                <field name="structure_type_id" ref="bench_payroll_compute_structure_type"/>
+                <field name="resource_calendar_id" eval="env.company.resource_calendar_id.id or env.ref('resource.resource_calendar_std').id"/>
+                <field name="schedule_pay" eval="'monthly'"/>
+                <field name="wage_type" eval="'monthly'"/>
+                <value name="currency_id" eval="env.company.currency_id.id"/>
+                <field name="wage" start="2500.0" end="8500.0" distribution="normal(mean=5000, std=1200)"/>
+                <field name="review_state" eval="'1_reviewed'"/>
+            </create>
+
+            <create model="hr.payslip.run" count="1" id="bench_payroll_compute_payrun" scale="False" parallel="False">
+                <field name="name" eval="'Benchmark Payroll Batch Compute - April 2026'"/>
+                <field name="date_start" eval="'2026-04-01'"/>
+                <field name="date_end" eval="'2026-04-30'"/>
+                <field name="structure_id" ref="bench_payroll_compute_structure"/>
+                <field name="company_id" eval="env.company.id"/>
+            </create>
+
+            <create model="hr.payslip" count="1000" id="bench_payroll_compute_payslips" scale="False" parallel="False">
+                <value name="counter" generator="misc.counter" start="1"/>
+                <value name="employee" eval="env['hr.employee'].search([('name', '=', f'Benchmark Payroll Compute Employee {counter:05}')], limit=1)"/>
+                <field name="employee_id" eval="employee.id"/>
+                <field name="version_id" eval="employee.version_id.id"/>
+                <field name="payslip_run_id" ref="bench_payroll_compute_payrun"/>
+                <field name="date_from" eval="'2026-04-01'"/>
+                <field name="date_to" eval="'2026-04-30'"/>
+                <field name="struct_id" ref="bench_payroll_compute_structure"/>
+                <field name="company_id" eval="env.company.id"/>
+            </create>
+        </field>
+    </record>
+</odoo>

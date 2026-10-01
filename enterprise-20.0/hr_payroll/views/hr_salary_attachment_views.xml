@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_salary_attachment_view_tree" model="ir.ui.view">
+        <field name="name">hr.salary.attachment.list</field>
+        <field name="model">hr.salary.attachment</field>
+        <field name="priority">10</field>
+        <field name="arch" type="xml">
+            <list string="Payslip Adjustments" decoration-muted="state == '2_close'">
+                <field name="sequence" widget="handle"/>
+                <field name="employee_id" widget="many2one_avatar_employee"/>
+                <field name="structure_type_id" column_invisible="True"/>
+                <field name="is_recurring"/>
+                <field name="date_start"/>
+                <field name="date_end" optional="hide"/>
+                <field name="description"/>
+                <field name="salary_rule_id" options="{'no_open': True, 'no_create_edit': True, 'no_create': True}"/>
+                <field name="remaining_amount" string="Amount"/>
+                <field name="state" nolabel="1" widget="badge" decoration-success="state == '1_open'" decoration-muted="state == '2_close'"/>
+                <field name="paid_amount" optional="hide" widget="monetary"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="hr_salary_attachment_employee_view_list" model="ir.ui.view">
+        <field name="name">hr.salary.attachment.list</field>
+        <field name="model">hr.salary.attachment</field>
+        <field name="inherit_id" ref="hr_payroll.hr_salary_attachment_view_tree"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <list position="inside">
+                <control>
+                    <button string="Add an adjustment" name="action_open_employee_salary_attachment" class="btn-link" type="object" context='{"new": 1}'/>
+                </control>
+            </list>
+            <field name="date_start" position="before">
+                <field name="salary_rule_id" position="move"/>
+                <field name="is_recurring" position="move"/>
+            </field>
+            <field name="employee_id" position="replace">
+            </field>
+        </field>
+    </record>
+
+    <record id="hr_salary_attachment_employee_view_kanban" model="ir.ui.view">
+        <field name="name">hr.salary.attachment.kanban</field>
+        <field name="model">hr.salary.attachment</field>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" default_order="state, sequence">
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between">
+                            <field name="salary_rule_id"/>
+                            <field name="state" nolabel="1" widget="badge" decoration-success="state == '1_open'" decoration-muted="state == '2_close'"/>
+                        </div>
+                        <field name="date_start"/>
+                        <field name="date_end"/>
+                        <field name="description"/>
+                        <field name="remaining_amount"/>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="hr_salary_attachment_view_pivot" model="ir.ui.view">
+        <field name="name">hr.salary.attachment.pivot</field>
+        <field name="model">hr.salary.attachment</field>
+        <field name="arch" type="xml">
+            <pivot string="Payslip Adjustments">
+                <field name="employee_id" type="row"/>
+                <field name="salary_rule_id" type="col"/>
+                <field name="paid_amount"/>
+                <field name="remaining_amount"/>
+                <field name="amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="hr_salary_attachment_view_form" model="ir.ui.view">
+        <field name="name">hr.salary.attachment.form</field>
+        <field name="model">hr.salary.attachment</field>
+        <field name="priority">10</field>
+        <field name="arch" type="xml">
+            <form string="Payslip Adjustment">
+                <header>
+                    <button name="action_close" type="object" string="Done"
+                        invisible="state != '1_open'"/>
+                    <button name="action_open" type="object" string="Running"
+                        invisible="state != '2_close'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <div role="alert" class="alert alert-warning text-center" invisible="not has_similar_attachment">
+                    <field name="has_similar_attachment_warning"/>
+                    <field name="has_similar_attachment" invisible="1"/>
+                </div>
+                <div role="alert" class="alert alert-warning text-center" invisible="not salary_rule_warning">
+                    <field name="salary_rule_warning"/>
+                </div>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object" name="action_open_payslips" class="oe_stat_button"
+                            icon="payments" id="open_payslips" invisible="payslip_count == 0">
+                            <field name="payslip_count" widget="statinfo" string="Payslips" />
+                        </button>
+                    </div>
+                    <!-- invisible fields to compute fields visibility in the form view -->
+                    <field name="company_id" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="attachment_name" invisible="1"/>
+                    <field name="has_done_payslip" invisible="1"/>
+                    <field name="structure_type_id" invisible="1"/>
+                    <group col="2">
+                        <group colspan="1">
+                            <field name="employee_id" widget="many2one_avatar_employee" readonly="has_done_payslip or state == '2_close'" invisible="context.get('default_employee_id')"/>
+                            <field name="salary_rule_id" readonly="has_done_payslip or state == '2_close'" context="{'default_input_usage_payslip': True}"/>
+                            <field class="o_hr_narrow_field" name="amount" readonly="state == '2_close'"/>
+                            <field class="o_hr_narrow_field" name="paid_amount" invisible="is_recurring or not paid_amount" readonly="1"/>
+                            <field class="o_hr_narrow_field" name="remaining_amount" invisible="is_recurring or not paid_amount" readonly="1"/>
+                            <field name="date_start" style="width: 10ch;" readonly="has_done_payslip or state == '2_close'"/>
+                            <label name="is_recurring" for="is_recurring" string="Repeat"/>
+                            <div name="is_recurring" class="o_row">
+                                <field name="is_recurring" readonly="state == '2_close'"/>
+                                <span invisible="not is_recurring" class="text-muted">Until</span>
+                                <field name="date_estimated_end" class="o_hr_narrow_field" placeholder="End of Contract" invisible="not is_recurring"/>
+                                <span invisible="not date_estimated_end" class="text-muted" name="remaining_time">
+                                (<field name="remaining_time" class="w-auto" invisible="not date_estimated_end"/>)
+                                </span>
+                            </div>
+                            <field name="description" readonly="has_done_payslip" placeholder="Optional reason, or reference"/>
+                        </group>
+                        <group colspan="1">
+                            <div colspan="2" role="alert" class="alert alert-info" invisible="not user_instructions">
+                                <p class="m-0 p-0">
+                                    <field name="user_instructions"/>
+                                </p>
+                            </div>
+                            <separator string="Seized amount configuration" invisible="not is_seized" name="seized_amount" style="margin-top: 0 !important;"/>
+                            <field name="beneficiary_bank_account_id"
+                                invisible="not is_seized"
+                                placeholder="Your company"
+                                widget="many2one_bank_partner"
+                                options="{'no_create_edit': True, 'no_create': True, 'no_open': True}"
+                                context="{
+                                    'search_view_ref': 'hr_payroll.res_partner_bank_view_search',
+                                    'list_view_ref': 'hr_payroll.res_partner_bank_view_list',
+                                    'search_default_holder': True,
+                                }"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="hr_salary_attachment_view_search" model="ir.ui.view">
+        <field name="name">hr.salary.attachment.search</field>
+        <field name="model">hr.salary.attachment</field>
+        <field name="arch" type="xml">
+            <search string="Search Payslip Adjustment">
+                <field name="employee_id"/>
+                <field name="description"/>
+                <field name="salary_rule_id"/>
+                <field name="state"/>
+                <filter string="Active" name="active_this_year"
+                    domain="[
+                        '&amp;', ('state', '=', '1_open'),
+                                 ('date_start', '&lt;=', ('today'))
+                    ]"/>
+                <filter string="One Shots" name="search_one_shot" domain="[('is_recurring', '=', False)]"/>
+                <filter string="Employee" name="employee_id_group" context="{'group_by': 'employee_id'}"/>
+                <filter string="Type" name="salary_rule_id" context="{'group_by': 'salary_rule_id'}"/>
+                <filter string="Status" name="state" context="{'group_by': 'state'}"/>
+                <filter string="Recurring" name="is_recurring" context="{'group_by': 'is_recurring'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_hr_salary_attachment_new" model="ir.actions.act_window">
+        <field name="name">Payslip Adjustment</field>
+        <field name="res_model">hr.salary.attachment</field>
+        <field name="view_mode">form</field>
+    </record>
+
+    <record id="hr_salary_attachment_action" model="ir.actions.act_window">
+        <field name="name">Payslip Adjustment</field>
+        <field name="res_model">hr.salary.attachment</field>
+        <field name="view_mode">list,form,pivot</field>
+        <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+                No Payslip Adjustment ?
+              </p><p>
+                A Payslip Adjustment is a recurring amount of money defined on the
+                employee and used in every payslip on an amount of time.<br/>
+                Ex. Money recovery, Child support, Assessment of salary, ...<br/><br/>
+                <a name="hr_payroll.action_hr_salary_attachment_new" type="action" class="btn btn-secondary">Create a Payslip Adjustment</a>
+              </p>
+        </field>
+    </record>
+
+    <record id="hr_salary_attachment_action_view_employee" model="ir.actions.act_window">
+        <field name="name">Payslip Adjustments</field>
+        <field name="res_model">hr.salary.attachment</field>
+        <field name="view_mode">list,form,pivot</field>
+        <field name="context">{"search_default_employee_id": active_id}</field>
+    </record>
+
+    <record id="action_salary_attachment_form" model="ir.actions.server">
+        <field name="name">Payslip Adjustment</field>
+        <field name="model_id" ref="hr.model_hr_employee"/>
+        <field name="state">code</field>
+        <field name="code">
+action = env.ref('hr_payroll.action_hr_salary_attachment_generate_multi_wizard').read()[0]
+action['context'] = {
+    'default_employee_ids': records.ids,
+}
+        </field>
+    </record>
+</odoo>

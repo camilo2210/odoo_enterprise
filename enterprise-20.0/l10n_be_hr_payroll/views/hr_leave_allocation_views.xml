@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_leave_allocation_form_inherit_jc_info" model="ir.ui.view">
+        <field name="name">hr.leave.allocation.form.inherit.jc.info</field>
+        <field name="model">hr.leave.allocation</field>
+        <field name="inherit_id" ref="hr_holidays.hr_leave_allocation_view_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_show_related_drs" invisible="not linked_drs_ids" class="oe_stat_button"
+                    type="object" help="Related DRS declaration" groups="hr_payroll.group_hr_payroll_user">
+                    <i class="oi me-1" data-icon="article" role="img" aria-label="Document" title="Document"/>
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_text">Related DRS</span>
+                    </div>
+                </button>
+            </div>
+            <xpath expr="//span[@id='hour_display_field']" position="after">
+                <field name="l10n_be_hours_tracked" invisible="1"/>
+                <span class="ml8 text-muted" invisible="not l10n_be_hours_tracked or type_request_unit == 'hour'">
+                    ( <field name="number_of_hours" nolabel="1" readonly="1" class="oe_inline"/> Hours )
+                </span>
+                <div class="text-danger d-inline-flex lh-1"
+                    invisible="not jc_allocation_info">
+                    <i class="oi me-2" data-icon="warning" title="Duration Exceeded Warning"/>
+                    <field name="jc_allocation_info" nolabel="1" readonly="1"/>
+                </div>
+                <div class="alert alert-warning d-inline-flex lh-1" invisible="not eligibility_warning" role="status">
+                    <i class="oi me-2" data-icon="warning" title="Youth / Senior Time Off Eligibility Warning"/>
+                    <field name="eligibility_warning" nolabel="1" readonly="1"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

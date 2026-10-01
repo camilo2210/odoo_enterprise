@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="hr_expense_stripe_dispute_form" model="ir.ui.view">
+            <field name="name">hr.expense.stripe.dispute.form</field>
+            <field name="model">hr.expense.stripe.dispute</field>
+            <field name="arch" type="xml">
+                <form string="Expense Stripe Dispute" js_class="stripe_dispute_form">
+                    <sheet>
+                        <widget name="web_ribbon" title="Submitted" bg_color="text-bg-info" invisible="state != 'submitted'"/>
+                        <widget name="web_ribbon" title="Won" bg_color="text-bg-success" invisible="state != 'won'"/>
+                        <widget name="web_ribbon" title="Lost" bg_color="text-bg-danger" invisible="state != 'lost'"/>
+                        <widget name="web_ribbon" title="Expired" bg_color="text-bg-danger" invisible="state != 'expired'"/>
+
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            Learn more about how your dispute is handled
+                            <a href="https://docs.stripe.com/issuing/purchases/disputes" target="_blank" rel="noopener noreferrer">here</a>.
+                            <a role="button" class="btn-close px-3 py-0 h-100" data-bs-dismiss="alert" aria-label="Close"/>
+                        </div>
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert" invisible="can_submit">
+                            Expenses must be paid to submit a dispute.
+                            <a role="button" class="btn-close px-3 py-0 h-100" data-bs-dismiss="alert" aria-label="Close"/>
+                        </div>
+
+                        <field name="stripe_transaction_id" invisible="1" force_save="1"/> <!-- To be passed as a default value -->
+                        <field name="company_id" invisible="1" force_save="1"/> <!-- needed when uploading files on new records and to be passed as a default value -->
+                        <field name="can_submit" invisible="1"/> <!-- needed in the JS to disable the submission button -->
+                        <group>
+                            <field name="expense_ids" widget="one2many" invisible="has_only_one_expense">
+                                <list editable="bottom" create="0" delete="0">
+                                    <field name="name" readonly="1"/>
+                                    <field name="employee_id" widget="many2one_avatar_user" readonly="1"/>
+                                    <field name="tax_ids" widget="many2many_tags" readonly="1"/>
+                                    <field name="total_amount_currency" readonly="1"/>
+                                    <field name="disputed_amount" readonly="0" force_save="1"/>
+                                </list>
+                            </field>
+                            <group>
+                                <label for="amount" string="Amount" invisible="not has_only_one_expense"/>
+                                <label for="amount" string="Total Amount" invisible="has_only_one_expense"/>
+                                <div class="o_row">
+                                    <field name="amount" widget='monetary' options="{'currency_field': 'currency_id'}"
+                                        readonly="state != 'unsubmitted' or not has_only_one_expense" class="oe_inline mw-50 me-0"/>
+                                    <field name="currency_id" class="mw-25 ms-0" groups="base.group_multi_currency"
+                                        options="{'no_create': True}"
+                                        readonly="1"/>
+                                </div>
+                                <field name="reason" readonly="state != 'unsubmitted'" widget="filterable_selection" options="{'blacklisted_values': ['no_valid_authorization']}"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page string="Required" invisible="reason and reason != 'fraudulent'">
+                                <group>
+                                    <group>
+                                        <field name="explanation" required="reason == 'fraudulent'" readonly="state != 'unsubmitted'"/>
+                                        <field name="additional_documentation" readonly="state != 'unsubmitted'" widget="stripe_attachment"
+                                               purpose="dispute_evidence" title="Additional documentation" nolabel="1" colspan="2"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Required" invisible="reason != 'not_received'">
+                                <group>
+                                    <group>
+                                        <field name="explanation" readonly="state != 'unsubmitted'"/>
+                                        <field name="additional_documentation" readonly="state != 'unsubmitted'" widget="stripe_attachment"
+                                               purpose="dispute_evidence" title="Additional documentation" nolabel="1" colspan="2"/>
+                                    </group>
+                                    <group>
+                                        <field name="product_type" required="reason == 'not_received'" readonly="state != 'unsubmitted'"/>
+                                        <field name="product_description" required="reason == 'not_received'" readonly="state != 'unsubmitted'"/>
+                                        <field name="expected_at" required="reason == 'not_received'" readonly="state != 'unsubmitted'"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Required" invisible="reason != 'duplicate'">
+                                <group>
+                                    <group>
+                                        <field name="explanation" readonly="state != 'unsubmitted'"/>
+                                        <field name="additional_documentation" readonly="state != 'unsubmitted'" widget="stripe_attachment"
+                                               purpose="dispute_evidence" title="Additional documentation" nolabel="1" colspan="2"/>
+                                    </group>
+                                    <group>
+                                        <field name="proof_of_original_payment" required="reason == 'duplicate'" readonly="state != 'unsubmitted'"/>
+                                        <field name="card_statement" required="reason == 'duplicate' and proof_of_original_payment == 'card_statement'"
+                                               invisible="proof_of_original_payment != 'card_statement'" readonly="state != 'unsubmitted'"
+                                               widget="stripe_attachment" purpose="dispute_evidence" title="Card statement" nolabel="1" colspan="2"/>
+                                        <field name="cash_receipt" required="reason == 'duplicate' and proof_of_original_payment == 'cash_receipt'"
+                                               invisible="proof_of_original_payment != 'cash_receipt'" readonly="state != 'unsubmitted'"
+                                               widget="stripe_attachment" purpose="dispute_evidence" title="Cash receipt" nolabel="1" colspan="2"/>
+                                        <field name="check_image" required="reason == 'duplicate' and proof_of_original_payment == 'check_image'"
+                                               invisible="proof_of_original_payment != 'check_image'" readonly="state != 'unsubmitted'"
+                                               widget="stripe_attachment" purpose="dispute_evidence" title="Check image" nolabel="1" colspan="2"/>
+                                        <field name="original_transaction" required="reason == 'duplicate' and proof_of_original_payment == 'original_transaction'"
+                                               invisible="proof_of_original_payment != 'original_transaction'" readonly="state != 'unsubmitted'"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Required" invisible="reason != 'not_as_described'">
+                                <group>
+                                    <group>
+                                        <field name="product_type" required="reason == 'not_as_described'" readonly="state != 'unsubmitted'"/>
+
+                                        <field name="explanation" required="reason == 'not_as_described'" readonly="state != 'unsubmitted'"/>
+                                        <field name="additional_documentation" readonly="state != 'unsubmitted'" widget="stripe_attachment"
+                                               purpose="dispute_evidence" title="Additional documentation" nolabel="1" colspan="2"/>
+                                    </group>
+                                    <group>
+                                        <field name="received_at" required="reason == 'not_as_described'" readonly="state != 'unsubmitted'"/>
+
+                                        <!-- Merchandise -->
+                                        <field name="return_status" required="reason == 'not_as_described' and product_type == 'merchandise'" invisible="product_type != 'merchandise'" readonly="state != 'unsubmitted'"/>
+                                        <field name="returned_at" required="reason == 'not_as_described' and product_type == 'merchandise'" invisible="product_type != 'merchandise'" readonly="state != 'unsubmitted'"/>
+                                        <field name="return_description" required="reason == 'not_as_described' and product_type == 'merchandise'" invisible="product_type != 'merchandise'" readonly="state != 'unsubmitted'"/>
+
+                                        <!-- Service -->
+                                        <field name="canceled_at" required="reason == 'not_as_described' and product_type == 'service'" invisible="product_type != 'service'" readonly="state != 'unsubmitted'"/>
+                                        <field name="cancellation_reason" required="reason == 'not_as_described' and product_type == 'service'" invisible="product_type != 'service'" readonly="state != 'unsubmitted'"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Required" invisible="reason != 'canceled'">
+                                <group>
+                                    <group>
+                                        <field name="product_type" required="reason == 'canceled'" readonly="state != 'unsubmitted'"/>
+                                        <field name="product_description" required="reason == 'canceled'" readonly="state != 'unsubmitted'"/>
+
+                                        <field name="explanation" readonly="state != 'unsubmitted'"/>
+                                        <field name="additional_documentation" readonly="state != 'unsubmitted'" widget="stripe_attachment"
+                                               purpose="dispute_evidence" title="Additional documentation" nolabel="1" colspan="2"/>
+                                    </group>
+                                    <group>
+                                        <field name="expected_at" required="reason == 'canceled'" readonly="state != 'unsubmitted'"/>
+                                        <field name="cancellation_reason" required="reason == 'canceled'" readonly="state != 'unsubmitted'"/>
+                                        <field name="canceled_at" required="reason == 'canceled'" readonly="state != 'unsubmitted'"/>
+                                        <field name="policy_compliance" required="reason == 'canceled'" readonly="state != 'unsubmitted'"/>
+
+                                        <!-- Merchandise -->
+                                        <field name="return_status" required="reason == 'canceled' and product_type == 'merchandise'" invisible="product_type != 'merchandise'" readonly="state != 'unsubmitted'"/>
+                                        <field name="returned_at" required="reason == 'canceled' and product_type == 'merchandise'" invisible="product_type != 'merchandise'" readonly="state != 'unsubmitted'"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Required" invisible="reason != 'other'">
+                                <group>
+                                    <group>
+                                        <field name="explanation" readonly="state != 'unsubmitted'"/>
+                                        <field name="additional_documentation" readonly="state != 'unsubmitted'" widget="stripe_attachment"
+                                               purpose="dispute_evidence" title="Additional documentation" nolabel="1" colspan="2"/>
+                                    </group>
+                                    <group>
+                                        <field name="product_type" required="reason == 'other'" readonly="state != 'unsubmitted'"/>
+                                        <field name="product_description" required="reason == 'other'" readonly="state != 'unsubmitted'"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Required" invisible="reason != 'no_valid_authorization'">
+                                <group>
+                                    <group>
+                                        <field name="explanation" readonly="1"/>
+                                        <field name="additional_documentation" readonly="1" widget="stripe_attachment"
+                                               purpose="dispute_evidence" title="Additional documentation" nolabel="1" colspan="2"/>
+                                    </group>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_hr_expense_stripe_dispute" model="ir.actions.server">
+            <field name="name">Dispute</field>
+            <field name="group_ids" eval="[(4, ref('base.group_user'))]"/>
+            <field name="model_id" ref="hr_expense.model_hr_expense"/>
+            <field name="binding_model_id" ref="model_hr_expense"/>
+            <field name="binding_view_types">form</field>
+            <field name="state">code</field>
+            <field name="code">
+if record:
+    action = record.action_create_dispute()
+            </field>
+        </record>
+    </data>
+</odoo>

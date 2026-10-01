@@ -1,0 +1,16 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+{
+    'name': 'Test Sale Subscription',
+    'depends': ['sale_subscription', 'payment_demo'],
+    'website': 'https://www.odoo.com/app/accounting',
+    'category': 'Sales/Subscriptions',
+    'demo': ['data/sale_subscription_demo.xml'],
+    'author': 'Odoo S.A.',
+    'license': 'OEEL-1',
+    'assets': {
+        'web.assets_tests': [
+            'test_sale_subscription/static/tests/tours/*',
+        ],
+    },
+}

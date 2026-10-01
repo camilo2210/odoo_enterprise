@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_employee_sign_view_form" model="ir.ui.view">
+        <field name="name">hr.employee.form</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <button name="action_open_versions" position="before">
+                <button groups="hr.group_hr_manager" name="open_employee_sign_requests" type="object" class="oe_stat_button" icon="edit" icon_class="oi-filled" invisible="sign_request_count == 0">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value"><field name="sign_request_count"/></span>
+                        <span class="o_stat_text">Signature Requests</span>
+                    </div>
+                </button>
+            </button>
+            <xpath expr="//field[@name='hr_responsible_id']" position="after">
+                <field name="sign_request_ids" invisible="1" groups='sign.group_sign_user'/>
+            </xpath>
+        </field>
+    </record>
+
+    <record model="ir.actions.server" id="action_signature_request_multi">
+        <field name="name">Signature Request</field>
+        <field name="sequence">7</field>
+        <field name="model_id" ref="hr.model_hr_employee"/>
+        <field name="binding_model_id" ref="hr.model_hr_employee"/>
+        <field name="binding_view_types">form,list,kanban</field>
+        <field name="state">code</field>
+        <field name="group_ids" eval="[(4, ref('hr.group_hr_manager'))]"/>
+        <field name="code">
+if len(records) == 1:
+    action = records._open_sign_document_wizard()
+else:
+    action = model._open_sign_document_wizard()
+        </field>
+    </record>
+</odoo>

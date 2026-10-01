@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="website_knowledge.publicSidebar">
+        <Transition name="'o_slide'" visible="this.props.viewState.showSidebar" leaveDuration="150" t-slot-scope="transition">
+            <div class="o_knowledge_sidebar" t-att-class="transition.className">
+                <!-- initialWidth matches o_knowledge_sidebar_container min-width (avoid flicker) -->
+                <ResizablePanel initialWidth="300" minWidth="200" class="'h-100'" handleRef="this.handleRef">
+                    <div class="d-flex flex-column gap-1 h-100 bg-100 overflow-hidden">
+                        <div class="d-flex gap-1 p-3 pt-md-4 mt-md-2 o_knowledge_header_line">
+                            <button class="btn btn-light o_toggle_public_sidebar"
+                                t-if="this.uiService.isSmall"
+                                t-on-click="() => this.env.toggleSidebar(false)"
+                                data-tooltip="Hide Sidebar"
+                                aria-label="Hide Sidebar">
+                                <i class="oi" data-icon="left_panel_close" aria-hidden="true"/>
+                            </button>
+                            <button class="o_public_search btn btn-light text-truncate flex-grow-1 ps-2 d-flex align-items-center"
+                                data-tooltip="Search for an article or a keyword"
+                                aria-label="Search for an article or a keyword"
+                                t-on-click="this.openSearchDialog">
+                                <i class="oi oi-fw" data-icon="search"/><span class="ps-2">Search</span>
+                            </button>
+                        </div>
+                        <ul class="o_tree o_tree_workspace m-0 px-3" t-ref="this.mainTreeRef">
+                            <t t-call="website_knowledge.publicSidebarArticle" article="this.rootArticle"/>
+                        </ul>
+                    </div>
+                </ResizablePanel>
+            </div>
+        </Transition>
+    </t>
+
+    <t t-name="website_knowledge.publicSidebarArticle">
+        <li class="o_article position-relative">
+            <div t-attf-class="o_article_handle d-flex align-items-center rounded overflow-hidden p-1 #{article.id === this.record.resId ? 'o_article_active' : ''}">
+                <div class="o_article_icon position-relative rounded cursor-pointer flex-shrink-0 d-flex align-items-center justify-content-center" t-on-click="() => article.toggleFold()">
+                    <div class="o_article_emoji">
+                        <t t-if="article.icon" t-out="article.icon"/>
+                        <t t-else="">
+                            <i class="oi oi-fw" data-icon="description"/>
+                        </t>
+                    </div>
+                    <div class="o_article_caret d-flex align-items-center justify-content-center">
+                        <i class="oi oi-fw" t-attf-data-icon="#{article.isUnfolded ? 'arrow_drop_down' : 'arrow_right'}"/>
+                    </div>
+                </div>
+                <a href="#" type="button" t-on-click="() => this.env.openArticle(article.id)"
+                    class="o_article_name text-decoration-none text-truncate text-body flex-grow-1 ms-1"
+                    t-att-class="{ 'fw-medium': article.id === this.record.resId }">
+                    <t t-if="article.name" t-out="article.name"/>
+                    <t t-else="">Untitled</t>
+                </a>
+            </div>
+            <t t-if="article.isUnfolded">
+                <ul>
+                    <t t-foreach="article.children" t-as="article" t-key="article.id">
+                        <t t-call="website_knowledge.publicSidebarArticle"/>
+                    </t>
+                    <li t-if="!article.children.length" class="position-relative">
+                        <div class="text-muted text-truncate p-1">No Articles here</div>
+                    </li>
+                </ul>
+            </t>
+        </li>
+    </t>
+</templates>

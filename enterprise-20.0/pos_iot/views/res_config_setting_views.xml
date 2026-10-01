@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_view_form_inherit_pos_iot" model="ir.ui.view">
+        <field name="name">res.config.form.inherit.pos.iot</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//setting[@id='customer_display']" position="after">
+                <setting string="IoT Box" help="Connect devices using an IoT Box">
+                    <field name="pos_use_iot_box"/>
+                    <div class="content-group pos_iot_config" invisible="not pos_use_iot_box">
+                        <div class="row">
+                            <label string="Customer Display" for="pos_iot_display_id" class="col-lg-5 o_light_label"/>
+                            <field name="pos_iot_display_id" placeholder="none"/>
+                        </div>
+                        <div class="row iot_barcode_scanner">
+                            <label string="Barcode Scanners/Card Readers" for="pos_iot_scanner_ids" class="col-lg-5 o_light_label"/>
+                            <field name="pos_iot_scanner_ids" widget="many2many_tags" placeholder="none"/>
+                        </div>
+                        <div class="row" name="row_scale">
+                            <label string="Electronic Scale" for="pos_iot_scale_id" class="col-lg-5 o_light_label"/>
+                            <field name="pos_iot_scale_id" placeholder="none"/>
+                        </div>
+                        <div>
+                            <button name="%(iot.iot_device_action)d" icon="east" type="action" string="IoT Devices" class="btn-link mt8"/>
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+            <block id="pos_payment_terminals_section" position="inside">
+                <setting title="The transactions are processed by Worldline or Ingenico via an IoT box. Setup your terminal on the related payment method." string="Worldline/Ingenico (BENELUX)" help="Accept payments with a Worldline/Ingenico payment terminal"
+                         documentation="/applications/sales/point_of_sale/payment_methods/terminals/worldline.html">
+                    <field name="module_pos_iot_worldline"/>
+                    <button name="open_payment_method_form" icon="east" type="object" string="Payment method" class="btn-link"
+                        context="{'selection': 'worldline', 'config_ids': [pos_config_id], 'provider_name': 'Worldline'}" invisible="not module_pos_iot_worldline" />
+                </setting>
+                <setting title="The transactions are processed by Six via an IoT box. Setup your terminal on the related payment method." string="Six" documentation="/applications/sales/point_of_sale/payment_methods/terminals/six.html" help="Accept payments with a Six payment terminal">
+                    <field name="module_pos_iot_six"/>
+                    <button name="open_payment_method_form" icon="east" type="object" string="Payment method" class="btn-link"
+                        context="{'selection': 'six_iot', 'config_ids': [pos_config_id], 'provider_name': 'SIX'}" invisible="not module_pos_iot_six" />
+                </setting>
+            </block>
+        </field>
+    </record>
+</odoo>

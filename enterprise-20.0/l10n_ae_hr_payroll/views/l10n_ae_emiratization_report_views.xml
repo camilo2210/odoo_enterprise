@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_ae_emiratization_report_view_form" model="ir.ui.view">
+        <field name="name">l10n_ae.emiratization.report.view.form</field>
+        <field name="model">l10n_ae.emiratization.report</field>
+        <field name="arch" type="xml">
+            <form string="Emiratization Compliance">
+                <header>
+                    <button string="Compute Growth Rate" name="action_populate" class="btn-primary" type="object" data-hotkey="q" invisible="line_ids"/>
+                    <button string="Compute Growth Rate" name="action_populate" class="btn-secondary" type="object" data-hotkey="q" invisible="not line_ids"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_lines" type="object" class="oe_stat_button" icon="group" icon_class="oi-filled" invisible="not new_employees_count">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value"><field name="new_employees_count"/></span>
+                                <span class="o_stat_text">New Employees</span>
+                            </div>
+                        </button>
+                    </div>
+                    <field name="display_name" invisible="True"/>
+                    <div class="row">
+                        <h1 class="d-flex flex-row"><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id" readonly="line_ids"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                        <group>
+                            <field name="target_percentage" widget="percentage" readonly="1"/>
+                            <label for="growth_percentage" string="Growth Rate"/>
+                            <div>
+                                <field name="growth_percentage" widget="percentage" readonly="1"
+                                    class="text-danger oe_inline" invisible="growth_percentage &gt;= target_percentage"/>
+                                <field name="growth_percentage" widget="percentage" readonly="1"
+                                    class="text-success oe_inline" invisible="growth_percentage &lt; target_percentage"/>
+                            </div>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_ae_emiratization_report_view_list" model="ir.ui.view">
+        <field name="name">l10n_ae.emiratization.report.view.list</field>
+        <field name="model">l10n_ae.emiratization.report</field>
+        <field name="arch" type="xml">
+            <list string="Emiratization Compliance">
+                <field name="name"/>
+                <field name="create_uid" widget="many2one_avatar_user"/>
+                <field name="write_date"/>
+                <field name="target_percentage" widget="percentage"/>
+                <field name="growth_percentage" widget="percentage"
+                    decoration-danger="growth_percentage &lt; target_percentage"
+                    decoration-success="growth_percentage &gt;= target_percentage"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_ae_emiratization_report_view_search" model="ir.ui.view">
+        <field name="name">l10n_ae.emiratization.report.view.search</field>
+        <field name="model">l10n_ae.emiratization.report</field>
+        <field name="arch" type="xml">
+            <search string="Search Emiratization Compliance">
+                <field name="name"/>
+                <field name="company_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_ae_emiratization_report_line_view_list" model="ir.ui.view">
+        <field name="name">l10n_ae.emiratization.report.line.view.list</field>
+        <field name="model">l10n_ae.emiratization.report.line</field>
+        <field name="arch" type="xml">
+            <list string="Emiratization Compliance Employees">
+                <field name="employee_id" widget="many2one_avatar_employee"/>
+                <field name="department_id" widget="many2one"/>
+                <field name="job_id" widget="many2one"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_ae_emiratization_report_line_view_search" model="ir.ui.view">
+        <field name="name">l10n_ae.emiratization.report.line.search</field>
+        <field name="model">l10n_ae.emiratization.report.line</field>
+        <field name="arch" type="xml">
+            <search string="Search Emiratization Compliance Lines">
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="job_id"/>
+                <group>
+                    <filter string="Job Position" name="group_by_job" domain="[]" context="{'group_by': 'job_id'}"/>
+                    <filter string="Department" name="group_by_department" domain="[]" context="{'group_by': 'department_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_ae_emiratization_report_action" model="ir.actions.act_window">
+        <field name="name">Emiratization Compliance</field>
+        <field name="res_model">l10n_ae.emiratization.report</field>
+        <field name="view_mode">list,form</field>
+        <field name="target">current</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+            No previous Emiratization Compliance reports have been found.
+            </p><p>
+            An Emiratization Compliance report will compare the growth rate of UAE national<br/>
+            employees against the emiratization target for the selected period.<br/><br/>
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_emiratization_compliance"
+        name="Emiratization Compliance"
+        action="l10n_ae_emiratization_report_action"
+        sequence="12"
+        parent="hr.hr_menu_hr_reports"/>
+</odoo>

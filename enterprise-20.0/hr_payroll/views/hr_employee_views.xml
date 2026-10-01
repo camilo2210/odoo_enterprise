@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Employee View -->
+    <record id="payroll_hr_employee_view_form" model="ir.ui.view">
+        <field name="name">payroll.hr.employee.view.form</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="before">
+                <field name="issues" class="w-100" widget="actionable_warnings" invisible="not issues" groups="hr_payroll.group_hr_payroll_user"/>
+            </xpath>
+            <div name="employee_photo_and_info" position="inside">
+                <div class="align-self-start w-auto end-0 mt-2 d-flex align-items-center justify-content-end gap-2 o_to_review_wrapper">
+                    <div name="to_review_pill">
+                        <field name="date_to_review" invisible="1"/>
+                        <field name="review_state" widget="dropdown_selection_badge"
+                            highlight_chatter="1"
+                            options="{
+                                'false': {'can_edit': False},
+                                '1_reviewed': {'decoration': 'success', 'icon': 'circle', 'icon_class': 'oi-filled', 'can_edit': 'hr_payroll.group_hr_payroll_officer'},
+                                '2_to_review': {'decoration': 'warning', 'icon': 'circle', 'icon_class': 'oi-filled', 'can_edit': 'hr_payroll.group_hr_payroll_user'},
+                                '3_anomaly': {'decoration': 'danger', 'icon': 'circle', 'icon_class': 'oi-filled', 'can_edit': 'hr_payroll.group_hr_payroll_user'}
+                            }"/>
+                    </div>
+                </div>
+            </div>
+            <button name="action_open_versions" position="before">
+                <button class="oe_stat_button" name="action_open_payslips"
+                        type="object" icon="attach_money" groups="hr_payroll.group_hr_payroll_user"
+                        invisible="payslip_count == 0">
+                    <field name="payslip_count" string="Payslips" widget="statinfo"/>
+                </button>
+                <button class="oe_stat_button" name="%(action_hr_payslip_new)d"
+                        type="action" icon="attach_money" groups="hr_payroll.group_hr_payroll_user"
+                        context="{'default_employee_id': id, 'default_version_id': version_id}"
+                        invisible="not employee_id or payslip_count or not contract_date_start">
+                        <div class="o_stat_info">
+                            <span class="o_stat_text">Payslips</span>
+                            <span class="o_stat_value">New</span>
+                        </div>
+                </button>
+            </button>
+            <xpath expr="//field[@name='structure_type_id']" position="after">
+                <field name="registration_number" string="Reference" groups="base.group_no_one"/>
+            </xpath>
+            <xpath expr="//page[@name='personal_information']//group[@name='hr_birth_group']" position="inside">
+                <field name="lang" string="Payslip Language" placeholder="User Language"/>
+            </xpath>
+            <group name="hr_document_group" position="inside">
+                <field name="sim_card_name" invisible="1"/>
+                <field name="internet_invoice_name" invisible="1"/>
+                <field name="sim_card" filename="sim_card_name"/>
+                <field name="internet_invoice" filename="internet_invoice_name"/>
+            </group>
+            <field name="sex" position="after">
+                <field name="disabled"/>
+            </field>
+            <field name="company_id" position="after">
+                <label for="contract_date_start" string="Contract" groups="hr.group_hr_user,!hr_payroll.group_hr_payroll_user"/>
+                <div class="o_row" name="hr_contract_dates" groups="hr.group_hr_user,!hr_payroll.group_hr_payroll_user">
+                    <field name="contract_date_start" string="Start Date" placeholder="Not Employed" class="o_hr_narrow_field me-3"/>
+                    <span invisible="not contract_date_start">to</span>
+                    <field name="contract_date_end" string="End Date" placeholder="Indefinite" widget="date_dynamic_min" options="{'min_date_field': 'contract_date_start'}"
+                        class="o_hr_narrow_field ms-3" invisible="not contract_date_start"/>
+                    <widget name="button_new_contract"/>
+                </div>
+            </field>
+            <xpath expr="//field[@name='country_id']" position="after">
+                <field name="is_non_resident" eval="False"/>
+            </xpath>
+            <xpath expr="//label[@for='wage']" position="before">
+                <field name="wage_type"/>
+                <label for="hourly_wage" invisible="wage_type != 'hourly'"/>
+                <div class="o_row" name="hourly_wage" invisible="wage_type != 'hourly'">
+                    <field name="hourly_wage" class="o_hr_narrow_field" widget="monetary" options="{'currency_field': 'currency_id', 'field_digits': True}"/>
+                    <span>/ hour</span>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='wage']" position="after">
+                <span class="mx-2">/</span>
+                <field name="schedule_pay" class="o_hr_narrow_field" nolabel="1"/>
+            </xpath>
+
+            <field name="resource_calendar_id" position="attributes">
+                <attribute name="groups">hr.group_hr_manager</attribute>
+                <attribute name="widget">resource_calendar_many2one</attribute>
+            </field>
+            <field name="resource_calendar_id" position="after">
+                <field name="resource_calendar_id"
+                    groups="!hr.group_hr_manager,hr_payroll.group_hr_payroll_user"
+                    widget="resource_calendar_many2one"
+                    options="{'no_create': True, 'no_open': True}"
+                    help="The default working hours are set in configuration."/>
+            </field>
+
+            <page name="payroll_information" position="attributes">
+                <attribute name="groups">hr_payroll.group_hr_payroll_user</attribute>
+            </page>
+            <page name="departure" position="attributes">
+                <attribute name="groups">hr_payroll.group_hr_payroll_user</attribute>
+            </page>
+            <button name="action_cancel_departure" position="attributes">
+                <attribute name="groups">hr_payroll.group_hr_payroll_user</attribute>
+            </button>
+            <group name="payroll_group" position="after">
+                <group name="external_codes" string="External Codes" invisible="1"/>
+            </group>
+            <group name="payroll_group" position="after">
+                <group colspan="4">
+                    <field name="structure_id" groups="hr_payroll.group_hr_payroll_user" invisible="1"/>
+                    <field name="payroll_properties" groups="hr_payroll.group_hr_payroll_user" nolabel="1" colspan="4" widget="properties"/>
+                </group>
+            </group>
+            <page name="payroll_information" position="after">
+                <page name="salary_attachment" string="Payslip Adjustments" groups="hr_payroll.group_hr_payroll_user">
+                    <field name="salary_attachment_ids"
+                        widget="salary_attachment_2many"
+                        invisible="salary_attachment_ids.length == 0"
+                        context="{
+                                'default_employee_id': id,
+                                'list_view_ref': 'hr_payroll.hr_salary_attachment_employee_view_list',
+                                'kanban_view_ref': 'hr_payroll.hr_salary_attachment_employee_view_kanban',
+                            }"
+                    />
+                    <div class="o_view_nocontent position-relative" invisible="salary_attachment_ids.length > 0">
+                        <div class="o_nocontent_help">
+                            <p class="o_view_nocontent_smiling_face">
+                                No Payslip Adjustment ?
+                            </p>
+                            <p>
+                                A payslip adjustment is a way to define a salary input for the next payslip(s).<br/>
+                                It can be used for salary attachments, bonus, child support, ...<br/><br/>
+                                <button 
+                                    name="%(action_hr_salary_attachment_new)d" type="action"
+                                    context="{'default_employee_id': id, 'default_version_id': version_id}"
+                                    class="btn btn-secondary" string="Create a Payslip Adjustment"/>
+                            </p>
+                        </div>
+                    </div>
+                </page>
+            </page>
+            <xpath expr="//div[@name='wage']" position="after">
+                <label name="final_yearly_costs" for="final_yearly_costs" string="Employer Cost"/>
+                <div name="final_yearly_costs" class="o_row">
+                    <field name="final_yearly_costs" class="o_hr_narrow_field"/>
+                    <span>/ year</span>
+                </div>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record id="payroll_hr_employee_view_tree_employee_trends" model="ir.ui.view">
+    <field name="name">payroll.hr.employee.view.list.inherit</field>
+    <field name="model">hr.employee</field>
+    <field name="inherit_id" ref="hr.view_employee_tree"/>
+    <field name="priority" eval="100" />
+    <field name="arch" type="xml">
+        <header position="inside">
+            <button name="%(hr_payroll.action_salary_attachment_form)d" string="Payslip Adjustment" type="action" groups="hr_payroll.group_hr_payroll_user"/>
+        </header>
+        <xpath expr="//field[@name='name']" position="after">
+                <field name="registration_number" optional="hide"/>
+        </xpath>
+        <xpath expr="//field[@name='country_id']" position="after">
+                <field name="review_state" optional="hide" widget="badge"
+                    decoration-success="review_state == '1_reviewed'"
+                    decoration-info="review_state == '2_to_review'"
+                    decoration-danger="review_state == '3_anomaly'"/>
+        </xpath>
+        <xpath expr="//field[@name='wage']" position="after">
+            <field name="final_yearly_costs" optional="hide"/>
+        </xpath>
+    </field>
+    </record>
+
+    <record id="payroll_hr_employee_view_kanban" model="ir.ui.view">
+        <field name="name">payroll.hr.employee.view.kanban.inherit</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.hr_kanban_view_employees"/>
+        <field name="arch" type="xml">
+            <header position="inside">
+                <button name="%(hr_payroll.action_salary_attachment_form)d" string="Payslip Adjustment" type="action" groups="hr_payroll.group_hr_payroll_user"/>
+            </header>
+            <xpath expr="//field[@name='activity_ids']" position="before">
+                <field name="review_state" widget="dropdown_selection_badge"
+                    options="{
+                        'false': {'can_edit': False},
+                        '1_reviewed': {'decoration': 'success', 'icon': 'circle', 'icon_class': 'oi-filled', 'can_edit': 'hr_payroll.group_hr_payroll_officer'},
+                        '2_to_review': {'decoration': 'warning', 'icon': 'circle', 'icon_class': 'oi-filled', 'can_edit': 'hr_payroll.group_hr_payroll_user'},
+                        '3_anomaly': {'decoration': 'danger', 'icon': 'circle', 'icon_class': 'oi-filled', 'can_edit': 'hr_payroll.group_hr_payroll_user'}
+                    }"
+                    class="m-1 ms-2 o_dropdown_selection_badge_small"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="payroll_hr_employee_view_search" model="ir.ui.view">
+        <field name="name">hr.employee.search.inherit</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="attributes">
+                 <attribute name="filter_domain">['|', '|', '|', ('registration_number', 'ilike', self), ('external_code', 'ilike', self), ('work_email', 'ilike', self), ('name', 'ilike', self)]</attribute>
+            </xpath>
+            <xpath expr="//filter[@name='permanent_contract']" position="before">
+                <filter string="To Review" name="to_review" domain="[('review_state', '=', '2_to_review')]"/>
+                <filter string="Reviewed" name="reviewed" domain="[('review_state', '=', '1_reviewed')]"/>
+                <filter string="Anomalies" name="anomalies" domain="[('review_state', '=', '3_anomaly')]"/>
+                <separator/>
+            </xpath>
+            <xpath expr="//filter[@name='fixed_term_contract']" position="attributes">
+                <attribute name="groups">hr_payroll.group_hr_payroll_user</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="payroll_hr_version_search_view_enhanced" model="ir.ui.view">
+        <field name="name">hr.version.search.view.enhanced.inherit.payroll</field>
+        <field name="model">hr.version</field>
+        <field name="inherit_id" ref="hr.hr_version_search_view_enhanced"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='inactive']" position="before">
+                <filter string="To Review" name="to_review" domain="[('review_state', '=', '2_to_review')]"/>
+                <filter string="Anomalies" name="anomalies" domain="[('review_state', '=', '3_anomaly')]"/>
+                <separator />
+            </xpath>
+            <xpath expr="//group/filter[@name='group_department']" position="before">
+                <filter name="group_employee_type" string="Employee Type" domain="[]" context="{'group_by': 'employee_type_id'}"/>
+                <filter name="group_structure_type" string="Structure" domain="[]" context="{'group_by': 'structure_type_id'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_employee_payroll_focused_form_view" model="ir.ui.view">
+        <field name="name">hr.employee.payroll.focused.form.view</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='payroll_information']" position="attributes">
+                <attribute name="autofocus">autofocus</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_increase_employee_salary_form" model="ir.actions.server">
+        <field name="name">Salary Increase</field>
+        <field name="model_id" ref="hr.model_hr_employee"/>
+        <field name="binding_model_id" ref="hr.model_hr_employee"/>
+        <field name="binding_view_types">form,list,kanban</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    action = records._increase_employee_salary()
+        </field>
+    </record>
+
+    <record id="hr.action_hr_employee_departure" model="ir.actions.server">
+        <field name="group_ids" eval="[
+            Command.set([ref('hr_payroll.group_hr_payroll_user')]),
+        ]"/>
+    </record>
+
+    <record id="hr_payroll.view_employee_tree" model="ir.ui.view">
+        <field name="name">hr.employee.list.hr_payroll</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_tree"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="js_class">hr_version_payrun_list</attribute>
+                <attribute name="decoration-warning">issues</attribute>
+                <attribute name="class">payroll-payrun-highlight</attribute>
+            </xpath>
+            <field name="job_title" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </field>
+            <field name="department_id" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </field>
+            <field name="wage" position="attributes">
+                <attribute name="optional">show</attribute>
+            </field>
+            <list position="inside">
+                <field name="issues" column_invisible="1" groups="hr.group_hr_user,hr_payroll.group_hr_payroll_user"/>
+                <field name="review_state" widget="badge" string="Review"
+                        decoration-success="review_state == '1_reviewed'"
+                        decoration-info="review_state == '2_to_review'"
+                        decoration-danger="review_state == '3_anomaly'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_employee_filter" model="ir.ui.view">
+        <field name="name">hr.employee.search.inherit.hr_payroll.payrun</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_filter"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//searchpanel" position="replace"/>
+        </field>
+    </record>
+
+    <record id="action_view_employee_tree" model="ir.actions.act_window">
+        <field name="name">Select Employees</field>
+        <field name="res_model">hr.employee</field>
+        <field name="view_mode">list</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="hr_payroll.view_employee_tree"/>
+        <field name="search_view_id" ref="hr_payroll.view_employee_filter"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Employees.
+            </p><p>
+                No employee fit your period and salary structure type, please go back to select another period and/or
+                salary structure type.
+            </p>
+        </field>
+    </record>
+</odoo>

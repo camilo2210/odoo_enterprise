@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_be_dimona_manual_wizard_view_form" model="ir.ui.view">
+        <field name="name">l10n.be.dimona.manual.wizard.view.form</field>
+        <field name="model">l10n.be.dimona.manual.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="dimona_type" invisible="1"/>
+                <group class="p-2">
+                    <div class="alert alert-warning" role="alert" colspan="2">
+                        <span>Automate Dimonas to avoid missing deadlines, by </span>
+                        <a name="%(hr_payroll.action_hr_payroll_configuration)d" class="cursor-pointer p-0" type="action" string="configuring your ONSS certificate"/>
+                    </div>
+                    <div colspan="2" invisible="dimona_type not in (False, 'in')">
+                        You must declare every employee start date before or by the first working day to the ONSS.<br/>
+                        Then, changes on the start or end date must be reported too. Failure to do so<br/>
+                        can lead to fines, or scrutiny from the social-security inspectorates.
+                    </div>
+                    <div colspan="2" invisible="dimona_type != 'out'">
+                        You must declare the departure of an employee to the ONSS, at the latest on the first<br/>
+                        working day following the end of the employment. Failure to do so can lead to fines,<br/>
+                        or scrutiny from the social-security inspectorates.
+                    </div>
+                    <div colspan="2" invisible="dimona_type != 'update'">
+                        The data declared for this employee changed. Any change on the start or end date<br/>
+                        (and on the planned hours for a student) must be reported to the ONSS. Failure to do so<br/>
+                        can lead to fines, or scrutiny from the social-security inspectorates.
+                    </div>
+                    <div colspan="2" invisible="dimona_type != 'cancel'">
+                        This employee never started working. The declaration sent for them must be cancelled<br/>
+                        with the ONSS, otherwise they stay registered as one of your employees. Failure to do so<br/>
+                        can lead to fines, or scrutiny from the social-security inspectorates.
+                    </div>
+                    <div colspan="2" invisible="dimona_type != 'issue'">
+                        The last declaration sent for this employee was refused by the ONSS because of blocking<br/>
+                        anomalies, listed in the employee chatter. It must be corrected and declared again,<br/>
+                        otherwise this employee is not declared to the ONSS.
+                    </div>
+                    <div colspan="2">
+                        To do it manually:
+                        <ol>
+                            <li>Fill the form on 
+                                <a href="https://www.socialsecurity.be/site_fr/employer/applics/dimona/index.htm" target="_blank">
+                                    SocialSecurity.be
+                                </a>
+                            </li>
+                            <li>Mark as submitted in Odoo</li>
+                        </ol>
+                    </div>
+                </group>
+                <footer>
+                    <button name="submit_dimona" class="btn-primary" type="object" string="Dimona Submitted" invisible="not version_id"/>
+                    <button string="Discard" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

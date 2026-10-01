@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_be_employer_category_view_form" model="ir.ui.view">
+        <field name="name">l10n.be.employer.category.form</field>
+        <field name="model">l10n.be.employer.category</field>
+        <field name="arch" type="xml">
+            <form string="Employer Category">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" widget="text"/>
+                            <field name="sector"/>
+                            <field name="egov3_code"/>
+                            <field name="dmfa_code"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Joint Committees" name="Allowed_Joint_Committees">
+                            <field name="allowed_joint_committee_ids" nolabel="1" colspan="2">
+                                <list create="false">
+                                    <field name="egov3_code"/>
+                                    <field name="name"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Worker Codes" name="worker_codes">
+                            <field name="allowed_worker_code_ids" nolabel="1">
+                                <list create="false">
+                                    <field name="dmfa_code"/>
+                                    <field name="egov3_code"/>
+                                    <field name="name"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_be_employer_category_view_tree" model="ir.ui.view">
+        <field name="name">l10n.be.employer.category.tree</field>
+        <field name="model">l10n.be.employer.category</field>
+        <field name="arch" type="xml">
+            <list string="Employer Categories">
+                <field name="name"/>
+                <field name="sector"/>
+                <field name="egov3_code"/>
+                <field name="dmfa_code"/>
+                <field name="allowed_joint_committee_ids" widget="many2many_tags" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_be_employer_category_view_search" model="ir.ui.view">
+        <field name="name">l10n.be.employer.category.search</field>
+        <field name="model">l10n.be.employer.category</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', '|', ('name', 'ilike', self), ('egov3_code', 'ilike', self), ('dmfa_code', 'ilike', self)]"/>
+                <field name="dmfa_code" string="Code" filter_domain="['|', ('egov3_code', 'ilike', self), ('dmfa_code', 'ilike', self)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_be_employer_category_action" model="ir.actions.act_window">
+        <field name="name">Employer Categories</field>
+        <field name="res_model">l10n.be.employer.category</field>
+        <field name="view_mode">list,form</field>
+        <field name="target">current</field>
+    </record>
+
+    <menuitem
+        id="menu_l10n_be_employer_category"
+        name="Employer Categories"
+        action="l10n_be_employer_category_action"
+        parent="menu_l10n_be_hr_payroll_configuration"
+        sequence="505"/>
+</odoo>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_contract_sign" model="ir.ui.view">
+        <field name="name">hr_contract_sign</field>
+        <field name="model">hr.contract.sign.document.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Signature Request">
+                <div role="alert" class="alert alert-warning text-center d-flex align-items-center justify-content-center gap-1" invisible="not template_warning"
+                    title="No template available">
+                    <field name="template_warning" nolabel="1" readonly="1"/>
+                    <widget name="upload_pdf_button" title="Upload a PDF to set a new one."/>
+                </div>
+                <group class="o_label_nowrap">
+                    <field name="version_id" invisible="1"/>
+                    <field name="has_both_template" invisible="1"/>
+                    <field name="sign_template_responsible_ids" invisible="1"/>
+                    <field name="possible_template_ids" invisible="1"/>
+                    <field name="sign_template_ids" options="{'no_create': True}" context="{'kanban_view_ref': 'sign.sign_template_view_kanban_mobile'}"
+                        widget="many2many_tags" force_save="1"/>
+                    <field name="employee_ids" widget="many2many_avatar_employee" required="1"/>
+                    <field name="mail_to" widget="radio" options="{'horizontal': True}" invisible="show_sign_now"/>
+                    <field name="mail_displayed" invisible="not mail_displayed or show_sign_now" string=""/>
+                </group>
+                <group invisible="not sign_template_ids" string="Sign Request Options">
+                    <field name="is_single_signer" invisible="1"/>
+                    <field name="show_sign_now" invisible="1"/>
+                    <field name="signing_employee" widget="radio" options="{'horizontal': True}" invisible="not is_single_signer"/>
+                    <field name="employee_role_id" options="{'no_create': True}" invisible="is_single_signer"/>
+                    <field name="responsible_id" options="{'no_create_edit': True}"
+                        widget="many2one_avatar"
+                        invisible="not has_both_template"
+                        required="has_both_template"/>
+                    <field name="cc_partner_ids" widget="many2many_tags" placeholder="Write email or search contact..."/>
+                </group>
+                <group class="o_label_nowrap" string="Mail Options">
+                    <field name="subject" placeholder="Signature Request"/>
+                </group>
+                <field name="message" placeholder="Optional Message..." widget="html"/>
+                <field name="attachment_ids" widget="many2many_binary" string="Attach a file"/>
+                <footer>
+                    <button name="sign_now" string="Sign Now" type="object" invisible="not show_sign_now" class="oe_highlight"/>
+                    <button name="validate_signature" string="Send" type="object" class="oe_highlight" data-hotkey="q" invisible="show_sign_now"/>
+                    <button class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_payroll_salary_increase_form_view" model="ir.ui.view">
+        <field name="name">hr.payroll.salary.increase.form.view</field>
+        <field name="model">hr.payroll.salary.increase</field>
+        <field name="arch" type="xml">
+            <form string="Salary Increase">
+                <field name="state" invisible="1"/>
+                <field name="currency_id" invisible="1"/>
+                <field name="has_affected_versions" invisible="1"/>
+
+                <div invisible="state != 'increase'">
+                    <div class="alert alert-warning" role="alert" invisible="not has_affected_versions">
+                        There is at least one employee version ulterior to the selected increase date that will also be impacted by the salary increase.
+                    </div>
+                    <group name="manual">
+                        <field name="increase_date" widget="date" class="o_hr_narrow_field"/>
+                        <field name="increase_rate" widget="percentage" class="o_hr_narrow_field"/>
+                        <label for="applied_on"/>
+                        <div class="o_row">
+                            <field name="applied_on" widget="radio" class="o_hr_narrow_field_fit" options="{'horizontal': True}"/>
+                            <field name="capped_wage" nolabel="1" class="o_hr_narrow_field_fit" widget="monetary"
+                                   invisible="applied_on == 'full'"/>
+                        </div>
+                        <field name="extra_amount" class="o_hr_narrow_field" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    </group>
+                </div>
+
+                <div invisible="state != 'correction'">
+                    <field name="affected_payslip_ids" invisible="1"/>
+                    <field name="affected_payslip_count" invisible="1"/>
+                    <div class="alert alert-warning d-flex align-items-center" role="alert">
+                        <field name="affected_payslip_count"/>&#160;<span>payslips have been affected by this past salary increase and may need to be corrected.</span>
+                    </div>
+                </div>
+
+                <footer>
+                    <button string="Confirm" name="action_confirm" type="object" class="oe_highlight"
+                            data-hotkey="q" invisible="state != 'increase'"/>
+                    <button string="Manage Payslips" name="action_correct_payslips" type="object" class="oe_highlight"
+                            data-hotkey="q" invisible="state != 'correction'"/>
+                    <button class="btn btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="hr_payslip_correction_wizard_form_salary_increase" model="ir.ui.view">
+        <field name="name">hr.payslip.correction.wizard.form.salary.increase</field>
+        <field name="model">hr.payslip.correction.wizard</field>
+        <field name="inherit_id" ref="hr_payroll.hr_payslip_correction_wizard_form"/>
+        <field name="mode">primary</field>
+        <field name="priority">1000</field>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='description']" position="replace"/>
+            <xpath expr="//field[@name='correction_choice']" position="replace"/>
+        </field>
+    </record>
+
+    <record id="action_hr_payroll_salary_increase" model="ir.actions.act_window">
+        <field name="name">Salary Increase</field>
+        <field name="res_model">hr.payroll.salary.increase</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="hr_payroll_salary_increase_form_view"/>
+        <field name="target">new</field>
+    </record>
+</odoo>

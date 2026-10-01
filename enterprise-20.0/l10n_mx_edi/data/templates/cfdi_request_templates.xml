@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="l10n_mx_sat_signature_template">
+        <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+            <SignedInfo>
+                <CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+                <SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+                <Reference URI="#_0">
+                    <Transforms>
+                        <Transform t-att-Algorithm="'http://www.w3.org/2001/10/xml-exc-c14n#' if is_auth else 'http://www.w3.org/2000/09/xmldsig#enveloped-signature'"/>
+                    </Transforms>
+                    <DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+                    <!-- DigestValue and SignatureValue are populated in _get_signed_envelope. -->
+                    <DigestValue/>
+                </Reference>
+            </SignedInfo>
+            <SignatureValue/>
+            <KeyInfo>
+                <t t-if="is_auth">
+                    <o:SecurityTokenReference xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+                        <o:Reference ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3" t-attf-URI="#{'#' + uuid}"/>
+                    </o:SecurityTokenReference>
+                </t>
+                <t t-else="">
+                    <X509Data><X509Certificate t-out="certificate_values['x509_certificate']"/></X509Data>
+                </t>
+            </KeyInfo>
+        </Signature>
+    </template>
+
+    <template id="l10n_mx_sat_authentification_template">
+        <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"
+            xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
+            xmlns:u="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+            <s:Header>
+                <o:Security s:mustUnderstand="1">
+                    <u:Timestamp u:Id="_0">
+                        <u:Created t-out="create_date_str"/>
+                        <u:Expires t-out="expire_date_str"/>
+                    </u:Timestamp>
+                    <o:BinarySecurityToken
+                        t-att="{'u:Id': uuid}"
+                        t-out="certificate_values['x509_certificate']"
+                        ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3"
+                        EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary"/>
+                    <t t-call="l10n_mx_edi.l10n_mx_sat_signature_template" />
+                </o:Security>
+            </s:Header>
+            <s:Body>
+                <Autentica xmlns="http://DescargaMasivaTerceros.gob.mx"/>
+            </s:Body>
+        </s:Envelope>
+    </template>
+
+    <template id="l10n_mx_sat_download_request_template">
+        <s:Envelope xmlns:des="http://DescargaMasivaTerceros.sat.gob.mx"
+            xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"
+            xmlns:xd="http://www.w3.org/2000/09/xmldsig#">
+            <s:Header/>
+            <s:Body>
+                <des:SolicitaDescargaEmitidos t-if="service_type == 'issued'">
+                    <des:solicitud
+                        t-att-EstadoComprobante="receipt_state"
+                        t-att-FechaInicial="emission_date_from"
+                        t-att-FechaFinal="emission_date_to"
+                        t-att-RfcEmisor="certificate_values['request_rfc']"
+                        t-att-TipoComprobante="receipt_type"
+                        t-att-TipoSolicitud="request_type">
+                        <t t-call="l10n_mx_edi.l10n_mx_sat_signature_template" />
+                    </des:solicitud>
+                </des:SolicitaDescargaEmitidos>
+                <des:SolicitaDescargaRecibidos t-elif="service_type == 'received'">
+                    <des:solicitud
+                        t-att-EstadoComprobante="receipt_state"
+                        t-att-FechaInicial="emission_date_from"
+                        t-att-FechaFinal="emission_date_to"
+                        t-att-TipoComprobante="receipt_type"
+                        t-att-TipoSolicitud="request_type"
+                        t-att-RfcReceptor="certificate_values['request_rfc']">
+                        <t t-call="l10n_mx_edi.l10n_mx_sat_signature_template" />
+                    </des:solicitud>
+                </des:SolicitaDescargaRecibidos>
+                <des:SolicitaDescargaFolio t-elif="service_type == 'folio'">
+                    <des:solicitud t-att-Folio="cfdi_uuid" t-att-RfcSolicitante="certificate_values['request_rfc']">
+                        <t t-call="l10n_mx_edi.l10n_mx_sat_signature_template" />
+                    </des:solicitud>
+                </des:SolicitaDescargaFolio>
+            </s:Body>
+        </s:Envelope>
+    </template>
+
+    <template id="l10n_mx_sat_download_verification_template">
+        <s:Envelope xmlns:des="http://DescargaMasivaTerceros.sat.gob.mx"
+            xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"
+            xmlns:xd="http://www.w3.org/2000/09/xmldsig#">
+            <s:Header/>
+            <s:Body>
+                <des:VerificaSolicitudDescarga>
+                    <des:solicitud t-att-IdSolicitud="request_uuid" t-att-RfcSolicitante="certificate_values['request_rfc']">
+                        <t t-call="l10n_mx_edi.l10n_mx_sat_signature_template" />
+                    </des:solicitud>
+                </des:VerificaSolicitudDescarga>
+            </s:Body>
+        </s:Envelope>
+    </template>
+
+    <template id="l10n_mx_sat_download_package_template">
+        <s:Envelope xmlns:des="http://DescargaMasivaTerceros.sat.gob.mx"
+            xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"
+            xmlns:xd="http://www.w3.org/2000/09/xmldsig#">
+            <s:Header/>
+            <s:Body>
+                <des:PeticionDescargaMasivaTercerosEntrada>
+                    <des:peticionDescarga t-att-IdPaquete="package_uuid" t-att-RfcSolicitante="certificate_values['request_rfc']">
+                        <t t-call="l10n_mx_edi.l10n_mx_sat_signature_template" />
+                    </des:peticionDescarga>
+                </des:PeticionDescargaMasivaTercerosEntrada>
+            </s:Body>
+        </s:Envelope>
+    </template>
+</odoo>

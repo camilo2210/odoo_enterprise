@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_lazada_shop_list" model="ir.actions.act_window">
+        <field name="name">Lazada Shops</field>
+        <field name="res_model">lazada.shop</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_active': 1}</field>
+    </record>
+
+    <record id="lazada_shop_list" model="ir.ui.view">
+        <field name="name">lazada.shop.list</field>
+        <field name="model">lazada.shop</field>
+        <field name="arch" type="xml">
+            <list string="Lazada Shops" create="false">
+                <header>
+                    <button
+                        name="%(action_lazada_shop_create_wizard)d"
+                        string="Connect New Shop"
+                        type="action"
+                        class="btn-primary"
+                        display="always"
+                    />
+                </header>
+                <field name="name"/>
+                <field name="shop_extern_id" groups="base.group_no_one"/>
+                <field name="user_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="last_orders_sync_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="lazada_shop_form" model="ir.ui.view">
+        <field name="name">lazada.shop.form</field>
+        <field name="model">lazada.shop</field>
+        <field name="arch" type="xml">
+            <form string="Lazada Shop" create="false">
+                <div
+                    class="alert alert-danger text-center mt-3"
+                    role="alert"
+                    invisible="not context.get('lazada_shop_authorization_error')"
+                >
+                    <strong>Authorization Failed: </strong>
+                    An unexpected error occurred during authorization. Please try again.
+                </div>
+                <header>
+                    <button
+                        name="action_open_auth_link"
+                        string="Re-authorize Shop"
+                        type="object"
+                        class="btn-primary"
+                    />
+                    <button
+                        name="action_sync_orders"
+                        string="Sync Orders"
+                        type="object"
+                        class="btn-secondary"
+                        invisible="not active"
+                    />
+                    <button
+                        name="action_sync_inventory"
+                        string="Sync Inventory"
+                        type="object"
+                        class="btn-secondary"
+                        invisible="not active or not synchronize_inventory"
+                    />
+                    <button
+                        name="action_sync_product_catalog"
+                        string="Sync Catalog"
+                        type="object"
+                        class="btn-secondary"
+                        invisible="not active"
+                    />
+                </header>
+                <sheet>
+                    <widget
+                        name="web_ribbon"
+                        title="Archived"
+                        bg_color="text-bg-danger"
+                        invisible="active"
+                    />
+                    <div class="oe_button_box" name="button_box">
+                        <button
+                            name="action_view_orders"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="attach_money"
+                            invisible="not id"
+                        >
+                            <field name="order_count" widget="statinfo" string="Orders"/>
+                        </button>
+                        <button
+                            name="action_view_lazada_items"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="inventory_2"
+                            invisible="not id"
+                        >
+                            <field name="lazada_item_count" widget="statinfo" string="Items"/>
+                        </button>
+                    </div>
+                    <div class="oe_title" id="title">
+                        <label for="name" string="Shop Name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Indonesian Shop"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Shop Information">
+                            <field name="shop_extern_id" groups="base.group_no_one"/>
+                            <field name="company_id" options="{'no_open': True}"/>
+                            <field name="country_id"/>
+                        </group>
+                        <group string="Synchronization Information">
+                            <field name="last_orders_sync_date"/>
+                            <field name="last_product_catalog_sync_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Shop Settings">
+                            <group>
+                                <group string="Order Synchronization">
+                                    <field name="user_id"/>
+                                    <field name="team_id"/>
+                                </group>
+                                <group string="Inventory Synchronization">
+                                    <field name="synchronize_inventory"/>
+                                    <field name="fbm_warehouse_id"/>
+                                    <field name="manage_fbl_inventory"/>
+                                    <field
+                                        name="fbl_location_id"
+                                        invisible="not manage_fbl_inventory"
+                                    />
+                                </group>
+                            </group>
+                        </page>
+                        <page string="API Credentials &amp; Tokens" groups="base.group_no_one">
+                            <group string="API Credentials">
+                                <field name="app_key"/>
+                                <field name="app_secret" password="True"/>
+                            </group>
+                            <group string="Access Tokens">
+                                <field name="access_token"/>
+                                <field name="access_token_expiration_date"/>
+                                <field name="refresh_token"/>
+                                <field name="refresh_token_expiration_date"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="lazada_shop_search" model="ir.ui.view">
+        <field name="name">lazada.shop.search</field>
+        <field name="model">lazada.shop</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="Shop"/>
+                <filter name="filter_active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="filter_inactive" string="Inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_lazada_shop_authorization_error" model="ir.actions.act_window">
+        <field name="name">Lazada Shop Authorization Error</field>
+        <field name="res_model">lazada.shop</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'lazada_shop_authorization_error': True}</field>
+    </record>
+
+</odoo>

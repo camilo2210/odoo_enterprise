@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_payslip_view_form_inherit_be" model="ir.ui.view">
+        <field name="name">hr.payslip.view.form.be</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
+        <field name="arch" type="xml">
+            <field name='number_of_days' position="before">
+                <field name="l10n_be_joint_committee_id" optional="hide" column_invisible="parent.country_code != 'BE'"/>
+                <field name="l10n_be_reorganisation_measure_ids" widget="many2many_tags" optional="hide" column_invisible="parent.country_code != 'BE'"/>
+            </field>
+            <xpath expr="//field[@name='worked_days_line_ids']/list//field[@name='amount']" position="after">
+                <field name="l10n_be_replacement_amount" widget="monetary" optional="hide" column_invisible="parent.country_code != 'BE'"/>
+            </xpath>
+            <xpath expr="//field[@name='line_ids']/list//field[@name='total']" position="after">
+                <field name="l10n_be_follow_pay_period" optional="hide" readonly="0"
+                       column_invisible="parent.country_code != 'BE'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_payslip_view_form_inherit_double_pay" model="ir.ui.view">
+        <field name="name">hr.payslip.view.form.double.pay</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <field name="l10n_be_flexi_declaration_id" invisible="1"/>
+                <button name="action_create_and_show_flxwage_declaration" type="object" class="oe_stat_button" icon="article"
+                    invisible="not l10n_be_needs_flxwage_declaration or l10n_be_flexi_declaration_id or state not in ('validated', 'paid')">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value">New</span>
+                        <span class="o_stat_text">Flexi@Work</span>
+                    </div>
+                </button>
+                <button name="action_show_flxwage_declaration" type="object" class="oe_stat_button" icon="article"
+                    invisible="not l10n_be_flexi_declaration_id">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_text">Flexi@Work</span>
+                    </div>
+                </button>
+            </div>
+            <field name="struct_id" position="after">
+                <field name="l10n_be_is_double_pay" invisible="1"/>
+            </field>
+            <button name="action_payslip_cancel" position="replace">
+                <button string="Cancel" name="action_payslip_cancel" type="object"
+                        invisible="state not in ('draft', 'validated') or l10n_be_is_reported"/>
+                <button string="Cancel" name="action_payslip_cancel" type="object"
+                        invisible="state not in ('draft', 'validated') or not l10n_be_is_reported"
+                        confirm="Are you sure you want to modify a payslip that has already been declared in a finalized Belgian declaration report?"/>
+            </button>
+            <xpath expr="//field[@name='paid']" position="after">
+                <field name="l10n_be_is_arrear_eligible" invisible="1"/>
+                <field name="l10n_be_arrear_salary" invisible="country_code != 'BE' or not l10n_be_is_arrear_eligible"/>
+                <field name="l10n_be_fiscal_date" invisible="country_code != 'BE'" readonly="state == 'cancel'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_hr_payslip_filter" model="ir.ui.view">
+        <field name="name">hr.payslip.select.inherit.ecovouchers</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="hr_payroll.view_hr_payslip_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='payslip_run_id']" position="after">
+                <field name="vehicle_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_hr_payslip_tree" model="ir.ui.view">
+        <field name="name">hr.payslip.view.list.inherit</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="hr_payroll.view_hr_payslip_tree"/>
+        <field name="arch" type="xml">
+            <header position="inside">
+                <button string="Flexi@Work" class="btn-primary" name="action_create_flxwage_declaration" type="object"/>
+            </header>
+            <field name="net_wage" position="before">
+                <field name="l10n_be_onss_contribution" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total NSSO"/>
+                <field name="l10n_be_withholding_taxes" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total Withholding"/>
+                <field name="l10n_be_fiscal_date" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+
+    <record id="view_hr_payslip_flexi_missing_tree" model="ir.ui.view">
+        <field name="name">hr.payslip.view.flexi.missing.list</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="hr_payroll.view_hr_payslip_tree"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="js_class"></attribute>
+                <attribute name="create">0</attribute>
+            </xpath>
+            <header position="replace">
+                <header>
+                    <button string="Create Flexi@Work" name="action_create_flxwage_declaration_and_reload"
+                            type="object" display="always" class="btn-primary"/>
+                </header>
+            </header>
+            <xpath expr="//list/button[@name='action_move_to_off_cycle']" position="after">
+                <field name="l10n_be_flexi_declaration_id" column_invisible="True"/>
+                <button string="Create Flexi" name="action_create_flxwage_declaration_and_reload" type="object"
+                        icon="add" invisible="l10n_be_flexi_declaration_id"/>
+                <button string="View Flexi" name="action_show_flxwage_declaration" type="object"
+                        icon="open_in_new" invisible="not l10n_be_flexi_declaration_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_flexi_missing_payslips" model="ir.actions.act_window">
+        <field name="name">Missing Flexi@Work</field>
+        <field name="res_model">hr.payslip</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_hr_payslip_flexi_missing_tree"/>
+    </record>
+</odoo>

@@ -1,0 +1,30 @@
+<odoo>
+    <!-- This group is meant to manage quality stages -->
+    <record model="res.groups.privilege" id="res_groups_privilege_quality">
+        <field name="name">Quality</field>
+        <field name="sequence">5</field>
+        <field name="category_id" ref="base.module_category_supply_chain"/>
+    </record>
+
+    <record id="quality.group_quality_user" model="res.groups">
+        <field name="name">User</field>
+        <field name="sequence">10</field>
+        <field name="privilege_id" ref="res_groups_privilege_quality"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">The quality user uses the quality process</field>
+    </record>
+
+    <record id="quality.group_quality_manager" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="res_groups_privilege_quality"/>
+        <field name="implied_ids" eval="[(4, ref('quality.group_quality_user'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        <field name="comment">The quality manager manages the quality process</field>
+    </record>
+
+    <record id="stock.group_stock_user" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('quality.group_quality_user'))]"/>
+    </record>
+
+    </odoo>

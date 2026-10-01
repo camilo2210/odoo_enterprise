@@ -1,0 +1,20 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+{
+    'name': 'Bolivia - Accounting Reports',
+    'category': 'Accounting/Localizations/Reporting',
+    'description': """
+Base module for Bolivian reports
+    """,
+    'depends': [
+        'l10n_bo',
+        'account_reports',
+    ],
+    'data': [
+        'data/account_return_data.xml',
+        'data/profit_loss.xml',
+        'data/balance_sheet.xml',
+    ],
+    'auto_install': True,
+    'author': 'Odoo S.A.',
+    'license': 'OEEL-1',
+}

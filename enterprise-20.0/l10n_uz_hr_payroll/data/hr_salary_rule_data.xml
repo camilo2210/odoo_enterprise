@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_uz_monthly_pay_basic_salary" model="hr.salary.rule">
+        <field name="name">Basic Salary</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_uz_hr_payroll.l10n_uz_category_basic')])]"/>
+        <field name="code">BASIC</field>
+        <field name="sequence">1</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['BASIC']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_uz_hr_payroll.l10n_uz_monthly_pay_structure')])]"/>
+        <field name="country_id" ref="base.uz"/>
+    </record>
+
+    <record id="l10n_uz_monthly_pay_seniority_supplement" model="hr.salary.rule">
+        <field name="name">Seniority Supplement</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_uz_hr_payroll.l10n_uz_category_allowance')])]"/>
+        <field name="code">SENIORITY_SUPPLEMENT</field>
+        <field name="sequence">10</field>
+        <field name="input_usage_payslip" eval="False"/>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'SENIORITY_SUPPLEMENT' in inputs</field>
+        <field name="input_section" ref="hr_payroll.default_salary_rule_section"/>
+        <field name="input_suffix">%</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result_rate = inputs['SENIORITY_SUPPLEMENT'].amount
+result = categories['BASIC']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_uz_hr_payroll.l10n_uz_monthly_pay_structure')])]"/>
+        <field name="country_id" ref="base.uz"/>
+    </record>
+
+    <record id="l10n_uz_monthly_pay_bonus" model="hr.salary.rule">
+        <field name="name">Bonus</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_uz_hr_payroll.l10n_uz_category_allowance')])]"/>
+        <field name="code">BONUS</field>
+        <field name="sequence">20</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'BONUS' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = inputs['BONUS'].amount
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_uz_hr_payroll.l10n_uz_monthly_pay_structure')])]"/>
+        <field name="country_id" ref="base.uz"/>
+    </record>
+
+    <record id="l10n_uz_monthly_pay_other_allowance" model="hr.salary.rule">
+        <field name="name">Other Allowance</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_uz_hr_payroll.l10n_uz_category_allowance')])]"/>
+        <field name="code">OTHER_ALLOWANCE</field>
+        <field name="sequence">30</field>
+        <field name="input_usage_payslip" eval="False"/>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'OTHER_ALLOWANCE' in inputs</field>
+        <field name="input_section" ref="hr_payroll.default_salary_rule_section"/>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = inputs['OTHER_ALLOWANCE'].amount
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_uz_hr_payroll.l10n_uz_monthly_pay_structure')])]"/>
+        <field name="country_id" ref="base.uz"/>
+    </record>
+
+    <record id="l10n_uz_monthly_pay_gross" model="hr.salary.rule">
+        <field name="name">Gross</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.GROSS')])]"/>
+        <field name="code">GROSS</field>
+        <field name="sequence">100</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['TOTAL_WAGE']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_uz_hr_payroll.l10n_uz_monthly_pay_structure')])]"/>
+        <field name="country_id" ref="base.uz"/>
+    </record>
+
+    <record id="hr_rule_remaining_leave_compensation" model="hr.salary.rule">
+        <field name="name">Remaining Leave Days Compensation</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_uz_hr_payroll.l10n_uz_category_allowance')])]"/>
+        <field name="code">REM_LEAVE_COMPENSATION</field>
+        <field name="sequence">120</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+result = payslip._l10n_uz_is_departure_payslip()
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result_qty = payslip._l10n_uz_remaining_leave_days_for_compensation()
+result = payslip.l10n_uz_average_daily_wage
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_uz_hr_payroll.l10n_uz_monthly_pay_structure')])]"/>
+        <field name="country_id" ref="base.uz"/>
+    </record>
+
+    <record id="l10n_uz_monthly_pay_annual_leave_provision" model="hr.salary.rule">
+        <field name="name">Annual Leave Provision</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+        <field name="code">ANNUAL_LEAVE_PROVISION</field>
+        <field name="sequence">130</field>
+        <field name="appears_on_payslip">never</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = payslip._l10n_uz_get_annual_leave_provision()
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_uz_hr_payroll.l10n_uz_monthly_pay_structure')])]"/>
+        <field name="country_id" ref="base.uz"/>
+    </record>
+
+    <record id="l10n_uz_monthly_pay_social_tax_employer_contribution" model="hr.salary.rule">
+        <field name="name">Social Tax - Employer Contribution</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+        <field name="code">SOCIAL_TAX_EMPLOYER</field>
+        <field name="sequence">140</field>
+        <field name="appears_on_payslip">never</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+rates = payslip.env['hr.rule.parameter']._get_parameter_from_code('l10n_uz_social_tax_rates', payslip.date_to, raise_if_not_found=False) or {}
+result_rate = rates.get(payslip.company_id.l10n_uz_social_tax_category, 12.0)
+result = categories['TOTAL_WAGE']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_uz_hr_payroll.l10n_uz_monthly_pay_structure')])]"/>
+        <field name="country_id" ref="base.uz"/>
+    </record>
+
+    <record id="l10n_uz_monthly_pay_pension_fund" model="hr.salary.rule">
+        <field name="name">Pension Fund</field>
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="code">PENSION_FUND</field>
+        <field name="sequence">150</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result_rate = payslip._rule_parameter('l10n_uz_pension_fund_contribution')
+result = categories['TOTAL_WAGE']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_uz_hr_payroll.l10n_uz_monthly_pay_structure')])]"/>
+        <field name="country_id" ref="base.uz"/>
+    </record>
+
+    <record id="l10n_uz_monthly_pay_severance_pay" model="hr.salary.rule">
+        <field name="name">Severance Payment</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_uz_hr_payroll.l10n_uz_category_allowance'), ref('l10n_uz_hr_payroll.l10n_uz_category_tax_base')])]"/>
+        <field name="code">SEVERANCE</field>
+        <field name="sequence">160</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+result = payslip._l10n_uz_is_departure_payslip()
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result_rate = payslip._l10n_uz_severance_payment_amount()
+result = payslip.l10n_uz_average_monthly_wage
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_uz_hr_payroll.l10n_uz_monthly_pay_structure')])]"/>
+        <field name="country_id" ref="base.uz"/>
+    </record>
+
+    <record id="l10n_uz_monthly_pay_personal_income_tax" model="hr.salary.rule">
+        <field name="name">Personal Income Tax</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+        <field name="code">INCOME_TAX</field>
+        <field name="sequence">200</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result_rate = -payslip._rule_parameter('l10n_uz_income_tax_rate')
+result = categories['TOTAL_WAGE']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_uz_hr_payroll.l10n_uz_monthly_pay_structure')])]"/>
+        <field name="country_id" ref="base.uz"/>
+    </record>
+
+    <record id="l10n_uz_monthly_pay_expense_reimbursement" model="hr.salary.rule">
+        <field name="name">Expense Reimbursement</field>
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="code">EXPENSE_REIMBURSEMENT</field>
+        <field name="sequence">290</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'EXPENSE_REIMBURSEMENT' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = inputs['EXPENSE_REIMBURSEMENT'].amount
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_uz_hr_payroll.l10n_uz_monthly_pay_structure')])]"/>
+        <field name="country_id" ref="base.uz"/>
+    </record>
+
+    <record id="l10n_uz_monthly_pay_net" model="hr.salary.rule">
+        <field name="name">Net Salary</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.NET')])]"/>
+        <field name="code">NET</field>
+        <field name="sequence">300</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['TOTAL_WAGE'] + categories['DED'] + result_rules['EXPENSE_REIMBURSEMENT']['total']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_uz_hr_payroll.l10n_uz_monthly_pay_structure')])]"/>
+        <field name="country_id" ref="base.uz"/>
+    </record>
+
+</odoo>

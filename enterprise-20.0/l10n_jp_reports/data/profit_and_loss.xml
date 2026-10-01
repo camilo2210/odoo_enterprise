@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_financial_report_jp_pl" model="account.report">
+        <field name="name">Profit and Loss</field>
+        <field name="name@ja_JP">損益計算書</field>
+        <field name="root_report_id" ref="account_reports.profit_and_loss"/>
+        <field name="groupby">account_id</field>
+        <field name="filter_unfold_all" eval="True"/>
+        <field name="filter_hierarchy">by_default</field>
+        <field name="country_id" ref="base.jp"/>
+        <field name="filter_multi_company">selector</field>
+        <field name="column_ids">
+            <record id="account_financial_report_jp_pl_column" model="account.report.column">
+                <field name="name">Balance</field>
+                <field name="name@ja_JP">残高</field>
+                <field name="expression_label">balance</field>
+            </record>
+        </field>
+        <field name="line_ids">
+            <record id="account_financial_report_jp_pl_jp_revenue" model="account.report.line">
+                <field name="name">Revenue</field>
+                <field name="name@ja_JP">売上高</field>
+                <field name="code">JP_REVENUE</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_jp_pl_jp_revenue_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('account_id.account_type', '=', 'income')]"/>
+                        <field name="subformula">-sum</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_jp_pl_jp_cost_of_sales" model="account.report.line">
+                <field name="name">Cost of Sales</field>
+                <field name="name@ja_JP">売上原価</field>
+                <field name="code">JP_COST_OF_SALES</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_jp_pl_jp_cost_of_sales_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('account_id.account_type', '=', 'expense_direct_cost')]"/>
+                        <field name="subformula">sum</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_jp_pl_jp_gross_profit" model="account.report.line">
+                <field name="name">Gross profit</field>
+                <field name="name@ja_JP">売上総利益</field>
+                <field name="code">JP_GROSS_PROFIT</field>
+                <field name="hierarchy_level">0</field>
+                <field name="foldability">never_unfolded</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_jp_pl_jp_gross_profit_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">JP_REVENUE.balance - JP_COST_OF_SALES.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_jp_pl_jp_expenses" model="account.report.line">
+                <field name="name">Selling and Administrative Expenses</field>
+                <field name="name@ja_JP">販売費及び一般管理費</field>
+                <field name="code">JP_EXPENSES</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_jp_pl_jp_expenses_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('account_id.account_type', 'in', ['expense', 'expense_depreciation'])]"/>
+                        <field name="subformula">sum</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_jp_pl_jp_operating_profit" model="account.report.line">
+                <field name="name">Profit from Operating Activities</field>
+                <field name="name@ja_JP">営業利益</field>
+                <field name="code">JP_OPERATING_PROFIT</field>
+                <field name="hierarchy_level">0</field>
+                <field name="foldability">never_unfolded</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_jp_pl_jp_operating_profit_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">JP_GROSS_PROFIT.balance - JP_EXPENSES.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_jp_pl_jp_non_operating_income" model="account.report.line">
+                <field name="name">Non-operating Income</field>
+                <field name="name@ja_JP">営業外収益</field>
+                <field name="code">JP_NON_OPERATING_INCOME</field>
+                <field name="hierarchy_level">0</field>
+                <field name="foldability">always_unfolded</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_jp_pl_jp_non_operating_income_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('account_id.account_type', '=', 'income_other'), ('account_id.tag_ids', 'not in', [ref('l10n_jp.account_tag_extraordinary')])]"/>
+                        <field name="subformula">-sum</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_jp_pl_jp_non_operating_expense" model="account.report.line">
+                <field name="name">Non-operating Expenses</field>
+                <field name="name@ja_JP">営業外費用</field>
+                <field name="code">JP_NON_OPERATING_EXPENSE</field>
+                <field name="hierarchy_level">0</field>
+                <field name="foldability">always_unfolded</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_jp_pl_jp_non_operating_expense_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('account_id.account_type', 'in', ['expense_other']), ('account_id.tag_ids', 'not in', [ref('l10n_jp.account_tag_extraordinary')]), ('account_id.tag_ids', 'not in', [ref('l10n_jp.account_tag_income_tax')])]"/>
+                        <field name="subformula">sum</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_jp_pl_jp_ordinary_profit" model="account.report.line">
+                <field name="name">Ordinary Profit</field>
+                <field name="name@ja_JP">経常利益</field>
+                <field name="code">JP_ORDINARY_PROFIT</field>
+                <field name="hierarchy_level">0</field>
+                <field name="foldability">never_unfolded</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_jp_pl_jp_ordinary_profit_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">JP_OPERATING_PROFIT.balance + JP_NON_OPERATING_INCOME.balance - JP_NON_OPERATING_EXPENSE.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_jp_pl_jp_extraordinary_income" model="account.report.line">
+                <field name="name">Extraordinary Income</field>
+                <field name="name@ja_JP">特別利益</field>
+                <field name="code">JP_EXTRAORDINARY_INCOME</field>
+                <field name="hierarchy_level">0</field>
+                <field name="foldability">always_unfolded</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_jp_pl_jp_extraordinary_income_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('account_id.tag_ids', 'in', [ref('l10n_jp.account_tag_extraordinary')]), ('account_id.account_type', '=', 'income_other')]"/>
+                        <field name="subformula">-sum</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_jp_pl_jp_extraordinary_loss" model="account.report.line">
+                <field name="name">Extraordinary Loss</field>
+                <field name="name@ja_JP">特別損失</field>
+                <field name="code">JP_EXTRAORDINARY_LOSS</field>
+                <field name="hierarchy_level">0</field>
+                <field name="foldability">always_unfolded</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_jp_pl_jp_extraordinary_loss_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('account_id.tag_ids', 'in', [ref('l10n_jp.account_tag_extraordinary')]), ('account_id.account_type', '=', 'expense_other')]"/>
+                        <field name="subformula">sum</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_jp_pl_jp_profit_before_tax" model="account.report.line">
+                <field name="name">Profit Before Tax</field>
+                <field name="name@ja_JP">税引前当期純利益</field>
+                <field name="code">JP_PROFIT_BEFORE_TAX</field>
+                <field name="hierarchy_level">0</field>
+                <field name="foldability">never_unfolded</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_jp_pl_jp_profit_before_tax_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">JP_ORDINARY_PROFIT.balance + JP_EXTRAORDINARY_INCOME.balance - JP_EXTRAORDINARY_LOSS.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_jp_pl_jp_tax_expense" model="account.report.line">
+                <field name="name">Tax Expense</field>
+                <field name="name@ja_JP">法人税、住民税及び事業税</field>
+                <field name="code">JP_TAX_EXPENSE</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_jp_pl_jp_tax_expense_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('account_id.account_type', '=', 'expense_other'), ('account_id.tag_ids', 'in', [ref('l10n_jp.account_tag_income_tax')])]"/>
+                        <field name="subformula">sum</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_jp_pl_jp_net_profit" model="account.report.line">
+                <field name="name">Net Profit</field>
+                <field name="name@ja_JP">当期純利益</field>
+                <field name="code">JP_NET_PROFIT</field>
+                <field name="hierarchy_level">0</field>
+                <field name="foldability">never_unfolded</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_jp_pl_jp_net_profit_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">JP_PROFIT_BEFORE_TAX.balance - JP_TAX_EXPENSE.balance</field>
+                    </record>
+                </field>
+            </record>
+        </field>
+    </record>
+</odoo>

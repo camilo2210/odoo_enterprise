@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="iot_box_view_form" model="ir.ui.view">
+        <field name="name">iot.box.view.form</field>
+        <field name="model">iot.box</field>
+        <field name="arch" type="xml">
+            <form create="false">
+                <header>
+                    <widget name="test_iot_box" btn_name="Test" btn_class="primary" invisible="not version or 'W' in version"/>
+                    <button name="open_homepage" type="object" string="Homepage" class="btn btn-secondary"/>
+                    <t groups="base.group_no_one">
+                        <widget name="iot_download_logs" btn_name="Download Logs" btn_class="secondary"/>
+                        <widget name="iot_restart_odoo" btn_name="Restart Odoo" btn_class="secondary"/>
+                        <widget groups="iot.group_iot_admin" name="iot_reset_password" btn_name="Reset Password" btn_class="secondary" invisible="not version or 'W' in version"/>
+                        <widget groups="iot.group_iot_admin" name="iot_remote_debug" btn_name="Remote Debug" btn_class="secondary" invisible="not version or 'W' in version"/>
+                    </t>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="identifier" readonly="True"/>
+                            <field name="use_lna"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}" placeholder="Visible to all"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Devices" name="devices">
+                            <field name="device_ids" readonly="False" widget="device_list_field">
+                                <list default_order="connection, name">
+                                    <field name="name"/>
+                                    <field name="identifier"/>
+                                    <field name="type"/>
+                                    <field name="connection"/>
+                                    <field name="connected_status" string="Status"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Technical Information" groups="base.group_no_one">
+                            <group>
+                                <field name="ip"/>
+                                <field name="version_commit_url" string="Image Version"/>
+                                <field name="use_custom_handlers"/>
+                                <field name="ssl_certificate_end_date" invisible="not ssl_certificate_end_date"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="iot_box_view_kanban" model="ir.ui.view">
+        <field name="name">iot.box.view.kanban</field>
+        <field name="model">iot.box</field>
+        <field name="arch" type="xml">
+            <kanban create="false" default_order="name">
+                <header>
+                    <button groups="iot.group_iot_admin" name="iot.action_discover_iot_boxes" type="action" string="Connect" class="btn-primary o-kanban-button-new"  display="always"/>
+                </header>
+                <templates>
+                    <t t-name="card" class="p-0">
+                        <div id="card" class="p-3 d-flex flex-column justify-content-between">
+                            <div class="text-truncate fw-bold d-flex align-items-center justify-content-between" t-att-title="record.name.raw_value">
+                                <field name="name"/>
+                                <span class="float-end"><field name="device_count"/> <i class="oi" data-icon="power" title="device-icon"/></span>
+                            </div>
+                            <field class="fs-6 pb-2" name="create_date" widget="datetime" options="{'show_time': false}"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="iot_box_view_list" model="ir.ui.view">
+        <field name="name">iot.box.view.list</field>
+        <field name="model">iot.box</field>
+        <field name="arch" type="xml">
+            <list create="false" default_order="name">
+                <header>
+                    <button groups="iot.group_iot_admin" name="iot.action_discover_iot_boxes" type="action" string="Connect" class="btn-primary" display="always"/>
+                </header>
+                <field name="name"/>
+                <field name="identifier"/>
+            </list>
+        </field>
+    </record>
+</odoo>

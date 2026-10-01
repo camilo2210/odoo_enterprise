@@ -1,0 +1,2094 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * account_sepa_direct_debit
+#
+# Translators:
+# 3eec91a23d05c632ffac786ac42b81b8_b6fff7b <8985b7bc57db860af29969457dbb51b3_1018915>, 2022
+# Haojun Zou <apollo_zhj@msn.com>, 2022
+# Martin Wilderoth <martin.wilderoth@linserv.se>, 2022
+# Chrille Hedberg <hedberg.chrille@gmail.com>, 2022
+# Patrik Lermon <patrik.lermon@gmail.com>, 2022
+# Martin Trigaux, 2022
+# Kim Asplund <kim.asplund@gmail.com>, 2022
+# Kristoffer Grundström <lovaren@gmail.com>, 2022
+# Simon S, 2022
+# Anders Wallenquist <anders.wallenquist@vertel.se>, 2022
+# Mikael Åkerberg <mikael.akerberg@mariaakerberg.com>, 2023
+# "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Hanna Kharraziha <hakha@odoo.com>, 2026.
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-11 17:51+0000\n"
+"PO-Revision-Date: 2026-09-18 01:44+0000\n"
+"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"Language-Team: Swedish <https://translate.odoo.com/projects/odoo-master/"
+"account_sepa_direct_debit/sv/>\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 2026.8.1\n"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields,help:account_sepa_direct_debit.field_account_direct_debit_mandate__sdd_scheme
+#: model:ir.model.fields,help:account_sepa_direct_debit.field_account_payment__sdd_mandate_scheme
+msgid ""
+"\n"
+"            - CORE: For consumers; allows refund within 8 weeks of the "
+"debit.\n"
+"            - B2B: For business accounts only; no refund rights once "
+"executed.\n"
+"            "
+msgstr ""
+"\n"
+"            - CORE: För kunder; återbetalningar är tillåtna inom 8 veckor "
+"efter att beloppet dragits.\n"
+"            - B2B: Endast för företagskonton; inga återbetalningar tillåtna "
+"när betalningen genomförts.\n"
+"            "
+
+#. module: account_sepa_direct_debit
+#: model:ir.module.module,description:base.module_account_sepa_direct_debit
+msgid ""
+"\n"
+"This module enables the generation of SEPA Direct Debit (SDD)-compliant XML "
+"files (consistent\n"
+"with pain.008.001.02 specification) to send to your bank in order to\n"
+"collect a set of payments.\n"
+"\n"
+"To be eligible for this payment method, a customer must have first\n"
+"returned a mandate to the company, giving their consent to use direct "
+"debit.\n"
+"This consent must have been encoded as a 'customer mandate' in Odoo.\n"
+"\n"
+"You also need to meet the following requirements in order to properly\n"
+"generate an SDD file:\n"
+"- Your company account must be set to a valid IBAN number\n"
+"- Your company must have been given a creditor identifier (this can be done "
+"in Settings - General Settings - Accounting section)\n"
+"- Your company must have defined a journal to receive SDD payments (again, "
+"in 'settings' of accounting module)\n"
+"- Every customer for whom you generate a payment must have a valid IBAN "
+"account number.\n"
+"\n"
+"Odoo will let you know if any of these requirements are not satisfied.\n"
+"\n"
+"To register a payment for open invoices, you can use the dedicated\n"
+"'SEPA Direct Debit' option by selecting a bank account in the 'Register\n"
+"Payment' wizard. An error message will appear if no valid mandate is\n"
+"available for generating a payment on the selected invoice.\n"
+msgstr ""
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_direct_debit_mandate.py:0
+msgid "%(partner_name)s_mandate_form_%(mandate_name)s"
+msgstr ""
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "(if applicable)"
+msgstr "(om tillämpligt)"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "(optional)"
+msgstr "(valfritt)"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.view_batch_payment_form_inherit
+msgid ""
+".\n"
+"                        SEPA requires a 5 days notice."
+msgstr ""
+".\n"
+"                        SEPA kräver en anmodan på 5 dagar."
+
+#. module: account_sepa_direct_debit
+#: model:mail.template,body_html:account_sepa_direct_debit.email_template_sdd_new_mandate
+msgid ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;"
+"\">\n"
+"                        Dear <t t-out=\"object.partner_id.display_name or "
+"''\">Azure Interior</t>\n"
+"                        <br/>\n"
+"                        <br/>\n"
+"                        Here is your SEPA Direct Debit Mandate to sign to "
+"authorize\n"
+"                        <t t-out=\"object.company_id.display_name or "
+"''\">YourCompany</t>\n"
+"                        to send instructions to your bank to debit your "
+"account in accordance with the instructions from\n"
+"                        <t t-out=\"object.company_id.display_name or "
+"''\">YourCompany</t>\n"
+"                        Do not hesitate to contact us if you have any "
+"questions.\n"
+"                        <br/>\n"
+"                        Best regards,\n"
+"                        <t t-if=\"not is_html_empty(user.signature)\">\n"
+"                            <br/><br/>\n"
+"                            <div data-o-mail-quote=\"1\">--<br data-o-mail-"
+"quote=\"1\"/><t t-out=\"user.signature\">Mitchell Admin</t></div>\n"
+"                        </t>\n"
+"                    </p>\n"
+"                </div>\n"
+"            "
+msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">"
+"\n"
+"                        Hej <t t-out=\"object.partner_id.display_name or "
+"''\">Azure Interior</t>\n"
+"                        <br/>\n"
+"                        <br/>\n"
+"                        Se nedan din fullmakt för SEPA-direktdebiteringar "
+"som ska skrivas på för att godkänna att\n"
+"                        <t t-out=\"object.company_id.display_name or ''\">"
+"YourCompany</t>\n"
+"                        får skicka instruktioner till din bank för att "
+"debitera ditt konto enligt instruktionerna från\n"
+"                        <t t-out=\"object.company_id.display_name or ''\">"
+"YourCompany</t>\n"
+"                        Vid eventuella frågor eller funderingar är du "
+"välkommen att kontakta oss.\n"
+"                        <br/>\n"
+"                        Med vänliga hälsningar,\n"
+"                        <t t-if=\"not is_html_empty(user.signature)\">\n"
+"                            <br/><br/>\n"
+"                            <div data-o-mail-quote=\"1\">--<br data-o-mail-"
+"quote=\"1\"/><t t-out=\"user.signature\">Mitchell Admin</t></div>\n"
+"                        </t>\n"
+"                    </p>\n"
+"                </div>\n"
+"            "
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "<strong>Address:</strong>"
+msgstr "<strong>Adress:</strong>"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "<strong>City: </strong>"
+msgstr "<strong>Stad: </strong>"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "<strong>Country: </strong>"
+msgstr "<strong>Land: </strong>"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "<strong>Creditor identifier:</strong>"
+msgstr "<strong>Borgenärens ID-nummer:</strong>"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "<strong>Email:</strong>"
+msgstr "<strong>E-post:</strong>"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "<strong>IBAN:</strong>"
+msgstr "<strong>IBAN:</strong>"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "<strong>Mandate identifier:</strong>"
+msgstr "<strong>Fullmaktens ID-nummer:</strong>"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "<strong>Phone:</strong>"
+msgstr "<strong>Telefon:</strong>"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "<strong>Start date:</strong>"
+msgstr "<strong>Startdatum:</strong>"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "<strong>Transaction type:</strong> recurrent"
+msgstr "<strong>Transaktionstyp:</strong> återkommande"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "<strong>Zip: </strong>"
+msgstr "<strong>Postnummer: </strong>"
+
+#. module: account_sepa_direct_debit
+#: model:mail.template,body_html:account_sepa_direct_debit.email_template_sdd_pre_notification
+msgid ""
+"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-top: "
+"16px; background-color: #F1F1F1; font-family:Verdana, Arial,sans-serif; "
+"color: #454748; width: 100%; border-collapse:separate;\"><tr><td "
+"align=\"center\">\n"
+"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
+"style=\"padding: 16px; background-color: white; color: #454748; border-"
+"collapse:separate;\">\n"
+"<tbody>\n"
+"    <!-- HEADER -->\n"
+"    <tr>\n"
+"        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
+"width=\"590\" style=\"min-width: 590px; background-color: white; padding: "
+"0px 8px 0px 8px; border-collapse:separate;\">\n"
+"                <tr><td valign=\"middle\">\n"
+"                    <t t-set=\"company\" t-value=\"object.company_id\"/>\n"
+"                    <span style=\"font-size: 10px;\">Your Direct Debit "
+"Payment Notification</span><br/>\n"
+"                </td></tr>\n"
+"                <tr><td valign=\"middle\" align=\"right\" t-if=\"not "
+"company.uses_default_logo\">\n"
+"                    <img t-attf-src=\"/logo.png?company={{ company.id }}\" "
+"style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-"
+"alt=\"company.name\"/>\n"
+"                </td></tr>\n"
+"                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
+"                    <hr width=\"100%\" style=\"background-"
+"color:rgb(204,204,204);border:medium none;clear:both;display:block;font-"
+"size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\"/>\n"
+"                </td></tr>\n"
+"            </table>\n"
+"        </td>\n"
+"    </tr>\n"
+"\n"
+"    <!-- CONTENT -->\n"
+"    <tr>\n"
+"        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
+"width=\"590\" style=\"min-width: 590px; background-color: white; padding: "
+"0px 8px 0px 8px; border-collapse:separate;\">\n"
+"                <tr><td valign=\"top\" style=\"font-size: 13px;\">\n"
+"                    Dear <t t-out=\"object.partner_id.name or ''\">Azure "
+"Interior</t><br/>\n"
+"                    <br/>\n"
+"                    A Direct Debit payment request amounting to\n"
+"                    <span style=\"font-weight:bold;\" t-"
+"out=\"format_amount(object.amount, object.currency_id) or ''\">$ 0.00</"
+"span>\n"
+"                    will be sent to your bank.<br/>\n"
+"                    Your account ending with <t t-"
+"out=\"ctx.get('iban_last_4') or ''\">1234</t> will be automatically debited "
+"on the\n"
+"                    <span style=\"font-weight:bold;\" t-"
+"out=\"format_date(ctx.get('collection_date'))\">2020-04-18</span>,\n"
+"                    or shortly thereafter.<br/>\n"
+"                    please make sure you have the requested funds.<br/>\n"
+"                    <br/>\n"
+"                    <t t-if=\"ctx.get('creditor_iban') or "
+"ctx.get('mandate_ref')\">\n"
+"                        Merchant data:<br/>\n"
+"                        <ul>\n"
+"                            <t t-if=\"ctx.get('creditor_iban')\">\n"
+"                                <li>IBAN: <t t-out=\"ctx['creditor_iban'] or "
+"''\">NO 93 8601 1117947</t></li>\n"
+"                            </t>\n"
+"                            <t t-if=\"ctx.get('mandate_ref')\">\n"
+"                                <li>SEPA DIRECT DEBIT MANDATE REFERENCE: <t "
+"t-out=\"ctx['mandate_ref'] or ''\"/></li>\n"
+"                            </t>\n"
+"                        </ul>\n"
+"                    </t>\n"
+"                    <br/>\n"
+"                    Do not hesitate to contact us if you have any question.\n"
+"                </td></tr>\n"
+"                <tr><td style=\"text-align:center;\">\n"
+"                    <hr width=\"100%\" style=\"background-"
+"color:rgb(204,204,204);border:medium none;clear:both;display:block;font-"
+"size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\"/>\n"
+"                </td></tr>\n"
+"            </table>\n"
+"        </td>\n"
+"    </tr>\n"
+"    <!-- FOOTER -->\n"
+"    <tr>\n"
+"        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
+"width=\"590\" style=\"min-width: 590px; background-color: white; font-size: "
+"11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
+"                <tr><td valign=\"middle\" align=\"left\">\n"
+"                    <t t-out=\"company.name or ''\">YourCompany</t>\n"
+"                </td></tr>\n"
+"                <tr><td valign=\"middle\" align=\"left\" style=\"opacity: "
+"0.7;\">\n"
+"                    <t t-if=\"company.phone\">\n"
+"                        <t t-out=\"company.phone or ''\">+1 650-123-4567</t> "
+"|\n"
+"                    </t>\n"
+"                    <t t-if=\"company.email\">\n"
+"                        <a t-attf-href=\"'mailto:%s' % {{ company.email }}\" "
+"style=\"text-decoration:none; color: #454748;\" t-out=\"company.email or "
+"''\">info@yourcompany.com</a> |\n"
+"                    </t>\n"
+"                    <t t-if=\"company.website\">\n"
+"                        <a t-attf-href=\"'%s' % {{ company.website }}\" "
+"style=\"text-decoration:none; color: #454748;\" t-out=\"company.website or "
+"''\">http://www.example.com</a>\n"
+"                    </t>\n"
+"                </td></tr>\n"
+"            </table>\n"
+"        </td>\n"
+"    </tr>\n"
+"</tbody>\n"
+"</table>\n"
+"</td></tr>\n"
+"<!-- POWERED BY -->\n"
+"<tr><td align=\"center\" style=\"min-width: 590px;\">\n"
+"    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
+"style=\"min-width: 590px; background-color: #F1F1F1; color: #454748; "
+"padding: 8px; border-collapse:separate;\">\n"
+"      <tr><td style=\"text-align: center; font-size: 13px;\">\n"
+"        Powered by <a target=\"_blank\" href=\"https://www.odoo.com?"
+"utm_source=db&amp;utm_medium=mail\" style=\"color: #875A7B;\">Odoo</a>\n"
+"      </td></tr>\n"
+"    </table>\n"
+"</td></tr>\n"
+"</table>\n"
+"            "
+msgstr ""
+"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-top: "
+"16px; background-color: #F1F1F1; font-family:Verdana, Arial,sans-serif; "
+"color: #454748; width: 100%; border-collapse:separate;\"><tr><td "
+"align=\"center\">\n"
+"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
+"style=\"padding: 16px; background-color: white; color: #454748; border-"
+"collapse:separate;\">\n"
+"<tbody>\n"
+"    <!-- HEADER -->\n"
+"    <tr>\n"
+"        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
+"width=\"590\" style=\"min-width: 590px; background-color: white; padding: "
+"0px 8px 0px 8px; border-collapse:separate;\">\n"
+"                <tr><td valign=\"middle\">\n"
+"                    <t t-set=\"company\" t-value=\"object.company_id\"/>\n"
+"                    <span style=\"font-size: 10px;\">Meddelande om en "
+"direktdebiterad betalning</span><br/>\n"
+"                </td></tr>\n"
+"                <tr><td valign=\"middle\" align=\"right\" t-if=\"not "
+"company.uses_default_logo\">\n"
+"                    <img t-attf-src=\"/logo.png?company={{ company.id }}\" "
+"style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-"
+"alt=\"company.name\"/>\n"
+"                </td></tr>\n"
+"                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
+"                    <hr width=\"100%\" style=\"background-color:rgb"
+"(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-"
+"height:1px;line-height:0; margin:16px 0px 16px 0px;\"/>\n"
+"                </td></tr>\n"
+"            </table>\n"
+"        </td>\n"
+"    </tr>\n"
+"\n"
+"    <!-- CONTENT -->\n"
+"    <tr>\n"
+"        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
+"width=\"590\" style=\"min-width: 590px; background-color: white; padding: "
+"0px 8px 0px 8px; border-collapse:separate;\">\n"
+"                <tr><td valign=\"top\" style=\"font-size: 13px;\">\n"
+"                    Hej <t t-out=\"object.partner_id.name or ''\">Azure "
+"Interior</t><br/>\n"
+"                    <br/>\n"
+"                    En betalningsförfrågan om en direktdebitering med "
+"beloppet\n"
+"                    <span style=\"font-weight:bold;\" t-out=\"format_amount"
+"(object.amount, object.currency_id) or ''\">$ 0.00</span>\n"
+"                    kommer att skickas till din bank.<br/>\n"
+"                    Ditt konto som slutar på <t t-out=\"ctx.get"
+"('iban_last_4') or ''\">1234</t> kommer att debiteras automatiskt den\n"
+"                    <span style=\"font-weight:bold;\" t-out=\"format_date"
+"(ctx.get('collection_date'))\">2020-04-18</span>,\n"
+"                    eller kort därefter.<br/>\n"
+"                    Vänligen kontrollera att du har tillräckliga medel på "
+"kontot.<br/>\n"
+"                    <br/>\n"
+"                    <t t-if=\"ctx.get('creditor_iban') or ctx.get"
+"('mandate_ref')\">\n"
+"                        Information om borgenären:<br/>\n"
+"                        <ul>\n"
+"                            <t t-if=\"ctx.get('creditor_iban')\">\n"
+"                                <li>IBAN: <t t-out=\"ctx['creditor_iban'] or "
+"''\">NO 93 8601 1117947</t></li>\n"
+"                            </t>\n"
+"                            <t t-if=\"ctx.get('mandate_ref')\">\n"
+"                                <li>FULLMAKTENS REFERENSNUMMER: <t t-"
+"out=\"ctx['mandate_ref'] or ''\"/></li>\n"
+"                            </t>\n"
+"                        </ul>\n"
+"                    </t>\n"
+"                    <br/>\n"
+"                    Vänligen kontakta oss vid eventuella frågor eller "
+"funderingar.\n"
+"                </td></tr>\n"
+"                <tr><td style=\"text-align:center;\">\n"
+"                    <hr width=\"100%\" style=\"background-color:rgb"
+"(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-"
+"height:1px;line-height:0; margin: 16px 0px 16px 0px;\"/>\n"
+"                </td></tr>\n"
+"            </table>\n"
+"        </td>\n"
+"    </tr>\n"
+"    <!-- FOOTER -->\n"
+"    <tr>\n"
+"        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
+"width=\"590\" style=\"min-width: 590px; background-color: white; font-size: "
+"11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
+"                <tr><td valign=\"middle\" align=\"left\">\n"
+"                    <t t-out=\"company.name or ''\">YourCompany</t>\n"
+"                </td></tr>\n"
+"                <tr><td valign=\"middle\" align=\"left\" style=\"opacity: "
+"0.7;\">\n"
+"                    <t t-if=\"company.phone\">\n"
+"                        <t t-out=\"company.phone or ''\">+1 650-123-4567</t> "
+"|\n"
+"                    </t>\n"
+"                    <t t-if=\"company.email\">\n"
+"                        <a t-attf-href=\"'mailto:%s' % {{ company.email }}\" "
+"style=\"text-decoration:none; color: #454748;\" t-out=\"company.email or "
+"''\">info@yourcompany.com</a> |\n"
+"                    </t>\n"
+"                    <t t-if=\"company.website\">\n"
+"                        <a t-attf-href=\"'%s' % {{ company.website }}\" "
+"style=\"text-decoration:none; color: #454748;\" t-out=\"company.website or "
+"''\">http://www.example.com</a>\n"
+"                    </t>\n"
+"                </td></tr>\n"
+"            </table>\n"
+"        </td>\n"
+"    </tr>\n"
+"</tbody>\n"
+"</table>\n"
+"</td></tr>\n"
+"<!-- POWERED BY -->\n"
+"<tr><td align=\"center\" style=\"min-width: 590px;\">\n"
+"    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" "
+"style=\"min-width: 590px; background-color: #F1F1F1; color: #454748; "
+"padding: 8px; border-collapse:separate;\">\n"
+"      <tr><td style=\"text-align: center; font-size: 13px;\">\n"
+"        Drivs av <a target=\"_blank\" href=\"https://"
+"www.odoo.com?utm_source=db&amp;utm_medium=mail\" style=\"color: #875A7B;\">"
+"Odoo</a>\n"
+"      </td></tr>\n"
+"    </table>\n"
+"</td></tr>\n"
+"</table>\n"
+"            "
+
+#. module: account_sepa_direct_debit
+#: model:mail.template,body_html:account_sepa_direct_debit.email_template_sdd_mandate_expiring
+msgid ""
+"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-top: "
+"16px; background-color: #FFFFFF; font-family:Verdana, Arial,sans-serif; "
+"color: #454748; width: 100%; border-collapse:separate;\">\n"
+"                    <tr>\n"
+"                        <td align=\"center\">\n"
+"                            <table border=\"0\" cellpadding=\"0\" "
+"cellspacing=\"0\" width=\"590\" style=\"padding: 16px; background-color: "
+"#FFFFFF; color: #454748; border-collapse:separate;\">\n"
+"                                <tbody>\n"
+"                                    <!-- CONTENT -->\n"
+"                                    <tr>\n"
+"                                        <td align=\"center\" style=\"min-"
+"width: 590px;\">\n"
+"                                            <table border=\"0\" "
+"cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; "
+"background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;"
+"\">\n"
+"                                                <tr>\n"
+"                                                    <td valign=\"top\" "
+"style=\"font-size: 13px;\">\n"
+"                                                        <div>\n"
+"                                                            Hello,<br/><br/"
+">\n"
+"                                                            A SEPA Direct "
+"Debit mandate will reach its automatic expiration date on <span t-"
+"out=\"format_date(object._get_expiry_date_per_mandate()[object])"
+"\">2020-04-18</span><br/>\n"
+"                                                            This can be "
+"caused by one of the following reason:\n"
+"                                                            <ul>\n"
+"                                                                <li>\n"
+"                                                                    That "
+"date is the mandate end date agreed upon signature.\n"
+"                                                                </li>\n"
+"                                                                <li>\n"
+"                                                                    It would "
+"then be more than 36 months since the last time this mandate was used.\n"
+"                                                                </li>\n"
+"                                                            </ul>\n"
+"                                                            <div "
+"style=\"margin: 16px 0px 16px 0px;\">\n"
+"                                                                <a t-attf-"
+"href=\"{{ website_url }}/odoo/direct-debit-mandates/{{ object.id }}\" "
+"style=\"background-color: #4caf50; padding: 8px 16px 8px 16px; text-"
+"decoration: none; color: #fff; border-radius: 5px; font-size:13px;\">\n"
+"                                                                    Go to "
+"Mandate\n"
+"                                                                </a>\n"
+"                                                            </div>\n"
+"                                                            Security Tip: "
+"Check that the domain name you are redirected to is: <b><a t-att-"
+"href=\"object.get_base_url()\" t-out=\"object.get_base_url() or ''\">\n"
+"                                                            https://"
+"yourcompany.odoo.com</a></b>\n"
+"                                                        </div>\n"
+"                                                    </td>\n"
+"                                                </tr>\n"
+"                                                <tr>\n"
+"                                                    <td style=\"text-"
+"align:center;\">\n"
+"                                                        <hr width=\"100%\" "
+"style=\"background-color:rgb(204,204,204);border:medium "
+"none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; "
+"margin: 16px 0px 16px 0px;\"/>\n"
+"                                                    </td>\n"
+"                                                </tr>\n"
+"                                            </table>\n"
+"                                        </td>\n"
+"                                    </tr>\n"
+"                                </tbody>\n"
+"                            </table>\n"
+"                        </td>\n"
+"                    </tr>\n"
+"                    <!-- POWERED BY -->\n"
+"                    <tr>\n"
+"                        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"                            <table border=\"0\" cellpadding=\"0\" "
+"cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: "
+"#F1F1F1; color: #454748; padding: 8px; border-collapse:separate;\">\n"
+"                                <tr>\n"
+"                                    <td style=\"text-align: center; font-"
+"size: 13px;\">\n"
+"                                        Powered by <a target=\"_blank\" "
+"href=\"https://www.odoo.com?utm_source=db&amp;utm_medium=auth\" "
+"style=\"color: #875A7B;\">Odoo</a>\n"
+"                                    </td>\n"
+"                                </tr>\n"
+"                            </table>\n"
+"                            <table border=\"0\" cellpadding=\"0\" "
+"cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; color: #454748; "
+"padding: 8px; border-collapse:separate;\">\n"
+"                                <tr>\n"
+"                                    <td style=\"text-align: center; font-"
+"size: 11px;\">\n"
+"                                        PS: This is an automated email sent "
+"by Odoo Accounting to notify you a SEPA Direct Debit mandate is going to get "
+"automatically closed.\n"
+"                                    </td>\n"
+"                                </tr>\n"
+"                            </table>\n"
+"                        </td>\n"
+"                    </tr>\n"
+"                </table>\n"
+"            "
+msgstr ""
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_payment.py:0
+msgid ""
+"A SEPA direct debit version should be selected to generate the addresses in "
+"the export file."
+msgstr ""
+"En specifik version av SEPA-direktdebiteringar bör väljas för att kunna "
+"skapa adresserna i exportfilen."
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_payment.py:0
+msgid ""
+"A SEPA direct debit version should be selected to generate the export file."
+msgstr ""
+"En specifik version av SEPA-direktdebiteringar bör väljas för att kunna "
+"skapa exportfilen."
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_batch_payment.py:0
+msgid "All the payments in the batch must have the same SDD scheme."
+msgstr "Alla betalningar i batchen måste använda sig av samma SDD-system."
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "Antwerp"
+msgstr "Antwerpen"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid ""
+"As part of your rights, you are entitled to a refund from your bank under "
+"the terms and conditions of your agreement with your bank. Your rights are "
+"explained in a statement that you can obtain from your bank. A refund must "
+"be claimed within 8 weeks starting from the date on which your account was "
+"debited."
+msgstr ""
+"En av dina rättigheter är att du har rätt till en återbetalning från din "
+"bank under de allmänna villkor som överenskommits med din bank. Dina "
+"rättigheter redogörs för i ett uttalande som du kan begära ut från din bank. "
+"En återbetalning måste begäras inom 8 veckor från det datum då beloppet "
+"debiterades från ditt konto."
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields,help:account_sepa_direct_debit.field_account_batch_payment__sdd_batch_booking
+msgid ""
+"Ask the bank to group the bank transactions corresponding to these payments "
+"into a single transaction."
+msgstr ""
+"Be banken att gruppera de banktransaktioner som motsvarar dessa betalningar "
+"till en enda transaktion."
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields.selection,name:account_sepa_direct_debit.selection__account_batch_payment__sdd_scheme__b2b
+msgid "B2B"
+msgstr "B2B"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields.selection,name:account_sepa_direct_debit.selection__account_direct_debit_mandate__sdd_scheme__b2b
+msgid "B2B (Business only, no refund)"
+msgstr "B2B (endast företag, inga återbetalningar)"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.view_batch_payment_form_inherit
+msgid "Batch Booking"
+msgstr "Batchbokning"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model,name:account_sepa_direct_debit.model_account_batch_payment
+msgid "Batch Payment"
+msgstr "Batchbetalning"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "Belgium"
+msgstr "Belgien"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "Building C"
+msgstr "Byggnad C"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "By signing this mandate form, you authorise (A)"
+msgstr "Genom att skriva på den här fullmakten, så godkänner du (A)"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields.selection,name:account_sepa_direct_debit.selection__account_batch_payment__sdd_scheme__core
+msgid "CORE"
+msgstr "CORE"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields.selection,name:account_sepa_direct_debit.selection__account_direct_debit_mandate__sdd_scheme__core
+msgid "CORE (For consumers, refund possible)"
+msgstr "CORE (för kunder, återbetalningar möjliga)"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "CREDIT-1234"
+msgstr "CREDIT-1234"
+
+#. module: account_sepa_direct_debit
+#: model:ir.module.module,summary:base.module_account_sepa_direct_debit
+msgid "Collect payments from your customers through SEPA direct debit."
+msgstr ""
+
+#. module: account_sepa_direct_debit
+#: model:ir.model,name:account_sepa_direct_debit.model_res_company
+msgid "Company"
+msgstr "Företag"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model,name:account_sepa_direct_debit.model_res_config_settings
+msgid "Config Settings"
+msgstr "Inställningar"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "Creditor"
+msgstr "Borgenär"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_res_config_settings__sdd_creditor_identifier
+msgid "Creditor Identifier"
+msgstr "Borgenärens ID-nummer"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields,help:account_sepa_direct_debit.field_res_config_settings__sdd_creditor_identifier
+msgid "Creditor identifier of your company within SEPA scheme."
+msgstr "ID-numret som anger borgenären för ditt företag inuti SEPA-systemet."
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "DEBT1234"
+msgstr "DEBT1234"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields,help:account_sepa_direct_debit.field_account_batch_payment__sdd_required_collection_date
+msgid ""
+"Date when the company expects to receive the payments of this batch. It "
+"can't be inferior to the sending day + the minimum pre-notification period."
+msgstr ""
+"Datum då företag förväntas ta emot betalningarna i den här batchen. Det kan "
+"inte vara mindre än dagen då betalningarna skickas + den minsta möjliga "
+"perioden för förhandsnotiser."
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "Debtor"
+msgstr "Gäldenär"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields.selection,name:account_sepa_direct_debit.selection__account_journal__debit_sepa_pain_version__pain_008_001_02
+msgid "Default (Pain 008.001.02)"
+msgstr "Standard (Pain 008.001.02)"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "Demo@email.com"
+msgstr "Demo@email.com"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model,name:account_sepa_direct_debit.model_account_direct_debit_mandate
+msgid "Direct Debit Mandate"
+msgstr ""
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_account_journal_dashboard_kanban_view
+msgid "Direct Debit Payment to Collect"
+msgstr "Direktdebitering att hämta"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_account_journal_dashboard_kanban_view
+msgid "Direct Debit Payments to Collect"
+msgstr "Direktdebiteringar att hämta"
+
+#. module: account_sepa_direct_debit
+#: model:ir.actions.act_window,name:account_sepa_direct_debit.action_sdd_payments_to_collect
+msgid "Direct debit payments to collect"
+msgstr "Direktdebiteringar att hämta"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_batch_payment__display_name
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_direct_debit_mandate__display_name
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_journal__display_name
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_payment__display_name
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_payment_method__display_name
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_payment_register__display_name
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_res_company__display_name
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_res_config_settings__display_name
+msgid "Display Name"
+msgstr "Visningsnamn"
+
+#. module: account_sepa_direct_debit
+#: model:mail.template,description:account_sepa_direct_debit.email_template_sdd_new_mandate
+msgid "Email requesting the customer to sign the mandate attached"
+msgstr "E-post för att be kunden att skriva på den bifogade fullmakten"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "End date"
+msgstr "Slutdatum"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.view_batch_payment_form_inherit
+msgid "First-Time Payments"
+msgstr "Första betalningar"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields,help:account_sepa_direct_debit.field_account_direct_debit_mandate__sdd_debtor_id_code
+msgid "Free reference identifying the debtor in your company."
+msgstr "Fri referens som identifierar gäldenären i ditt företag."
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_batch_payment.py:0
+msgid "Go to journal"
+msgstr "Gå till journal"
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_batch_payment.py:0
+msgid "Go to settings"
+msgstr "Gå till inställningar"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_batch_payment__id
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_direct_debit_mandate__id
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_journal__id
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_payment__id
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_payment_method__id
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_payment_register__id
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_res_company__id
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_res_config_settings__id
+msgid "ID"
+msgstr "ID"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "Identification code"
+msgstr "ID-nummer"
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/res_company.py:0
+msgid "Invalid creditor identifier. Make sure you made no typo."
+msgstr "Borgenärens ID-nummer är ogiltigt. Vänligen kontrollera stavningen."
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/res_company.py:0
+msgid "Invalid creditor identifier. Wrong format."
+msgstr "Borgenärens ID-nummer är ogiltigt. Formatet är felaktigt."
+
+#. module: account_sepa_direct_debit
+#: model:ir.model,name:account_sepa_direct_debit.model_account_journal
+msgid "Journal"
+msgstr "Journal"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_direct_debit_mandate__mandate_type
+msgid "Mandate Type"
+msgstr ""
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "Marc Demo"
+msgstr "Marc Demo"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.actions.act_window,help:account_sepa_direct_debit.action_sdd_payments_to_collect
+msgid "No direct debit payment to collect"
+msgstr "Inga direktdebiteringar att hämta"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "Odoo PVT LTD"
+msgstr "Odoo PVT LTD"
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_batch_payment.py:0
+msgid ""
+"Only IBAN account numbers can receive SEPA Direct Debit payments. Please "
+"select a journal associated to one or add an IBAN bank account to the "
+"current journal"
+msgstr ""
+"Endast konton med IBAN-nummer kan ta emot betalningar med SEPA-"
+"direktdebitering. Vänligen välj en journal som är kopplad till ett bankkonto "
+"med ett IBAN-nummer eller lägg till ett sådant bankkonto till den nuvarande "
+"journalen"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model,name:account_sepa_direct_debit.model_account_payment_register
+msgid "Pay"
+msgstr "Betala"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model,name:account_sepa_direct_debit.model_account_payment
+msgid "Payment"
+msgstr "Betalning"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model,name:account_sepa_direct_debit.model_account_payment_method
+msgid "Payment Method"
+msgstr "Betalningsmetod"
+
+#. module: account_sepa_direct_debit
+#: model:mail.template,subject:account_sepa_direct_debit.email_template_sdd_pre_notification
+msgid "Payment notification {{ object.memo }}"
+msgstr "Betalningsnotis {{ object.memo }}"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_batch_payment__sdd_required_collection_date
+msgid "Required Collection Date"
+msgstr "Obligatoriskt insamlingsdatum"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "Rue de la Loi, 16"
+msgstr "Rue de la Loi, 16"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.view_account_payment_search
+msgid "SDD B2B"
+msgstr "SDD B2B"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_batch_payment__sdd_batch_booking
+msgid "SDD Batch Booking"
+msgstr "SDD batchbokning"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.view_account_payment_search
+msgid "SDD CORE"
+msgstr "SDD CORE"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_batch_payment__sdd_scheme
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_direct_debit_mandate__sdd_scheme
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_payment__sdd_mandate_scheme
+msgid "SDD Scheme"
+msgstr "SDD-system"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_res_company__sdd_creditor_identifier
+msgid "SDD creditor identifier"
+msgstr "ID-nummer för SDD-borgenär"
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_batch_payment.py:0
+msgid "SDD scheme is set on the customer mandate."
+msgstr "SDD-systemet är angivet i kundens fullmakt."
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields.selection,name:account_sepa_direct_debit.selection__account_direct_debit_mandate__mandate_type__sepa
+msgid "SEPA"
+msgstr ""
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "SEPA Business-to-Business Direct Debit Mandate"
+msgstr "Fullmakt för SEPA-direktdebiteringar B2B"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_direct_debit_mandate__sdd_debtor_id_code
+msgid "SEPA Debtor Identifier"
+msgstr ""
+
+#. module: account_sepa_direct_debit
+#: model:account.payment.method,name:account_sepa_direct_debit.payment_method_sdd
+#: model:ir.module.module,shortdesc:base.module_account_sepa_direct_debit
+msgid "SEPA Direct Debit"
+msgstr "SEPA-direktdebitering"
+
+#. module: account_sepa_direct_debit
+#: model:mail.template,name:account_sepa_direct_debit.email_template_sdd_pre_notification
+msgid "SEPA Direct Debit Customer Pre-Notification mail"
+msgstr "Förhandsnotis via e-post till kund om SEPA-direktdebitering"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "SEPA Direct Debit Mandate"
+msgstr "Fullmakt för SEPA-direktdebitering"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields,field_description:account_sepa_direct_debit.field_account_journal__debit_sepa_pain_version
+msgid "SEPA Direct Debit Pain Version"
+msgstr "Pain-version för SEPA-direktdebitering"
+
+#. module: account_sepa_direct_debit
+#: model:mail.template,name:account_sepa_direct_debit.email_template_sdd_new_mandate
+msgid "SEPA Direct Debit Sending"
+msgstr "Skicka SEPA-direktdebitering"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields,help:account_sepa_direct_debit.field_res_company__sdd_creditor_identifier
+msgid ""
+"SEPA Direct Debit creditor identifier of the company, given by the bank."
+msgstr ""
+"ID-nummer som tilldelats av banken för borgenären i ditt företag kopplad "
+"till SEPA-direktdebiteringar."
+
+#. module: account_sepa_direct_debit
+#: model:mail.template,name:account_sepa_direct_debit.email_template_sdd_mandate_expiring
+#: model:mail.template,subject:account_sepa_direct_debit.email_template_sdd_mandate_expiring
+msgid "SEPA Direct Debit mandate expiration warning"
+msgstr "Varning om förfallodatum för fullmakt för SEPA-direktdebitering"
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_direct_debit_mandate.py:0
+msgid "SEPA Direct Debit scheme only accepts IBAN account numbers."
+msgstr ""
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.view_account_journal_form
+msgid "SEPA Pain Version"
+msgstr "SEPA Pain-version"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.view_account_journal_form
+msgid "SEPA Pain version"
+msgstr "SEPA Pain-version"
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_payment_method.py:0
+msgid "SEPA Scheme operates in Euro."
+msgstr "SEPA-systemet använder sig av Euro."
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "SEPA-CUST-001"
+msgstr "SEPA-CUST-001"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "SEPA1234"
+msgstr "SEPA1234"
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_payment.py:0
+msgid "Select a SEPA Direct Debit version before generating the XML."
+msgstr "Välj en SEPA-version innan XML:en genereras."
+
+#. module: account_sepa_direct_debit
+#: model:mail.template,description:account_sepa_direct_debit.email_template_sdd_pre_notification
+msgid "Sent to the customer to indicate their account will be charged"
+msgstr "Skickas till kunden för att meddela att kontot kommer att debiteras"
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields,help:account_sepa_direct_debit.field_account_batch_payment__sdd_scheme
+msgid ""
+"The B2B scheme is an optional scheme,\n"
+"offered exclusively to business payers.\n"
+"Some banks/businesses might not accept B2B SDD."
+msgstr ""
+"Systemet för B2B är ett valfritt system,\n"
+"som enbart erbjuds till betalande företag.\n"
+"Vissa banker/företag kan välja att inte acceptera ett B2B SDD-system."
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_payment.py:0
+msgid ""
+"The SEPA Direct Debit mandate associated to the payment has been revoked and "
+"cannot be used anymore."
+msgstr ""
+"Fullmakterna för SEPA-direktdebitering kopplade till betalningen har "
+"återkallats och kan inte längre användas."
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_batch_payment.py:0
+msgid ""
+"The bank needs to be informed at least %(min_days_new)s days in advance for "
+"collections related to a new mandate and %(min_days)s days in advance when "
+"the mandate is already known by them.\n"
+"The minimum collection date must be %(date)s."
+msgstr ""
+"Banken måste informeras minst %(min_days_new)s dagar på förhand vid "
+"insamlingar relaterade till en ny fullmakt och minst %(min_days)s dagar på "
+"förhand när fullmakten redan är känd av banken.\n"
+"Minsta insamlingsdatum bör vara %(date)s."
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/res_company.py:0
+msgid "The creditor identifier exceeds the maximum length of 35 characters."
+msgstr "Borgenärens ID-nummer överskrider maxlängden på 35 tecken."
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_payment.py:0
+msgid ""
+"The debtor and creditor city name is a compulsary information when "
+"generating the SDD XML."
+msgstr ""
+"Det är obligatoriskt att ange en stad för både gäldenären och borgenären när "
+"en XML-fil genereras utifrån SDD."
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_payment.py:0
+msgid ""
+"The debtor and creditor country is a compulsary information when generating "
+"the SDD XML."
+msgstr ""
+"Det är obligatoriskt att ange ett land för både gäldenären och borgenären "
+"när en XML ska genereras för SDD."
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_direct_debit_mandate.py:0
+msgid ""
+"The debtor identifier you specified exceeds the limitation of 35 characters "
+"imposed by SEPA regulation"
+msgstr ""
+"Det ID-nummer som du angett för gäldenären överskrider gränsen på 35 tecken "
+"som innefattas av gällande SEPA-regler"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid ""
+"The mandate will only be used to pay invoices into the specified time range. "
+"If no end date is specified,\n"
+"                    you will have to contact us to stop its use. The minimum "
+"notification period for creditors\n"
+"                    to inform debtors about an upcoming collection is"
+msgstr ""
+"Fullmakten används endast för att betala fakturor inom ett specificerat "
+"tidsintervall. Om inget slutdatum anges,\n"
+"                    blir du tvungen att kontakta oss för att avsluta "
+"fullmakten. Minsta tidsintervall för borgenärer\n"
+"                    att informera gäldenärer om en kommande debitering är"
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_payment.py:0
+msgid ""
+"The payment must be linked to a SEPA Direct Debit mandate in order to "
+"generate a Direct Debit XML."
+msgstr ""
+"Betalningen måste vara kopplad till en fullmakt för SEPA-direktdebiteringar "
+"för att generera en XML-fil för direktdebiteringar."
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.view_batch_payment_form_inherit
+msgid "This batch includes payments from mandates with no prior collections:"
+msgstr ""
+"Den här batchen innehåller betalningar från fullmakter utan tidigare "
+"insamlingar:"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid ""
+"This mandate is only intended for business-to-business transactions. You are "
+"not entitled to a refund from your bank after your account has been debited, "
+"but you are entitled to request your bank not to debit your account up until "
+"the day on which the payment is due."
+msgstr ""
+"Fullmakten avser endast transaktioner mellan företag. Du har inte möjlighet "
+"att få en återbetalning från banken efter att ditt konto har debiterats, men "
+"du har möjlighet att begära att banken inte debiterar ditt konto förrän den "
+"dag då betalningen förfaller."
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_payment.py:0
+msgid ""
+"Trying to generate a Direct Debit XML file containing payments from another "
+"company than that file's creditor."
+msgstr ""
+"Försöker generera en XML-fil för direktdebitering som innehåller betalningar "
+"från ett annat företag än det som anges som filens borgenär."
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_payment.py:0
+msgid ""
+"Trying to generate a Direct Debit XML for payments coming from another "
+"payment method than SEPA Direct Debit."
+msgstr ""
+"Försöker generera en XML-fil för direktdebitering för betalningar som "
+"använder sig av en annan betalningsmetod än SEPA-direktdebiteringar."
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_direct_debit_mandate.py:0
+msgid "Under B2B SDD Scheme, the customer must be a company."
+msgstr "Under ett SDD-system för B2B så måste kunden vara ett företag."
+
+#. module: account_sepa_direct_debit
+#: model:ir.model.fields.selection,name:account_sepa_direct_debit.selection__account_journal__debit_sepa_pain_version__pain_008_001_08
+msgid "Updated 2023 (Pain 008.001.08)"
+msgstr "Uppdaterad 2023 (Pain 008.001.08)"
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid "Validity"
+msgstr "Giltighet"
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_batch_payment.py:0
+msgid ""
+"You cannot generate a SEPA Direct Debit file with a required collection date "
+"inferior to the sending day + the minimum pre-notification period of %"
+"(prenot_days)s days.\n"
+"The minimum required date should be %(minimum_date)s."
+msgstr ""
+"Det är inte möjligt att generera en fil för SEPA-direktdebitering med ett "
+"obligatoriskt insamlingsdatum som är mindre än det dag då betalningen "
+"skickas + minsta möjliga period för förhandsnotiser på %(prenot_days)s "
+"dagar. Det minsta obligatoriska datumet bör vara %(minimum_date)s."
+
+#. module: account_sepa_direct_debit
+#. odoo-python
+#: code:addons/account_sepa_direct_debit/models/account_batch_payment.py:0
+msgid ""
+"Your company must have a creditor identifier in order to issue SEPA Direct "
+"Debit payments requests. It can be defined in accounting module's settings."
+msgstr ""
+"Företaget måste ha ett ID-nummer för borgenärer för att kunna utfärda "
+"betalningsförfrågningar genom SEPA-direktbetalningar. Detta ID-nummer kan "
+"definieras i bokföringsinställningarna."
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid ""
+"day(s).\n"
+"                    It will be sent to the debtor's email."
+msgstr ""
+"dagar.\n"
+"                    Det kommer att skickas till gäldenärens e-post."
+
+#. module: account_sepa_direct_debit
+#: model_terms:ir.ui.view,arch_db:account_sepa_direct_debit.sdd_mandate_form
+msgid ""
+"to send instructions to your bank to debit your account and (B) your bank to "
+"debit your account in accordance with the instructions from"
+msgstr ""
+"för att skicka instruktioner till din bank för att debitera ditt konto och "
+"(B) till din bank för att debitera ditt konto enligt instruktionerna från"
+
+#. module: account_sepa_direct_debit
+#: model:mail.template,subject:account_sepa_direct_debit.email_template_sdd_new_mandate
+msgid "{{ object.partner_id.display_name }} SEPA Direct Debit Mandate"
+msgstr "{{ object.partner_id.display_name }} Fullmakt för SEPA-direktdebitering"
+
+#~ msgid ""
+#~ "\n"
+#~ "                '%s_sdd_mandate_form_%s' % "
+#~ "((object.partner_id.name).replace(' ', '_'), object.name)\n"
+#~ "            "
+#~ msgstr ""
+#~ "\n"
+#~ "                '%s_sdd_mandate_form_%s' % "
+#~ "((object.partner_id.name).replace(' ', '_'), object.name)\n"
+#~ "            "
+
+#~ msgid ""
+#~ ".\n"
+#~ "                                Make sure the mandate isn't meant for the "
+#~ "parent contact."
+#~ msgstr ""
+#~ ".\n"
+#~ "                                Försäkra dig om att fullmakten inte är "
+#~ "menad för den överordnade kontakten."
+
+#~ msgid ""
+#~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-"
+#~ "top: 16px; background-color: #FFFFFF; font-family:Verdana, Arial,sans-"
+#~ "serif; color: #454748; width: 100%; border-collapse:separate;\">\n"
+#~ "                    <tr>\n"
+#~ "                        <td align=\"center\">\n"
+#~ "                            <table border=\"0\" cellpadding=\"0\" "
+#~ "cellspacing=\"0\" width=\"590\" style=\"padding: 16px; background-color: "
+#~ "#FFFFFF; color: #454748; border-collapse:separate;\">\n"
+#~ "                                <tbody>\n"
+#~ "                                    <!-- CONTENT -->\n"
+#~ "                                    <tr>\n"
+#~ "                                        <td align=\"center\" style=\"min-"
+#~ "width: 590px;\">\n"
+#~ "                                            <table border=\"0\" "
+#~ "cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: "
+#~ "590px; background-color: white; padding: 0px 8px 0px 8px; border-"
+#~ "collapse:separate;\">\n"
+#~ "                                                <tr>\n"
+#~ "                                                    <td valign=\"top\" "
+#~ "style=\"font-size: 13px;\">\n"
+#~ "                                                        <div>\n"
+#~ "                                                            Hello,<br/"
+#~ "><br/>\n"
+#~ "                                                            A SEPA Direct "
+#~ "Debit mandate will reach its automatic expiration date on <span t-"
+#~ "out=\"format_date(object._get_expiry_date_per_mandate()[object])"
+#~ "\">2020-04-18</span><br/>\n"
+#~ "                                                            This can be "
+#~ "caused by one of the following reason:\n"
+#~ "                                                            <ul>\n"
+#~ "                                                                <li>\n"
+#~ "                                                                    That "
+#~ "date is the mandate end date agreed upon signature.\n"
+#~ "                                                                </li>\n"
+#~ "                                                                <li>\n"
+#~ "                                                                    It "
+#~ "would then be more than 36 months since the last time this mandate was "
+#~ "used.\n"
+#~ "                                                                </li>\n"
+#~ "                                                            </ul>\n"
+#~ "                                                            <div "
+#~ "style=\"margin: 16px 0px 16px 0px;\">\n"
+#~ "                                                                <a t-attf-"
+#~ "href=\"{{ website_url }}/odoo/sdd-mandates/{{ object.id }}\" "
+#~ "style=\"background-color: #4caf50; padding: 8px 16px 8px 16px; text-"
+#~ "decoration: none; color: #fff; border-radius: 5px; font-size:13px;\">\n"
+#~ "                                                                    Go to "
+#~ "Mandate\n"
+#~ "                                                                </a>\n"
+#~ "                                                            </div>\n"
+#~ "                                                            Security Tip: "
+#~ "Check that the domain name you are redirected to is: <b><a t-att-"
+#~ "href=\"object.get_base_url()\" t-out=\"object.get_base_url() or ''\">\n"
+#~ "                                                            https://"
+#~ "yourcompany.odoo.com</a></b>\n"
+#~ "                                                        </div>\n"
+#~ "                                                    </td>\n"
+#~ "                                                </tr>\n"
+#~ "                                                <tr>\n"
+#~ "                                                    <td style=\"text-"
+#~ "align:center;\">\n"
+#~ "                                                        <hr width=\"100%"
+#~ "\" style=\"background-color:rgb(204,204,204);border:medium "
+#~ "none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; "
+#~ "margin: 16px 0px 16px 0px;\"/>\n"
+#~ "                                                    </td>\n"
+#~ "                                                </tr>\n"
+#~ "                                            </table>\n"
+#~ "                                        </td>\n"
+#~ "                                    </tr>\n"
+#~ "                                </tbody>\n"
+#~ "                            </table>\n"
+#~ "                        </td>\n"
+#~ "                    </tr>\n"
+#~ "                    <!-- POWERED BY -->\n"
+#~ "                    <tr>\n"
+#~ "                        <td align=\"center\" style=\"min-width: 590px;"
+#~ "\">\n"
+#~ "                            <table border=\"0\" cellpadding=\"0\" "
+#~ "cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-"
+#~ "color: #F1F1F1; color: #454748; padding: 8px; border-collapse:separate;"
+#~ "\">\n"
+#~ "                                <tr>\n"
+#~ "                                    <td style=\"text-align: center; font-"
+#~ "size: 13px;\">\n"
+#~ "                                        Powered by <a target=\"_blank\" "
+#~ "href=\"https://www.odoo.com?utm_source=db&amp;utm_medium=auth\" "
+#~ "style=\"color: #875A7B;\">Odoo</a>\n"
+#~ "                                    </td>\n"
+#~ "                                </tr>\n"
+#~ "                            </table>\n"
+#~ "                            <table border=\"0\" cellpadding=\"0\" "
+#~ "cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; color: #454748; "
+#~ "padding: 8px; border-collapse:separate;\">\n"
+#~ "                                <tr>\n"
+#~ "                                    <td style=\"text-align: center; font-"
+#~ "size: 11px;\">\n"
+#~ "                                        PS: This is an automated email "
+#~ "sent by Odoo Accounting to notify you a SEPA Direct Debit mandate is "
+#~ "going to get automatically closed.\n"
+#~ "                                    </td>\n"
+#~ "                                </tr>\n"
+#~ "                            </table>\n"
+#~ "                        </td>\n"
+#~ "                    </tr>\n"
+#~ "                </table>\n"
+#~ "            "
+#~ msgstr ""
+#~ "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-"
+#~ "top: 16px; background-color: #FFFFFF; font-family:Verdana, Arial,sans-"
+#~ "serif; color: #454748; width: 100%; border-collapse:separate;\">\n"
+#~ "                    <tr>\n"
+#~ "                        <td align=\"center\">\n"
+#~ "                            <table border=\"0\" cellpadding=\"0\" "
+#~ "cellspacing=\"0\" width=\"590\" style=\"padding: 16px; background-color: "
+#~ "#FFFFFF; color: #454748; border-collapse:separate;\">\n"
+#~ "                                <tbody>\n"
+#~ "                                    <!-- CONTENT -->\n"
+#~ "                                    <tr>\n"
+#~ "                                        <td align=\"center\" style=\"min-"
+#~ "width: 590px;\">\n"
+#~ "                                            <table border=\"0\" "
+#~ "cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: "
+#~ "590px; background-color: white; padding: 0px 8px 0px 8px; border-"
+#~ "collapse:separate;\">\n"
+#~ "                                                <tr>\n"
+#~ "                                                    <td valign=\"top\" "
+#~ "style=\"font-size: 13px;\">\n"
+#~ "                                                        <div>\n"
+#~ "                                                            Hej,<br/><br/"
+#~ ">\n"
+#~ "                                                            En fullmakt "
+#~ "för SEPA-direktdebitering kommer att gå ut automatiskt den <span t-"
+#~ "out=\"format_date(object._get_expiry_date_per_mandate()[object])"
+#~ "\">2020-04-18</span><br/>\n"
+#~ "                                                            Detta kan "
+#~ "orsakas av följande anledning:\n"
+#~ "                                                            <ul>\n"
+#~ "                                                                <li>\n"
+#~ "                                                                    Datumet "
+#~ "är det förfallodatum som överenskommits vid fullmaktens uppförande.\n"
+#~ "                                                                </li>\n"
+#~ "                                                                <li>\n"
+#~ "                                                                    Det "
+#~ "kommer då vara mer än 36 månader sedan fullmakten senast användes.\n"
+#~ "                                                                </li>\n"
+#~ "                                                            </ul>\n"
+#~ "                                                            <div "
+#~ "style=\"margin: 16px 0px 16px 0px;\">\n"
+#~ "                                                                <a t-attf-"
+#~ "href=\"{{ website_url }}/odoo/sdd-mandates/{{ object.id }}\" "
+#~ "style=\"background-color: #4caf50; padding: 8px 16px 8px 16px; text-"
+#~ "decoration: none; color: #fff; border-radius: 5px; font-size:13px;\">\n"
+#~ "                                                                    Visa "
+#~ "fullmakt\n"
+#~ "                                                                </a>\n"
+#~ "                                                            </div>\n"
+#~ "                                                            Säkerhetstips: "
+#~ "Kontrollera att domännamnet som du omdirigeras till är: <b><a t-att-"
+#~ "href=\"object.get_base_url()\" t-out=\"object.get_base_url() or ''\">\n"
+#~ "                                                            https://"
+#~ "yourcompany.odoo.com</a></b>\n"
+#~ "                                                        </div>\n"
+#~ "                                                    </td>\n"
+#~ "                                                </tr>\n"
+#~ "                                                <tr>\n"
+#~ "                                                    <td style=\"text-"
+#~ "align:center;\">\n"
+#~ "                                                        <hr width=\"100%"
+#~ "\" style=\"background-color:rgb(204,204,204);border:medium "
+#~ "none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; "
+#~ "margin: 16px 0px 16px 0px;\"/>\n"
+#~ "                                                    </td>\n"
+#~ "                                                </tr>\n"
+#~ "                                            </table>\n"
+#~ "                                        </td>\n"
+#~ "                                    </tr>\n"
+#~ "                                </tbody>\n"
+#~ "                            </table>\n"
+#~ "                        </td>\n"
+#~ "                    </tr>\n"
+#~ "                    <!-- POWERED BY -->\n"
+#~ "                    <tr>\n"
+#~ "                        <td align=\"center\" style=\"min-width: 590px;"
+#~ "\">\n"
+#~ "                            <table border=\"0\" cellpadding=\"0\" "
+#~ "cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-"
+#~ "color: #F1F1F1; color: #454748; padding: 8px; border-collapse:separate;"
+#~ "\">\n"
+#~ "                                <tr>\n"
+#~ "                                    <td style=\"text-align: center; font-"
+#~ "size: 13px;\">\n"
+#~ "                                        Drivs av <a target=\"_blank\" "
+#~ "href=\"https://www.odoo.com?utm_source=db&amp;utm_medium=auth\" "
+#~ "style=\"color: #875A7B;\">Odoo</a>\n"
+#~ "                                    </td>\n"
+#~ "                                </tr>\n"
+#~ "                            </table>\n"
+#~ "                            <table border=\"0\" cellpadding=\"0\" "
+#~ "cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; color: #454748; "
+#~ "padding: 8px; border-collapse:separate;\">\n"
+#~ "                                <tr>\n"
+#~ "                                    <td style=\"text-align: center; font-"
+#~ "size: 11px;\">\n"
+#~ "                                        OBS: Detta är ett automatiserat "
+#~ "utskick från Odoo Bokföring för att informera dig om att en fullmakt för "
+#~ "SEPA-direktdebitering kommer att avslutas automatiskt.\n"
+#~ "                                    </td>\n"
+#~ "                                </tr>\n"
+#~ "                            </table>\n"
+#~ "                        </td>\n"
+#~ "                    </tr>\n"
+#~ "                </table>\n"
+#~ "            "
+
+#~ msgid ""
+#~ "A customer account is required to validate a SEPA Direct Debit mandate."
+#~ msgstr ""
+#~ "Ett kundkonto krävs för att godkänna en fullmat för en SEPA-"
+#~ "direktdebitering."
+
+#~ msgid ""
+#~ "A mandate represents the authorization you receive from a customer\n"
+#~ "                    to automatically collect money on her account."
+#~ msgstr ""
+#~ "En fullmakt representerar det medgivande du får från en kund\n"
+#~ "                    för att automatiskt debitera medel från deras konto."
+
+#~ msgid "Account of the customer to collect payments from."
+#~ msgstr "Det av kundens konton som betalningar ska debiteras från."
+
+#~ msgid "Action Needed"
+#~ msgstr "Åtgärd krävs"
+
+#~ msgid "Active"
+#~ msgstr "Aktiv"
+
+#~ msgid "Activities"
+#~ msgstr "Aktiviteter"
+
+#~ msgid "Activity Exception Decoration"
+#~ msgstr "Stilmarkeringar för undantagsaktiviteter"
+
+#~ msgid "Activity Plans"
+#~ msgstr "Aktivitetsplaner"
+
+#~ msgid "Activity State"
+#~ msgstr "Aktivitetsstatus"
+
+#~ msgid "Activity Type Icon"
+#~ msgstr "Ikon för aktivitetstyp"
+
+#~ msgid "Attachment Count"
+#~ msgstr "Antal bilagor"
+
+#~ msgid "Author"
+#~ msgstr "Författare"
+
+#~ msgid "Bank Account"
+#~ msgstr "Bankkonto"
+
+#~ msgid "Body content is the same as the template"
+#~ msgstr "Innehållet i brödtexten är detsamma som i mallen"
+
+#~ msgid "Can Edit Body"
+#~ msgstr "Kan redigera brödtext"
+
+#~ msgid "Cancel"
+#~ msgstr "Avbryt"
+
+#~ msgid "Cancelled"
+#~ msgstr "Avbruten"
+
+#~ msgid "Check Partner(s) Email(s)"
+#~ msgstr "Kontrollera partners e-post"
+
+#~ msgid "Close"
+#~ msgstr "Stäng"
+
+#~ msgid "Closed"
+#~ msgstr "Stängd"
+
+#~ msgid "Collections"
+#~ msgstr "Samlingar"
+
+#~ msgid "Company for whose invoices the mandate can be used."
+#~ msgstr "Företag för vilkas fakturor som fullmakten kan användas."
+
+#~ msgid "Contact"
+#~ msgstr "Kontakt"
+
+#~ msgid "Contents"
+#~ msgstr "Innehåll"
+
+#~ msgid "Could a SDD mandate be used?"
+#~ msgstr "Kan en SDD-fullmakt användas?"
+
+#~ msgid "Create a Customer"
+#~ msgstr "Skapa en kund"
+
+#~ msgid "Create a new direct debit customer mandate"
+#~ msgstr "Skapa en ny fullmakt för direktdebitering"
+
+#~ msgid "Create it."
+#~ msgstr "Skapa den."
+
+#~ msgid "Created by"
+#~ msgstr "Skapad av"
+
+#~ msgid "Created on"
+#~ msgstr "Skapad den"
+
+#~ msgid "Customer"
+#~ msgstr "Kund"
+
+#~ msgid "Customer mandate"
+#~ msgstr "Fullmakt från kund"
+
+#~ msgid "Customer whose payments are to be managed by this mandate."
+#~ msgstr "Kunder vars betalningar den här fullmakten gäller för."
+
+#~ msgid "Date from which the mandate can be used (inclusive)."
+#~ msgstr "Datum från vilket fullmakten gäller (från och med)."
+
+#~ msgid ""
+#~ "Date until which the mandate can be used. It will automatically be closed "
+#~ "after this date."
+#~ msgstr ""
+#~ "Datum till vilket fullmakten gäller. Den kommer att avslutas automatiskt "
+#~ "efter det datumet."
+
+#~ msgid "Debtor Identifier"
+#~ msgstr "Gäldenärens ID-nummer"
+
+#~ msgid "Direct Debit Mandates"
+#~ msgstr "Fullmakter för direktdebiteringar"
+
+#~ msgid "Download"
+#~ msgstr "Ladda ner"
+
+#~ msgid "Draft"
+#~ msgstr "Utkast"
+
+#~ msgid "Draft Mandate"
+#~ msgstr "Utkast till fullmakt"
+
+#~ msgid ""
+#~ "Draft: Validate before use.\n"
+#~ "Active: Valid mandates to collect payments.\n"
+#~ "Cancelled: Mandates never validated.\n"
+#~ "Closed: Expired or manually closed mandates. Previous transactions remain "
+#~ "valid.\n"
+#~ "Revoked: Fraudulent mandates. Previous invoices might need "
+#~ "reimbursement.\n"
+#~ msgstr ""
+#~ "Utkast: Validate innan användning.\n"
+#~ "Aktiv: Giltig fullmakt för att ta emot betalningar.\n"
+#~ "Avbruten: Fullmakten godkändes aldrig.\n"
+#~ "Avslutad: Fullmakten har gått ut eller avslutats manuellt. Tidigare "
+#~ "transaktioner är fortfarande giltiga.\n"
+#~ "Återkallad: Om fullmakt anses ogiltig eller missvisande. Återbetalning "
+#~ "kan krävas för tidigare fakturor.\n"
+
+#~ msgid "Email"
+#~ msgstr "E-post"
+
+#~ msgid "Email template"
+#~ msgstr "E-postmall"
+
+#~ msgid "End Date"
+#~ msgstr "Slutdatum"
+
+#~ msgid "Every mandate belonging to this partner."
+#~ msgstr "Alla fullmakter som tillhör denna partner."
+
+#~ msgid "Expiration warning sent"
+#~ msgstr "Varning om förfallodatum skickat"
+
+#~ msgid "Followers"
+#~ msgstr "Följare"
+
+#~ msgid "Followers (Partners)"
+#~ msgstr "Följare (Partners)"
+
+#~ msgid "Go to mandates"
+#~ msgstr "Gå till fullmakter"
+
+#~ msgid "Go to payments"
+#~ msgstr "Gå till betalningar"
+
+#~ msgid "Good news! A valid SEPA Mandate is available."
+#~ msgstr "Goda nyheter! En giltig SEPA-fullmakt finns tillgänglig."
+
+#~ msgid "Has Message"
+#~ msgstr "Har meddelande"
+
+#~ msgid "IBAN"
+#~ msgstr "IBAN"
+
+#~ msgid "Icon"
+#~ msgstr "Ikon"
+
+#~ msgid "Icon to indicate an exception activity."
+#~ msgstr "Ikon för att indikera en undantagsaktivitet."
+
+#~ msgid "Identifier"
+#~ msgstr "Identifierare"
+
+#~ msgid "If checked, new messages require your attention."
+#~ msgstr ""
+#~ "Om rutan är markerad, så finns det nya meddelanden som kräver din "
+#~ "uppmärksamhet."
+
+#~ msgid "If checked, some messages have a delivery error."
+#~ msgstr "Om rutan är markerad, så har vissa meddelanden leveransfel."
+
+#~ msgid "In-process and completed payments generated under this mandate."
+#~ msgstr ""
+#~ "Betalningar som skapats under den här fullmakten och som behandlas för "
+#~ "närvarande eller är avslutade."
+
+#~ msgid "Indefinite"
+#~ msgstr "Odefinierad"
+
+#~ msgid "Invoice paid via direct debit."
+#~ msgstr "Faktura betald via direktdebitering."
+
+#~ msgid "Invoices Paid"
+#~ msgstr "Betalda fakturor"
+
+#~ msgid "Invoices matching a valid SEPA Direct Debit Mandate"
+#~ msgstr "Fakturor som matchar en giltig fullmakt för SEPA-direktdebitering"
+
+#~ msgid "Invoices paid using this mandate."
+#~ msgstr "Betalda fakturor som innefattas av denna fullmakt."
+
+#~ msgid "Invoices paid with this mandate."
+#~ msgstr "Betalda fakturor som innefattas av denna fullmakt."
+
+#~ msgid "Is Editor"
+#~ msgstr "Är Redigerare"
+
+#~ msgid "Is Follower"
+#~ msgstr "Är Följare"
+
+#~ msgid "Journal Entry"
+#~ msgstr "Verifikation"
+
+#~ msgid "Language"
+#~ msgstr "Språk"
+
+#~ msgid "Last Updated by"
+#~ msgstr "Senast uppdaterad av"
+
+#~ msgid "Last Updated on"
+#~ msgstr "Senast uppdaterad den"
+
+#~ msgid "Main Attachment"
+#~ msgstr "Huvudbilaga"
+
+#~ msgid "Mandate"
+#~ msgstr "Fullmakt"
+
+#~ msgid "Mandate Form PDF"
+#~ msgstr "PDF-formulär för en fullmakt"
+
+#~ msgid "Mandate customer and bank account need to match."
+#~ msgstr "Fullmaktens kund och bankkonto måste stämma överens."
+
+#~ msgid "Mandate form"
+#~ msgstr "Fullmaktsformulär"
+
+#~ msgid "Mandate identifier must be unique! Please choose another one."
+#~ msgstr "Fullmaktens ID-nummer måste vara unikt! Vänligen välj en annan."
+
+#~ msgid "Mandate state updater"
+#~ msgstr "Uppdatering av fullmaktsstatus"
+
+#~ msgid "Message Delivery error"
+#~ msgstr "Leveransfel för meddelanden"
+
+#~ msgid "Messages"
+#~ msgstr "Meddelanden"
+
+#~ msgid "My Activity Deadline"
+#~ msgstr "Tidsgräns för mina aktiviteter"
+
+#~ msgid "Next Activity Calendar Event"
+#~ msgstr "Nästa aktivitetshändelse i kalendern"
+
+#~ msgid "Next Activity Deadline"
+#~ msgstr "Tidsgräns för nästa aktivitet"
+
+#~ msgid "Next Activity Summary"
+#~ msgstr "Sammanfattning av nästa aktivitet"
+
+#~ msgid "Next Activity Type"
+#~ msgstr "Nästa aktivitetstyp"
+
+#~ msgid "No Sdd Mandate Partner"
+#~ msgstr "Ingen partner angiven för SDD-fullmakt"
+
+#~ msgid "Number of Actions"
+#~ msgstr "Antal åtgärder"
+
+#~ msgid "Number of errors"
+#~ msgstr "Antal fel"
+
+#~ msgid ""
+#~ "Number of in-process and completed payments generated under this mandate."
+#~ msgstr ""
+#~ "Antal pågående och slutförda betalningar som skapats utifrån den här "
+#~ "fullmakten."
+
+#~ msgid "Number of invoices paid with this mandate."
+#~ msgstr "Antal betalda fakturor som innefattas av den här fullmakten."
+
+#~ msgid "Number of messages requiring action"
+#~ msgstr "Antal meddelanden som kräver åtgärder"
+
+#~ msgid "Number of messages with delivery error"
+#~ msgstr "Antal meddelanden med leveransfel"
+
+#~ msgid ""
+#~ "Once an invoice is made\n"
+#~ "                    in Odoo for a customer having a mandate active on the "
+#~ "invoice date,\n"
+#~ "                    its validation will trigger its automatic payment, "
+#~ "and you will\n"
+#~ "                    then only have to generate a SEPA Direct Debit (SDD) "
+#~ "XML file containing this operation\n"
+#~ "                    and send it to your bank to effectively get paid."
+#~ msgstr ""
+#~ "När en faktura har skapats\n"
+#~ "                    i Odoo för en kund som har en fullmakt som är aktiv "
+#~ "vid fakturadatum,\n"
+#~ "                    så kommer en automatisk betalning att triggas vid "
+#~ "validering av fakturan. DU behöver då\n"
+#~ "                    endast generera en XML-fil för SEPA-direktdebitering "
+#~ "(SDD) som innehåller information om operationen\n"
+#~ "                    och skicka vidare detta till din bank för att "
+#~ "betalningen ska genomföras."
+
+#~ msgid ""
+#~ "Once this invoice has been paid with Direct Debit, contains the mandate "
+#~ "that allowed the payment."
+#~ msgstr ""
+#~ "När fakturan har betalats med direktdebitering så hamnar den fullmakt som "
+#~ "möjliggjorde betalningen här."
+
+#~ msgid "One-off Mandate"
+#~ msgstr "Engångsfullmakt"
+
+#~ msgid "Only mandates in draft state can be deleted."
+#~ msgstr "En fullmakt kan endast raderas när den är i utkast."
+
+#~ msgid "Oops! No valid SEPA mandate for the following partner(s):"
+#~ msgstr "Ojdå! Det finns inga giltiga SEPA-fullmakter för följande partners:"
+
+#~ msgid "Oops! No valid SEPA mandate for this customer."
+#~ msgstr "Ojdå! Det finns inga giltiga SEPA-fullmakter för den här kunden."
+
+#~ msgid "Open customer"
+#~ msgstr "Öppen kund"
+
+#~ msgid "Open customers"
+#~ msgstr "Öppna kunder"
+
+#~ msgid "Open this partner's mandates"
+#~ msgstr "Öppna den här partnerns fullmakter"
+
+#~ msgid ""
+#~ "Optional translation language (ISO code) to select when sending out an "
+#~ "email. If not set, the main partner's language will be used. This should "
+#~ "usually be a placeholder expression that provides the appropriate "
+#~ "language, e.g. {{ object.partner_id.lang }}."
+#~ msgstr ""
+#~ "Valfritt översättningsspråk (ISO-kod) att välja när ett e-postmeddelande "
+#~ "skickas ut. Om inget sådant anges kommer huvudpartnerns språk att "
+#~ "användas. Detta bör vanligtvis vara ett platshållaruttryck som anger "
+#~ "lämpligt språk, t.ex. {{ object.partner_id.lang }}."
+
+#~ msgid "Originating SEPA mandate"
+#~ msgstr "Ursprunglig SEPA-fullmakt"
+
+#~ msgid "Paid Invoices"
+#~ msgstr "Betalda fakturor"
+
+#~ msgid "Paid Invoices Number"
+#~ msgstr "Antal betalda fakturor"
+
+#~ msgid "Paid via direct debit"
+#~ msgstr "Betald via en direktdebitering"
+
+#~ msgid "Parent Partner"
+#~ msgstr "Överordnad partner"
+
+#~ msgid "Partner should have an email address."
+#~ msgstr "Partner måste ha en angiven e-postadress."
+
+#~ msgid "Partner's Parent"
+#~ msgstr "Partnerns överordnade kontakt"
+
+#~ msgid "Payments"
+#~ msgstr "Betalningar"
+
+#~ msgid "Payments matching a valid SEPA Direct Debit Mandate"
+#~ msgstr "Betalningar matchar en giltig fullmakt för SEPA-direktdebitering"
+
+#~ msgid "Payments to Collect"
+#~ msgstr "Betalningar att samla in"
+
+#~ msgid "Payments without mandate"
+#~ msgstr "Betalningar utan fullmakt"
+
+#~ msgid ""
+#~ "Please do not pay it manually, the payment will be asked to your bank to "
+#~ "be processed\n"
+#~ "                        automatically."
+#~ msgstr ""
+#~ "Vänligen genomför inte betalningen manuellt, betalningen kommer att "
+#~ "skickas till din bank\n"
+#~ "                        för att behandlas automatiskt."
+
+#~ msgid "Pre-notification"
+#~ msgstr "Förhandsnotis"
+
+#~ msgid "Problematic mandates"
+#~ msgstr "Problematiska fullmakter"
+
+#~ msgid "Provided by customer"
+#~ msgstr "Anges av kunden"
+
+#~ msgid "Ratings"
+#~ msgstr "Omdömen"
+
+#~ msgid "Recipients"
+#~ msgstr "Mottagare"
+
+#~ msgid "Rendering Model"
+#~ msgstr "Renderingsmodell"
+
+#~ msgid "Responsible User"
+#~ msgstr "Ansvarig användare"
+
+#~ msgid "Revoke"
+#~ msgstr "Återkalla"
+
+#~ msgid "Revoked"
+#~ msgstr "Återkallad"
+
+#~ msgid "Revoked SDD Mandate"
+#~ msgstr "Återkallade SDD-fullmakter"
+
+#~ msgid "SDD Mandate"
+#~ msgstr "Fullmakt för SEPA-direktdebitering"
+
+#~ msgid "SDD Mandate Send"
+#~ msgstr "Skicka fullmakt för SEPA-direktdebiteringar"
+
+#~ msgid "SDD count"
+#~ msgstr "Antal SEPA-direktdebiteringar"
+
+#~ msgid ""
+#~ "SEPA Direct Debit scheme only accepts IBAN account numbers. Please select "
+#~ "an IBAN-compliant debtor account for this mandate."
+#~ msgstr ""
+#~ "SEPA-systemet för direktdebitering godkänner endast kontonummer i IBAN-"
+#~ "format. Vänligen välj ett konto för gäldenären som följer IBAN-formatet "
+#~ "för den här fullmakten."
+
+#~ msgid "SEPA direct debit stateless customer"
+#~ msgstr "SEPA-direktdebitering för kund utan angivet land"
+
+#~ msgid ""
+#~ "SEPA regulations set the minimum pre-notification period to a minimum of "
+#~ "%s days to allow enough time for the customer to check that their account "
+#~ "is adequately funded."
+#~ msgstr ""
+#~ "SEPA-regler anger en minsta period för att skicka en förhandsnotis till "
+#~ "minst %s dagar för att ge tillräckligt med tid för kunden att säkerställa "
+#~ "att deras konto har tillräckliga medel."
+
+#~ msgid "SMS Delivery error"
+#~ msgstr "Leveransfel för SMS"
+
+#~ msgid "Sdd Has Usable Mandate"
+#~ msgstr "SDD har giltig fullmakt"
+
+#~ msgid "Sdd Mandate"
+#~ msgstr "SDD-fullmakt"
+
+#~ msgid "Send"
+#~ msgstr "Skicka"
+
+#~ msgid "Send & Print"
+#~ msgstr "Skicka och skriv ut"
+
+#~ msgid "Sent to the customer"
+#~ msgstr "Skickat till kunden"
+
+#~ msgid ""
+#~ "Some draft payments could not be posted because of the lack of any active "
+#~ "mandate."
+#~ msgstr ""
+#~ "Vissa utkast till betalningar kunde inte publiceras på grund av att det "
+#~ "inte fanns en giltig fullmakt."
+
+#~ msgid "Some payments are linked to an inactive mandate."
+#~ msgstr "Vissa betalningar har en angiven fullmakt som är ogiltig."
+
+#~ msgid "Some payments are not linked to any mandate."
+#~ msgstr "Vissa betalningar har inte någon angiven fullmakt."
+
+#~ msgid "Start Date"
+#~ msgstr "Startdatum"
+
+#~ msgid "State"
+#~ msgstr "Status"
+
+#~ msgid ""
+#~ "Status based on activities\n"
+#~ "Overdue: Due date is already passed\n"
+#~ "Today: Activity date is today\n"
+#~ "Planned: Future activities."
+#~ msgstr ""
+#~ "Status baserat på aktivitetsdatum:\n"
+#~ "Försenade: Aktivitetsdatum har redan passerat.\n"
+#~ "Idag: Aktivitetsdatum är dagens datum.\n"
+#~ "Planerade: Kommande aktiviteter."
+
+#~ msgid "Subject"
+#~ msgstr "Ämne"
+
+#~ msgid "The customer must have a country"
+#~ msgstr "Kunden måste ha ett angivet land"
+
+#~ msgid ""
+#~ "The end date of the mandate must be posterior or equal to its start date."
+#~ msgstr ""
+#~ "Fullmaktens slutdatum måste vara senare än eller detsamma som dess "
+#~ "startdatum."
+
+#~ msgid ""
+#~ "The minimum notice period in days, used to inform the customer prior to "
+#~ "collection."
+#~ msgstr ""
+#~ "Den minsta uppsägningstiden i dagar, som används för att informera kunden "
+#~ "innan insamling."
+
+#~ msgid "The selected customer is a child of"
+#~ msgstr "Den valda kunden är underordnad"
+
+#~ msgid "The unique identifier of this mandate."
+#~ msgstr "Fullmaktens unika ID-nummer."
+
+#~ msgid ""
+#~ "This invoice will be paid using direct debit and is only\n"
+#~ "                        sent for informative purposes."
+#~ msgstr ""
+#~ "Fakturan kommer att betalas genom direktdebitering och skickas enbart\n"
+#~ "                        i informationssyfte."
+
+#~ msgid ""
+#~ "To solve that, you should create a mandate for each of the involved "
+#~ "customers, valid at the moment of the payment date."
+#~ msgstr ""
+#~ "För att lösa det bör du skapa en fullmakt för varje relaterad kund, som "
+#~ "bör vara giltigt vid gällande betaldatum."
+
+#~ msgid ""
+#~ "True if and only if this mandate can be used for only one transaction. It "
+#~ "will automatically go from 'active' to 'closed' after its first use in "
+#~ "payment if this option is set.\n"
+#~ msgstr ""
+#~ "Sant om och endast om fullmakten endast kan användas för en transaktion. "
+#~ "Fullmakten ändras automatiskt från 'aktiv' till 'avslutad' efter att den "
+#~ "använts i en betalning om det här alternativet är valt.\n"
+
+#~ msgid ""
+#~ "Trying to register a payment on a mandate belonging to a different "
+#~ "partner."
+#~ msgstr ""
+#~ "Försöker registrera en betalning för en fullmakt som tillhör en annan "
+#~ "partner."
+
+#~ msgid "Type of the exception activity on record."
+#~ msgstr "Typ av undantagsaktivitet som har registrerats."
+
+#~ msgid "Validate"
+#~ msgstr "Validera"
+
+#~ msgid "View Partner(s)"
+#~ msgstr "Visa partner"
+
+#~ msgid "Warnings"
+#~ msgstr "Varningar"
+
+#~ msgid ""
+#~ "You can't pay any of the selected invoices using the SEPA Direct Debit "
+#~ "method, as no valid mandate is available"
+#~ msgstr ""
+#~ "Det är inte möjligt att betala för de markerade fakturorna genom SEPA-"
+#~ "direktdebitering, eftersom ingen giltig fullmakt är tillgänglig"
+
+#~ msgid ""
+#~ "You cannot delete a bank account linked to an active SEPA Direct Debit "
+#~ "mandate."
+#~ msgstr ""
+#~ "Det är inte möjligt att radera ett bankkonto som är kopplat till en aktiv "
+#~ "fullmakt för SEPA-direktdebiteringar."
+
+#~ msgid "You don't have the rights to validate SDD mandates."
+#~ msgstr "Du har inte behörighet att validera SDD-fullmakter."
+
+#~ msgid "day(s)"
+#~ msgstr "dagar"
+
+#~ msgid "Website Messages"
+#~ msgstr "Webbplatsmeddelanden"
+
+#~ msgid "Website communication history"
+#~ msgstr "Webbplatsens kommunikationshistorik"

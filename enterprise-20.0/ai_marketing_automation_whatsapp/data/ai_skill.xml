@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_skill_campaign_whatsapp_steps" model="ai.skill">
+        <field name="name">Campaign WhatsApp Steps</field>
+        <field name="description">Rules for WhatsApp steps in a marketing campaign: the whatsapp activity type, its template, and the whatsapp trigger types. Load before adding or editing any WhatsApp step, or any step reacting to one.</field>
+        <field name="instructions">
+Extends section 3, ACTIVITY.
+
+`activity_type` gains `whatsapp`. It carries `whatsapp_template_id` on an existing
+`whatsapp.template`, not `mass_mailing_id`: there is no mailing, so nothing in section 4 applies.
+
+**The trigger names do not follow the email ones.** They are `whatsapp_click`,
+`whatsapp_not_click`, `whatsapp_read`, `whatsapp_not_read`, `whatsapp_replied`,
+`whatsapp_not_replied`, `whatsapp_bounced`. Note `read` rather than open, `replied` rather than
+reply, `bounced` rather than bounce - guessing by analogy with `mail_*` gives values that do not
+exist.
+
+`whatsapp_click` only fires for a template button whose `url_type` is `tracked`.
+        </field>
+    </record>
+
+    <record id="ai_marketing_automation.ai_agent_campaign_builder" model="ai.agent">
+        <field name="skill_ids" eval="[(4, ref('ai_skill_campaign_whatsapp_steps'))]"/>
+    </record>
+</odoo>

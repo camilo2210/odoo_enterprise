@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+    <record id="mail_activity_schedule_view_form" model="ir.ui.view">
+        <field name="name">mail.activity.schedule.view.form.inherit.sign</field>
+        <field name="model">mail.activity.schedule</field>
+        <field name="inherit_id" ref="mail.mail_activity_schedule_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Append new fields -->
+        <xpath expr="//div[@invisible='not activity_type_id']" position="after">
+            <div invisible="not activity_type_id or activity_category != 'sign_request'">
+                <field name="reference_doc" invisible="1"/>
+                <field name="activity_type_id" invisible="1"/>
+                <div class="o_outlined d-flex flex-column flex-md-row align-items-md-baseline mb-3 gap-2">
+                    <div class="d-flex align-items-baseline gap-2">
+                        <i class="oi oi-filled text-muted" data-icon="description" title="Template"/>
+                        <field name="sign_template_id"
+                            class="flex-grow-1"
+                            placeholder="Choose a template"
+                            context="{'kanban_view_ref': 'sign.sign_template_view_kanban_mobile'}"
+                            options="{'no_create': True}"
+                            domain="['|', ('model_id', '=', False), ('model_name', '=', res_model)]"
+                            nolabel="1"
+                        />
+                    </div>
+                    <span class="text-center">or</span>
+                    <div class="flex-grow-1">
+                        <widget name="upload_pdf_button"
+                            btnClass="btn btn-secondary btn-sm w-100"
+                            title="Upload PDF"
+                            options="{
+                                'no_default_signer': False,
+                                'default_log_request_activity': True
+                            }"
+                        />
+                    </div>
+                </div>
+            </div>
+        </xpath>
+            <xpath expr="//button[@name='action_schedule_activities']" position="before">
+                <button name="action_send_sign_request" string="Continue" type="object" class="btn-primary"
+                            invisible="has_error or activity_category != 'sign_request' or not sign_template_id" data-hotkey="c"/>
+            </xpath>
+
+            <!-- Hide existing fields -->
+            <xpath expr="//div[@invisible='not activity_type_id']" position="attributes">
+                <attribute name="invisible">not activity_type_id or activity_category == 'sign_request'</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_schedule_activities']" position="attributes">
+                <attribute name="invisible" add="activity_category == 'sign_request'" separator="or"/>
+            </xpath>
+            <xpath expr="//button[@name='action_schedule_activities_done']" position="attributes">
+                <attribute name="invisible" add="activity_category == 'sign_request'" separator="or"/>
+            </xpath>
+        </field>
+    </record>
+    </data>
+</odoo>

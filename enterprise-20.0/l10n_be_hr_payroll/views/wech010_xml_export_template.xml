@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- https://www.socialsecurity.be/site_fr/employer/general/techlib.htm#glossaryOnem -->
+<odoo>
+    <template id="wech010_xml_export">
+        <WECH010 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="drs/WECH010_20261.xsd">
+            <Form>
+                <Identification>WECH010</Identification>
+                <FormCreationDate t-out="data.create_date.strftime('%Y-%m-%d')"/>
+                <FormCreationHour t-out="data.create_date.strftime('%H:%M:%S.000')"/>
+                <AttestationStatus t-out="attestation_status"/>
+                <TypeForm>SU</TypeForm>
+                <DclInformation>
+                    <LanguageCodePdf t-out="declaration_lang"/>
+                </DclInformation>
+                <RiskIdentification>
+                    <IdentificationOfRisk t-out="risk_code"/>
+                </RiskIdentification>
+                <CoordinatesContactPerson t-if="contact_first_name">
+                    <Name t-out="contact_last_name"/>
+                    <FirstName t-out="contact_first_name"/>
+                    <Communication>
+                        <PhoneNbr t-out="contact_phone"/>
+                        <EmailAddress t-out="contact_email"/>
+                    </Communication>
+                </CoordinatesContactPerson>
+                <Reference>
+                    <ReferenceType>1</ReferenceType>
+                    <ReferenceOrigin>1</ReferenceOrigin>
+                    <ReferenceNbr t-out="data.display_name"/>
+                </Reference>
+                <EmployerDeclarationLink>
+                    <NOSSRegistrationNbr t-out="onss_registration_number"/>
+                    <Trusteeship>0</Trusteeship>
+                    <CompanyID t-out="l10n_be_company_number"/>
+                    <NaturalPerson>
+                        <NaturalPersonSequenceNbr>1</NaturalPersonSequenceNbr>
+                        <INSS t-if="data.employee_id.niss != '/'" t-out="data.employee_id.niss"/>
+                        <INSS t-else="">00000000000</INSS>
+                        <WorkerRecordLink t-if="attestation_status != 3">
+                            <EmployerClass t-out="employer_class"/>
+                            <WorkerCode t-out="worker_code"/>
+                            <OccupationLink>
+                                <OccupationStartingDate t-out="first_occupation_date"/>
+                                <JointCommissionNbr t-out="committee"/>
+                                <WorkingDaysSystem t-out="number_of_days_per_week"/>
+                                <MeanWorkingHours t-out="number_of_hours_per_week"/>
+                                <RefMeanWorkingHours t-out="reference_number_of_hours_per_week"/>
+                                <WorkerStatus t-out="worker_status"/>
+                                <Retired t-out="retired"/>
+                                <Apprenticeship t-if="apprenticeship" t-out="apprenticeship"/>
+                                <MonthlyDclYoungHolidays>
+                                    <ReferencePeriod>
+                                        <RefStartingDate t-out='date_from'/>
+                                        <RefEndingDate t-out='date_to'/>
+                                        <NatureOfDay t-foreach='nature_of_day_list' t-as='day'>
+                                            <DayIndicator t-out="day['date']"/>
+                                            <DayNatureCode t-out="day['nature_code']"/>
+                                            <HoursNumber t-out="day['hours_amount']"/>
+                                        </NatureOfDay>
+                                    </ReferencePeriod>
+                                    <CommentDeclaration t-if="declaration_comment">
+                                        <CommentOfDeclaration t-out="declaration_comment"/>
+                                    </CommentDeclaration>
+                                </MonthlyDclYoungHolidays>
+                            </OccupationLink>
+                        </WorkerRecordLink>
+                    </NaturalPerson>
+                </EmployerDeclarationLink>
+            </Form>
+        </WECH010>
+    </template>
+</odoo>

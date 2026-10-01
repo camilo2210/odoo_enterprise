@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<templates>
+<t t-name="voip.InCallView">
+    <div class="o-voip-InCallView h-100 w-100 d-flex flex-column" t-att-class="{ 'o-multipleBackSessions': this.displayedBackSessions.length > 1 }">
+        <div t-if="this.displayedBackSessions.length" class="border-bottom overflow-y-auto">
+            <t t-foreach="this.displayedBackSessions" t-as="session" t-key="session.key">
+                <CallBanner backSession="session" isFirst="session_first"/>
+            </t>
+        </div>
+        <t t-if="this.activeView === 'default'">
+            <t t-call="voip.InCallView-default"/>
+        </t>
+        <t t-elif="this.activeView === 'transfer'">
+            <TransferConfirmation frontSession="this.frontSession" targetContact="this.state.targetContact" targetPhoneNumber="this.state.targetPhoneNumber" t-if="this.softphone.inCallView.transferView.activeView === 'confirmation'"/>
+            <TransferView frontSession="this.frontSession" state="this.softphone.inCallView.transferView" contactExcludeFilter="this.contactExcludeFilter" onClickBack.bind="this.onClickBack" onClickTransferContact.bind="this.onClickTransferContact" onClickTransferPhone.bind="this.onClickTransferPhone" t-else=""/>
+        </t>
+        <t t-elif="this.activeView === 'addCall'">
+            <AddCallView state="this.softphone.inCallView.addCallView" contactExcludeFilter="this.contactExcludeFilter" onClickBack.bind="this.onClickBack"/>
+        </t>
+        <div class="o-voip-InCallView-pad grid p-3" t-if="!(this.activeView === 'transfer' and this.softphone.inCallView.transferView.activeView === 'confirmation')">
+            <t t-if="this.activeView === 'default' and !this.isKeypadOpen">
+                <ActionButton name.translate="Confirm Transfer" icon="'sync_alt'" inCallPad="true" extraClass="'g-col-6'" onClick.bind="this.onClickConfirmTransfer" disabled="!this.frontSession.isOngoing" t-if="this.userAgent.isInTransferPair(this.frontSession.key)"/>
+                <ActionButton name.translate="Transfer" icon="'sync_alt'" inCallPad="true" extraClass="'g-col-6'" onClick.bind="this.onClickTransfer" disabled="!this.frontSession.isOngoing" t-else=""/>
+                <ActionButton name.translate="Add Call" icon="'add'" inCallPad="true" extraClass="'g-col-6'" onClick.bind="this.onClickAddCall" disabled="!this.frontSession.isOngoing"/>
+                <ActionButton name.translate="Hold" icon="'pause'" iconClass="'oi-filled'" type="'secondary'" inCallPad="true" extraClass="'g-col-6 mb-2 ' + (this.frontSession.isOnHold ? 'active text-warning' : '')" disabled="!this.frontSession.isOngoing" onClick.bind="this.onClickHold"/>
+                <ActionButton name="this.recordButtonName" icon="'graphic_eq'" type="'secondary'" inCallPad="true" extraClass="'g-col-6 mb-2 ' + (this.isRecording ? (this.canToggleRecording ? 'active text-danger' : 'active') : '')" disabled="!this.canToggleRecording" onClick.bind="this.onClickToggleRecording"/>
+            </t>
+            <t t-if="this.activeView === 'default'">
+                <ActionButton name.translate="Mute" icon="'mic_off'" iconClass="'oi-filled'" type="'secondary'" inCallPad="true" extraClass="'g-col-4 me-2 ' + (this.frontSession.isMuted ? 'active' : '')" onClick.bind="this.onClickMute"/>
+                <ActionButton name.translate="Hang up" icon="'phone'" iconClass="'oi-filled o-voip-CallIcon-end oi-2x'" type="'danger'" hideLabel="true" inCallPad="true" extraClass="'g-col-4 rounded-pill'" onClick.bind="this.onClickHangUp"/>
+                <ActionButton name.translate="Keypad" icon="'dialpad'" inCallPad="true" extraClass="'g-col-4 ms-2' + (this.isKeypadOpen ? ' active' : '')" onClick.bind="this.onClickKeypad"/>
+            </t>
+            <t t-elif="this.activeView === 'transfer'">
+                <ActionButton name.translate="Contacts" icon="'person'" iconClass="'oi-filled'" type="'secondary'" inCallPad="true" extraClass="'g-col-6 ' + (this.softphone.inCallView.transferView.activeView === 'contacts' ? 'active' : '')" onClick.bind="this.onClickTransferContacts"/>
+                <ActionButton name.translate="Keypad" icon="'dialpad'" inCallPad="true" extraClass="'g-col-6 ' + (this.softphone.inCallView.transferView.activeView === 'keypad' ? 'active' : '')" onClick.bind="this.onClickTransferKeypad"/>
+            </t>
+            <t t-elif="this.activeView === 'addCall'">
+                <ActionButton name.translate="Contacts" icon="'person'" iconClass="'oi-filled'" type="'secondary'" inCallPad="true" extraClass="'g-col-6 ' + (this.softphone.inCallView.addCallView.activeView === 'contacts' ? 'active' : '')" onClick.bind="this.onClickAddCallContacts"/>
+                <ActionButton name.translate="Keypad" icon="'dialpad'" inCallPad="true" extraClass="'g-col-6 ' + (this.softphone.inCallView.addCallView.activeView === 'keypad' ? 'active' : '')" onClick.bind="this.onClickAddCallKeypad"/>
+            </t>
+        </div>
+    </div>
+</t>
+
+<t t-name="voip.InCallView-default">
+    <t t-if="this.isKeypadOpen">
+        <Keypad dtmf="true" state="this.softphone.inCallView.keypad.state"/>
+    </t>
+    <t t-else="">
+        <div class="d-flex flex-column flex-grow-1 flex-shrink-0 overflow-auto">
+            <ContactInfo contact="this.frontSession.call?.partner_id" phoneNumber="this.frontSession.displayedPhoneNumber" alias="this.frontSession.alias" extraClass="'my-3'"/>
+            <div class="d-flex justify-content-center gap-3">
+                <ActionList session="this.frontSession"/>
+                <ActionButton
+                    t-if="this.frontSession.call and !this.frontSession.call.activity_id"
+                    name.translate="Log"
+                    icon="'schedule'"
+                    type="'secondary'"
+                    onClick="() => this.frontSession.call.logToChatter()"
+                />
+            </div>
+            <div class="o-voip-InCallView-statusWrapper d-flex flex-column align-items-center justify-content-center flex-grow-1 mx-3 p-3">
+                <div t-if="this.frontSession.outboundNumber" class="d-flex flex-column align-items-center gap-1">
+                    <span class="fs-2 fw-bold" t-out="this.frontSession.timerText"/>
+                    <span class="d-flex align-items-center gap-1">
+                        <span>Via</span>
+                        <img t-if="this.frontSession.outboundNumber.flagUrl" class="o-voip-countryFlag ms-1 me-1" t-att-src="this.frontSession.outboundNumber.flagUrl" t-att-alt="this.frontSession.outboundNumber.countryName"/>
+                        <span t-out="this.frontSession.outboundNumber.formatted"/>
+                    </span>
+                </div>
+                <t t-else="">
+                    <div t-if="this.isRecording" class="d-flex gap-2 justify-content-center align-items-center">
+                        <i class="oi oi-filled text-danger" data-icon="circle"/>
+                        <span class="fs-2 fw-bold" t-out="this.frontSession.timerText"/>
+                    </div>
+                    <span t-else="" class="fs-2 fw-bold" t-out="this.frontSession.timerText"/>
+                </t>
+            </div>
+        </div>
+    </t>
+</t>
+</templates>

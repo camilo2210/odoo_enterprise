@@ -1,0 +1,1099 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo auto_sequence="1">
+    <record id="l10n_cl_reports.account_financial_report_f29" model="account.report">
+        <field name="active_fallback" eval="False"/>
+    </record>
+
+    <record id="tax_report_f29" model="account.report">
+        <field name="name">Proposal F29</field>
+        <field name="name@es_419">Propuesta F29</field>
+        <field name="root_report_id" ref="account.generic_tax_report"/>
+        <field name="country_id" ref="base.cl"/>
+        <field name="filter_multi_company">tax_units</field>
+        <field name="custom_handler_model_id" ref="model_l10n_cl_tax_report_handler"/>
+        <field name="column_ids">
+            <record id="f29_column_qty_010" model="account.report.column">
+                <field name="figure_type">integer</field>
+                <field name="name">Qty</field>
+                <field name="expression_label">quantity</field>
+            </record>
+            <record id="f29_column_code_020" model="account.report.column">
+                <field name="figure_type">string</field>
+                <field name="name">SII Code</field>
+                <field name="expression_label">sii_code</field>
+            </record>
+            <record id="f29_column_base_030" model="account.report.column">
+                <field name="figure_type">monetary</field>
+                <field name="name">Base</field>
+                <field name="expression_label">balance</field>
+            </record>
+            <record id="f29_column_code2_040" model="account.report.column">
+                <field name="figure_type">string</field>
+                <field name="name">SII Code</field>
+                <field name="expression_label">sii_code2</field>
+            </record>
+            <record id="f29_column_tax_050" model="account.report.column">
+                <field name="figure_type">monetary</field>
+                <field name="name">Tax</field>
+                <field name="expression_label">tax_balance</field>
+            </record>
+        </field>
+        <field name="line_ids">
+            <!-- Section 01: Sales without taxes -->
+            <record id="account_financial_report_f29_line_01" model="account.report.line">
+                <field name="name">Exempt Income</field>
+                <field name="code">CL_EXEMPT</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="f29_01_qty_l1_010" model="account.report.expression">
+                        <field name="label">quantity</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">CL_020.quantity + CL_142.quantity</field>
+                    </record>
+                    <record id="f29_01_base_l1_020" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">CL_020.balance + CL_142.balance</field>
+                    </record>
+                </field>
+                <field name="children_ids">
+                    <record id="f29_01_child_1" model="account.report.line">
+                        <field name="name">(585) Export documents</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="code">CL_020</field>
+                        <field name="expression_ids">
+                            <record id="f29_01_child_1_qty_l2_010" model="account.report.expression">
+                                <field name="label">quantity</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_f29_combined</field>
+                                <field name="subformula">count_rows_020</field>
+                                <field name="green_on_positive" eval="False"/>
+                                <field name="auditable" eval="True"/>
+                            </record>
+                            <record id="f29_01_child_1_code_l2_020" model="account.report.expression">
+                                <field name="label">sii_code</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(020)</field>
+                            </record>
+                            <record id="f29_01_child_1_base_l2_030" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_f29_combined</field>
+                                <field name="subformula">base_sum_020</field>
+                                <field name="auditable" eval="True"/>
+                                <field name="green_on_positive" eval="False"/>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="f29_01_child_2" model="account.report.line">
+                        <field name="name">(586) Exempt Invoices issued for sales and services or for 3rd parties reps</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="code">CL_142</field>
+                        <field name="expression_ids">
+                            <record id="f29_01_child_2_qty_l2_040" model="account.report.expression">
+                                <field name="label">quantity</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_f29_combined</field>
+                                <field name="subformula">count_rows_142</field>
+                                <field name="green_on_positive" eval="False"/>
+                                <field name="auditable" eval="True"/>
+                            </record>
+                            <record id="f29_01_child_2_code_l2_050" model="account.report.expression">
+                                <field name="label">sii_code</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(142)</field>
+                            </record>
+                            <record id="f29_01_child_2_base_l2_060" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_f29_combined</field>
+                                <field name="subformula">base_sum_142</field>
+                                <field name="auditable" eval="True"/>
+                                <field name="green_on_positive" eval="False"/>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <!-- Section 02: Sales with taxes -->
+            <record id="f29_02_line_l1_010" model="account.report.line">
+                <field name="name">(023) Generates Debit</field>
+                <field name="name@es_419">(023) Genera Débito</field>
+                <field name="code">CL_INT_538</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="f29_02_qty_l1_010" model="account.report.expression">
+                        <field name="label">quantity</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">CL_502.quantity + CL_111.quantity + CL_513.quantity + CL_510.quantity</field>
+                    </record>
+                    <record id="f29_02_code_l1_020" model="account.report.expression">
+                        <field name="label">sii_code</field>
+                        <field name="engine">text</field>
+                        <field name="formula">(538)</field>
+                    </record>
+                    <record id="f29_02_base_l1_030" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">CL_502.balance + CL_111.balance + CL_513.balance + CL_510.balance</field>
+                    </record>
+                    <record id="f29_02_code2_l1_040" model="account.report.expression">
+                        <field name="label">sii_code2</field>
+                        <field name="engine">text</field>
+                        <field name="formula">(538)</field>
+                    </record>
+                    <record id="f29_02_tax_l1_050" model="account.report.expression">
+                        <field name="label">tax_balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">CL_502.tax_balance + CL_111.tax_balance + CL_513.tax_balance + CL_510.tax_balance</field>
+                    </record>
+                </field>
+                <field name="children_ids">
+                    <record id="f29_02_child_1_010" model="account.report.line">
+                        <field name="name">(503) Invoices issued for sales and services or for 3rd parties reps</field>
+                        <field name="code">CL_502</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="expression_ids">
+                            <record id="f29_02_child_1_qty_l2_010" model="account.report.expression">
+                                <field name="label">quantity</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_f29_combined</field>
+                                <field name="subformula">count_rows_502</field>
+                                <field name="green_on_positive" eval="False"/>
+                                <field name="auditable" eval="True"/>
+                            </record>
+                            <record id="f29_02_child_1_code_l2_020" model="account.report.expression">
+                                <field name="label">sii_code</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(503)</field>
+                            </record>
+                            <record id="f29_02_child_1_base_l2_030" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_f29_combined</field>
+                                <field name="subformula">base_sum_502</field>
+                                <field name="green_on_positive" eval="False"/>
+                                <field name="auditable" eval="True"/>
+                            </record>
+                            <record id="f29_02_child_1_code2_l2_040" model="account.report.expression">
+                                <field name="label">sii_code2</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(502)</field>
+                            </record>
+                            <record id="f29_02_child_1_tax_l2_050" model="account.report.expression">
+                                <field name="label">tax_balance</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_f29_combined</field>
+                                <field name="subformula">tax_sum_502</field>
+                                <field name="green_on_positive" eval="False"/>
+                                <field name="auditable" eval="True"/>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="f29_02_child_2_060" model="account.report.line">
+                        <field name="name">(110) Receipts</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="code">CL_111</field>
+                        <field name="expression_ids">
+                            <record id="f29_02_child_2_qty_l2_060" model="account.report.expression">
+                                <field name="label">quantity</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_f29_combined</field>
+                                <field name="subformula">count_rows_111</field>
+                                <field name="green_on_positive" eval="False"/>
+                                <field name="auditable" eval="True"/>
+                            </record>
+                            <record id="f29_02_child_2_code_l2_070" model="account.report.expression">
+                                <field name="label">sii_code</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(110)</field>
+                            </record>
+                            <record id="f29_02_child_2_base_l2_080" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_f29_combined</field>
+                                <field name="subformula">base_sum_111</field>
+                                <field name="green_on_positive" eval="False"/>
+                                <field name="auditable" eval="True"/>
+                            </record>
+                            <record id="f29_02_child_2_code2_l2_090" model="account.report.expression">
+                                <field name="label">sii_code2</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(111)</field>
+                            </record>
+                            <record id="f29_02_child_2_tax_l2_100" model="account.report.expression">
+                                <field name="label">tax_balance</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_f29_combined</field>
+                                <field name="subformula">tax_sum_111</field>
+                                <field name="green_on_positive" eval="False"/>
+                                <field name="auditable" eval="True"/>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="f29_02_child_3_110" model="account.report.line">
+                        <field name="name">(512) Debit Notes</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="code">CL_513</field>
+                        <field name="expression_ids">
+                            <record id="f29_02_child_3_qty_l2_110" model="account.report.expression">
+                                <field name="label">quantity</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_f29_combined</field>
+                                <field name="subformula">count_rows_513</field>
+                                <field name="green_on_positive" eval="False"/>
+                                <field name="auditable" eval="True"/>
+                            </record>
+                            <record id="f29_02_child_3_code_l2_120" model="account.report.expression">
+                                <field name="label">sii_code</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(512)</field>
+                            </record>
+                            <record id="f29_02_child_3_base_l2_130" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_f29_combined</field>
+                                <field name="subformula">base_sum_513</field>
+                                <field name="green_on_positive" eval="False"/>
+                                <field name="auditable" eval="True"/>
+                            </record>
+                            <record id="f29_02_child_3_code2_l2_140" model="account.report.expression">
+                                <field name="label">sii_code2</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(513)</field>
+                            </record>
+                            <record id="f29_02_child_3_tax_l2_150" model="account.report.expression">
+                                <field name="label">tax_balance</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_f29_combined</field>
+                                <field name="subformula">tax_sum_513</field>
+                                <field name="green_on_positive" eval="False"/>
+                                <field name="auditable" eval="True"/>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="f29_02_child_4_160" model="account.report.line">
+                        <field name="name">(509) Credit Notes</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="code">CL_510</field>
+                        <field name="expression_ids">
+                            <record id="f29_02_child_4_qty_l2_160" model="account.report.expression">
+                                <field name="label">quantity</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_f29_combined</field>
+                                <field name="subformula">count_rows_510</field>
+                                <field name="green_on_positive" eval="False"/>
+                                <field name="auditable" eval="True"/>
+                            </record>
+                            <record id="f29_02_child_4_code_l2_170" model="account.report.expression">
+                                <field name="label">sii_code</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(509)</field>
+                            </record>
+                            <record id="f29_02_child_4_base_l2_180" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_f29_combined</field>
+                                <field name="subformula">base_sum_510</field>
+                                <field name="green_on_positive" eval="False"/>
+                                <field name="auditable" eval="True"/>
+                            </record>
+                            <record id="f29_02_child_4_code2_l2_190" model="account.report.expression">
+                                <field name="label">sii_code2</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(510)</field>
+                            </record>
+                            <record id="f29_02_child_4_tax_l2_200" model="account.report.expression">
+                                <field name="label">tax_balance</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_f29_combined</field>
+                                <field name="subformula">tax_sum_510</field>
+                                <field name="green_on_positive" eval="False"/>
+                                <field name="auditable" eval="True"/>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <!-- Section 03: Purchases -->
+            <record id="f29_03_line_l1_010" model="account.report.line">
+                <field name="name">Credit and Purchases</field>
+                <field name="name@es_419">Créditos y Compras</field>
+                <field name="code">CL_PURCHT</field>
+                <field name="hierarchy_level">0</field>
+                <field name="children_ids">
+                    <record id="f29_03_child_1_l2_010" model="account.report.line">
+                        <field name="name">Without Credit Rights</field>
+                        <field name="name@es_419">Sin derecho a credito</field>
+                        <field name="code">CL_PURCHNOCF</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="expression_ids">
+                            <record id="f29_03_child_1_qty_l2_015" model="account.report.expression">
+                                <field name="label">quantity</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">CL_IVACF_521.quantity</field>
+                                <field name="auditable" eval="True"/>
+                            </record>
+                            <record id="f29_03_child_1_qty_l2_016" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">CL_IVACF_521.balance</field>
+                                <field name="auditable" eval="True"/>
+                            </record>
+                            <record id="f29_03_child_1_qty_l2_017" model="account.report.expression">
+                                <field name="label">tax_balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">CL_IVACF_521.tax_balance</field>
+                                <field name="auditable" eval="True"/>
+                            </record>
+                        </field>
+                        <field name="children_ids">
+                            <record id="f29_03_child_1_child_1_l3_010" model="account.report.line">
+                                <field name="name">(564) Internal affected</field>
+                                <field name="name@es_419">(564) Internas afectas</field>
+                                <field name="code">CL_IVACF_521</field>
+                                <field name="foldability">foldable</field>
+                                <field name="hierarchy_level">2</field>
+                                <field name="expression_ids">
+                                    <record id="f29_03_child_1_child_1_qty_l3_010" model="account.report.expression">
+                                        <field name="label">quantity</field>
+                                        <field name="engine">custom</field>
+                                        <field name="formula">_report_engine_f29_combined</field>
+                                        <field name="subformula">count_rows_521</field>
+                                        <field name="auditable" eval="True"/>
+                                    </record>
+                                    <record id="f29_03_child_1_child_1_code_l3_020" model="account.report.expression">
+                                        <field name="label">sii_code</field>
+                                        <field name="engine">text</field>
+                                        <field name="formula">(564)</field>
+                                    </record>
+                                    <record id="f29_03_child_1_child_1_base_l3_030" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">custom</field>
+                                        <field name="formula">_report_engine_f29_combined</field>
+                                        <field name="subformula">base_sum_521</field>
+                                        <field name="auditable" eval="True"/>
+                                    </record>
+                                    <record id="f29_03_child_1_child_1_code2_l3_040" model="account.report.expression">
+                                        <field name="label">sii_code2</field>
+                                        <field name="engine">text</field>
+                                        <field name="formula">(521)</field>
+                                    </record>
+                                    <record id="f29_03_child_1_child_1_tax_l3_050" model="account.report.expression">
+                                        <field name="label">tax_balance</field>
+                                        <field name="engine">custom</field>
+                                        <field name="formula">_report_engine_f29_combined</field>
+                                        <field name="subformula">tax_sum_521</field>
+                                        <field name="auditable" eval="True"/>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="f29_03_child_1_child_2_l3_060" model="account.report.line">
+                                <field name="name">(566) Imports</field>
+                                <field name="name@es_419">(566) Importaciones</field>
+                                <field name="code">CL_IMPORT_566</field>
+                                <field name="foldability">foldable</field>
+                                <field name="hierarchy_level">2</field>
+                                <field name="expression_ids">
+                                    <record id="f29_03_child_1_child_2_qty_l3_060" model="account.report.expression">
+                                        <field name="label">quantity</field>
+                                        <field name="engine">custom</field>
+                                        <field name="formula">_report_engine_f29_combined</field>
+                                        <field name="subformula">count_rows_566</field>
+                                        <field name="auditable" eval="True"/>
+                                    </record>
+                                    <record id="f29_03_child_1_child_2_code_l3_070" model="account.report.expression">
+                                        <field name="label">sii_code</field>
+                                        <field name="engine">text</field>
+                                        <field name="formula">(566)</field>
+                                    </record>
+                                    <record id="f29_03_child_1_child_2_base_l3_080" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">custom</field>
+                                        <field name="formula">_report_engine_f29_combined</field>
+                                        <field name="subformula">base_sum_566</field>
+                                        <field name="auditable" eval="True"/>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="f29_03_child_1_child_3_l3_090" model="account.report.line">
+                                <field name="name">(562) internal exempt or not taxed</field>
+                                <field name="name@es_419">(562) Internas exentas o no gravadas</field>
+                                <field name="code">CL_IVAEX_562</field>
+                                <field name="foldability">foldable</field>
+                                <field name="hierarchy_level">2</field>
+                                <field name="expression_ids">
+                                    <record id="f29_03_child_1_child_3_qty_l3_090" model="account.report.expression">
+                                        <field name="label">quantity</field>
+                                        <field name="engine">custom</field>
+                                        <field name="formula">_report_engine_f29_combined</field>
+                                        <field name="subformula">count_rows_562</field>
+                                        <field name="auditable" eval="True"/>
+                                    </record>
+                                    <record id="f29_03_child_1_child_3_code_l3_100" model="account.report.expression">
+                                        <field name="label">sii_code</field>
+                                        <field name="engine">text</field>
+                                        <field name="formula">(562)</field>
+                                    </record>
+                                    <record id="f29_03_child_1_child_3_base_l3_110" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">custom</field>
+                                        <field name="formula">_report_engine_f29_combined</field>
+                                        <field name="subformula">base_sum_562</field>
+                                        <field name="auditable" eval="True"/>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="f29_03_child_2_l2_120" model="account.report.line">
+                        <field name="name">Purchases with credit rights</field>
+                        <field name="name@es_419">Compras con derecho a crédito</field>
+                        <field name="code">CL_INT_537</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="expression_ids">
+                            <record id="f29_03_child_2_qty_l2_120" model="account.report.expression">
+                                <field name="label">quantity</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">CL_PURCH_I.quantity + CL_IMPORT_I.quantity</field>
+                            </record>
+                            <record id="f29_03_child_2_qty_l2_125" model="account.report.expression">
+                                <field name="label">sii_code</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(049)</field>
+                            </record>
+                            <record id="f29_03_child_2_base_l2_130" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">CL_PURCH_I.balance + CL_IMPORT_I.balance</field>
+                            </record>
+                            <record id="f29_03_child_2_qty_l2_135" model="account.report.expression">
+                                <field name="label">sii_code2</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(537)</field>
+                            </record>
+                            <record id="f29_03_child_2_tax_l2_140" model="account.report.expression">
+                                <field name="label">tax_balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">CL_PURCH_I.tax_balance + CL_IMPORT_I.tax_balance</field>
+                            </record>
+                        </field>
+                        <field name="children_ids">
+                            <record id="f29_03_child_2_child_1_l3_150" model="account.report.line">
+                                <field name="name">Internal</field>
+                                <field name="name@es_419">Internas</field>
+                                <field name="code">CL_PURCH_I</field>
+                                <field name="hierarchy_level">2</field>
+                                <field name="expression_ids">
+                                    <record id="f29_03_child_2_child_1_qty_l3_150" model="account.report.expression">
+                                        <field name="label">quantity</field>
+                                        <field name="engine">aggregation</field>
+                                        <field name="formula">CL_520.quantity + CL_762.quantity + CL_525.quantity + CL_528.quantity + CL_532.quantity</field>
+                                    </record>
+                                    <record id="f29_03_child_2_child_1_base_l3_170" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">aggregation</field>
+                                        <field name="formula">CL_520.balance + CL_762.balance + CL_525.balance + CL_528.balance + CL_532.balance</field>
+                                    </record>
+                                    <record id="f29_03_child_2_child_1_tax_l3_190" model="account.report.expression">
+                                        <field name="label">tax_balance</field>
+                                        <field name="engine">aggregation</field>
+                                        <field name="formula">CL_520.tax_balance + CL_762.tax_balance + CL_525.tax_balance + CL_528.tax_balance + CL_532.tax_balance</field>
+                                    </record>
+                                </field>
+                                <field name="children_ids">
+                                    <record id="f29_03_child_2_child_1_child_1_l4_010" model="account.report.line">
+                                        <field name="name">(519) Received invoices from the current activity</field>
+                                        <field name="name@es_419">(519) Facturas recibidas del giro</field>
+                                        <field name="hierarchy_level">2</field>
+                                        <field name="code">CL_520</field>
+                                        <field name="expression_ids">
+                                            <record id="f29_03_child_2_child_1_qty_l4_010" model="account.report.expression">
+                                                <field name="label">quantity</field>
+                                                <field name="engine">custom</field>
+                                                <field name="formula">_report_engine_f29_combined</field>
+                                                <field name="subformula">count_rows_520</field>
+                                                <field name="green_on_positive" eval="False"/>
+                                                <field name="auditable" eval="True"/>
+                                            </record>
+                                            <record id="f29_03_child_2_child_1_code_l4_020" model="account.report.expression">
+                                                <field name="label">sii_code</field>
+                                                <field name="engine">text</field>
+                                                <field name="formula">(519)</field>
+                                            </record>
+                                            <record id="f29_03_child_2_child_1_base_l4_030" model="account.report.expression">
+                                                <field name="label">balance</field>
+                                                <field name="engine">custom</field>
+                                                <field name="formula">_report_engine_f29_combined</field>
+                                                <field name="subformula">base_sum_520</field>
+                                                <field name="green_on_positive" eval="False"/>
+                                                <field name="auditable" eval="True"/>
+                                            </record>
+                                            <record id="f29_03_child_2_child_1_code2_l4_040" model="account.report.expression">
+                                                <field name="label">sii_code2</field>
+                                                <field name="engine">text</field>
+                                                <field name="formula">(520)</field>
+                                            </record>
+                                            <record id="f29_03_child_2_child_1_tax_l4_050" model="account.report.expression">
+                                                <field name="label">tax_balance</field>
+                                                <field name="engine">custom</field>
+                                                <field name="formula">_report_engine_f29_combined</field>
+                                                <field name="subformula">tax_sum_520</field>
+                                                <field name="green_on_positive" eval="False"/>
+                                                <field name="auditable" eval="True"/>
+                                            </record>
+                                        </field>
+                                    </record>
+                                    <record id="f29_03_child_2_child_1_child_2_l4_060" model="account.report.line">
+                                        <field name="name">(761) Received invoices from supermarkets an similar suppliers</field>
+                                        <field name="name@es_419">(761) Facturas recibidas de supermercados y proveedores similares</field>
+                                        <field name="hierarchy_level">2</field>
+                                        <field name="code">CL_762</field>
+                                        <field name="expression_ids">
+                                            <record id="f29_03_qty_l4_060" model="account.report.expression">
+                                                <field name="label">quantity</field>
+                                                <field name="engine">custom</field>
+                                                <field name="formula">_report_engine_f29_combined</field>
+                                                <field name="subformula">count_rows_762</field>
+                                                <field name="green_on_positive" eval="False"/>
+                                                <field name="auditable" eval="True"/>
+                                            </record>
+                                            <record id="f29_03_code_l4_070" model="account.report.expression">
+                                                <field name="label">sii_code</field>
+                                                <field name="engine">text</field>
+                                                <field name="formula">(761)</field>
+                                            </record>
+                                            <record id="f29_03_base_l4_080" model="account.report.expression">
+                                                <field name="label">balance</field>
+                                                <field name="engine">custom</field>
+                                                <field name="formula">_report_engine_f29_combined</field>
+                                                <field name="subformula">base_sum_762</field>
+                                                <field name="green_on_positive" eval="False"/>
+                                                <field name="auditable" eval="True"/>
+                                            </record>
+                                            <record id="f29_03_code2_l4_090" model="account.report.expression">
+                                                <field name="label">sii_code2</field>
+                                                <field name="engine">text</field>
+                                                <field name="formula">(762)</field>
+                                            </record>
+                                            <record id="f29_03_tax_l4_100" model="account.report.expression">
+                                                <field name="label">tax_balance</field>
+                                                <field name="engine">custom</field>
+                                                <field name="formula">_report_engine_f29_combined</field>
+                                                <field name="subformula">tax_sum_762</field>
+                                                <field name="green_on_positive" eval="False"/>
+                                                <field name="auditable" eval="True"/>
+                                            </record>
+                                        </field>
+                                    </record>
+                                    <record id="f29_03_child_2_child_1_child_3_l4_110" model="account.report.line">
+                                        <field name="name">(524) Fixed Assets Invoices</field>
+                                        <field name="name@es_419">(524) Facturas Activo Fijo</field>
+                                        <field name="hierarchy_level">2</field>
+                                        <field name="code">CL_525</field>
+                                        <field name="expression_ids">
+                                            <record id="f29_03_qty_l4_110" model="account.report.expression">
+                                                <field name="label">quantity</field>
+                                                <field name="engine">custom</field>
+                                                <field name="formula">_report_engine_f29_combined</field>
+                                                <field name="subformula">count_rows_525</field>
+                                                <field name="green_on_positive" eval="False"/>
+                                                <field name="auditable" eval="True"/>
+                                            </record>
+                                            <record id="f29_03_code_l4_120" model="account.report.expression">
+                                                <field name="label">sii_code</field>
+                                                <field name="engine">text</field>
+                                                <field name="formula">(524)</field>
+                                            </record>
+                                            <record id="f29_03_base_l4_130" model="account.report.expression">
+                                                <field name="label">balance</field>
+                                                <field name="engine">custom</field>
+                                                <field name="formula">_report_engine_f29_combined</field>
+                                                <field name="subformula">base_sum_525</field>
+                                                <field name="green_on_positive" eval="False"/>
+                                                <field name="auditable" eval="True"/>
+                                            </record>
+                                            <record id="f29_03_code2_l4_140" model="account.report.expression">
+                                                <field name="label">sii_code2</field>
+                                                <field name="engine">text</field>
+                                                <field name="formula">(525)</field>
+                                            </record>
+                                            <record id="f29_03_tax_l4_150" model="account.report.expression">
+                                                <field name="label">tax_balance</field>
+                                                <field name="engine">custom</field>
+                                                <field name="formula">_report_engine_f29_combined</field>
+                                                <field name="subformula">tax_sum_525</field>
+                                                <field name="green_on_positive" eval="False"/>
+                                                <field name="auditable" eval="True"/>
+                                            </record>
+                                        </field>
+                                    </record>
+                                    <record id="f29_03_child_2_child_1_child_4_l4_160" model="account.report.line">
+                                        <field name="name">(527) Received Credit notes over received invoices and issued invoices over subject change</field>
+                                        <field name="name@es_419">(527) Notas de crédito recibidas y notas de crédito emitidas por retención de cambio de sujeto</field>
+                                        <field name="hierarchy_level">2</field>
+                                        <field name="code">CL_528</field>
+                                        <field name="expression_ids">
+                                            <record id="f29_03_qty_l4_160" model="account.report.expression">
+                                                <field name="label">quantity</field>
+                                                <field name="engine">custom</field>
+                                                <field name="formula">_report_engine_f29_combined</field>
+                                                <field name="subformula">count_rows_528</field>
+                                                <field name="green_on_positive" eval="False"/>
+                                                <field name="auditable" eval="True"/>
+                                            </record>
+                                            <record id="f29_03_code_l4_170" model="account.report.expression">
+                                                <field name="label">sii_code</field>
+                                                <field name="engine">text</field>
+                                                <field name="formula">(527)</field>
+                                            </record>
+                                            <record id="f29_03_base_l4_180" model="account.report.expression">
+                                                <field name="label">balance</field>
+                                                <field name="engine">custom</field>
+                                                <field name="formula">_report_engine_f29_combined</field>
+                                                <field name="subformula">base_sum_528</field>
+                                                <field name="green_on_positive" eval="False"/>
+                                                <field name="auditable" eval="True"/>
+                                            </record>
+                                            <record id="f29_03_code2_l4_190" model="account.report.expression">
+                                                <field name="label">sii_code2</field>
+                                                <field name="engine">text</field>
+                                                <field name="formula">(528)</field>
+                                            </record>
+                                            <record id="f29_03_tax_l4_200" model="account.report.expression">
+                                                <field name="label">tax_balance</field>
+                                                <field name="engine">custom</field>
+                                                <field name="formula">_report_engine_f29_combined</field>
+                                                <field name="subformula">tax_sum_528</field>
+                                                <field name="green_on_positive" eval="False"/>
+                                                <field name="auditable" eval="True"/>
+                                            </record>
+                                        </field>
+                                    </record>
+                                    <record id="f29_03_child_2_child_1_child_5_l4_210" model="account.report.line">
+                                        <field name="name">(531) Received debit notes and issued debit notes by subject change invoices</field>
+                                        <field name="name@es_419">(531) Notas de débito recibidas y notas de débito emitidas por retención de cambio de sujeto</field>
+                                        <field name="hierarchy_level">2</field>
+                                        <field name="code">CL_532</field>
+                                        <field name="expression_ids">
+                                            <record id="f29_03_qty_l4_210" model="account.report.expression">
+                                                <field name="label">quantity</field>
+                                                <field name="engine">custom</field>
+                                                <field name="formula">_report_engine_f29_combined</field>
+                                                <field name="subformula">count_rows_532</field>
+                                                <field name="green_on_positive" eval="False"/>
+                                                <field name="auditable" eval="True"/>
+                                            </record>
+                                            <record id="f29_03_code_l4_220" model="account.report.expression">
+                                                <field name="label">sii_code</field>
+                                                <field name="engine">text</field>
+                                                <field name="formula">(531)</field>
+                                            </record>
+                                            <record id="f29_03_base_l4_230" model="account.report.expression">
+                                                <field name="label">balance</field>
+                                                <field name="engine">custom</field>
+                                                <field name="formula">_report_engine_f29_combined</field>
+                                                <field name="subformula">base_sum_532</field>
+                                                <field name="green_on_positive" eval="False"/>
+                                                <field name="auditable" eval="True"/>
+                                            </record>
+                                            <record id="f29_03_code2_l4_240" model="account.report.expression">
+                                                <field name="label">sii_code2</field>
+                                                <field name="engine">text</field>
+                                                <field name="formula">(532)</field>
+                                            </record>
+                                            <record id="f29_03_tax_l4_250" model="account.report.expression">
+                                                <field name="label">tax_balance</field>
+                                                <field name="engine">custom</field>
+                                                <field name="formula">_report_engine_f29_combined</field>
+                                                <field name="subformula">tax_sum_532</field>
+                                                <field name="green_on_positive" eval="False"/>
+                                                <field name="auditable" eval="True"/>
+                                            </record>
+                                        </field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="f29_03_child_2_child_2_l5_160" model="account.report.line">
+                                <field name="name">Imports (DIN)</field>
+                                <field name="name@es_419">Importaciones (DIN)</field>
+                                <field name="code">CL_IMPORT_I</field>
+                                <field name="hierarchy_level">2</field>
+                                <field name="expression_ids">
+                                    <record id="f29_03_child_2_child_1_qty_l5_010" model="account.report.expression">
+                                        <field name="label">quantity</field>
+                                        <field name="engine">aggregation</field>
+                                        <field name="formula">CL_535.quantity</field>
+                                    </record>
+                                    <record id="f29_03_child_2_child_1_base_l5_020" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">aggregation</field>
+                                        <field name="formula">CL_535.balance</field>
+                                    </record>
+                                    <record id="f29_03_child_2_child_1_sii2_l5_030" model="account.report.expression">
+                                        <field name="label">sii_code2</field>
+                                        <field name="engine">text</field>
+                                        <field name="formula">(535-553)</field>
+                                    </record>
+                                    <record id="f29_03_child_2_child_1_tax_l5_040" model="account.report.expression">
+                                        <field name="label">tax_balance</field>
+                                        <field name="engine">aggregation</field>
+                                        <field name="formula">CL_535.tax_balance</field>
+                                    </record>
+                                </field>
+                                <field name="children_ids">
+                                    <record id="f29_03_child_2_child_2_child_1_l6_010" model="account.report.line">
+                                        <field name="name">(34-35) Income declarations (DIN) activity imports and/or fixed asssets imports</field>
+                                        <field name="name@es_419">(34-35) Declaraciones de ingreso (DIN) importaciones y/o importaciones de activo fijo
+                                            deel giro
+                                        </field>
+                                        <field name="hierarchy_level">2</field>
+                                        <field name="code">CL_535</field>
+                                        <field name="expression_ids">
+                                            <record id="f29_03_child_2_child_2_child_1_qty_l6_010" model="account.report.expression">
+                                                <field name="label">quantity</field>
+                                                <field name="engine">custom</field>
+                                                <field name="formula">_report_engine_f29_combined</field>
+                                                <field name="subformula">count_rows_535</field>
+                                                <field name="green_on_positive" eval="False"/>
+                                                <field name="auditable" eval="True"/>
+                                            </record>
+                                            <record id="f29_03_child_2_child_2_child_1_code_l6_020" model="account.report.expression">
+                                                <field name="label">sii_code</field>
+                                                <field name="engine">text</field>
+                                                <field name="formula">(534-536)</field>
+                                            </record>
+                                            <record id="f29_03_child_2_child_2_child_1_base_l6_030" model="account.report.expression">
+                                                <field name="label">balance</field>
+                                                <field name="engine">custom</field>
+                                                <field name="formula">_report_engine_f29_combined</field>
+                                                <field name="subformula">base_sum_535</field>
+                                                <field name="green_on_positive" eval="False"/>
+                                                <field name="auditable" eval="True"/>
+                                            </record>
+                                            <record id="f29_03_child_2_child_2_child_1_code2_l6_040" model="account.report.expression">
+                                                <field name="label">sii_code2</field>
+                                                <field name="engine">text</field>
+                                                <field name="formula">(535-553)</field>
+                                            </record>
+                                            <record id="f29_03_child_2_child_2_child_1_tax_l6_050" model="account.report.expression">
+                                                <field name="label">tax_balance</field>
+                                                <field name="engine">custom</field>
+                                                <field name="formula">_report_engine_f29_combined</field>
+                                                <field name="subformula">tax_sum_535</field>
+                                                <field name="green_on_positive" eval="False"/>
+                                                <field name="auditable" eval="True"/>
+                                            </record>
+                                        </field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <!-- Section 03a: subject change DL 825 (not supported, less common) -->
+            <!-- Section 03b: subject change -->
+            <record id="f29_03b_line_l1_010" model="account.report.line">
+                <field name="name">Subject Change (Withholding Agent)</field>
+                <field name="name@es_419">Cambio de Sujeto (Agente Retenedor)</field>
+                <field name="code">CL_SUBCH</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="f29_03b_exp_qty_l1_010" model="account.report.expression">
+                        <field name="label">quantity</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">CL_IVARET_039.quantity</field>
+                        <field name="auditable" eval="True"/>
+                    </record>
+                    <record id="f29_03b_exp_tax_l1_010" model="account.report.expression">
+                        <field name="label">tax_balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">CL_IVARET_039.tax_balance</field>
+                        <field name="auditable" eval="True"/>
+                    </record>
+                </field>
+                <field name="children_ids">
+                    <record id="f29_03b_child1_010" model="account.report.line">
+                        <field name="name">(113) Total VAT withholded to 3rd parties (Art. 14 DL 825 Rate)</field>
+                        <field name="name@es_419">(113) IVA total retenido a terceros (tasa Art. 14 DL 825)</field>
+                        <field name="code">CL_IVARET_039</field>
+                        <field name="foldability">foldable</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="expression_ids">
+                            <record id="f29_03b_child1_exp_l1_qty_020" model="account.report.expression">
+                                <field name="label">quantity</field>
+                                <field name="engine">custom</field>
+                                <field name="figure_type">string</field>
+                                <field name="formula">_report_engine_f29_combined</field>
+                                <field name="subformula">count_rows_039</field>
+                                <field name="auditable" eval="False"/>
+                            </record>
+                            <record id="f29_03b_child1_exp_l1_code2_020" model="account.report.expression">
+                                <field name="label">sii_code2</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(039)</field>
+                            </record>
+                            <record id="f29_03b_child1_exp_l1_tax_020" model="account.report.expression">
+                                <field name="label">tax_balance</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_f29_combined</field>
+                                <field name="subformula">tax_sum_039</field>
+                                <field name="auditable" eval="True"/>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <!-- Section 04 summary -->
+            <record id="f29_04_line_l1_010" model="account.report.line">
+                <field name="name">Taxes for the Period (Negative: Balance in Favor of the Company)</field>
+                <field name="name@es_419">Impuestos para el Periodo (Negativo: Saldo a Favor de la Compañía)
+                </field>
+                <field name="code">CL_TAG_547</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="f29_04_code2_l1_010" model="account.report.expression">
+                        <field name="label">sii_code2</field>
+                        <field name="engine">text</field>
+                        <field name="formula">(547)</field>
+                    </record>
+                    <record id="f29_04_tax_l1_020" model="account.report.expression">
+                        <field name="label">tax_balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">CL_TAX_089.tax_balance - CL_TAG_077.tax_balance + CL_TAG_048.tax_balance +
+                            CL_I_IR2C.tax_balance + CL_TAG_062.tax_balance + CL_I_RTI.tax_balance
+                        </field>
+                        <field name="green_on_positive" eval="False"/>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                </field>
+                <field name="children_ids">
+                    <record id="f29_04_child_1" model="account.report.line">
+                        <field name="name">VAT Tax Postponement</field>
+                        <field name="name@es_419">Postergación del pago de IVA</field>
+                        <field name="code">CL_TAG_755</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="expression_ids">
+                            <record id="f29_04_child_1_bool_l3_010" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">external</field>
+                                <field name="formula">most_recent</field>
+                                <field name="subformula">editable</field>
+                                <field name="figure_type">boolean</field>
+                            </record>
+                            <record id="f29_04_child_1_code2_l3_010" model="account.report.expression">
+                                <field name="label">sii_code2</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(755)</field>
+                            </record>
+                            <record id="f29_04_child_1_tax_l3_010" model="account.report.expression">
+                                <field name="label">tax_balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">CL_TAG_755.balance * (CL_INT_538.tax_balance - CL_INT_537.tax_balance)</field>
+                                <field name="figure_type">monetary</field>
+                                <field name="subformula" eval="False"/>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="f29_04_child_2" model="account.report.line">
+                        <field name="name">VAT Tax Debit</field>
+                        <field name="name@es_419">IVA Debito Fiscal</field>
+                        <field name="code">CL_ITAX_19</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="expression_ids">
+                            <record id="f29_04_child_2_code2_l2_020" model="account.report.expression">
+                                <field name="label">sii_code2</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(538)</field>
+                            </record>
+                            <record id="f29_04_child_2_tax_l2_030" model="account.report.expression">
+                                <field name="label">tax_balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">CL_INT_538.tax_balance</field>
+                                <field name="green_on_positive" eval="False"/>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="f29_04_child_3" model="account.report.line">
+                        <field name="name">VAT Tax Credit</field>
+                        <field name="name@es_419">IVA Credito Fiscal</field>
+                        <field name="code">CL_OTAX_19</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="expression_ids">
+                            <record id="f29_04_child_3_code2_l2_020" model="account.report.expression">
+                                <field name="label">sii_code2</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(537)</field>
+                            </record>
+                            <record id="f29_04_child_3_tax_l2_030" model="account.report.expression">
+                                <field name="label">tax_balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">CL_INT_537.tax_balance</field>
+                                <field name="green_on_positive" eval="False"/>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="f29_04_child_4" model="account.report.line">
+                        <field name="name">VAT Determined (If negative the value will be 0 and added to remaining for next period)</field>
+                        <field name="name@es_419">IVA Determinado (Si es negativo el valor será 0 y se agregará al remanente del mes siguiente)</field>
+                        <field name="code">CL_TAX_089</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="expression_ids">
+                            <record id="f29_04_child_4_is_negative_l2_040" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_doc_089_include</field>
+                                <field name="subformula">include_vat</field>
+                                <field name="figure_type">boolean</field>
+                            </record>
+                            <record id="f29_04_child_4_code2_l2_040" model="account.report.expression">
+                                <field name="label">sii_code2</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_doc_089_include</field>
+                                <field name="subformula">C089</field>
+                            </record>
+                            <record id="f29_04_child_4_tax_l2_040" model="account.report.expression">
+                                <field name="label">tax_balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">CL_TAX_089.balance * (1 - CL_TAG_755.balance) * (CL_INT_538.tax_balance - CL_INT_537.tax_balance)</field>
+                                <field name="green_on_positive" eval="False"/>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="f29_04_child_5" model="account.report.line">
+                        <field name="name">Remaining CF</field>
+                        <field name="name@es_419">Remanente de CF</field>
+                        <field name="code">CL_TAG_077</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="expression_ids">
+                            <record id="f29_04_child_5_code2_l2_050" model="account.report.expression">
+                                <field name="label">sii_code2</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(077)</field>
+                            </record>
+                            <record id="f29_04_child_5_tax_l2_050" model="account.report.expression">
+                                <field name="label">tax_balance</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('account_id.tag_ids', '=', ref('l10n_cl.account_tag_f29_077'))]"/>
+                                <field name="subformula">sum</field>
+                                <field name="date_scope">to_beginning_of_period</field>
+                                <field name="green_on_positive" eval="False"/>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="f29_04_child_6" model="account.report.line">
+                        <field name="name">Workers' Tax</field>
+                        <field name="name@es_419">Impuesto a los Trabajadores</field>
+                        <field name="code">CL_TAG_048</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="expression_ids">
+                            <record id="f29_04_child_6_code2_l2_055" model="account.report.expression">
+                                <field name="label">sii_code2</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(048)</field>
+                            </record>
+                            <record id="f29_04_child_6_tax_l2_055" model="account.report.expression">
+                                <field name="label">tax_balance</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('account_id.tag_ids', '=', ref('l10n_cl.account_tag_f29_048'))]"/>
+                                <field name="subformula">-sum</field>
+                                <field name="green_on_positive" eval="False"/>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="f29_04_child_7" model="account.report.line">
+                        <field name="name">Withholding Fees Over Rents Law 21133</field>
+                        <field name="name@es_419">Retención Tasa Ley 21.133 Sobre Rentas</field>
+                        <field name="code">CL_I_IR2C</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="expression_ids">
+                            <record id="f29_04_child_7_code2_l2_056" model="account.report.expression">
+                                <field name="label">sii_code2</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(151)</field>
+                            </record>
+                            <record id="f29_04_child_7_tax_l2_056" model="account.report.expression">
+                                <field name="label">tax_balance</field>
+                                <field name="engine">custom</field>
+                                <field name="formula">_report_engine_f29_combined</field>
+                                <field name="subformula">tax_sum_151</field>
+                                <field name="green_on_positive" eval="False"/>
+                                <field name="auditable" eval="True"/>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="f29_04_child_8" model="account.report.line">
+                        <field name="name">PPM Tax Base</field>
+                        <field name="name@es_419">Base Imponible PPM</field>
+                        <field name="code">CL_TOTAL_SALES</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="expression_ids">
+                            <record id="f29_04_child_8_code2_l2_070" model="account.report.expression">
+                                <field name="label">sii_code2</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(563)</field>
+                            </record>
+                            <record id="f29_04_child_8_tax_l2_070" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">CL_EXEMPT.balance + CL_INT_538.balance</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="f29_04_child_9" model="account.report.line">
+                        <field name="name">PPM Rate (IMPORTANT: Must remain 0 if PPM Base is negative)</field>
+                        <field name="name@es_419">Tasa PPM (IMPORTANTE: Si la base imponible PPM es negativa este monto es 0.0)</field>
+                        <field name="code">CL_TAG_062</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="expression_ids">
+                            <record id="f29_04_child_9_code_l2_075" model="account.report.expression">
+                                <field name="label">sii_code</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(115)</field>
+                            </record>
+                            <record id="f29_04_child_9_tax_l2_075" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">external</field>
+                                <field name="formula">most_recent</field>
+                                <field name="figure_type">percentage</field>
+                                <field name="subformula">editable;rounding=2</field>
+                            </record>
+                            <record id="f29_04_child_9_ppm_rate_l2_075" model="account.report.expression">
+                                <field name="label">sii_code2</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(062)</field>
+                            </record>
+                            <record id="f29_04_child_9_ppm_balance_l2_075" model="account.report.expression">
+                                <field name="label">tax_balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">CL_TAG_062.balance / 100 * CL_TOTAL_SALES.balance</field>
+                                <field name="figure_type">monetary</field>
+                                <field name="auditable" eval="False"/>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="f29_04_child_A" model="account.report.line">
+                        <field name="name">Withholding Subject Change</field>
+                        <field name="name@es_419">Retención Cambio de Sujeto</field>
+                        <field name="code">CL_I_RTI</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="expression_ids">
+                            <record id="f29_04_child_A_subject_change_code_l1" model="account.report.expression">
+                                <field name="label">sii_code2</field>
+                                <field name="engine">text</field>
+                                <field name="formula">(596)</field>
+                            </record>
+                            <record id="f29_04_child_A_subject_change_tax_l1" model="account.report.expression">
+                                <field name="label">tax_balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">CL_IVARET_039.tax_balance</field>
+                                <field name="figure_type">monetary</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="view_data_merge_record_list">
+            <field name="name">Deduplication Record List</field>
+            <field name="model">data_merge.record</field>
+            <field name="arch" type="xml">
+                <list expand="true" js_class="data_merge_list" decoration-danger="is_deleted" create="0" delete="0" export_xlsx="0">
+                    <header>
+                        <button icon="check" name="action_validate_merge" type="object" string="Merge" class="btn-secondary"/>
+                        <button icon="close" name="action_discard_selected_records" type="object" string="Archive Suggestions" class="btn-secondary"/>
+                        <button icon="undo" name="action_undiscard_selected_records" type="object" string="Unarchive Suggestions" class="btn-secondary"/>
+                    </header>
+                    <field name="is_discarded" column_invisible="True" />
+                    <field name="is_deleted" column_invisible="True" />
+                    <field name="res_model_name" column_invisible="True" />
+                    <field name="group_id" column_invisible="True" />
+                    <field name="record_create_date" optional="hide" />
+                    <field name="record_create_uid" optional="hide" />
+                    <field name="record_write_date" string="Last updated on" optional="show" />
+                    <field name="record_write_uid" string="Last Updated By" optional="show" />
+                    <field name="name" />
+                    <button name="action_merge_details" type="object" icon="visibility" string="Merge Details"
+                            invisible="is_master or is_discarded or is_deleted"/>
+                    <field name="used_in" optional="hide" />
+                    <field name="active" string="Archived" optional="hide"/>
+                    <field name="res_id" string="ID" widget="many2one_reference_integer" optional="show" />
+                    <field name="is_master" widget="boolean_toggle" />
+
+                    <groupby name="group_id">
+                        <field name="active" invisible="1" />
+                        <field name="model_id" invisible="1"/>
+                        <button type="object" name="merge_records" string="Merge" invisible="context.get('hide_discard_btn')" />
+                        <button type="object" name="discard_records" string="Archive Suggestion" invisible="context.get('hide_discard_btn')"/>
+                        <button type="object" name="undiscard_records" string="Unarchive Suggestion" invisible="not context.get('hide_discard_btn')"/>
+                    </groupby>
+                </list>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_data_merge_record_search">
+            <field name="name">Deduplication Record Search</field>
+            <field name="model">data_merge.record</field>
+            <field name="arch" type="xml">
+                <search string="Records">
+                    <field name="name" string="Name"/>
+                    <field name="model_id" string="Model Rule"/>
+                    <field name="create_uid" string="Created By"/>
+                    <field name="write_uid" string="Last Updated By"/>
+                    <field name="res_model_id" string="Model"/>
+                    <filter string="Create Date" name="filter_create_date" date="create_date"/>
+                    <filter string="Last Updated" name="filter_write_date" date="write_date"/>
+                    <filter string="Archived" name="discarded" domain="[('is_discarded', '=', True), ('active', '=', False)]" context="{'active_test': False, 'hide_discard_btn': True}" />
+                    <searchpanel>
+                        <field name="model_id" icon="menu" string="Model Rules" enable_counters="1"/>
+                    </searchpanel>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="data_merge_record_view_search_merge_action">
+            <field name="name">Deduplication Record Search</field>
+            <field name="model">data_merge.record</field>
+            <field name="mode">primary</field>
+            <field name="priority" eval="1000"/>
+            <field name="arch" type="xml">
+                <search string="Records">
+                    <field name="model_id" string="Model" />
+                    <filter string="Discarded" name="discarded" domain="[('is_discarded', '=', True), ('active', '=', False)]"/>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_data_merge_record">
+            <field name="name">Duplicates</field>
+            <field name="path">deduplication</field>
+            <field name="res_model">data_merge.record</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_data_merge_record_search" />
+            <field name="context">{ 'group_by': ['group_id'] }</field>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+                No duplicates found
+              </p>
+              <p>
+              Configure rules to identify duplicate records
+              </p>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_data_merge_record_notification">
+            <field name="name">Duplicates</field>
+            <field name="res_model">data_merge.record</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_data_merge_record_search" />
+            <field name="context">{ 'group_by': ['group_id'], 'searchpanel_default_model_id': active_id }</field>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+                No duplicates found
+              </p>
+              <p>
+              Configure rules to identify duplicate records
+              </p>
+            </field>
+        </record>
+    </data>
+</odoo>

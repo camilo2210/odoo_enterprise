@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_leave_view_form" model="ir.ui.view">
+        <field name="name">hr.leave.view.form.inherit.l10n.be.payroll</field>
+        <field name="model">hr.leave</field>
+        <field name="inherit_id" ref="hr_holidays.hr_leave_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='work_entry_type_id']/.." position="after">
+                <field name="l10n_be_sickness_relapse_origin_leave_id"
+                    invisible="not l10n_be_sickness_can_relapse"
+                    groups="hr_holidays.group_hr_holidays_user"
+                    options="{'no_create': True}"
+                    placeholder="No relapse"
+                    />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_leave_gantt_multi_create_view" model="ir.ui.view">
+        <field name="name">hr.leave.gantt.multi.create.inherit.l10n.be.payroll</field>
+        <field name="model">hr.leave</field>
+        <field name="inherit_id" ref="hr_holidays_gantt.hr_leave_gantt_multi_create_view"/>
+        <field name="arch" type="xml">
+            <field name="request_date_to_period" position="after">
+                <field name="l10n_be_sickness_can_relapse" invisible="1"/>
+            </field>
+            <xpath expr="//div[field[@name='work_entry_type_id']]" position="after">
+                <div class="o_form_label" invisible="not l10n_be_sickness_can_relapse">
+                    <label for="l10n_be_sickness_relapse_origin_leave_id" string="Sickness Relapse"/>
+                </div>
+                <div invisible="not l10n_be_sickness_can_relapse">
+                    <field name="l10n_be_sickness_relapse_origin_leave_id"
+                        groups="hr_holidays.group_hr_holidays_user"
+                        options="{'no_create': True}"
+                        placeholder="No relapse"
+                        nolabel="1"
+                        />
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_hr_holidays_filter" model="ir.ui.view">
+        <field name="name">hr.holidays.view.filter.inherit.l10n.be.payroll</field>
+        <field name="model">hr.leave</field>
+        <field name="inherit_id" ref="hr_holidays.view_hr_holidays_filter" />
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='group_date_from']" position="after">
+                <filter invisible="1" name="group_date_from_year" string="Date" context="{'group_by':'date_from:year'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_leave_view_pivot_overtime" model="ir.ui.view">
+        <field name="name">hr.leave.view.pivot.overtime</field>
+        <field name="model">hr.leave</field>
+        <field name="arch" type="xml">
+            <pivot string="Overtime">
+                <field name="work_entry_type_id" type="row"/>
+                <field name="date_from" type="col" interval="month"/>
+                <field name="number_of_hours" type="measure" widget="float_time"/>
+            </pivot>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="0">
+    <record id="hr_payroll_warning_employee_wa_without_worker_compensation" model="hr.payroll.warning">
+        <field name="name">Employees Working in WA without Worker's Compensation</field>
+        <field name="country_id" ref="base.us"/>
+        <field name="button_name">Review Employees</field>
+        <field name="model_id" ref="hr_payroll.model_hr_employee"/>
+        <field name="warning_type">domain</field>
+        <field name="warning_domain">[
+            ('l10n_us_worker_compensation_id', '=', False),
+            ('address_id.state_id.code', '=', 'WA'),
+            ('employee_type_id.code', '=', 'Employee'),
+        ]</field>
+    </record>
+
+    <record id="hr_payroll_warning_payslip_without_paid_date" model="hr.payroll.warning">
+        <field name="name">Payslips Without Payment Date</field>
+        <field name="description">The payment date determines the reference date used for the tax and YTD calculations.</field>
+        <field name="country_id" ref="base.us"/>
+        <field name="warning_color_class">warning</field>
+        <field name="display_on_dashboard" eval="False"/>
+        <field name="display_on_model" eval="True"/>
+        <field name="model_id" ref="l10n_us_hr_payroll.model_hr_payslip"/>
+        <field name="warning_type">python</field>
+        <field name="evaluation_code">
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('country_id.code', '=', 'US'),
+    ('state', '=', 'draft'),
+    ('paid_date', '=', False),
+])
+warning_records = payslips
+warning_details = defaultdict(list)
+for payslip in payslips:
+    warning_details[payslip].append({
+        'message': _get_payroll_translation(
+            "The payment date has not been set. The payslip close date (%(date)s) will be used as the"
+            " reference date for tax calculations, YTD calculations and applicable tax parameters. If you"
+            " set a payment date later, please recompute the payslip to update the calculations.",
+            date=payslip.date_to.strftime('%m/%d/%Y'),
+        ),
+        'level': 'warning',
+    })
+        </field>
+    </record>
+</odoo>

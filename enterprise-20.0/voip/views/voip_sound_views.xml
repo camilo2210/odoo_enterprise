@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="voip_sound_view_list" model="ir.ui.view">
+        <field name="name">voip.sound.view.list</field>
+        <field name="model">voip.sound</field>
+        <field name="arch" type="xml">
+            <list string="Sounds" js_class="voip_phone_number_required_list" duplicate="false">
+                <field name="name"/>
+                <field name="source_type"/>
+                <field name="data_filename" string="File"/>
+                <field name="tts_text"/>
+                <field name="data_version" column_invisible="True"/>
+                <field name="data" widget="voip_audio_list_play" readonly="1" string=""/>
+            </list>
+        </field>
+    </record>
+
+    <record id="voip_sound_view_search" model="ir.ui.view">
+        <field name="name">voip.sound.view.search</field>
+        <field name="model">voip.sound</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="tts_text"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="voip_sound_view_form" model="ir.ui.view">
+        <field name="name">voip.sound.view.form</field>
+        <field name="model">voip.sound</field>
+        <field name="arch" type="xml">
+            <form string="Sound" duplicate="false">
+                <sheet>
+                    <div class="oe_title col-12 col-lg-8 pe-lg-3">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Entry menu" default_focus="1"/>
+                        </h1>
+                    </div>
+                    <field name="source_type" invisible="1"/>
+                    <field name="data_version" invisible="1"/>
+                    <field name="data_filename" invisible="1"/>
+                    <field name="generated_tts_voice" invisible="1"/>
+                    <div class="o-voip-SoundForm row g-3">
+                        <div class="col-12 col-lg-8">
+                            <field name="data" widget="voip_audio_binary" filename="data_filename" class="w-100" nolabel="1" required="source_type == 'upload'" options="{'accepted_file_extensions': '.wav', 'allowed_mime_type': 'audio/wav,audio/x-wav'}"/>
+                        </div>
+                        <div class="o-voip-SoundForm-tts col-12 col-lg-4 d-flex flex-column gap-2">
+                            <field name="tts_text" widget="voip_tts_text" nolabel="1" placeholder="Write your text here"/>
+                            <field name="tts_voice" widget="voip_tts_voice_selection" nolabel="1" required="source_type == 'tts'"/>
+                            <field name="generated_tts_text" widget="voip_tts_generate" class="align-self-start" nolabel="1"/>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_voip_sound" model="ir.actions.act_window">
+        <field name="name">Sounds</field>
+        <field name="res_model">voip.sound</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

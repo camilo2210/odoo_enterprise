@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="sign_request_logs_user_whatsapp" inherit_id="sign.sign_request_logs_user">
+        <xpath expr="//th[@id='participants_email_verification']" position="after">
+            <th id="participants_phone_verification" class="text-start" t-if="o.send_channel == 'whatsapp'">
+                Phone Verification
+            </th>
+        </xpath>
+        <xpath expr="//td[@t-if='has_mail_validation']" position="after">
+            <td t-if="o.send_channel == 'whatsapp'">
+                <t t-set="whatsapp_num" t-value="sri.partner_id.phone"/>
+
+                <t t-if="whatsapp_num">
+                    <t t-set="number" t-value="''.join(['******', whatsapp_num[-4:]])"/>
+                    <span t-out="number">******1234</span>
+                </t>
+                <t t-else="">
+                    <i class="oi" data-icon="check_box"/>
+                </t>
+            </td>
+        </xpath>
+        <xpath expr="//div[hasclass('signer_verification_footnote')]" position="attributes">
+            <attribute name="t-if">o.send_channel != 'whatsapp'</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('signer_verification_footnote')]" position="after">
+            <div class="text-muted phone_verification_footnote" t-if="o.send_channel == 'whatsapp'">
+                <small>Phone verification: The signatory has confirmed control of their phone number by clicking on a unique link</small>
+            </div>
+        </xpath>
+    </template>
+</odoo>

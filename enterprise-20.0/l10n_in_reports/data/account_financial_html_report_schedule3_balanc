@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_in_schedule3_balance_sheet" model="account.report">
+        <field name="name">Balance Sheet (Schedule III)</field>
+        <field name="country_id" ref="base.in"/>
+        <field name="availability_condition">coa</field>
+        <field name="chart_template">in_sch3</field>
+        <field name="root_report_id" ref="account_reports.balance_sheet"/>
+        <field name="column_ids">
+            <record id="balance_sheet_balance" model="account.report.column">
+                <field name="name">Balance</field>
+                <field name="expression_label">balance</field>
+            </record>
+        </field>
+        <field name="line_ids">
+            <record id="l10n_in_s3_bs_equity_and_liabilities" model="account.report.line">
+                <field name="name">I. EQUITY AND LIABILITIES</field>
+                <field name="aggregation_formula">ELSF.balance + ELSAMPA.balance + ELNCL.balance + ELCL.balance</field>
+                <field name="children_ids">
+                    <record id="l10n_in_s3_bs_shareholders_funds" model="account.report.line">
+                        <field name="name">(1) Shareholders’ Funds</field>
+                        <field name="code">ELSF</field>
+                        <field name="aggregation_formula">ELSC.balance + ELRS.balance + ELMRASW.balance</field>
+                        <field name="children_ids">
+                            <record id="l10n_in_s3_bs_share_capital" model="account.report.line">
+                                <field name="name">(A) Share Capital</field>
+                                <field name="code">ELSC</field>
+                                <field name="domain_formula">-sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_share_capital'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                            <record id="l10n_in_s3_bs_reserves_and_surplus" model="account.report.line">
+                                <field name="name">(B) Reserves and Surplus</field>
+                                <field name="code">ELRS</field>
+                                <field name="domain_formula">-sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_reserves_surplus'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                            <record id="l10n_in_s3_bs_money_received_against_share_warrants" model="account.report.line">
+                                <field name="name">(C) Money Received Against Share Warrants</field>
+                                <field name="code">ELMRASW</field>
+                                <field name="domain_formula">-sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_money_received_against_share_warrants'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_in_s3_bs_share_application_money_pending_allotment" model="account.report.line">
+                        <field name="name">(2) Share Application Money Pending Allotment</field>
+                        <field name="code">ELSAMPA</field>
+                        <field name="domain_formula">-sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_share_application_money_pending_allotment'))])</field>
+                        <field name="groupby">account_id</field>
+                    </record>
+                    <record id="l10n_in_s3_bs_non_current_liabilities" model="account.report.line">
+                        <field name="name">(3) Non-Current Liabilities</field>
+                        <field name="code">ELNCL</field>
+                        <field name="aggregation_formula">ELLTB.balance + ELDTL.balance + ELOLTL.balance + ELLTP.balance</field>
+                        <field name="children_ids">
+                            <record id="l10n_in_s3_bs_long_term_borrowings" model="account.report.line">
+                                <field name="name">(A) Long-Term Borrowings</field>
+                                <field name="code">ELLTB</field>
+                                <field name="domain_formula">-sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_long_term_borrowings'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                            <record id="l10n_in_s3_bs_deferred_tax_liabilities" model="account.report.line">
+                                <field name="name">(B) Deferred Tax Liabilities (Net)</field>
+                                <field name="code">ELDTL</field>
+                                <field name="domain_formula">-sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_deferred_tax_liabilities'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                            <record id="l10n_in_s3_bs_other_long_term_liabilities" model="account.report.line">
+                                <field name="name">(C) Other Long-Term Liabilities</field>
+                                <field name="code">ELOLTL</field>
+                                <field name="domain_formula">-sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_other_long_term_liabilities'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                            <record id="l10n_in_s3_bs_long_term_provisions" model="account.report.line">
+                                <field name="name">(D) Long-Term Provisions</field>
+                                <field name="code">ELLTP</field>
+                                <field name="domain_formula">-sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_long_term_provisions'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_in_s3_bs_current_liabilities" model="account.report.line">
+                        <field name="name">(4) Current Liabilities</field>
+                        <field name="code">ELCL</field>
+                        <field name="aggregation_formula">ELSTB.balance + ELTP.balance + ELOCL.balance + ELSTP.balance</field>
+                        <field name="children_ids">
+                            <record id="l10n_in_s3_bs_short_term_borrowings" model="account.report.line">
+                                <field name="name">(A) Short-Term Borrowings</field>
+                                <field name="code">ELSTB</field>
+                                <field name="domain_formula">-sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_short_term_borrowings'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                            <record id="l10n_in_s3_bs_trade_payables" model="account.report.line">
+                                <field name="name">(B) Trade Payables</field>
+                                <field name="code">ELTP</field>
+                                <field name="domain_formula">-sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_trade_payables'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                            <record id="l10n_in_s3_bs_other_current_liabilities" model="account.report.line">
+                                <field name="name">(C) Other Current Liabilities</field>
+                                <field name="code">ELOCL</field>
+                                <field name="domain_formula">-sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_other_current_liabilities'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                            <record id="l10n_in_s3_bs_short_term_provisions" model="account.report.line">
+                                <field name="name">(D) Short-Term Provisions</field>
+                                <field name="code">ELSTP</field>
+                                <field name="domain_formula">-sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_short_term_provisions'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_in_s3_bs_assets" model="account.report.line">
+                <field name="name">II. ASSETS</field>
+                <field name="aggregation_formula">ANCA.balance + ACA.balance</field>
+                <field name="children_ids">
+                    <record id="l10n_in_s3_bs_non_current_assets" model="account.report.line">
+                        <field name="name">(1) Non-Current Assets</field>
+                        <field name="code">ANCA</field>
+                        <field name="aggregation_formula">APPEIA.balance + ANCI.balance + ADTA.balance + ALTLA.balance + AONCA.balance</field>
+                        <field name="children_ids">
+                            <record id="l10n_in_s3_bs_property_plant_and_equipment_and_intangible_assets" model="account.report.line">
+                                <field name="name">(A) Property, Plant and Equipment and Intangible Assets</field>
+                                <field name="code">APPEIA</field>
+                                <field name="domain_formula">sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_property_plant_equipment'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                            <record id="l10n_in_s3_bs_non_current_investments" model="account.report.line">
+                                <field name="name">(B) Non-Current Investments</field>
+                                <field name="code">ANCI</field>
+                                <field name="domain_formula">sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_non_current_investments'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                            <record id="l10n_in_s3_bs_deferred_tax_assets" model="account.report.line">
+                                <field name="name">(C) Deferred Tax Assets (Net)</field>
+                                <field name="code">ADTA</field>
+                                <field name="domain_formula">sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_deferred_tax_assets'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                            <record id="l10n_in_s3_bs_long_term_loans_and_advances" model="account.report.line">
+                                <field name="name">(D) Long-Term Loans and Advances</field>
+                                <field name="code">ALTLA</field>
+                                <field name="domain_formula">sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_long_term_loans_and_advances'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                            <record id="l10n_in_s3_bs_other_non_current_assets" model="account.report.line">
+                                <field name="name">(E) Other Non-Current Assets</field>
+                                <field name="code">AONCA</field>
+                                <field name="domain_formula">sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_other_non_current_assets'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_in_s3_bs_current_assets" model="account.report.line">
+                        <field name="name">(2) Current Assets</field>
+                        <field name="code">ACA</field>
+                        <field name="aggregation_formula">ACI.balance + AI.balance + ATR.balance + ACACE.balance + ASTLAALA.balance + AOCA.balance</field>
+                        <field name="children_ids">
+                            <record id="l10n_in_s3_bs_current_investments" model="account.report.line">
+                                <field name="name">(A) Current Investments</field>
+                                <field name="code">ACI</field>
+                                <field name="domain_formula">sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_current_investments'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                            <record id="l10n_in_s3_bs_inventories" model="account.report.line">
+                                <field name="name">(B) Inventories</field>
+                                <field name="code">AI</field>
+                                <field name="domain_formula">sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_inventories'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                            <record id="l10n_in_s3_bs_trade_receivables" model="account.report.line">
+                                <field name="name">(C) Trade Receivables</field>
+                                <field name="code">ATR</field>
+                                <field name="domain_formula">sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_trade_receivables'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                            <record id="l10n_in_s3_bs_cash_and_cash_equivalents" model="account.report.line">
+                                <field name="name">(D) Cash and Cash Equivalents</field>
+                                <field name="code">ACACE</field>
+                                <field name="domain_formula">sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_cash_and_cash_equivalents'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                            <record id="l10n_in_s3_bs_short_term_loans_advances" model="account.report.line">
+                                <field name="name">(E) Short-Term Loans and Advances</field>
+                                <field name="code">ASTLAALA</field>
+                                <field name="domain_formula">sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_short_term_loans_and_advances'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                            <record id="l10n_in_s3_bs_other_current_assets" model="account.report.line">
+                                <field name="name">(F) Other Current Assets</field>
+                                <field name="code">AOCA</field>
+                                <field name="domain_formula">sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_other_current_assets'))])</field>
+                                <field name="groupby">account_id</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+        </field>
+    </record>
+</odoo>

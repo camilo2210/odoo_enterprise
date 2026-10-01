@@ -1,0 +1,188 @@
+$map-table-row-padding: 25px;
+$map-table-line-padding: 20px;
+$map-sm-header-height: 54px;
+
+.o-map-renderer {
+    height: 100%;
+    @include media-breakpoint-down(md) {
+        height: calc(100% - #{$map-sm-header-height});
+    }
+    min-height: 50vh;
+
+    &--popup-table {
+        &-content-name {
+            line-height: $map-table-row-padding;
+        }
+        &-space {
+            padding-left: $map-table-line-padding;
+        }
+    }
+
+    &--popup-buttons-divider {
+        width: 5px;
+    }
+
+    ul.o-map-renderer--pin-list-details {
+        list-style: none;
+        cursor: default;
+        padding-inline-start: 0;
+    }
+
+    .o_map_address_hover .o_input {
+        background-color: $component-active-bg;
+        color: $component-active-color;
+    }
+
+    &--alert {
+        z-index: 401; // leaflet have 400
+    }
+
+    .leaflet-fade-anim .leaflet-popup {
+        // used to disabled opening animation for the popups.
+        transition: none;
+        .leaflet-popup-content-wrapper {
+            border-radius: 10px;
+            .leaflet-popup-content {
+                margin: 24px 20px 20px 20px;
+            }
+        }
+        .leaflet-popup-close-button {
+            color: #666666;
+        }
+    }
+
+    .leaflet-top,
+    .leaflet-bottom {
+        // used to not overlap dropdown menu.
+        z-index: $zindex-dropdown - 1;
+    }
+}
+.o_map_view {
+    .o-autocomplete {
+        width: 100%;
+        .o_input {
+            padding: 0 1.5rem 0 0 !important;
+        }
+        .o_map_address_result .dropdown-item {
+            font-weight: bolder !important;
+        }
+    }
+    
+    .o_border_transparent {
+        border-width: 0;
+        margin: 1px;
+    }
+}
+
+.o-map-renderer--pin-list {
+    &-container {
+        height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+
+        > ul.o-map-renderer--pin-list-details > .o-map-renderer--pin-clickable {
+            padding-inline: $o-horizontal-padding;
+        }
+    }
+
+    &-search {
+        padding-inline: $o-horizontal-padding;
+    }
+
+    &-resize {
+        cursor: col-resize;
+        margin: 0px -2px;
+        width: 10px;
+        z-index: 1;
+    }
+
+    &-group {
+
+        &-header {
+            background-color: $o-webclient-background-color;
+            padding: 0.25rem $o-horizontal-padding;
+
+            &:hover {
+                background-color: rgba(var(--#{$variable-prefix}emphasis-color-rgb), $table-hover-bg-factor);
+            }
+
+            > i {
+                // Scopes the icon-font size custom property to this icon (see webclient/icons.scss).
+                --oi-font-size: 1rem;
+            }
+        }
+
+        &-svg svg {
+            height: 1.5rem;
+            width: calc(1.5rem * 27 / 41 * 0.8);
+            margin-right: 0.2rem;
+        }
+
+        // Indent record rows so their text aligns with the group's icon above.
+        > ul.o-map-renderer--pin-list-details > .o-map-renderer--pin-clickable {
+            padding-inline: calc(#{$o-horizontal-padding} + 1.5rem) $o-horizontal-padding;
+        }
+    }
+
+    &-details {
+        a {
+            color: $gray-900;
+        }
+
+        > li {
+            list-style-position: inside;
+
+            &.o-map-renderer--pin-clickable:hover,
+            &.o_map_pin_hover{
+                text-decoration: none;
+                background-color: $component-active-bg;
+            }
+
+            &:not(.o-map-renderer--pin-clickable) {
+                cursor: not-allowed;
+            }
+        }
+    }
+}
+
+.o-sm-map-toggler {
+    @include media-breakpoint-down(md) {
+        height: $map-sm-header-height;
+        .o-autocomplete--dropdown-menu {
+            max-width: calc(100vw - #{map-get($spacers, 3)} * 2);
+        }
+    }
+}
+
+.leaflet-marker-icon .o_map_marker_content{
+  transform-origin: 50% 100%;
+  transition: transform 120ms ease;
+}
+.leaflet-marker-icon:hover .o_map_marker_content,
+.leaflet-marker-icon.o_map_marker_hover .o_map_marker_content{
+  transform: scale(1.25);
+}
+.leaflet-marker-icon:hover,
+.leaflet-marker-icon.o_map_marker_hover{
+  // used for effect on hover of list item to move pin above other
+  z-index: 1000 !important;
+}
+
+/* Fix opw-2124233, preventing rtlcss to reverse the map position */
+.leaflet-pane,
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-tile-container,
+.leaflet-pane > svg,
+.leaflet-pane > canvas,
+.leaflet-zoom-box,
+.leaflet-image-layer,
+.leaflet-layer {
+    left: 0 #{"/*rtl:ignore*/"};
+    right: auto #{"/*rtl:ignore*/"};
+}
+
+.o_map_popover .o_map_card_grid {
+    grid-template-columns: auto 1fr;
+}

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="voip.FlowNodePalette">
+        <aside class="o_flow_node_palette d-flex flex-column border-end bg-light" t-att-aria-label="this.title">
+            <t t-if="!this.props.readonly">
+                <t t-foreach="this.items" t-as="item" t-key="item.type">
+                    <button class="o_flow_node_palette_item btn btn-light rounded-0 border-0 border-bottom w-100 px-3 py-2 text-start" t-att-disabled="!item.available" t-att-title="item.available ? item.label : item.label + ' — ' + this.unavailableLabel" t-on-pointerdown="this.onPointerDown.bind(this, item.type)" type="button">
+                        <div class="d-flex align-items-center gap-2 fw-semibold">
+                            <span class="o_flow_node_palette_icon text-center"><i t-if="item.icon" class="oi" t-att-class="item.icon_class" t-att-data-icon="item.icon" aria-hidden="true"/></span>
+                            <t t-out="item.label"/>
+                        </div>
+                    </button>
+                </t>
+            </t>
+        </aside>
+        <div t-if="this.ghost" class="o_flow_node_palette_ghost card position-fixed" t-att-class="{'o_flow_node_palette_ghost_circle': this.ghost.shape === 'circle', 'o_flow_node_palette_ghost_over_canvas': this.state.overCanvas}" t-att-style="this.ghost.style" aria-hidden="true">
+            <div t-if="this.ghost.shape === 'circle'" class="d-flex align-items-center justify-content-center h-100 fw-semibold"><t t-out="this.ghost.label"/></div>
+            <t t-else="">
+                <div class="card-header d-flex align-items-center gap-2 fw-semibold">
+                    <i t-if="this.ghost.icon" class="oi" t-att-class="this.ghost.icon_class" t-att-data-icon="this.ghost.icon"/>
+                    <t t-out="this.ghost.label"/>
+                </div>
+                <div class="card-body"/>
+            </t>
+        </div>
+        <div t-if="!this.props.readonly" class="o_voip_call_flow_add_node position-absolute top-0 start-0 m-3">
+            <Dropdown>
+                <button class="btn btn-primary" t-att-aria-label="this.addNodeLabel" t-att-title="this.addNodeLabel" type="button"><i class="oi me-1" data-icon="add" aria-hidden="true"/><t t-out="this.addNodeLabel"/></button>
+                <t t-set-slot="content">
+                    <DropdownItem t-foreach="this.items" t-as="item" t-key="item.type" class="{'disabled': !item.available}" attrs="{'aria-disabled': item.available ? 'false' : 'true', 'title': item.available ? item.description : item.label + ' — ' + this.unavailableLabel}" closingMode="item.available ? 'all' : 'none'" onSelected="() => item.available &amp;&amp; this.props.onSelect(item.type)">
+                        <i t-if="item.icon" class="oi me-2" t-att-class="item.icon_class" t-att-data-icon="item.icon" aria-hidden="true"/>
+                        <t t-out="item.label"/>
+                    </DropdownItem>
+                </t>
+            </Dropdown>
+        </div>
+    </t>
+</templates>

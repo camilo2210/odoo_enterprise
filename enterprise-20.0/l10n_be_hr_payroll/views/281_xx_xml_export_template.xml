@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="281_xx_xml_report">
+            <!-- Source:
+            Avis aux débiteurs : https://finances.belgium.be/fr/entreprises/personnel_et_remuneration/avis_aux_debiteurs#q2
+            Doc Technique: https://finances.belgium.be/fr/E-services/Belcotaxonweb/documentation-technique
+            -->
+            <Verzendingen>
+                <!-- 
+                    Un envoi (<Verzending></Verzending>) peut reprendre plusieurs « déclarations
+                    Belcotax » (collectes de données). Par déclaration Belcotax, on ne peut trouver que les
+                    données d'un seul débiteur de revenus.
+                -->
+                <Verzending>
+                    <!--
+                        4.1 Enregistrement « début » d’un envoi (balises v0 …)
+                        4.1.1 Description enregistrement "début" d’un envoi
+                        Cet enregistrement reprend les données communes de l’envoi. Les données
+                        d’identification de l’expéditeur sont essentielles et doivent toujours être complétées,
+                        même lorsque l’expéditeur est le débiteur lui-même.
+                    -->
+
+                    <!-- Note:
+                        X = Obligatoire
+                        4 = Longueur
+                        N = Type (N numérique, AN Alphanumérique)
+                        Description
+                    -->
+
+                    <!-- X 4 N année des revenus (= 2020) -->
+                    <v0002_inkomstenjaar t-out="data['v0002_inkomstenjaar']"/>
+
+                    <!-- X 8 AN mention "BELCOTAX" ou "BELCOTST" selon qu'il s'agit d'un
+                        envoi "réalité" ou d'un envoi "test"
+                    -->
+                    <v0010_bestandtype t-out="data['v0010_bestandtype']"/>
+
+                    <!-- X 10 N date de création du fichier "JJ-MMAAAA" (>01-01-2021) -->
+                    <v0011_aanmaakdatum t-out="data['v0011_aanmaakdatum']"/>
+        
+                    <!--
+                        <v0012_sequentieelnr /> 4 N numérotation séquentielle des
+                        fichiers physiques qui sont envoyés
+                        au SPF Finances (1 pour le premier
+                        fichier)
+                    -->
+
+                    <!--
+                        <v0013_hoofdkantoor /> 3 N numéro d'identification du bureau
+                        central du Secrétariat Social agréé par l'ONSS
+                    -->
+
+                    <!-- X 41 AN nom de l’expéditeur -->
+                    <v0014_naam t-out="data['v0014_naam']"/>
+
+                    <!-- X 32 AN rue et numéro de l’expéditeur -->
+                    <v0015_adres t-out="data['v0015_adres']"/>
+    
+                    <!-- X 4 N N° postal de l’expéditeur -->
+                    <v0016_postcode t-out="data['v0016_postcode']"/>
+
+                    <!-- X 27 AN commune de l’expéditeur -->
+                    <v0017_gemeente t-out="data['v0017_gemeente']"/>
+    
+                    <!-- X 12 AN N° de téléphone de l’expéditeur -->
+                    <v0018_telefoonnummer t-out="data['v0018_telefoonnummer']"/>
+
+                    <!-- 
+                        <v0019_faxnummer /> 12 AN N° de fax de l’expéditeur (Obsolète)
+                    -->
+
+                    <!-- 
+                        <v0020_identificatie /> 8 AN identification de l’envoi (valeur libre)
+                    -->
+
+                    <!-- X 34 AN nom de la personne de contact auprès de l’expéditeur-->
+                    <v0021_contactpersoon t-out="data['v0021_contactpersoon']"/>
+
+                    <!--
+                        X <v0022_taalcode /> 1 N code langue de l’expéditeur
+                        1=expression de langue néerlandaise
+                        2=expression de langue française
+                        3=expression de langue allemande
+                    -->
+                    <v0022_taalcode t-out="data['v0022_taalcode']"/>
+
+                    <!--
+                        X 44 AN adresse E-MAIL de la personne de
+                        contact auprès de l’expéditeur
+                    -->
+                    <v0023_emailadres t-out="data['v0023_emailadres']"/>
+
+                    <!--
+                        X 10 N numéro d’entreprise (BCE) de l’expéditeur
+                    -->
+                    <v0024_nationaalnr t-out="data['v0024_nationaalnr']"/>
+
+                    <!-- 
+                        X 1 N 
+                        0=envoi original
+                        1=envoi de corrections groupées
+                    -->
+                    <v0025_typeenvoi t-out="data['v0025_typeenvoi']"/>
+
+                    <!-- 
+                        <v0026_referte /> 6 N numéro d’identification de l’envoi à
+                        corriger = ‘numéro à rappeler’ repris
+                        dans ’accusé de réception de l’envoi
+                        original
+                    -->
+
+                    <!-- <v0027_postcodebuitenl /> 12 AN code postal étranger de l’expéditeur -->
+                    
+                    <!-- <v0028_landwoonplaats /> 5 N code pays de l’expéditeur -->
+
+                    <!--
+                        <v0030_nationaalnummer /> 11 N Nr° National d’un expéditeur
+                        Personne physique sans N° BCE ou
+                        NN de la personne physique
+                        autorisée à consulter/modifier
+                        l’envoi au sein de la personne
+                        morale 
+                    -->
+                    <Aangiften>
+                        <!-- 
+                            Chaque « déclaration Belcotax » (<Aangifte></Aangifte>) est constituée de trois types
+                            d'enregistrements :
+                            a) l’enregistrement "début" (balise type ‘a1’) qui comme premier enregistrement
+                            du fichier de données n'existe qu'une fois et qui contient les données communes à tous
+                            les enregistrements "données" (record ‘2’) de la « déclaration Belcotax »,
+                            b) l’enregistrement "données" (balise ‘f2’) qui contient les données d'une fiche
+                            281 et se présente autant de fois qu'il y a de fiches,
+                            c) l’enregistrement "fin" (balise ‘r8’) qui n'existe qu'une fois comme dernier
+                            enregistrement de la déclaration Belcotax et contient des zones de contrôle des
+                            données.
+                            Les enregistrements "données" (balise ‘f2’) sont triés en ordre croissant sur :
+                            - le code d'identification du record,
+                            - l'année des revenus,
+                            - l'identification du débiteur des revenus,
+                            - le numéro d'identification de la fiche (ex. 28110),
+                            - le numéro de fiche du bénéficiaire des revenus.
+                            Il s'agit des neuf premières balises de type ‘f2
+                        -->
+                        <Aangifte>
+                            <!-- X 4 N année des revenus (= 2020) -->
+                            <a1002_inkomstenjaar t-out="data['a1002_inkomstenjaar']"/>
+
+                            <!-- <a1003_gewestdirectie /> 2 N numéro de la direction régionale du
+                            débiteur des revenus (obsolète) -->
+
+                            <!-- <a1004_ontvangkantoor /> 2 N numéro du bureau de recette du
+                            débiteur de revenus (obsolète) -->
+
+                            <!-- X 10 N numéro d’entreprise (BCE) -->
+                            <a1005_registratienummer t-out="data['a1005_registratienummer']"/>
+
+                            <!-- <a1007_division /> 4 N numéro de division -->
+
+                            <!-- <a1010_schrappingcode /> 1 N plus d’application (obsolète) -->
+
+                            <!-- X 28 AN le nom du débiteur des revenus NL -->
+                            <a1011_naamnl1 t-out="data['a1011_naamnl1']"/>
+
+                            <!-- <a1012_naamnl2 /> 31 AN le nom du débiteur des revenus NL
+                            (suite) -->
+
+                            <!-- X 32 AN rue et numéro du débiteur des revenus NL -->
+                            <a1013_adresnl t-out="data['a1013_adresnl']"/>
+
+                            <!--  4 N numéro postal belge du débiteur des
+                            revenus (uniquement si 1.016 = 0
+                            (= Belgique), sinon utiliser 1.026) -->
+                            <a1014_postcodebelgisch t-out="data['a1014_postcodebelgisch']"/>
+
+                            <!-- X 27 AN commune du débiteur des revenus NL -->
+                            <a1015_gemeente t-out="data['a1015_gemeente']"/>
+
+                            <!-- 5 N code pays du domicile du débiteur des
+                            revenus ; zéro si Belgique -->
+                            <a1016_landwoonplaats t-out="data['a1016_landwoonplaats']"/>
+
+                            <!-- <a1017_telefoonnummer /> 12 AN numéro de téléphone du débiteur des
+                            revenus -->
+
+                            <!-- <a1018_faxnummer /> 12 AN numéro de fax du débiteur des
+                            revenus (obsolète) -->
+
+                            <!-- <a1019_contactpersoon /> 34 AN nom de la personne à contacter
+                            auprès du débiteur des revenus -->
+
+                            <!-- X 1 N code langue des zones 1.011 à 1.013
+                            et 1.015(*) = 1
+                            1 = expression de langue néerlandaise -->
+                            <a1020_taalcode>1</a1020_taalcode>
+
+                            <!-- <a1021_ontvangkantoor /> 34 AN nom du bureau de recette du débiteur
+                            des revenus -->
+                            
+                            <!-- <a1022_naamtaxatiedienst /> 34 AN nom du bureau de contrôle du
+                            débiteur des revenus -->
+                            
+                            <!-- <a1023_taxatiedienst /> 4 N numéro du bureau de contrôle du
+                            débiteur des revenus -->
+
+                            <!-- <a1024_bijkantoor /> 3 N numéro d'identification de la
+                            succursale du Secrétariat Social
+                            agréé par l'ONSS -->
+
+                            <!-- <a1025_aansluitingsnr /> 20 AN numéro d'enregistrement du débiteur
+                            des revenus auprès de son expéditeur -->
+
+                            <!-- <a1026_postcodebuitenl /> 12 AN numéro postal à l'étranger du
+                            débiteur des revenus (uniquement si
+                            1.016 pas = zéro ou 150; sinon
+                            utiliser 1.014) -->
+
+                            <!-- <a1027_naamfr1 /> 28 AN le nom du débiteur des revenus dans
+                            la deuxième langue FR -->
+
+                            <!-- <a1028_naamfr2 /> 31 AN le nom du débiteur des revenus dans
+                            la deuxième langue FR (suite) -->
+
+                            <!-- <a1029_adresfr /> 32 AN rue et numéro du débiteur des
+                            revenus dans la deuxième langue FRr -->
+
+                            <!-- <a1030_gemeentefr /> 27 AN commune du débiteur des revenus
+                            dans la deuxième langue FR -->
+ 
+                            <!-- <a1031_taalfr /> 1 N code langue des zones 1.027 à1.030
+                            = 2
+                            2 = expression de langue française -->
+
+                            <!-- <a1032_naamde1 /> 28 AN le nom du débiteur langue D -->
+                            
+                            <!-- <a1033_naamde2 /> 31 AN le nom du débiteur des revenus
+                            (suite)dans la troisième langue D -->
+ 
+                            <!-- <a1034_adresde /> 32 AN rue et numéro du débiteur des
+                            revenus dans la troisième langue D -->
+
+                            <!-- <a1035_gemeentede /> 27 AN commune du débiteur des revenus
+                            dans la troisième langue D -->
+
+                            <!-- <a1036_taalde /> 1 N code langue des zones 1.032 à
+                            1.035= 3
+                            3 = expression de langue allemande -->
+
+                            <!-- <a1037_nationaalnr /> 11 N numéro national du débiteur des
+                            revenus uniquement s’il s’agit d’une
+                            personne physique; le champ
+                            a1005_registratienummer est alors
+                            non complété. -->
+
+                            <!-- <a1038_emailadres /> 44 AN adresse E-MAIL de la personne de
+                            contact auprès du débiteur des
+                            revenus -->
+                           <Opgaven>
+                                <t t-if="employees_data_10">
+                                    <t t-set="employees_data" t-value="employees_data_10"/>
+                                    <t t-call="l10n_be_hr_payroll.281_10_xml_report"/>
+                                </t>
+
+                                <t t-if="employees_data_18">
+                                    <t t-set="employees_data" t-value="employees_data_18"/>
+                                    <t t-call="l10n_be_hr_payroll.281_18_xml_report"/>
+                                </t>
+
+                                <t t-if="employees_data_20">
+                                    <t t-set="employees_data" t-value="employees_data_20"/>
+                                    <t t-call="l10n_be_hr_payroll.281_20_xml_report"/>
+                                </t>
+
+                                <t t-if="employees_data_30">
+                                    <t t-set="employees_data" t-value="employees_data_30"/>
+                                    <t t-call="l10n_be_hr_payroll.281_30_xml_report"/>
+                                </t>
+
+                                <t t-if="employees_data_45">
+                                    <t t-set="employees_data" t-value="employees_data_45"/>
+                                    <t t-call="l10n_be_hr_payroll.281_45_xml_report"/>
+                                </t>
+                            </Opgaven>
+
+                            <!-- X <r8002_inkomstenjaar /> 4 N année des revenus (=2020) -->
+                            <r8002_inkomstenjaar t-out="total_data['r8002_inkomstenjaar']"/>
+
+                            <!-- <r8003_gewestelijkedirectie /> 2 N numéro de la direction régionale du
+                            débiteur des revenus (obsolète) -->
+
+                            <!-- <r8004_ontvangkantoor /> 2 N numéro du bureau de recette du
+                            débiteur des revenus (obsolète) -->
+
+                            <!--10 N numéro d’entreprise (BCE) = numéro
+                            d'enregistrement sous lequel le
+                            débiteur des revenus est connu par le
+                            SPF Finances. -->
+                            <r8005_registratienummer t-out="total_data['r8005_registratienummer']"/>
+
+                            <!-- <r8007_division /> 4 N numéro de division -->
+
+                            <!-- X <r8010_aantalrecords /> 8 N nombre total d'enregistrements dans
+                            le fichier "données" (premier et dernier
+                            enregistrement compris) -->
+                            <r8010_aantalrecords t-out="total_data['r8010_aantalrecords']"/>
+
+                            <!-- X <r8011_controletotaal /> 18 N total de contrôle (somme des zones
+                            2.009) -->
+                            <r8011_controletotaal t-out="total_data['r8011_controletotaal']"/>
+ 
+                            <!-- X <r8012_controletotaal /> 18 N S total de contrôle (somme des zones
+                            2.059) -->
+                            <r8012_controletotaal t-out="total_data['r8012_controletotaal']"/>
+
+                            <!-- <r8013_totaalvoorheffingen /> 18 N S total des précomptes professionnels et
+                            mobiliers (281.40 et 281.45) à imputer
+                            pour les enregistrements "données" -->
+                            <r8013_totaalvoorheffingen t-out="total_data['r8013_totaalvoorheffingen']"/>
+                        </Aangifte>
+                    </Aangiften>
+
+                    <!-- X <r9002_inkomstenjaar /> 4 N année des revenus (=2020) -->
+                    <r9002_inkomstenjaar t-out="total_data['r9002_inkomstenjaar']"/>
+
+                    <!-- X <r9010_aantallogbestanden /> 8 N nombre de fichiers logiques constituant
+                    le fichier physique (fichier début et
+                    fichier fin compris) -->
+                    <r9010_aantallogbestanden t-out="total_data['r9010_aantallogbestanden']"/>
+
+                    <!-- X <r9011_totaalaantalrecords /> 8 N nombre d'enregistrements de l’envoi
+                    (fichier début et fichier fin compris) -->
+                    <r9011_totaalaantalrecords t-out="total_data['r9011_totaalaantalrecords']"/>
+
+                    <!-- X <r9012_controletotaal /> 18 N total de contrôle (somme des
+                    zones 8.011) -->
+                    <r9012_controletotaal t-out="total_data['r9012_controletotaal']"/>
+
+                    <!-- X <r9013_controletotaal /> 18 N S total de contrôle (somme des
+                    zones 8.012) -->
+                    <r9013_controletotaal t-out="total_data['r9013_controletotaal']"/>
+
+                    <!-- <r9014_controletotaal /> 18 N S total de contrôle (somme des zones
+                    8.013) -->
+                    <r9014_controletotaal t-out="total_data['r9014_controletotaal']"/>
+                </Verzending>
+            </Verzendingen>
+        </template>
+    </data>
+</odoo>

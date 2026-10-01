@@ -1,0 +1,66 @@
+$o-pdis-card-min-width: 290px;
+$o-pdis-animation-duration: 0.5s;
+$border-size: 2px;
+$border-style: solid;
+
+$colors: (
+    0: #e4e4e4,
+    1: #e8a9a8,
+    2: #ffc9b1,
+    3: #caf2a3,
+    4: #a2e5bf,
+    5: #9fe6df,
+    6: #92bfe5,
+    7: #9eabf1,
+    8: #ee9fba,
+    9: #cebaf8
+);
+
+@mixin card-colors {
+    @each $index, $color in $colors {
+        .o_pdis_card_color_#{$index} {
+            background: lighten($color, 5%);
+            border: $border-size $border-style $color;
+        }
+    }
+}
+
+@include card-colors();
+
+// preset bg colors
+@for $index from 2 through length($o-colors) {
+    .o_colorlist_item_color_#{$index - 1} {
+        $-bg: adjust-color(nth($o-colors, $index), $lightness: 25%, $saturation: 15%);
+        @include o-print-color($-bg, background-color, bg-opacity);
+    }
+}
+// External CSS to wrap long notes coming from another component (TagsList)
+.o_pdis_orders {
+    grid-template-columns: repeat(auto-fill, minmax(#{$o-pdis-card-min-width}, 1fr));
+    grid-auto-rows: max-content;
+}
+.o_pdis_order_card {
+    min-width: $o-pdis-card-min-width;
+    color: $black;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+
+    &.o_pdis_stage--animation {
+        animation: change-stage-fade $o-pdis-animation-duration ease-out;
+    }
+
+    @keyframes change-stage-fade {
+        100% {
+            opacity: 0;
+            transform: scale(0.75) translatex(18px);
+        }
+    }
+}
+.o_pdis_is_alert {
+    animation: pulse-alert 1s ease-in-out infinite;
+}
+@keyframes pulse-alert {
+    50% { transform: scale(1.05); }
+}
+.customer-note {
+    border: 2px dashed #ffdb49;
+}

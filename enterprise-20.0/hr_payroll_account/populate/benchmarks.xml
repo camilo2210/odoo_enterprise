@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        ==========================================================
+        BENCHMARK: Payroll Accounting Move Creation
+        ==========================================================
+        Prepares validated payslips whose accounting lines must remain
+        distinct because every employee version has its own analytic
+        distribution.
+
+        All payslips use the same journal and accounting date. With
+        batch payroll journal items enabled, _get_account_move_vals()
+        therefore sends every payslip through one growing move-line
+        accumulator and exercises hr.payslip._prepare_slip_lines().
+
+        The payslip lines are created directly to keep salary-rule and
+        work-entry computation outside the measured scope.
+    -->
+    <record id="benchmark_payroll_account_move_creation" model="populate.blueprint">
+        <field name="name">Benchmark: Payroll Accounting Move Creation</field>
+        <field name="definition_xml" type="xml">
+            <write model="res.company" domain="[]">
+                <field name="batch_payroll_move_lines" eval="True"/>
+            </write>
+
+            <create model="account.account" count="3" id="bench_payroll_account_accounts" scale="False">
+                <value name="counter" generator="misc.counter" start="1"/>
+                <field name="name" eval="f'Benchmark Payroll Accounting Account {counter}'"/>
+                <field name="code" eval="f'BPAC{counter:03}'"/>
+                <field name="account_type" values="['expense', 'liability_current']"/>
+            </create>
+
+            <create model="account.journal" count="1" id="bench_payroll_account_journal" scale="False">
+                <field name="name" eval="'Benchmark Payroll Accounting Journal'"/>
+                <field name="code" eval="'BPAC'"/>
+                <field name="type" eval="'general'"/>
+                <field name="default_account_id" ref="bench_payroll_account_accounts"/>
+            </create>
+
+            <create model="account.analytic.plan" count="1" id="bench_payroll_account_analytic_plan" scale="False">
+                <field name="name" eval="'Benchmark Payroll Accounting Plan'"/>
+            </create>
+
+            <create model="account.analytic.account" count="500" id="bench_payroll_account_analytic_accounts">
+                <value name="counter" generator="misc.counter" start="1" unique="True"/>
+                <field name="name" eval="f'Benchmark Payroll Accounting Analytic {counter:05}'"/>
+                <field name="plan_id" ref="bench_payroll_account_analytic_plan"/>
+                <field name="company_id" eval="env.company.id"/>
+            </create>
+
+            <create model="hr.payroll.structure.type" count="1" id="bench_payroll_account_structure_type" scale="False">
+                <field name="name" eval="'Benchmark Payroll Accounting Structure Type'"/>
+                <field name="country_id" eval="False"/>
+            </create>
+
+            <create model="hr.payroll.structure" count="1" id="bench_payroll_account_structure" scale="False">
+                <field name="name" eval="'Benchmark Payroll Accounting Structure'"/>
+                <field name="code" eval="'BENCH_PAYROLL_ACCOUNT'"/>
+                <field name="type_id" ref="bench_payroll_account_structure_type"/>
+                <field name="country_id" eval="False"/>
+                <field name="use_worked_day_lines" eval="False"/>
+                <field name="journal_id" ref="bench_payroll_account_journal"/>
+            </create>
+
+            <create model="hr.salary.rule" count="12" id="bench_payroll_account_rules" scale="False">
+                <value name="counter" generator="misc.counter" start="1"/>
+                <field name="name" eval="f'Benchmark Payroll Accounting Rule {counter:02}'"/>
+                <field name="code" eval="f'BENCH_PAYROLL_ACCOUNT_{counter:02}'"/>
+                <field name="sequence" eval="counter"/>
+                <field name="struct_ids" ref="bench_payroll_account_structure" count="1" std="0"/>
+                <field name="country_id" eval="False"/>
+                <field name="account_debit" ref="bench_payroll_account_accounts"/>
+                <field name="account_credit" ref="bench_payroll_account_accounts"/>
+            </create>
+
+            <create model="hr.employee" count="500" id="bench_payroll_account_employees">
+                <value name="counter" generator="misc.counter" start="1" unique="True"/>
+                <value name="analytic_account" eval="env['account.analytic.account'].search([('name', '=', f'Benchmark Payroll Accounting Analytic {counter:05}')], limit=1)"/>
+                <field name="name" eval="f'Benchmark Payroll Accounting Employee {counter:05}'"/>
+                <field name="company_id" eval="env.company.id"/>
+                <field name="date_version" eval="'2020-01-01'"/>
+                <field name="contract_date_start" eval="'2020-01-01'"/>
+                <field name="structure_type_id" ref="bench_payroll_account_structure_type"/>
+                <field name="resource_calendar_id" eval="env.company.resource_calendar_id.id"/>
+                <field name="wage" eval="5000.0"/>
+                <field name="analytic_distribution" eval="{str(analytic_account.id): 100}"/>
+            </create>
+
+            <create model="hr.payslip" count="500" id="bench_payroll_account_payslips">
+                <value name="counter" generator="misc.counter" start="1" unique="True"/>
+                <value name="employee" eval="env['hr.employee'].search([('name', '=', f'Benchmark Payroll Accounting Employee {counter:05}')], limit=1)"/>
+                <field name="employee_id" eval="employee.id"/>
+                <field name="struct_id" ref="bench_payroll_account_structure"/>
+                <!--
+                    hr.payslip is ordered only by date_to. Keep it unique so
+                    relation partitioning sees the same ordered ID list in
+                    every worker. The explicit accounting date below still
+                    batches all payslips into one move.
+                -->
+                <field name="date_to" start="2020-01-01" end="2026-12-30" unique="True"/>
+                <field name="date_from" eval="date_to"/>
+                <field name="date" eval="'2026-12-31'"/>
+                <field name="state" eval="'validated'"/>
+            </create>
+
+            <create model="hr.payslip.line" count="10000" id="bench_payroll_account_lines">
+                <field name="slip_id" ref="bench_payroll_account_payslips" partition="True"/>
+                <field name="salary_rule_id" ref="bench_payroll_account_rules"/>
+                <field name="name" eval="'Benchmark Payroll Accounting Line'"/>
+                <field name="amount" eval="100.0"/>
+                <field name="total" eval="100.0"/>
+            </create>
+        </field>
+    </record>
+</odoo>

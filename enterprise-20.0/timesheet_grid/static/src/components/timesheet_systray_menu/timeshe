@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="timesheet_grid.TimesheetSystrayContent">
+        <t name="ts_checkin_state" t-if="this.props.checkInData and !this.props.checkInData.checkedIn">
+            <div name="ts_checkin_view" class="att_container">
+                <div class="d-flex justify-content-between align-items-center gap-5 p-3">
+                    <h3 class="mb-0 ps-1">
+                        <t t-if="this.props.checkInData.sessions and this.props.checkInData.sessions.length > 0">
+                            <small>Welcome back</small> <span class="d-block"><t t-out="this.employee.name"/>!</span>
+                        </t>
+                        <t t-else="">
+                            <small>Welcome, </small> <span class="d-block"><t t-out="this.employee.name"/>.</span>
+                        </t>
+                    </h3>
+                </div>
+                <div class="o_att_today_wrap px-3">
+                    <table class="table table-sm table-borderless">
+                        <tbody t-if="this.props.checkInData.sessions">
+                            <tr t-foreach="this.props.checkInData.sessions" t-as="session" t-key="session.id" name="session-element">
+                                <td>
+                                    <t t-out="`${session.startTime.h}`.padStart(2,'0')"/>:<span class="text-muted"><t t-out="`${session.startTime.m}`.padStart(2,'0') + ' ' + session.startTime.sign"/></span>
+                                </td>
+                                <td class="px-0">–</td>
+                                <td>
+                                    <t t-out="`${session.endTime.h}`.padStart(2,'0')"/>:<span class="text-muted"><t t-out="`${session.endTime.m}`.padStart(2,'0') + ' ' + session.endTime.sign"/></span>
+                                </td>
+                                <td class="ps-4 text-end">
+                                    <span name="session-duration-hours"><t t-out="`${session.duration.h}`.padStart(2,'0')"/></span>h<span class="text-muted" name="session-duration-minutes"><t t-out="`${session.duration.m}`.padStart(2,'0')" /></span>
+                                </td>
+                            </tr>
+                            <tr class="border-top">
+                                <td colspan="3">
+                                    Today
+                                </td>
+                                <td class="ps-4 text-end">
+                                    <span name="session-total-hours" class="ps-0"><t t-out="`${this.props.checkInData.total.h}`.padStart(2,'0')"/></span>h<span name="session-total-minutes" class="text-muted ps-0"><t t-out="`${Math.floor(this.props.checkInData.total.m)}`.padStart(2,'0')"/></span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </t>
+        <t t-else="" name="timesheet_systray_top">
+            <div name="timesheet_grid_header" class="d-flex justify-content-between align-items-center gap-5 border-bottom p-3">
+                <h3 class="mb-0 ps-1">Timesheets</h3>
+                <a name="assistant-link" t-if="this.state.showAssistant" href="#" t-on-click.prevent="this.openAssistantAction" class="btn btn-link btn-sm" style="font-weight: 900;">
+                    Open Assistant
+                </a>
+            </div>
+
+            <div class="overflow-y-auto o_timesheet_systray_md_scroll border-bottom">
+                <div t-if="!this.state.selectedTimesheet.id" t-on-keydown="this.onFormKeydown" class="px-3 pt-3" name="inline_form">
+                    <TimesheetTimerInlineForm
+                        t-key="this.state.selectedTimesheet?.id ? 'saved' : 'new'"
+                        context="this.context"
+                        onSaveCallback="(timesheet) => this.onSaveTimesheetForm(timesheet)"
+                        onWriteTimesheet="(timesheet) => this.onWriteTimesheet(timesheet)"
+                        onDelete="(timesheetId) => this.onDeleteTimesheet(timesheetId)"
+                        saveButtonText.translate="Create"
+                        onDiscard="() => this.onDiscard()"
+                        onRecordReady="(record) => this.onRecordReady(record)"
+                        data="this.savedTimesheetData"
+                    />
+                </div>
+                <div class="o_att_timesheet_list list-group list-group-flush" t-attf-class="{{this.state.selectedTimesheet.id ? 'o_has_active_form' : 'mt-3 border-top'}}" name="timesheet_list">
+                    <t t-foreach="this.cacheState.timesheets" t-as="tsh" t-key="tsh.id">
+                        <div
+                            t-if="this.state.selectedTimesheet.id === tsh.id"
+                            class="o_att_timesheet_form_active_sheet list-group-item active p-0 text-reset border-bottom"
+                            t-on-keydown="this.onFormKeydown"
+                        >
+                            <t t-call="timesheet_grid.ActivityWatchTimesheetFormWrapper" formClasses="'border border-info'">
+                                <TimesheetTimerInlineForm
+                                    data="this.state.selectedTimesheet"
+                                    onSaveCallback="(timesheet) => this.onSaveTimesheetForm(timesheet)"
+                                    onWriteTimesheet="(timesheet) => this.onWriteTimesheet(timesheet)"
+                                    onDelete="(timesheetId) => this.onDeleteTimesheet(timesheetId)"
+                                    saveButtonText.translate="Save"
+                                    onDiscard="() => this.onDiscard()"
+                                    onRecordReady="(record) => this.onRecordReady(record)"
+                                />
+                            </t>
+                        </div>
+                        <div t-else=""
+                            t-attf-class="list-group-item list-group-item-action d-flex align-items-start gap-2 cursor-pointer {{ this.state.selectedTimesheet.id === tsh.id ? 'active' : '' }}"
+                            t-on-click="() => this.onClickTimesheet(tsh)"
+                            t-attf-title="{{ tsh.name }}"
+                        >
+                            <div class="w-75">
+                                <p t-if="tsh.name" class="text-truncate mb-0 fw-medium" t-out="tsh.name"/>
+                                <p t-if="tsh.project_id" class="mb-0 small opacity-75 text-truncate">
+                                    <t t-out="tsh.project_id.display_name"/>
+                                    <t t-if="tsh.task_id and tsh.task_id.display_name" name="taskName">
+                                        / <t t-out="tsh.task_id.display_name"/>
+                                    </t>
+                                </p>
+                            </div>
+                           <div class="ms-auto text-end">
+                                <div class="o_tabular_nums fw-medium text-nowrap">
+                                    <t t-out="this.formatDuration(tsh.unit_amount)"/>
+                                </div>
+                                <button
+                                    name="copy_btn"
+                                    data-icon="content_copy"
+                                    class="text-muted oi oi-fw btn o_att_timesheet_copy"
+                                    title="Start new timer"
+                                    t-on-click.stop="() => this.onClickCopy(tsh)"
+                                />
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+
+        <div class="m-3 d-flex flex-row align-items-center" name="ts_systray_footer">
+            <div name="ts_checkin_btn" class="o_wrap_btn_sign_out position-md-sticky bottom-0 z-2 d-flex flex-grow-1">
+                        <button t-on-click="() => this.props.signInOut()"
+                                t-attf-class="btn btn-{{ this.props.checkInData.checkedIn ? 'secondary' : 'primary w-100' }}">
+                            <span t-if="!this.props.checkInData.checkedIn">Start Session</span>
+                            <span t-else="">End Session</span>
+                            <i t-if="!this.props.checkInData.checkedIn" class="oi ms-1" data-icon="login"/>
+                        </button>
+            </div>
+            <div t-if="this.employee and this.employee.working_hours !== false and this.props.checkInData.checkedIn" name="total_hours" class="text-end fw-medium ms-sm-auto">
+                <div>
+                    Total
+                    <b t-att-class="this.employee.working_hours ? (this.totalTime &lt; this.employee.working_hours ? 'text-danger' : 'text-success') : ''" t-out="this.formatDuration(this.totalTime, { hideZeroHours: false })"/>
+                </div>
+                <div t-if="this.employee.working_hours !== null" class="text-muted">
+                    over
+                    <span t-out="this.formatDuration(this.employee.working_hours, { hideZeroHours: false })"/>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="timesheet_grid.timesheet_systray">
+        <t t-if="this.state.isDisplayed">
+            <Dropdown position="'bottom-end'" menuClass="'o_timesheet_grid_popover p-0'" state="this.dropdownState">
+                <button>
+                    <i class="oi oi-filled" data-icon="play_circle" t-attf-class="text-{{ this.state.checkInData.checkedIn ? 'success' : 'danger' }}" role="img" data-hotkey="shift+r"/>
+                </button>
+                <t t-set-slot="content">
+                    <t t-call="timesheet_grid.ActivityWatchTimesheetFormWrapper" formClasses="'o_att_timesheet_form mx-0 p-0 bg-transparent'">
+                        <TimesheetSystrayContent
+                            closeDropdown="() => this.dropdownState.close()"
+                            signInOut="() => this.signInOut()"
+                            checkInData="this.state.checkInData"/>
+                    </t>
+                </t>
+            </Dropdown>
+        </t>
+    </t>
+</templates>

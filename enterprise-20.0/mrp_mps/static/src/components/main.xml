@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <div t-name="mrp_mps.mrp_mps" class="main o_action">
+        <MrpMpsControlPanel>
+            <t t-set-slot="control-panel-buttons">
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    t-if="this.isInDefaultPeriod and this.hasMPSRecords"
+                    t-on-click.stop="this._onClickReplenish"
+                    t-on-mouseover.stop="this._onMouseOverReplenish"
+                    t-on-mouseout.stop="this._onMouseOutReplenish">Order</button>
+                <button
+                    type="button"
+                    class='btn btn-secondary'
+                    t-on-click.stop="this._onClickCreate">Add a Product</button>
+                <ViewScaleSelector t-if="this.hasMPSRecords" scales="this.periodTypes" currentScale="this.currentPeriodType" setScale.bind="this.setScale"/>
+            </t>
+            <t t-set-slot="control-panel-actions">
+                <MrpMpsSearchBar/>
+            </t>
+            <t t-set-slot="control-panel-additional-actions">
+                <ActionMenus t-if="this.isRecordSelected"
+                    getActiveIds="() => Array.from(this.model.selectedRecords)"
+                    context="{}"
+                    domain="this.model.domain"
+                    items="this.actionMenuItems"
+                    isDomainSelected="this.model.isDomainSelected"
+                    resModel="'mrp.production.schedule'"/>
+            </t>
+
+        </MrpMpsControlPanel>
+        <div class="o_mrp_mps o_content bg-view">
+            <t t-if="this.hasMPSRecords">
+                <div class="text-nowrap mr0 ml0">
+                    <table class="table table-sm o_mps_product_table">
+                        <thead class="table-light">
+                            <tr class="o_mps_period">
+                                <th>
+                                    <CheckBox value='this.isSelected' onChange.bind="this.toggleSelection"/>
+                                </th>
+                                <th/>
+                                <th class="text-end" scope="col" t-foreach="this.manufacturingPeriods" t-as="period" t-key="period">
+                                    <div><t t-out="period"/></div>
+                                </th>
+                            </tr>
+                        </thead>
+                        
+                        <t t-foreach="this.lines" t-as="productionSchedule" t-key="productionSchedule.id">
+                            <MpsLineComponent data="productionSchedule" groups="this.groups" suggestForecastedDemand.bind="this.suggestForecastedDemand"/>
+                        </t>
+                    </table>
+                </div>
+            </t>
+            <t t-else="">
+                <t t-call="mrp_mps_nocontent_helper"/>
+            </t>
+        </div>
+    </div>
+
+    <t t-name="mrp_mps_nocontent_helper">
+        <div class="o_view_nocontent">
+            <div class="o_nocontent_help">
+                <p class="o_view_nocontent_smiling_face">
+                    No product yet. Add one to start scheduling.
+                </p><p>
+                    The master schedule translates your sales and demand forecasts into a production and purchase planning for each component.
+                    It ensures everything gets scheduled on time, based on constraints such as: safety stock, production capacity, lead times.
+                    It's the perfect tool to support your S&amp;OP meetings.
+                </p>
+            </div>
+        </div>
+    </t>
+
+</templates>

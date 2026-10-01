@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="vat_return_submission_wizard_form" model="ir.ui.view">
+            <field name="name">l10n_be_reports.vat.return.submission.wizard.form</field>
+            <field name="model">l10n_be_reports.vat.return.submission.wizard</field>
+            <field name="inherit_id" ref="account_reports.return_submission_wizard_form"/>
+            <field name="mode">primary</field>
+            <field name="arch" type="xml">
+                <field name="instructions" position="replace">
+                    <field name="amount_to_get_currency_id" invisible="1"/>
+                    <group id="export_options">
+                        <div>
+                            <div invisible="not show_ask_restitution">
+                                <p>
+                                    Your statement is negative. Do you want to ask a restitution of
+                                    <field name="amount_to_get" widget="monetary" options="{'currency_field': 'amount_to_get_currency_id'}" nolabel="1" class="oe_inline"/>
+                                    due by the State?
+                                </p>
+                                <field name="ask_restitution" widget="radio" class="ms-3"/>
+                            </div>
+                            <div invisible="not should_display_client_nihil">
+                                <div class="mb-1">No B2B customer exceeded 250.00€ in sales this year.  You can skip the annual listing.</div>
+                                <field name="client_nihil" widget="radio" class="ms-3"/>
+                            </div>
+                        </div>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="is_prorata_necessary" invisible="not show_prorata"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-warning oe_edit_only" role="alert"
+                        invisible="special_prorata_deduction == 0
+                                or special_prorata_1 != 0
+                                or special_prorata_2 != 0
+                                or special_prorata_3 != 0
+                                or special_prorata_4 != 0
+                                or special_prorata_5 != 0">
+                        If the field '% Special pro rata deduction' is filled, one of the fields 'Special pro rata' must be filled
+                    </div>
+                    <group invisible="not is_prorata_necessary">
+                        <group>
+                            <field name="prorata_year" required="is_prorata_necessary"/>
+                            <field name="prorata" />
+                            <field name="special_prorata_deduction"/>
+                            <field name="special_prorata_1" invisible="special_prorata_deduction == 0"/>
+                            <field name="special_prorata_2" invisible="special_prorata_deduction == 0"/>
+                            <field name="special_prorata_3" invisible="special_prorata_deduction == 0"/>
+                            <field name="special_prorata_4" invisible="special_prorata_deduction == 0"/>
+                            <field name="special_prorata_5" invisible="special_prorata_deduction == 0"/>
+                            <field name="submit_more" invisible="special_prorata_1 == 0
+                                                                or special_prorata_2 == 0
+                                                                or special_prorata_3 == 0
+                                                                or special_prorata_4 == 0
+                                                                or special_prorata_5 == 0"/>
+                        </group>
+                        <group>
+                            <p class="mb-2">Actual Use Incoming Transactions</p><br/>
+                            <field name="prorata_at_100"/>
+                            <field name="prorata_at_0"/>
+                        </group>
+                    </group>
+                    <group id="instructions">
+                        <separator string="Submission Instructions"/>
+                        <ol colspan="2">
+                            <li>
+                                <div class="d-inline-block align-top">
+                                    <span>Download the VAT statement</span><br/>
+                                    <button string='Download XML' name="print_xml" type="object" class="btn-secondary"/>
+                                </div>
+                            </li>
+                            <li>Log in to <a href="https://intervat.minfin.fgov.be/" target="_blank">Intervat</a> using Itsme or your card reader</li>
+                            <li>Select Intervat &gt; Dashboard</li>
+                            <li>Upload the XML file on the right panel and click "Continue"</li>
+                            <li>Validate the VAT return</li>
+                        </ol>
+                    </group>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>

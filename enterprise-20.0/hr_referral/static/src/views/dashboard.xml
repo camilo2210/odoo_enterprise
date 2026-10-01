@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="hr_referral.Welcome">
+        <div class="o_hr_referral_wrapper position-relative h-100 text-white">
+            <t t-if="this.dashboardData.onboarding_screen">
+                <div id="carouselOnboarding" class="carousel slide o_hr_referral_intro_carousel d-grid h-100" data-bs-interval="false" t-ref="this.carouselRef">
+                    <div class="carousel-header py-4 text-center">
+                        <div class="o_hr_referral_logo mx-auto mb-3">
+                            <img src="/hr_referral/static/src/img/circle.svg" alt="Gather your team" class="img-fluid"/>
+                        </div>
+                        <div class="o_hr_referral_title">
+                            <h1 class="m-0">Gather your team!</h1>
+                            <p>Job Referral Program</p>
+                        </div>
+                    </div>
+                    <div class="carousel-inner">
+                        <t t-foreach="this.dashboardData.onboarding" t-as="item" t-key="item_index">
+                            <div t-att-class="'carousel-item h-100' + (item_first and ' active' or '')">
+                                <div class="o_hr_referral_carousel_item_wrapper d-flex flex-column h-100 justify-content-center align-items-center">
+                                    <div class="position-relative text-center">
+                                        <img t-attf-src="data:image/png;base64,{{item.image}}"/>
+                                    </div>
+                                    <p class="o_hr_referral_carousel_item_text px-5 pt-3 pt-md-5 mx-auto fs-3 text-white text-center"><t t-out="item.text"/></p>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                    <div class="carousel-outer position-relative d-flex flex-column align-items-center justify-content-evenly mx-auto pb-sm-3">
+                        <ol class="carousel-indicators position-relative">
+                            <t t-foreach="this.dashboardData.onboarding" t-as="item" t-key="item_index">
+                                <li data-bs-target="#carouselOnboarding" t-att-data-bs-slide-to="item_index" t-att-class="'rounded-circle' + (item_first and ' active' or '')"></li>
+                            </t>
+                        </ol>
+                        <div class="d-flex position-relative">
+                            <a type="button" id="btn_skip" t-if="!this.reachedEnd()" class="btn me-1 btn-lg btn-secondary" aria-label="Start" title="Skip and Start" t-on-click.prevent="() => this._completeOnboarding(true)">
+                                Skip
+                            </a>
+                            <a id="btn_next" t-if="!this.reachedEnd()" class="btn ms-1 btn-lg btn-primary" href="#carouselOnboarding" role="button" data-bs-slide="next">
+                                Next
+                                <i class="oi" data-icon="chevron_forward"/>
+                            </a>
+                            <a type="button" id="btn_start" class="btn btn-lg btn-primary" t-if="this.reachedEnd()" aria-label="Start" title="Start" t-on-click.prevent="() => this._completeOnboarding(true)">
+                                Start Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </t>
+            <t t-elif="this.dashboardData.choose_new_friend">
+                <div class="o_hr_referral o_choose_friend_wrapper container d-flex flex-column position-relative mb-3 text-center">
+                    <div class="o_hr_referral_title mt-3 mt-sm-auto">
+                        <h1 class="text-white m-0"><t t-out="this.dashboardData.new_friend_name"/> has been hired!</h1>
+                        <p class="">Choose an avatar for your new friend!</p>
+                    </div>
+                    <div class="my-auto d-flex justify-content-evenly flex-wrap">
+                    <t t-foreach="this.dashboardData.friends" t-as="friend" t-key="friend_index">
+                        <div t-attf-class="o_choose_friend cursor-pointer #{friend.friend and 'o_choose_friend_not_available' or 'o_choose_friend_available'}" t-att-name="friend.id" t-on-click.prevent="() => this._chooseFriend(friend.id)">
+                            <div class="rounded-circle mx-2 overflow-hidden position-relative">
+                                <div class="rounded-circle o_choose_friend_not_available position-absolute h-100 w-100"/>
+                                <img class="img-fluid" t-attf-src="data:image/png;base64,{{friend.image}}"/>
+                            </div>
+                        </div>
+                    </t>
+                    </div>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="o_hr_referral container d-flex flex-column position-absolute start-0 end-0 h-100 text-center">
+                    <div class="space_restart" t-if="this.debugMode.isActive() and this.dashboardData.message.length"/>
+                    <t t-foreach="this.dashboardData.message" t-as="message" t-key="message_index">
+                        <a t-if="message.url" class="message d-block text-center" t-att-href="message.url" t-att-title="message.url" target="_blank">
+                            <img src="/hr_referral/static/src/img/new.png" class="img align-self-start mx-2 float-start"/>
+                            <button class="btn oi float-end py-0" data-icon="close" t-on-click.prevent="(ev) => this._onMessageDismissClicked(ev, message.id)"/>
+                            <span class="d-inline-block m-auto align-middle"><t t-out="message.text"/></span>
+                        </a>
+                        <div t-else="" t-att-class="message.action and 'message text-center cursor-pointer' or 'message text-center'" t-att-name="message.action" t-att-title="message.action and 'View Jobs' or ''">
+                            <img src="/hr_referral/static/src/img/new.png" class="img align-self-start mx-2 float-start"/>
+                            <button class="btn oi float-end py-0" data-icon="close" t-on-click.prevent="(ev) => this._onMessageDismissClicked(ev, message.id)"/>
+                            <span class="d-inline-block m-auto align-middle"><t t-out="message.text"/></span>
+                        </div>
+                    </t>
+                    <div t-att-class="this.dashboardData.reach_new_level and 'mt-4 mb-auto mx-auto position-relative' or 'my-4 mx-auto position-relative'">
+                        <div t-att-class="this.dashboardData.reach_new_level and 'user_image rounded-circle d-flex justify-content-center align-items-center cursor-pointer' or 'user_image rounded-circle d-flex justify-content-center align-items-center'" t-on-click.prevent="this._upgradeLevel">
+                            <button class="o_level_up btn" t-if="this.dashboardData.reach_new_level">
+                                <img class="img-fluid" src="/hr_referral/static/src/img/levelup.png" />
+                            </button>
+                            <div id="progress_referral" class="o_hr_referral_progressbar d-flex rounded-circle z-1" t-att-style="`--o-hr-referral-progressbar-progress: ${this.dashboardData.level_percentage}%`">
+                                <img class="img img-fluid rounded-circle o_employee_image" t-attf-src="/web/image?model=res.users&amp;field=avatar_256&amp;id=#{this.dashboardData.id}" t-att-title="this.dashboardData.name" t-att-alt="this.dashboardData.name"/>
+                            </div>
+                        </div>
+                        <div class="user_info bg-view card flex-row justify-content-between align-items-center position-absolute top-50 start-50 translate-middle py-3">
+                            <p class="m-0 user_total w-25 text-center fw-bold">
+                                <b class="mb-2">Total</b>
+                                <div class="mt-1">
+                                    <span class="me-1" t-out="this.dashboardData.point_received"/>
+                                    <img src="/hr_referral/static/src/img/total.svg" alt="Points Received"/>
+                                </div>
+                            </p>
+                            <p class="m-0 ms-1 user_points w-25 text-center fw-bold">
+                                <b class="mb-2">To Spend</b>
+                                <div class="mt-1">
+                                    <span class="me-1" t-out="this.dashboardData.point_to_spend"/>
+                                    <img src="/hr_referral/static/src/img/points.svg" alt="Points to spend"/>
+                                </div>
+                            </p>
+                        </div>
+                        <div t-if="this.dashboardData.level" class="badge text-bg-action">
+                           Level <t t-out="this.dashboardData.level.name"/>
+                        </div>
+                    </div>
+                    <div t-if="this.dashboardData.reach_new_level" style="position: relative;">
+                        <button class="o_level_up_txt btn" t-on-click.prevent="this._upgradeLevel">
+                            <p class="mb-0">Click to level up!</p>
+                        </button>
+                    </div>
+                    <div class="my-auto superheroes_box position-relative h-100">
+                        <div class="superheroes superheroes_hoverer">
+                            <t t-foreach="this.dashboardData.friends" t-as="friend" t-key="friend_index">
+                                <div t-attf-class="friend-hoverer friend-{{friend_index + 1}}">
+                                    <t t-foreach="friend.names" t-as="applicant" t-key="applicant_index">
+                                        <div class="friend-name"><t t-out="applicant"/></div>
+                                    </t>
+                                </div>
+                            </t>
+                            <div class="friend-hoverer super_user">
+                                <span class="friend-name"><t t-out="'You'"/></span>
+                            </div>
+                        </div>
+                        <div class="superheroes">
+                            <t t-foreach="this.dashboardData.friends" t-as="friend" t-key="friend_index">
+                                <div t-attf-class="super friend-{{friend_index + 1}} {{friend.position}}">
+                                    <img class="img" t-attf-src="data:image/png;base64,{{friend.image}}"/>
+                                </div>
+                            </t>
+                            <div class="super super_user">
+                                <img class="img" t-if="this.dashboardData.level" t-attf-src="data:image/png;base64,{{this.dashboardData.level.image}}" alt="Level"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="position-relative d-flex flex-column gap-4 align-items-center justify-content-center">
+                        <div class="activity d-flex w-100 w-xl-50 mx-auto gap-2">
+                            <t t-call="hr_referral_dashboard.StatsButton"
+                                count="this.dashboardData.referral.all">Referrals</t>
+                            <t t-call="hr_referral_dashboard.StatsButton"
+                                count="this.dashboardData.referral.progress" 
+                                actionContext="{ search_default_filter_progress: 1 }">Ongoing</t>
+                            <t t-call="hr_referral_dashboard.StatsButton"
+                                count="this.dashboardData.referral.hired"
+                                actionContext="{ search_default_filter_hired: 1 }">Successful</t>
+                        </div>
+                        <div class="pt-3 px-2 mb-3 mb-lg-5 d-flex justify-content-center">
+                            <button type="button" class="btn btn-lg btn-primary mx-2" t-on-click="() => this.actionService.doAction('hr_referral.action_hr_job_employee_referral')">View Jobs</button>
+                            <button type="button" class="btn btn-lg btn-primary mx-2" t-on-click="() => this.actionService.doAction('hr_referral.hr_referral_send_mail_action')" aria-label="share" title="Share">Email a friend</button>
+                            <button type="button" class="btn btn-lg btn-secondary mx-2" t-on-click="() => this.actionService.doAction('hr_referral.action_hr_referral_reward')"  aria-label="reward" title="Reward">Rewards</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="oi o_hr_referral_restart d-flex align-items-center cursor-pointer" data-icon="refresh" completed="false" aria-label="Restart Onboarding" t-if="this.debugMode.isActive()" t-on-click.prevent="() => this._completeOnboarding(false)"/>
+            </t>
+        </div>
+        <div class="o_hr_referral_background w-100 h-100 bottom-0 position-fixed z-n1" t-attf-style="background-image: url('/web/image/res.company/{{this.dashboardData.company_id}}/hr_referral_background');">
+                <div class="hr_referral_bg_city h-100"/>
+                <div class="hr_referral_bg_grass"/>
+        </div>
+    </t>
+    <t t-name="hr_referral_dashboard.StatsButton">
+        <a href="#" role="button" class="activity_stat d-flex flex-column btn bg-transparent text-white flex-basis-100 py-3" 
+        t-on-click="() => this.actionService.doAction('hr_referral.action_hr_applicant_employee_referral', { additionalContext: actionContext || {} })">
+            <span class="fw-bold fs-1 text-action" t-out="count"/>
+            <span t-out="0"/>
+        </a>
+    </t>
+</templates>

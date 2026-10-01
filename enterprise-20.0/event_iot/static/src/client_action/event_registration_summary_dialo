@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t t-inherit="event.EventRegistrationSummaryDialog" t-inherit-mode="extension">
+        <xpath expr="//div[@id='registration_information']" position="after">
+            <div class="d-flex justify-content-between">
+                <select t-if="this.useIotPrinter" type="select" class="form-select w-75" t-model.proxy.number="this.printSettings.iotPrinterId" t-on-change="this.savePrintSettings">
+                    <option value="" disabled="true" t-att-selected="!this.printSettings.iotPrinterId">Select printer...</option>
+                    <option t-foreach="this.registration.iot_printers" t-as="printer" t-key="printer.id" t-att-value="printer.id">
+                        <t t-out="printer.name" />
+                    </option>
+                </select>
+                <div t-if="this.useIotPrinter" class="form-check">
+                    <input id="autoprint" type="checkbox" class="form-check-input" t-model.proxy="this.printSettings.autoPrint" t-on-change="this.savePrintSettings"></input>
+                    <label for="autoprint" class="form-check-label">Auto-Print</label>
+                </div>
+            </div>
+        </xpath>
+        <xpath expr="//button[@id='print_button']" position="attributes">
+            <attribute name="t-att-disabled">!this.hasSelectedPrinter()</attribute>
+        </xpath>
+        <xpath expr="//button[@id='print_button']" position="after">
+            <button id="download_button" class="oi btn btn-secondary order-last ms-auto" data-icon="download" data-tooltip="Download" aria-label="Download" t-on-click="() => this.onRegistrationDownloadPdf()"></button>
+        </xpath>
+        <xpath expr="//Dialog" position="attributes">
+            <attribute name="t-if">!this.dialogState.isHidden</attribute>
+        </xpath>
+    </t>
+
+</templates>

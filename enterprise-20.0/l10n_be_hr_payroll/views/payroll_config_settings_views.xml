@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_config_settings_view_form" model="ir.ui.view">
+        <field name="name">payroll.config.settings.form.inherit.l10n_be_hr_payroll</field>
+        <field name="model">payroll.config.settings</field>
+        <field name="inherit_id" ref="hr_payroll.payroll_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <sheet position="before">
+                <div role="alert" class="alert alert-info" invisible="country_code != 'BE'">
+                    <p class="m-0 p-0">
+                        You can find most of these information on the <a href="https://employer-identification-consult.socialsecurity.be/" target="_blank">employer directory</a>
+                    </p>
+                </div>
+            </sheet>
+            <group name="payroll_settings" position="after">
+                <group name="l10n_be_hr_payroll" invisible="country_code != 'BE'" groups="hr_payroll.group_hr_payroll_user">
+                    <group string="Payroll Data">
+                        <field name="parent_id" invisible="1"/>
+                        <field name="onss_registration_number" placeholder="e.g. 083012308" 
+                            required="l10n_be_has_employees" 
+                            readonly="parent_id"
+                            help="The ONSS Registration Number is a 9-digit code given by ONSS."/>
+                        <field name="l10n_be_employer_category_id" placeholder="e.g. 010" required="l10n_be_has_employees" help="The 3-digit code that defines your employer category in DMFA filings."/>
+                        <field name="l10n_be_revenue_code" placeholder="e.g. 058" 
+                            required="l10n_be_has_employees" 
+                            readonly="parent_id"
+                            help="The company's official revenue (ONSS/RSZ) code used for Belgian payroll declarations."/>
+                        <field name="l10n_be_main_joint_committee" placeholder="e.g. CP200, CP302" domain="[('id', 'in', allowed_joint_committee_ids)]" required="1"/>
+                        <div class="d-flex align-items-center gap-2" colspan="2">
+                            <span class="o_form_label">Not sure what is your code?</span>
+                            <button name="%(l10n_be_hr_payroll.l10n_be_dmfa_work_locations_action)d" 
+                                    icon="east" 
+                                    type="action" 
+                                    string="Check official DMFA codes" 
+                                    class="btn-link"/>
+                        </div>
+                    </group>
+
+                    <group name="company_information" string="Company Information">
+                        <field name="l10n_be_company_number" placeholder="e.g. 0412345614" 
+                            required="1" 
+                            readonly="parent_id"/>
+                        <label for="onss_importance_code"/>
+                        <div class="o_row">
+                            <field name="onss_importance_code" 
+                                placeholder="Select number of employees" 
+                                required="l10n_be_has_employees"
+                                readonly="parent_id"
+                                help="Determined by the ONSS directly based on the average of employees your company had. Contact the ONSS or your social secretariat to get to correct information."/>
+                            
+                            <label for="exemption_sme_status" class="fw-bold ms-3 me-1" invisible="onss_importance_code not in ('7', '8', '9')"/>
+                            <field name="exemption_sme_status" invisible="onss_importance_code not in ('7', '8', '9')" readonly="parent_id"/>
+                        </div>   
+                        <field name="l10n_be_in_difficulty" 
+                            readonly="parent_id"
+                            help="The Federal Minister of Labour may grant companies recognition as a company in difficulty"/>
+                        <field name="l10n_be_at_risk_groups_contribution" 
+                            readonly="parent_id"
+                            help="The contribution for 'at-risk groups' is a specific employer contribution paid to the ONSS (National Social Security Office) in Belgium, intended to finance training and professional integration initiatives for certain categories of workers."/>
+                        <field name="l10n_be_ffe_employer_type" 
+                            required="l10n_be_has_employees" 
+                            readonly="parent_id"
+                            help="Determined by the ONSS. Contact the ONSS or your social secretariat to get to correct information."/>
+                        <field name="l10n_be_nace_code_id" placeholder="e.g. 010" 
+                            readonly="parent_id"
+                            help="The NACE code is the official statistical classification system used by the European Union to categorize businesses and economic activities by industry sector."/>
+                        <field name="l10n_be_employee_retirement_fund" placeholder="e.g. 0001" help="Supplementary pension fund code for employees."/>
+                        <field name="l10n_be_worker_retirement_fund" placeholder="e.g. 0001" help="Supplementary pension fund code for workers."/>
+                        <field name="l10n_be_sector" readonly="parent_id" required="1"/>
+                        <field name="l10n_be_ipa_reduction" 
+                            readonly="parent_id"
+                            help="The AIP reduction is a tax exemption allowing SMEs to keep part of the payroll withholding tax instead of remitting it to the government. Contact your social secretaria to know if you are entitled or not to it."/>
+                        <field name="l10n_be_holiday_pay_fund_name"
+                            required="l10n_be_has_workers"
+                            placeholder="Name of the holiday pay fund"/>
+                        <field name="l10n_be_holiday_pay_fund_number"
+                            required="l10n_be_has_workers"
+                            placeholder="e.g. 1900123-45" help="Registration number for your holiday pay fund for your workers."/>
+                        <field name="l10n_be_SEPPT_name"
+                            placeholder="e.g. Securex, Liantis, Cohezio"/>
+                        <field name="l10n_be_SEPPT_number"
+                            required="l10n_be_SEPPT_name"
+                            placeholder="e.g. POL1234567"/>
+                    </group>
+
+                    <group string="Insurances">
+                        <field name="employee_accident_insurance_name"
+                            required="l10n_be_has_employees"
+                            placeholder="e.g. Ethias, AG Insurance" help="Name of the insurance company providing the employee accident coverage."/>
+                        <field name="employee_accident_insurance_number"
+                            required="l10n_be_has_employees"
+                            placeholder="e.g. POL1234567" help="The policy or contract number of your employee accident insurance."/>
+                        <field name="worker_accident_insurance_name"
+                            required="l10n_be_has_workers"
+                            placeholder="e.g. Ethias, AG Insurance" help="Name of the insurance company providing the worker accident coverage."/>
+                        <field name="worker_accident_insurance_number"
+                            required="l10n_be_has_workers"
+                            placeholder="e.g. POL1234567" help="The policy or contract number of your worker accident insurance."/>
+                        <field name="group_insurance_name"
+                            placeholder="e.g. OVMB, C.G.E.R., AG Insurance"/>
+                        <field name="group_insurance_number"
+                            required="group_insurance_name"
+                            placeholder="e.g. POL1234567"/>
+                        <label name="hospital_insurance_employee_contribution" for="hospital_insurance_employee_contribution"/>
+                        <div name="hospital_insurance_employee_contribution" class="o_row">
+                            <field name="hospital_insurance_employee_contribution" class="o_hr_narrow_field"/>
+                            <span>€ / month</span>
+                        </div>
+                        <label name="hospital_insurance_amount_adult" for="hospital_insurance_amount_adult"/>
+                        <div name="hospital_insurance_amount_adult" class="o_row">
+                            <field name="hospital_insurance_amount_adult" class="o_hr_narrow_field"/>
+                            <span>€ / month</span>
+                        </div>
+                        <label name="hospital_insurance_amount_child" for="hospital_insurance_amount_child"/>
+                        <div name="hospital_insurance_amount_child" class="o_row">
+                            <field name="hospital_insurance_amount_child" class="o_hr_narrow_field"/>
+                            <span>€ / month</span>
+                        </div>
+                        <label name="ambulatory_insurance_employee_contribution" for="ambulatory_insurance_employee_contribution"/>
+                        <div name="ambulatory_insurance_employee_contribution" class="o_row">
+                            <field name="ambulatory_insurance_employee_contribution" class="o_hr_narrow_field"/>
+                            <span>€ / month</span>
+                        </div>
+                        <label name="ambulatory_insurance_amount_adult" for="ambulatory_insurance_amount_adult"/>
+                        <div name="ambulatory_insurance_amount_adult" class="o_row">
+                            <field name="ambulatory_insurance_amount_adult" class="o_hr_narrow_field"/>
+                            <span>€ / month</span>
+                        </div>
+                        <label name="ambulatory_insurance_amount_child" for="ambulatory_insurance_amount_child"/>
+                        <div name="ambulatory_insurance_amount_child" class="o_row">
+                            <field name="ambulatory_insurance_amount_child" class="o_hr_narrow_field"/>
+                            <span>€ / month</span>
+                        </div>
+                    </group>
+
+                    <group name="" string="Withholding Taxes">
+                        <field name="l10n_be_declaration_frequency" widget="radio" options="{'horizontal': True}"
+                            readonly="parent_id"
+                            help="Configure the frequency at which you must submit your declarations"/>
+                    </group>
+                    <group string="First Hires" colspan="2">
+                        <field name="l10n_be_reduction_for_first_hires"
+                            readonly="parent_id"
+                            help="Enables RSZ/ONSS reductions for the 1st, 2nd, and 3rd employees. Requires valid 'New Employer' status (no employees subject to social security in the previous 4 quarters). Note: Reductions for 6th hires are abolished for contracts starting after Dec 31, 2023, and reductions for 4th and 5th were abolished between Jan 01, 2024 and Jun 30, 2026"/>
+                        <div class="o_wrap_label" invisible="not l10n_be_reduction_for_first_hires">
+                            <span class="o_form_label">Reductions preferences</span>
+                        </div>
+                        <div name="reductions_preferences" invisible="not l10n_be_reduction_for_first_hires">
+                            <div class="d-flex">
+                                <span class="col-2">Second Hire Max Cap</span>
+                                <field name="l10n_be_second_hire_reduction_window_cap" readonly="parent_id" class="text-center o_hr_narrow_field-2 mx-2"/>
+                                <span class="col-2"> quarters, already used </span>
+                                <field name="l10n_be_second_hire_reductions_used_outside_odoo" readonly="parent_id" class="text-center o_hr_narrow_field-2 mx-2"/>
+                                <span class="col-2"> outside odoo, eligible from </span>
+                                <field name="l10n_be_second_hire_reduction_eligibility_date" readonly="parent_id" placeholder="N/A" class="text-center o_hr_narrow_field-5 mx-2"/>
+                            </div>
+                            <div class="d-flex">
+                                <span class="col-2">Third Hire Max Cap</span>
+                                <field name="l10n_be_third_hire_reduction_window_cap" readonly="parent_id" class="text-center o_hr_narrow_field-2 mx-2"/>
+                                <span class="col-2"> quarters, already used </span>
+                                <field name="l10n_be_third_hire_reductions_used_outside_odoo" readonly="parent_id" class="text-center o_hr_narrow_field-2 mx-2"/>
+                                <span class="col-2"> outside odoo, eligible from </span>
+                                <field name="l10n_be_third_hire_reduction_eligibility_date" readonly="parent_id" placeholder="N/A" class="text-center o_hr_narrow_field-5 mx-2"/>
+                            </div>
+                            <div class="d-flex">
+                                <span class="col-2">Fourth Hire Max Cap </span>
+                                <field name="l10n_be_fourth_hire_reduction_window_cap" readonly="parent_id" class="text-center o_hr_narrow_field-2 mx-2"/>
+                                <span class="col-2"> quarters, already used </span>
+                                <field name="l10n_be_fourth_hire_reductions_used_outside_odoo" readonly="parent_id" class="text-center o_hr_narrow_field-2 mx-2"/>
+                                <span class="col-2"> outside odoo, eligible from </span>
+                                <field name="l10n_be_fourth_hire_reduction_eligibility_date" readonly="parent_id" placeholder="N/A" class="text-center o_hr_narrow_field-5 mx-2"/>
+                            </div>
+                            <div class="d-flex">
+                                <span class="col-2">Fifth Hire Max Cap </span>
+                                <field name="l10n_be_fifth_hire_reduction_window_cap" readonly="parent_id" class="text-center o_hr_narrow_field-2 mx-2"/>
+                                <span class="col-2"> quarters, already used </span>
+                                <field name="l10n_be_fifth_hire_reductions_used_outside_odoo" readonly="parent_id" class="text-center o_hr_narrow_field-2 mx-2"/>
+                                <span class="col-2"> outside odoo, eligible from </span>
+                                <field name="l10n_be_fifth_hire_reduction_eligibility_date" readonly="parent_id" placeholder="N/A" class="text-center o_hr_narrow_field-5 mx-2"/>
+                            </div>
+                            <div class="d-flex">
+                                <span class="col-2">Sixth Hire Max Cap </span>
+                                <field name="l10n_be_sixth_hire_reduction_window_cap" readonly="parent_id" class="text-center o_hr_narrow_field-2 mx-2"/>
+                                <span class="col-2"> quarters, already used </span>
+                                <field name="l10n_be_sixth_hire_reductions_used_outside_odoo" readonly="parent_id" class="text-center o_hr_narrow_field-2 mx-2"/>
+                                <span class="col-2"> outside odoo, eligible from </span>
+                                <field name="l10n_be_sixth_hire_reduction_eligibility_date" readonly="parent_id" placeholder="N/A" class="text-center o_hr_narrow_field-5 mx-2"/>
+                            </div>
+                        </div>
+                    </group>
+                </group>
+            </group>   
+        </field>
+    </record>
+
+    <record id="action_company_configuration_wizard" model="ir.actions.server">
+        <field name="name">Configure your company</field>
+        <field name="model_id" ref="hr_payroll.model_payroll_config_settings"/>
+        <field name="state">code</field>
+        <field name="code">
+if env.company.country_code != 'BE':
+    raise UserError("This action is only available for companies based in Belgium.")
+
+config = env.company.current_payroll_config_id
+action = config.action_open_hr_payroll_localization_form()
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_l10n_be_hr_payroll_company_settings"
+        name="Company data"
+        parent="hr_payroll.menu_hr_payroll_configuration"
+        sequence="1"
+        action="action_company_configuration_wizard"
+        groups="base.group_system"/>
+</odoo>

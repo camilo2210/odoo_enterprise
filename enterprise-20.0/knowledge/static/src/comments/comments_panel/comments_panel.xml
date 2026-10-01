@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="knowledge.KnowledgeCommentsPanel">
+        <div t-if="this.panelState.isDisplayed('comments')" class="o_knowledge_comments_panel d-print-none">
+            <div class="btn-group mb-2 w-100" role="group" aria-label="Filter discussions">
+                <button type="button" name="all" class="btn btn-secondary flex-basis-0 text-truncate"
+                    t-att-class="{ active: this.state.mode === 'all' }"
+                    t-att-aria-pressed="this.state.mode === 'all' ? 'true' : 'false'"
+                    t-on-click="() => this.state.mode = 'all'">
+                    All
+                </button>
+                <button type="button" name="unresolved" class="btn btn-secondary flex-basis-0 text-truncate"
+                    t-att-class="{ active: this.state.mode === 'unresolved' }"
+                    t-att-aria-pressed="this.state.mode === 'unresolved' ? 'true' : 'false'"
+                    t-on-click="() => this.state.mode = 'unresolved'">
+                    Open
+                </button>
+                <button type="button" name="resolved" class="btn btn-secondary flex-basis-0 text-truncate"
+                    t-att-class="{ active: this.state.mode === 'resolved' }"
+                    t-att-aria-pressed="this.state.mode === 'resolved' ? 'true' : 'false'"
+                    t-on-click="() => this.state.mode = 'resolved'">
+                    Resolved
+                </button>
+            </div>
+            <t t-foreach="this.state.threadIds" t-as="threadId" t-key="threadId">
+                <div t-if="this.canDisplayRecord(threadId)" class="card border-0 mb-2" t-att-class="{
+                        'o_knowledge_comment_card_borderless': !this.panelState.commentsState.threads[threadId],
+                    }">
+                    <div class="card-body p-0 m-0 row">
+                        <KnowledgeCommentsThread threadId="threadId"/>
+                    </div>
+                </div>
+            </t>
+            <div t-if="this.couldLoadMore" class="d-flex flex-column align-items-center mb-2">
+                <button class="btn btn-sm btn-link" t-on-click="this.loadMore" t-att-disabled="this.state.loading">
+                    Load More Discussions
+                </button>
+            </div>
+            <div t-if="!this.state.threadIds.length" class="o_comments_helper text-center p-4 d-flex flex-column align-items-center justify-content-end">
+                <p class="o_view_nocontent_smiling_face"/>
+                <h5>Nothing going on!</h5>
+                <p class="mb-0">
+                    Highlight content and use the <i class="oi oi-filled" data-icon="mode_comment"/> button to add comments
+                </p>
+            </div>
+        </div>
+    </t>
+</templates>

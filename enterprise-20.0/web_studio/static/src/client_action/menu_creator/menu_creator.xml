@@ -1,0 +1,57 @@
+<templates>
+
+<t t-name="web_studio.MenuCreator">
+    <div class="d-flex flex-column gap-4">
+        <div class="o_web_studio_menu_creator" t-att-class="{ o_web_studio_field_warning: !this.isValid('menuName') }">
+            <label for="menuName">Choose the name of the menu</label>
+            <input type="text" class="o_input"
+                name="menuName"
+                placeholder="e.g. Properties"
+                t-model.proxy="this.state.data.menuName"
+                t-ref="this.autofocusRef"
+            />
+        </div>
+        <div class="o_web_studio_menu_creator_model_choice">
+            <div t-foreach="this.state.modelChoiceSelection" t-as="item" t-key="item" class="form-check d-flex gap-2 align-items-center p-0">
+                <t t-set="inputId" t-value="'model_choice_' + item" />
+                <input type="radio"
+                    class="form-check-input m-0"
+                    name="model_choice"
+                    t-att-id="inputId"
+                    t-model.proxy="this.state.data.modelChoice"
+                    t-att-value="item"
+                />
+                <label class="form-check-label" t-att-for="inputId" t-out="item_value" />
+            </div>
+        </div>
+        <div
+            t-if="this.state.data.modelChoice === 'existing'" class="o_web_studio_menu_creator_model"
+            t-att-class="{ o_web_studio_field_warning: !this.isValid('modelId') }"
+        >
+            <label for="name">Model</label>
+            <RecordSelector t-props="this.multiRecordSelectorProps"/>
+        </div>
+    </div>
+</t>
+
+  <t t-name="web_studio.MenuCreatorDialog">
+    <Dialog size="'sm'" title.translate="Create your menu" contentClass="'o_web_studio_add_menu_modal'">
+
+        <MenuCreator showValidation="this.state.showValidation" menuCreatorModel="this.menuCreatorModel" />
+
+        <t t-set-slot="footer">
+
+            <button type="button" t-if="this.menuCreatorModel.data.modelChoice === 'new'" class="btn btn-primary confirm_button" t-attf-class="{{ !this.menuCreatorModel.isValid ? 'opacity-50' : '' }}"  t-on-click="this.onCreateNewModel">
+                Configure model
+            </button>
+
+            <button t-else="" type="button" class="btn btn-primary confirm_button" t-attf-class="{{ !this.menuCreatorModel.isValid ? 'opacity-50' : '' }}"  t-on-click="this.confirm">
+                Confirm
+            </button>
+
+            <button type="button" class="btn btn-secondary" t-on-click="this._cancel">Discard</button>
+        </t>
+    </Dialog>
+  </t>
+
+</templates>

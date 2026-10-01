@@ -1,0 +1,27 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+{
+    'name': 'Avatax',
+    'category': 'Accounting/Accounting',
+    'countries': ['us', 'ca'],
+    'depends': ['payment', 'account_external_tax', 'iap', 'account_edi_proxy_client'],
+    'data': [
+        'data/product.avatax.category.csv',
+        'data/iap_service_data.xml',
+        'views/account_fiscal_position_views.xml',
+        'views/account_move_views.xml',
+        'views/avatax_category_views.xml',
+        'views/avatax_exemption_views.xml',
+        'views/avatax_parameter_views.xml',
+        'views/avatax_parameter_value_views.xml',
+        'views/avatax_uom_views.xml',
+        'views/res_config_settings_views.xml',
+        'views/res_partner_views.xml',
+        'views/product_views.xml',
+        'wizard/avatax_validate_address_views.xml',
+        'wizard/avatax_connection_test_result_views.xml',
+        'reports/account_invoice.xml',
+        'security/ir.access.csv',
+    ],
+    'author': 'Odoo S.A.',
+    'license': 'OEEL-1',
+}

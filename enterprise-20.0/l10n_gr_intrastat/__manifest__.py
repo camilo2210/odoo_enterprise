@@ -1,0 +1,15 @@
+{
+    'name': 'Greece Intrastat Declaration',
+    'category': 'Accounting/Localizations/Reporting',
+    'description': """
+Generates Intrastat PDF report for declaration based on invoices for Greece.
+    """,
+    'depends': ['account_intrastat', 'l10n_gr_reports'],
+    'data': [
+        'data/account_return_data.xml',
+        'wizard/intrastat_goods_submission_wizard.xml',
+        'security/ir.access.csv',
+    ],
+    'author': 'Odoo S.A.',
+    'license': 'OEEL-1',
+}

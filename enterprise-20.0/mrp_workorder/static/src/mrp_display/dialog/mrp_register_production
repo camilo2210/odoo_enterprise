@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="mrp_workorder.MrpRegisterProductionDialog">
+    <div class="o_tablet_popups o_mrp_register_production_dialog">
+        <Dialog size="'md'" title="this.props.title" modalRef="this.modalRef">
+            <t t-set-slot="header">
+                <div class="d-flex flex w-100">
+                    <div class="h4 align-self-end" t-out="this.props.title"/>
+                    <div t-on-click="this._cancel" type="button" class="btn-close" aria-label="Close"/>
+                </div>
+            </t>
+            <div class="o_workorder_bar_content d-grid gap-2">
+                <span>Quantity Produced</span>
+                <div>
+                    <span name="qty_done" class="o_field_widget text-end pe-2">
+                        <FloatField t-props="this.qtyDoneInfo" readonly="this.props.record.data.product_tracking === 'serial'"/>
+                    </span>
+                    <span>
+                        /<span name="product_qty" class="mx-2"
+                            t-out="this.formatFloat(this.quantityToProduce)"/>
+                        <span t-out="this.props.record.data.uom_id.display_name"/>
+                    </span>
+                </div>
+                <t t-if="this.props.record.data.product_tracking" class="">
+                    <span class="text-capitalize" t-out="this.props.record.data.product_tracking"/>
+                    <div class="d-flex gap-2">
+                        <div t-if="this.props.record.data.product_tracking == 'serial' ? this.props.record.data.product_qty == 1 : true" name="lot_producing_ids" class="o_field_widget">
+                            <Many2ManyTagsField t-props="this.lotInfo" readonly="this.props.record.data.lot_producing_ids.count > 0"/>
+                        </div>
+                        <button t-if="this.props.record.data.product_tracking == 'serial' &amp;&amp; this.props.record.data.lot_producing_ids.count == 0"
+                            t-att-disabled="this.state.disabled" class="btn btn-primary btn-sm" t-on-click="this.actionGenerateSerial">
+                            Generate Serial
+                        </button>
+                        <button t-if="this.props.record.data.product_tracking == 'lot' &amp;&amp; this.props.record.data.lot_producing_ids.count == 0"
+                            t-att-disabled="this.state.disabled" class="btn btn-primary btn-sm" t-on-click="this.actionGenerateSerial">
+                            Generate Lot
+                        </button>
+                        <button t-if="this.props.record.data.lot_producing_ids.count"
+                            t-att-disabled="this.state.disabled" class="btn btn-secondary btn-sm" t-on-click="this.actionClearLotProducing">
+                            Clear
+                        </button>
+                    </div>
+                </t>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary me-2" t-on-click="this.validate" t-att-disabled="this.state.disabled">Validate</button>
+            </t>
+        </Dialog>
+        </div>
+    </t>
+</templates>

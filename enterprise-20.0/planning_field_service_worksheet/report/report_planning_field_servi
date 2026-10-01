@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <template id="worksheet_custom_page" inherit_id="planning_field_service.worksheet_custom_page">
+            <div name="worksheet_signature" position="before">
+                <div id="intevention_worksheet" class="row mt-3" t-if="doc.worksheet_template_id and (any(doc.worksheet_properties.values()) or doc.has_studio_worksheet_fields)">
+                    <t
+                        t-call="planning_field_service_worksheet.planning_slot_worksheet_properties_display"
+                        props_formatted="doc._get_props_formatted()"
+                    />
+                </div>
+                <div id="intervention_photos" class="mt-3" t-if="doc.photo_ids">
+                    <h3 class="mt-2 mb-2">Photos</h3>
+                    <t t-foreach="range(0, len(doc.photo_ids) + 2, 2)" t-as="i">
+                        <div class="row" style="page-break-inside: avoid;" t-if="len(doc.photo_ids) &gt; i">
+                            <div class="col-6 p-1 text-center align-content-center">
+                                <t t-set="photo" t-value="doc.photo_ids[i]"/>
+                                <img
+                                    t-attf-src="/web/image/#{photo.id}/400x400?access_token=#{photo.access_token}"
+                                    t-att-title="photo.name"
+                                    t-att-data-mimetype="photo.mimetype"
+                                />
+                            </div>
+                            <div class="col-6 p-1 text-center align-content-center" t-if="len(doc.photo_ids) &gt; i + 1">
+                                <t t-set="photo" t-value="doc.photo_ids[i + 1]"/>
+                                <img
+                                    t-attf-src="/web/image/#{photo.id}/400x400?access_token=#{photo.access_token}"
+                                    t-att-title="photo.name"
+                                    t-att-data-mimetype="photo.mimetype"
+                                />
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </template>
+    </data>
+</odoo>

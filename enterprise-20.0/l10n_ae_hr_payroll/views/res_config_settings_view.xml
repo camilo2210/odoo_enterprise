@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record model="ir.ui.view" id="res_config_settings_view_form">
+        <field name="name">res.config.settings.view.form</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="hr_payroll.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='hr_payroll_settings']" position="after">
+                <field name="company_country_code" invisible="1"/>
+                <block title="Emirati Localization" id="l10n_ae_hr_payroll_wps_settings" invisible="company_country_code != 'AE'">
+                    <setting string="Employer Unique ID" help="Company unique identifier to be used in the WPS report" id="l10n_ae_employer_code">
+                        <field name="l10n_ae_employer_code"/>
+                    </setting>
+                    <setting string="Salaries Bank Account" help="Company bank account to be used in the WPS report" id="l10n_ae_bank_account_id">
+                        <field name="l10n_ae_bank_account_id" domain="[('country_code', '=', 'AE'), ('partner_id', '=', company_partner_id)]" context="{'default_partner_id': company_partner_id}"/>
+                    </setting>
+                    <setting string="Is Private Sector"
+                        help="Qualifies Emirati employees for government pension subsidy per GPSSA rules"
+                        invisible="company_country_code != 'AE'"
+                        id="l10n_ae_is_private_sector">
+                        <field name="l10n_ae_is_private_sector"/>
+                    </setting>
+                    <setting string="Annual Leave Time-off Type" help="Set the time type used as Annual Leave">
+                        <field name="l10n_ae_annual_work_entry_type_id" required="company_country_code == 'AE'" options="{'no_create': True}"/>
+                    </setting>
+                </block>
+            </xpath>
+            <xpath expr="//block[@id='contract_work_permit_expiration_notify']" position="inside">
+                <setting string="Employee Probation Period" id="l10n_ae_probation_period_duration"
+                    title="Number of Months to the probation date end that will trigger an alert for the responsible HR Respobsible for the employee.">
+                    <field name="l10n_ae_probation_period_duration" class="w-25"/><span>Months</span>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

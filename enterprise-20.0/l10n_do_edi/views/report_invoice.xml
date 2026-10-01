@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="custom_header">
+        <div class="mb-3">
+            <div class="row">
+                <div name="left-upper-side" class="col order-first">
+                    <img t-if="o.company_id.logo" t-att-src="image_data_uri(o.company_id.logo)"
+                            style="max-height: 45px;" alt="Logo"/>
+                    <br/>
+                    <span t-if="not o.company_id.is_company_details_empty" t-field="o.company_id.partner_id.name"/>
+                    <t t-call="web.company_address_list"/>
+                </div>
+                <div name="right-upper-side" class="col order-last">
+                    <h4 t-att-style="'color: %s;' % o.company_id.primary_color">
+                        <strong><span t-out="o.l10n_latam_document_type_id.name"/></strong>
+                    </h4>
+                    <strong>e-cf: </strong><span t-field="o.name"/><br/>
+                    <strong>Expiration Date: </strong><span t-out="o.l10n_latam_document_type_id.with_company(o.company_id).l10n_do_edi_property_document_range_id.expiration_date" t-options="{'widget': 'date', 'format': 'dd-MM-yyyy'}"/><br/>
+                    <t t-if="o.reversed_entry_id or o.debit_origin_id">
+                        <strong>Modified e-cf: </strong>
+                        <t t-if="o.reversed_entry_id">
+                            <span t-field="o.reversed_entry_id.name"/>
+                        </t>
+                        <t t-elif="o.debit_origin_id">
+                            <span t-field="o.debit_origin_id.name"/>
+                        </t>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="report_invoice_document" inherit_id="account.report_invoice_document" primary="True">
+         <t t-set="o" position="after">
+            <t t-set="customized_address_layout">
+                <t t-out="address"/>
+            </t>
+         </t>
+        <t t-call="web.external_layout" position="before">
+            <t t-set="custom_header" t-value="'l10n_do_edi.custom_header'"/>
+        </t>
+        <!-- remove default invoice name -->
+        <t t-set="layout_document_title" position="replace"/>
+        <xpath expr="//div[@name='invoice_date']//div[@t-field='o.invoice_date']" position="attributes">
+            <attribute name="t-options">{'widget': 'date', 'format': 'dd-MM-yyyy'}</attribute>
+        </xpath>
+        <xpath expr="//div[@name='due_date']//div[@t-field='o.invoice_date_due']" position="attributes">
+            <attribute name="t-options">{'widget': 'date', 'format': 'dd-MM-yyyy'}</attribute>
+        </xpath>
+        <xpath expr="//div[@name='comment']" position="after">
+            <div class="row" id="l10n_do_edi_qr_info">
+                <img t-if="o.l10n_do_edi_qr_url"
+                    t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s&amp;quiet=%s' % ('QR', quote_plus(o.l10n_do_edi_qr_url), 200, 200, 0)"
+                    style="width: 22mm; height: 22mm; padding-right: 3mm;"
+                    alt="DGII QR Code"/>
+                <div class="col">
+                    <span t-if="o.l10n_do_edi_security_code">Security Code: <span t-field="o.l10n_do_edi_security_code"/></span>
+                    <br t-if="o.l10n_do_edi_security_code and o.l10n_do_edi_signature_datetime"/>
+                    <span t-if="o.l10n_do_edi_signature_datetime">Signature Date: <span t-field="o.l10n_do_edi_signature_datetime" t-options="{'widget': 'datetime', 'format': 'dd-MM-yyyy HH:mm:ss'}"/></span>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="report_invoice" inherit_id="account.report_invoice">
+        <xpath expr='//t[@t-call="account.report_invoice_document"]' position="after">
+            <t t-elif="o._get_name_invoice_report() == 'l10n_do_edi.report_invoice_document'"
+               t-call="l10n_do_edi.report_invoice_document"
+               t-lang="lang"/>
+        </xpath>
+    </template>
+</odoo>

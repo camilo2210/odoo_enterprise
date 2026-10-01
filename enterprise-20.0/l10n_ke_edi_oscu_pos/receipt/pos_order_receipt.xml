@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <template id="l10n_ke_edi_oscu_pos.pos_order_receipt" inherit_id="point_of_sale.pos_order_receipt">
+            <tr name="taxes_line" position="attributes">
+                <attribute name="t-if">not extra_data.get('l10n_ke_edi_oscu_taxes')</attribute>
+            </tr>
+        </template>
+        <template id="l10n_ke_edi_oscu_pos.pos_order_receipt_footer" inherit_id="point_of_sale.pos_order_receipt_footer">
+            <div name="footer" position="before">
+                <div class="w-100" t-if="conditions.get('code_ke')">
+                    <table class="w-100 mt-2 mb-3" t-if="extra_data.get('l10n_ke_edi_oscu_taxes')">
+                        <thead>
+                            <tr>
+                                <th name="th_tax_rate" class="text-start"><span>Tax Rate</span></th>
+                                <th name="th_taxable_amount" class="text-end"><span>Taxable Amount (KSh)</span></th>
+                                <th name="th_tax_amount" class="text-end"><span>Tax Amount (KSh)</span></th>
+                                <th name="th_total_amount" class="text-end"><span>Total Amount (KSh)</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="extra_data.get('l10n_ke_edi_oscu_taxes')" t-as="values">
+                                <td t-out="values['rate']" />
+                                <td class="text-end" t-out="values['taxable_amount']" />
+                                <td class="text-end" t-out="values['tax_amount']" />
+                                <td class="text-end" t-out="values['total_amount']" />
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p>SCU INFORMATION</p>
+                    <table class="w-100 mt-2 mb-3 text-break">
+                        <tbody>
+                            <tr>
+                                <td class="text-start w-50">Date:</td>
+                                <td class="text-end w-50" t-out="order['l10n_ke_oscu_confirmation_datetime']" />
+                            </tr>
+                            <tr>
+                                <td class="text-start w-50">Serial Number:</td>
+                                <td class="text-end w-50" t-out="company['l10n_ke_oscu_serial_number']" />
+                            </tr>
+                            <tr>
+                                <td class="text-start w-50">Receipt Number:</td>
+                                <td class="text-end w-50" t-out="order['l10n_ke_oscu_receipt_number']" />
+                            </tr>
+                            <tr>
+                                <td class="text-start w-50">Internal Data:</td>
+                                <td class="text-end w-50" t-out="order['l10n_ke_oscu_internal_data']" />
+                            </tr>
+                            <tr>
+                                <td class="text-start w-50">Signature:</td>
+                                <td class="text-end w-50" t-out="order['l10n_ke_oscu_signature']" />
+                            </tr>
+                        </tbody>
+                    </table>
+                    <img t-if="image.get('l10n_ke_edi_oscu_pos_qrsrc')"
+                        t-att-src="image['l10n_ke_edi_oscu_pos_qrsrc']"
+                        class="w-50" />
+                </div>
+            </div>
+        </template>
+    </data>
+</odoo>

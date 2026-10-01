@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="return_creation_wizard_form" model="ir.ui.view">
+        <field name="name">account.return.creation.wizard.form</field>
+        <field name="model">account.return.creation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Generate Return">
+                <div class="alert alert-info" role="alert" invisible="not show_warning_wrong_dates">
+                    The selected range doesn't match any fiscal period.
+                </div>
+                <group>
+                        <field name="available_return_type_ids" invisible="1"/>
+                        <field name="return_type_id" required="1" widget="badges_many2one" class="w-100"/>
+                        <label for="date_from" string="Dates"/>
+                        <div class="d-flex align-items-center col-10 col-lg-6">
+                            <field name="date_to" invisible="1"/>
+                            <field name="date_from" nolabel="1"
+                                widget="daterange" options="{'end_date_field': 'date_to'}"/>
+                            <span
+                                invisible="not show_warning_existing_return"
+                                class="oi text-danger pb-2"
+                                data-icon="warning"
+                                title="A return already exists for the selected period."
+                            />
+                            <span
+                                invisible="not show_warning_overlap"
+                                class="oi text-danger pb-2"
+                                data-icon="warning"
+                                title="Another return already covers part of this period."
+                            />
+                        </div>
+                </group>
+                <group invisible="category != 'audit'">
+                    <field name="cycle_ids" widget="many2many_tags" options="{'no_open': True, 'no_create': True}"/>
+                </group>
+                <footer>
+                    <button string="Generate Return" name="action_create_manual_account_returns" type="object" class="btn-primary" data-hotkey="q" disabled="1"
+                            invisible="not is_create_disabled"/>
+                    <button string="Generate Return" name="action_create_manual_account_returns" type="object" class="btn-primary" data-hotkey="q"
+                            invisible="is_create_disabled or show_warning_wrong_dates"/>
+                    <button string="Generate Return Anyway" name="action_create_manual_account_returns" type="object" class="btn-primary" data-hotkey="q"
+                            invisible="is_create_disabled or not show_warning_wrong_dates" context="{'force_periodicity_violation': 1}"/>
+                    <button class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

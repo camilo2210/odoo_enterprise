@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="obox_queue_view_list" model="ir.ui.view">
+        <field name="name">obox.queue.list</field>
+        <field name="model">obox.queue</field>
+        <field name="arch" type="xml">
+            <list string="Obox Queue" create="false" edit="false" delete="false">
+                <field name="create_date" />
+                <field name="obox_id" />
+                <field name="action_type" />
+                <field name="status" widget="badge"
+                    decoration-success="status == 'done'"
+                    decoration-warning="status == 'processing'"
+                    decoration-danger="status == 'pending'" />
+            </list>
+        </field>
+    </record>
+
+    <record id="obox_queue_view_form" model="ir.ui.view">
+        <field name="name">obox.queue.form</field>
+        <field name="model">obox.queue</field>
+        <field name="arch" type="xml">
+            <form string="Obox Queue" readonly="True">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" class="oe_inline"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="create_date" />
+                            <field name="action_type" />
+                            <field name="status" />
+                            <field name="uuid" />
+                        </group>
+                        <group>
+                            <field name="obox_id" />
+                            <field name="retry" />
+                            <field name="payload_length" />
+                        </group>
+                    </group>
+                    <notebook colspan="4" groups="base.group_no_one">
+                        <page string="Payload" name="notes">
+                            <p invisible="payload" class="text-muted">
+                                Payload of the action will be displayed here if available.
+                            </p>
+                            <div class="overflow-scroll">
+                                <field name="payload" readonly="1" placeholder="No payload available"/>
+                            </div>
+                        </page>
+                        <page string="Result" name="notes">
+                            <p invisible="result" class="text-muted">
+                                Result of the action will be displayed here.
+                            </p>
+                            <div class="overflow-scroll">
+                                <field name="result" readonly="1"/>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_obox_queue_search" model="ir.ui.view">
+        <field name="name">obox.queue.search</field>
+        <field name="model">obox.queue</field>
+        <field name="arch" type="xml">
+            <search string="Obox Queue">
+                <field name="create_date" />
+                <field name="payload" operator="ilike" />
+                <group>
+                    <filter name="group_by_obox_id" string="Obox" context="{'group_by':'obox_id'}"/>
+                    <filter name="group_by_action_type" string="Action Type" context="{'group_by':'action_type'}"/>
+                    <filter name="group_by_status" string="Status" context="{'group_by':'status'}"/>
+                    <filter name="group_by_create_date" string="Creation Date" context="{'group_by':'create_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_obox_queue_list" model="ir.actions.act_window">
+        <field name="name">Obox queue</field>
+        <field name="path">queue</field>
+        <field name="res_model">obox.queue</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain"/>
+        <field name="search_view_id" ref="view_obox_queue_search" />
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">No recent action found</p>
+        </field>
+    </record>
+</odoo>

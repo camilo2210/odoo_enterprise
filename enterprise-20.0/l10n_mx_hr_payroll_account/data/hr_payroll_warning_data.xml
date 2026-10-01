@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <record id="hr_payroll_warning_missing_fields" model="hr.payroll.warning">
+            <field name="name">Missing Employee/Company Fields Warning</field>
+            <field name="description">Missing required employee/company fields</field>
+            <field name="country_id" ref="base.mx"/>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_mx_hr_payroll.model_hr_payslip"/>
+            <field name="warning_color_class">danger</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+mx_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'MX')
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', mx_companies.ids),
+    ('employee_id', '!=', False),
+])
+warning_records = self.env['hr.payslip']
+warning_details = defaultdict(list)
+for payslip in payslips:
+    issues = payslip._issue_mx_employee_fields()
+    warnings = payslip._issue_mx_warnings()
+    if issues or warnings:
+        warning_records |= payslip
+        warning_details[payslip] = (issues or []) + (warnings or [])
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_CFDI_deadline" model="hr.payroll.warning">
+            <field name="name">CFDI Issuance Deadline</field>
+            <field name="description">CFDIs must be issued within the maximum legal deadline (RMF Rule 2.7.5)</field>
+            <field name="country_id" ref="base.mx"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_mx_hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+mx_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'MX')
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', mx_companies.ids),
+    ('l10n_mx_edi_cfdi_state', '!=', 'sent'),
+])
+
+# RMF rule 2.7.5 grants a number of business days to issue the payroll CFDI, depending on the total number of employees of the company: (employee count upper bound, business days).
+deadline_brackets = [(50, 3), (100, 5), (300, 7), (500, 9)]
+default_business_days = 11
+date_format = self.env['res.lang']._lang_get(self.env.user.lang).date_format or '%d/%m/%Y'
+employee_count_per_company = {}
+
+warning_records = self.env['hr.payslip']
+warning_details = defaultdict(list)
+for payslip in payslips:
+    if not (reference_date := payslip.paid_date) or payslip.move_state != 'posted':
+        continue
+
+    company = payslip.company_id
+    if company.id not in employee_count_per_company:
+        employee_count_per_company[company.id] = self.env['hr.employee'].search_count([('company_id', '=', company.id)])
+    employee_count = employee_count_per_company[company.id]
+
+    business_days = default_business_days
+    for employee_bound, granted_days in deadline_brackets:
+        if employee_count &lt;= employee_bound:
+            business_days = granted_days
+            break
+
+    deadline = reference_date
+    while business_days:
+        deadline += relativedelta(days=1)
+        if deadline.weekday() &lt; 5:  # skip week-ends
+            business_days -= 1
+
+    warning_records |= payslip
+    warning_details[payslip].append({
+        'message': _get_payroll_translation(
+            "Payroll CFDIs must be issued no later than %(deadline)s.",
+            deadline=deadline.strftime(date_format),
+        ),
+        'level': 'warning',
+    })
+            </field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,22 @@
+import { patch } from "@web/core/utils/patch";
+import { DocumentsKanbanRecord } from "@documents/views/kanban/documents_kanban_model";
+
+import { XLSX_MIME_TYPES } from "@documents_spreadsheet/helpers";
+
+patch(DocumentsKanbanRecord.prototype, {
+    /**
+     * @override
+     */
+    isViewable() {
+        const isSpreadsheet = ["spreadsheet", "frozen_spreadsheet"].includes(this.data.handler);
+        if (isSpreadsheet && this.model.env.searchModel.context.documents_view_secondary) {
+            return false;
+        }
+        return (
+            isSpreadsheet ||
+            XLSX_MIME_TYPES.includes(this.data.mimetype) ||
+            this.data.mimetype === "text/csv" ||
+            super.isViewable(...arguments)
+        );
+    },
+});

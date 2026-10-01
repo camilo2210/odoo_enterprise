@@ -1,0 +1,885 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <record id="hr_payroll_warning_welcome" model="hr.payroll.warning">
+            <field name="name">Welcome!</field>
+            <field name="description">
+This is your dashboard and will list all activities to review. To start, tell us about your business!
+            </field>
+            <field name="country_id" eval="False"/>
+            <field name="closing_on">payroll_start_date</field>
+            <field name="warning_color_class">primary</field>
+            <field name="warning_type">python</field>
+            <field name="sequence">0</field>
+            <field name="evaluation_code">
+if not self.env.company.country_id:
+    warning_records = self.env.company
+    warning_count = 0
+            </field>
+            <field name="button_name">Add Details</field>
+            <field name="button_action" ref="hr_payroll.res_company_form_action"/>
+        </record>
+
+        <record id="hr_payroll_warning_set_schedule" model="hr.payroll.warning">
+            <field name="name">Choose your pay schedule</field>
+            <field name="description">Never miss a deadline!</field>
+            <field name="country_id" eval="False"/>
+            <field name="closing_on">payroll_start_date</field>
+            <field name="warning_color_class">primary</field>
+            <field name="warning_type">python</field>
+            <field name="sequence">1</field>
+            <field name="evaluation_code">
+if not self.env.company.first_payrun_date:
+    warning_records = self.env.company
+    warning_count = 0
+            </field>
+            <field name="button_name">Set Schedule</field>
+            <field name="button_action" ref="hr_payroll.hr_payroll_set_schedule_action"/>
+            <field name="visible_to">admin</field>
+        </record>
+
+        <record id="hr_payroll_warning_start_payrun" model="hr.payroll.warning">
+            <field name="name">Start Pay Run</field>
+            <field name="sequence">20</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">info</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+generic_employee_types = self.env['hr.employee.type'].search(domain=[
+    ('employee_ids', 'any', [('company_id', '=', company.id)]),
+    ('payroll_closing_date', '=', False)
+])
+if closing_date and generic_employee_types:
+    schedule = self.env['hr.payroll.warning']._get_schedule_pay(company)
+    date_start = closing_date.replace(day=1)
+    if int(company.payroll_closing_date) &lt; 10:
+        date_start = date_start + relativedelta(months=-1)
+    date_end = date_start + self.env["hr.payslip"]._schedule_timedelta(schedule, date_start, company.country_code)
+    default_struct = self.env['hr.version'].with_company(company)._default_salary_structure().default_struct_id
+    next_payrun = self.env['hr.payroll.warning']._get_next_payrun(company, date_start, date_end, generic_employee_types)
+    if not next_payrun:
+        warning_title = _get_payroll_translation("Payrun: %(period)s", period=self.env["hr.payslip.run"]._get_name_for_period({'date_start': date_start, 'date_end': date_end}))
+        warning_description = _get_payroll_translation("Never miss a deadline!")
+        warning_button = _get_payroll_translation("Start Pay Run")
+        warning_action = {
+            'type': 'ir.actions.server',
+            'id': self.env.ref('hr_payroll.action_hr_payroll_start_payrun').id,
+            'context': {
+                'default_company_id': company.id,
+                'default_date_start': date_start,
+                'default_date_end': date_end,
+                'default_structure_id': default_struct.id,
+                'default_employee_type_ids': generic_employee_types.ids,
+            },
+        }
+    elif len(next_payrun) &gt; 1:
+        warning_title = _get_payroll_translation("Multiple Pay Run overlap the same period")
+        warning_description = ""
+        warning_button = _get_payroll_translation("Open Pay Runs")
+        action = self.env['ir.actions.act_window']._for_xml_id('hr_payroll.action_hr_payslip_run')
+        action['domain'] = Domain.AND([literal_eval(action['domain'] or '[]'), [('id', 'in', next_payrun.ids)]])
+        warning_action = action
+    else:
+        warning_title = _get_payroll_translation("Current Payrun: %(next_payrun)s", next_payrun=next_payrun.display_name)
+        states = dict(next_payrun._fields["state"].get_description(self.env)["selection"])
+        warning_description = _get_payroll_translation("State of the payrun: %(state)s", state=states[next_payrun.state])
+        if next_payrun.state == '03_paid':
+            has_draft_payslips = any(slip.state == 'draft' for slip in next_payrun.slip_ids)
+            warning_button = _get_payroll_translation("Continue") if has_draft_payslips else _get_payroll_translation("Review")
+        else:
+            warning_button = _get_payroll_translation("Continue")
+        warning_action = {
+            'type': 'ir.actions.server',
+            'id': self.env.ref('hr_payroll.action_hr_payroll_start_payrun').id,
+            'context': {'active_id': next_payrun.id},
+        }
+    warning_records = next_payrun or company
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_payrun_employee_type" model="hr.payroll.warning">
+            <field name="name">Payrun Employee Type</field>
+            <field name="sequence">21</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">info</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+employee_types_with_closing_date = self.env['hr.employee.type'].search(domain=[
+    ('employee_ids', 'any', [('company_id', '=', company.id)]),
+    ('payroll_closing_date', '!=', False),
+    ('payroll_auto_post', '=', False),
+])
+warning_multi_results = []
+for employee_type in employee_types_with_closing_date:
+    et_closing_date = self.env['hr.payroll.warning']._get_monthly_payroll_next_closing_date(employee_type.payroll_closing_date)
+    if not et_closing_date:
+        continue
+    schedule = self.env['hr.payroll.warning']._get_schedule_pay(company)
+    date_start = et_closing_date.replace(day=1)
+    default_struct = self.env['hr.version'].with_company(company)._default_salary_structure().default_struct_id
+    if int(employee_type.payroll_closing_date or company.payroll_closing_date) &lt; 10:
+        date_start = date_start + relativedelta(months=-1)
+    date_end = date_start + self.env["hr.payslip"]._schedule_timedelta(schedule, date_start, company.country_code)
+    next_payrun = self.env['hr.payroll.warning']._get_next_payrun(company, date_start, date_end, employee_type)
+    date_range = self.env["hr.payslip.run"]._get_name_for_period({'date_start': date_start, 'date_end': date_end})
+    if not next_payrun:
+        name = _get_payroll_translation("Start Pay run - %(date_range)s (%(employee_type)s)", date_range=date_range, employee_type=employee_type.name)
+        button_name = _get_payroll_translation("Pay run")
+        description = ""
+        action = {
+            'type': 'ir.actions.server',
+            'id': self.env.ref('hr_payroll.action_hr_payroll_start_payrun').id,
+            'context': {
+                'default_company_id': company.id,
+                'default_date_start': date_start,
+                'default_date_end': date_end,
+                'default_employee_type_ids': [employee_type.id],
+                'default_structure_id': default_struct.id,
+            },
+        }
+    elif len(next_payrun) &gt; 1:
+        name = _get_payroll_translation("Multiple Pay Run for %(employee_type)s overlap the same period (%(date_range)s)", employee_type=employee_type.name, date_range=date_range)
+        description = ""
+        button_name = _get_payroll_translation("Open Pay Runs")
+        action = self.env['ir.actions.act_window']._for_xml_id('hr_payroll.action_hr_payslip_run')
+        action['domain'] = Domain.AND([literal_eval(action['domain'] or '[]'), [('id', 'in', next_payrun.ids)]])
+    else:
+        name = _get_payroll_translation("Current Payrun: %(employee_type)s - %(next_payrun)s", employee_type=employee_type.name, next_payrun=next_payrun.display_name)
+        states = dict(next_payrun._fields["state"].get_description(self.env)["selection"])
+        description = _get_payroll_translation("State of the payrun: %(state)s", state=states[next_payrun.state])
+        if next_payrun.state == '03_paid':
+            has_draft_payslips = any(slip.state == 'draft' for slip in next_payrun.slip_ids)
+            button_name = _get_payroll_translation("Continue") if has_draft_payslips else _get_payroll_translation("Review")
+        else:
+            button_name = _get_payroll_translation("Continue")
+        action = {
+            'type': 'ir.actions.server',
+            'id': self.env.ref('hr_payroll.action_hr_payroll_start_payrun').id,
+            'context': {'active_id': next_payrun.id},
+        }
+    warning_multi_results.append({
+        'name': name,
+        'description': description,
+        'button_name': button_name,
+        'action': action,
+        'schedule': schedule,
+        'warning_date': et_closing_date,
+    })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_configure_benefits" model="hr.payroll.warning">
+            <field name="name">Configure your benefits</field>
+            <field name="description">Choose your benefits !</field>
+            <field name="visible_to">admin</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">primary</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+base_domain = [
+    ('country_id', '=', self.env.company.country_id.id),
+    '|', ('view_ids', '!=', False), ('salary_rule_ids', '!=', False)
+]
+configurable_benefits = self.env['hr.contract.salary.benefit'].with_context(active_test=False).search(base_domain)
+
+if not configurable_benefits.filtered(lambda b: b.active):
+    warning_records = self.env.company
+    warning_count = 0
+            </field>
+            <field name="button_name">Configure benefits</field>
+            <field name="button_action" ref="hr_payroll.hr_contract_benefit_action"/>
+        </record>
+
+        <record id="hr_payroll_create_employee" model="hr.payroll.warning">
+            <field name="name">Create your first employee</field>
+            <field name="description">Set their compensation, benefits and contract dates.</field>
+            <field name="country_id" eval="False"/>
+            <field name="closing_on">payroll_start_date</field>
+            <field name="warning_color_class">primary</field>
+            <field name="warning_type">python</field>
+            <field name="sequence">4</field>
+            <field name="evaluation_code">
+if not self.env['hr.employee'].search_count([('company_id', 'in', self.env.company.id)], limit=1):
+    warning_records = self.env.company
+    
+            </field>
+            <field name="button_name">Add Employees</field>
+            <field name="button_action" ref="hr_payroll.create_employee_action"/>
+            <field name="visible_to">assistant</field>
+        </record>
+
+        <record id="hr_payroll_configure_payslip_layout" model="hr.payroll.warning">
+            <field name="name">Configure your payslip layout</field>
+            <field name="description">Customize your payslip style.</field>
+            <field name="country_id" eval="False"/>
+            <field name="closing_on">payroll_start_date</field>
+            <field name="warning_color_class">primary</field>
+            <field name="warning_type">python</field>
+            <field name="sequence">3</field>
+            <field name="evaluation_code">
+if self.env.company.is_company_details_empty:
+    warning_records = self.env.company
+    warning_count = 0
+            </field>
+            <field name="button_name">Customize Layout</field>
+            <field name="button_action" ref="hr_payroll.base_document_layout_payroll_action"/>
+            <field name="visible_to">admin</field>
+        </record>
+
+        <record id="hr_payroll_warning_employee_without_contract" model="hr.payroll.warning">
+            <field name="name">Employees Without Running Contract</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">warning</field>
+            <field name="warning_offset_days">-3</field>
+            <field name="closing_on">next_payslip</field>
+            <field name="button_name">Configure Contracts</field>
+            <field name="warning_type">domain</field>
+            <field name="model_id" ref="hr.model_hr_employee"/>
+            <field name="warning_domain">[
+                ('employee_type_id.code', '=', 'Employee'),
+                '|',
+                    ('version_id.contract_date_start', '=', False),
+                    '&amp;',
+                        ('version_id.contract_date_end', '!=', False),
+                        ('version_id.contract_date_end', '&lt;', 'today')
+            ]</field>
+            <field name="visible_to">assistant</field>
+        </record>
+
+        <record id="hr_payroll_warning_employee_without_bank_account" model="hr.payroll.warning">
+            <field name="name">Missing Bank Account</field>
+            <field name="description">Employee bank account required.</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_offset_days">-3</field>
+            <field name="closing_on">next_payslip</field>
+            <field name="warning_color_class">warning</field>
+            <field name="button_name">Set Bank Details</field>
+            <field name="warning_type">domain</field>
+            <field name="model_id" ref="hr.model_hr_employee"/>
+            <field name="warning_domain">[('bank_account_ids', '=', False)]</field>
+            <field name="visible_to">assistant</field>
+        </record>
+
+        <record id="hr_payroll_warning_untrusted_bank_accounts" model="hr.payroll.warning">
+            <field name="name">Untrusted Bank Accounts</field>
+            <field name="description">Unable to pay employees.</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_offset_days">-3</field>
+            <field name="closing_on">next_payslip</field>
+            <field name="button_name">Review Bank Accounts</field>
+            <field name="evaluation_code">
+untrusted_bank_accounts_ids = self.env['hr.employee']._get_untrusted_bank_account_ids()
+untrusted_bank_accounts = self.env['res.partner.bank'].browse(untrusted_bank_accounts_ids)
+if untrusted_bank_accounts:
+    warning_records = untrusted_bank_accounts
+            </field>
+            <field name="button_action" ref="action_untrusted_bank_accounts"/>
+            <field name="visible_to">assistant</field>
+        </record>
+
+        <record id="hr_payroll_warning_payslip_overdue" model="hr.payroll.warning">
+            <field name="name">Payslips overdue for payments</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_offset_days">-3</field>
+            <field name="warning_color_class">warning</field>
+            <field name="closing_on">next_payslip</field>
+            <field name="button_name">Checkout Payslips</field>
+            <field name="warning_type">domain</field>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="warning_domain">[("state","=","validated"),("create_date","&lt;","today -30d")]</field>
+            <field name="visible_to">assistant</field>
+        </record>
+
+        <record id="hr_payroll_warning_off_cycle_payslips" model="hr.payroll.warning">
+            <field name="name">Outdated Payslips</field>
+            <field name="description">The employees have been updated.</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_offset_days">-3</field>
+            <field name="closing_on">next_payslip</field>
+            <field name="button_name">Checkout Payslips</field>
+            <field name="warning_type">python</field>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="evaluation_code">
+payslips = self.env['hr.payslip'].search([
+    ('state', 'in', ['validated', 'paid']),
+    ('is_refunded', '=', False),
+    ('is_corrected', '=', False),
+    ('keep_wrong_version', '=', False),
+    ('is_refund_payslip', '=', False),
+])
+warning_records = payslips.filtered(lambda p: p.has_wrong_data)
+            </field>
+            <field name="visible_to">assistant</field>
+        </record>
+
+        <record id="hr_payroll_warning_payslip_period_mismatch" model="hr.payroll.warning">
+            <field name="name">Payslips With Period Mismatch</field>
+            <field name="description">Payslip periods mismatch pay schedule.</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">warning</field>
+            <field name="warning_type">python</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="evaluation_code">
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', self.env.companies.ids),
+    ('state', 'in', ['draft', 'validated']),
+    ('date_from', '!=', False),
+    ('date_to', '!=', False),
+    ('struct_id', '!=', False),
+])
+warning_records = payslips.filtered(lambda payslip: payslip._is_period_mismatch_payslip())
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_payslip_zero_or_negative_net" model="hr.payroll.warning">
+            <field name="name">Payslips With Zero or Negative Net</field>
+            <field name="description">Net pay is zero or negative.</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">warning</field>
+            <field name="warning_type">domain</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="warning_domain">[('state', '=', 'draft'), ('date_from', '!=', False), ('date_to', '!=', False), ('compute_date', '!=', False), ('net_wage', '&lt;=', 0)]</field>
+        </record>
+
+        <record id="hr_payroll_warning_leaves_no_allocation" model="hr.payroll.warning">
+            <field name="name">Time Off Not Related To An Allocation</field>
+            <field name="country_id" eval="False"/>
+            <field name="button_name">Review Time Offs</field>
+            <field name="evaluation_code">
+leaves_no_allocation_ids = []
+employees = self.env['hr.employee'].search([('company_id', 'in', self.env.companies.ids)])
+consumed_leaves = employees._get_consumed_leaves(work_entry_types=self.env['hr.work.entry.type'].search([
+    ('requires_allocation', '=', True),
+    ('allows_negative', '=', False),
+]))[1]
+for employee in consumed_leaves:
+    to_recheck_leaves_per_work_entry_type = consumed_leaves[employee]
+    for work_entry_type_id in to_recheck_leaves_per_work_entry_type:
+        for end_dates in to_recheck_leaves_per_work_entry_type[work_entry_type_id]['excess_days']:
+            leave_id = to_recheck_leaves_per_work_entry_type[work_entry_type_id]['excess_days'][end_dates]['leave_id']
+            leaves_no_allocation_ids.append(leave_id)
+if leaves_no_allocation_ids:
+    today = fields.Date.today()
+    date_from = today - relativedelta(months=6)
+    date_to = today + relativedelta(months=6)
+
+    warning_records = self.env['hr.leave'].search([
+        ('id', 'in', leaves_no_allocation_ids),
+        ('state', 'in', ['confirm', 'validate1']),
+        ('date_from', '&gt;=', date_from),
+        ('date_from', '&lt;=', date_to),
+    ])
+            </field>
+            <field name="visible_to">assistant</field>
+        </record>
+
+        <record id="hr_payroll_warning_employee_anomaly" model="hr.payroll.warning">
+            <field name="name">Employees With Anomalies</field>
+            <field name="country_id" eval="False"/>
+            <field name="evaluation_code">
+employees_with_anomalies = self.env['hr.employee'].search([
+    ('review_state', '=', '3_anomaly'),
+    ('company_id', 'in', self.env.companies.ids),
+])
+if employees_with_anomalies:
+    warning_records = employees_with_anomalies
+    additional_context = {'search_default_review_state': 'anomaly'}
+            </field>
+            <field name="visible_to">assistant</field>
+        </record>
+
+        <record id="hr_payroll_warning_employee_to_review" model="hr.payroll.warning">
+            <field name="name">Employees To Review</field>
+            <field name="country_id" eval="False"/>
+            <field name="evaluation_code">
+employees_to_review = self.env['hr.employee'].search([
+    ('review_state', '=', '2_to_review'),
+    ('company_id', 'in', self.env.companies.ids),
+])
+if employees_to_review:
+    warning_records = employees_to_review
+    additional_context = {'search_default_review_state': '2_to_review'}
+            </field>
+            <field name="visible_to">assistant</field>
+        </record>
+
+        <record id="hr_payroll_warning_missing_payrun" model="hr.payroll.warning">
+            <field name="name">Missing Payrun</field>
+            <field name="description">Retrieve missing pay run info.</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr.model_hr_version"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+versions_with_contract = self.env['hr.version'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', self.env.companies.ids),
+    ('contract_date_start', '!=', False)])
+missing_payruns_by_version = versions_with_contract._get_missing_payrun_by_version()
+warning_details = defaultdict(list)
+warning_records = self.env['hr.version']
+for version in missing_payruns_by_version:
+    for payruns in missing_payruns_by_version.get(version, []):
+        warning_details[version].append(version._get_missing_payrun_issue_values(payruns))
+        warning_records |= version
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_no_running_contract" model="hr.payroll.warning">
+            <field name="name">Payslips Without Running Contract</field>
+            <field name="description">Payslip without active contract.</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">danger</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', self.env.companies.ids),
+    ('state', '=', 'draft'),
+    ('ignore_worked_day_lines', '=', False),
+])
+warning_details = defaultdict(list)
+out_of_contract_payslips = payslips.filtered(lambda p: p._is_out_of_contract())
+for payslip in out_of_contract_payslips:
+        warning_details[payslip].append({
+            'message': _get_payroll_translation('No running contract'),
+            'action_text': _get_payroll_translation("Contract"),
+            'action': payslip.employee_id._get_records_action(
+                name=_get_payroll_translation("Employee"),
+                context={**self.env.context, 'version_id': payslip.version_id.id}
+            ),
+            'level': 'danger',
+        })
+warning_records = out_of_contract_payslips
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_wrong_company" model="hr.payroll.warning">
+            <field name="name">Wrong Company</field>
+            <field name="description">Incorrect company.</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">danger</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', self.env.companies.ids),
+    ('state', '=', 'draft'),
+    ('payslip_run_id', '!=', False)
+])
+warning_details = defaultdict(list)
+wrong_company_payslips = payslips.filtered(lambda p: p.company_id != p.payslip_run_id.company_id)
+for payslip in wrong_company_payslips:
+    warning_details[payslip].append({
+        'message': _get_payroll_translation("Wrong company"),
+        'action_text': _get_payroll_translation('Batch'),
+        'action': payslip.payslip_run_id._get_records_action(),
+        'level': 'danger',
+    })
+warning_records = wrong_company_payslips
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_employee_pending_review" model="hr.payroll.warning">
+            <field name="name">Employees Pending Review</field>
+            <field name="description">Employee pending review.</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">danger</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+payslips = self.env['hr.payslip'] if 'salary_simulation' in self.env.context else self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', self.env.companies.ids),
+    ('state', '=', 'draft'),
+    ('employee_id.review_state', 'in', ['2_to_review', '3_anomaly'])])
+warning_details = defaultdict(list)
+for payslip in payslips:
+    warning_details[payslip].append({
+        'message': _get_payroll_translation('Review employee to validate payslip.'),
+        'action_text': _get_payroll_translation('Review'),
+        'action': payslip.employee_id._get_records_action(
+            name=_get_payroll_translation("Employee"),
+        ),
+        'level': 'danger',
+    })
+warning_records = payslips
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_wrong_employee_data" model="hr.payroll.warning">
+            <field name="name">Wrong Employees Data</field>
+            <field name="description">Incorrect employee data.</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', self.env.companies.ids),
+    ('date_from', '!=', False),
+    ('date_to', '!=', False),
+    ('is_refunded', '=', False),
+    ('is_corrected', '=', False),
+    ('keep_wrong_version', '=', False),
+    ('is_refund_payslip', '=', False),
+    ('state', 'in', ['validated', 'paid']),
+])
+warning_details = defaultdict(list)
+warning_records = self.env['hr.payslip']
+for payslip in payslips:
+    if payslip.has_wrong_data:
+        warning_records |= payslip
+        warning_details[payslip].append({
+            'message': _get_payroll_translation("The employee has been updated."),
+            'action_text': _get_payroll_translation('Update Payslip'),
+            'action': payslip.action_adjust_payslip(),
+            'level': 'warning',
+        })
+    if payslip.is_wrong_version:
+        warning_records |= payslip
+        warning_details[payslip].append({
+            'message': _get_payroll_translation("Employee's version has changed."),
+            'action_text': _get_payroll_translation('Update Payslip'),
+            'action': payslip.action_adjust_payslip(),
+            'level': 'warning',
+        })
+    if payslip.has_wrong_leaves:
+        warning_records |= payslip
+        warning_details[payslip].append({
+            'message': _get_payroll_translation('A time off has been modified.'),
+            'action_text': _get_payroll_translation('Update Payslip'),
+            'action': payslip.action_adjust_payslip(),
+            'level': 'warning',
+        })
+            </field>
+        </record>
+
+        <record id="hr_payroll_leaves_to_defer" model="hr.payroll.warning">
+            <field name="name">Leaves to defer</field>
+            <field name="description">Leaves deferred to next month should correct payslips</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_leave"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+leaves = self.env['hr.leave'].search([
+    ('payslip_state', '=', 'blocked'),
+])
+warning_details = defaultdict(list)
+warning_records = self.env['hr.leave']
+for leave in leaves:
+    warning_records |= leave
+    warning_details[leave].append({
+        'message': _get_payroll_translation("Payslip for the month is already validated."),
+        'action_text': _get_payroll_translation("Correct Payslip"),
+        'action': leave.action_adjust_corresponding_payslip(),
+        'level': 'warning',
+    })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_wrong_company_data" model="hr.payroll.warning">
+            <field name="name">Wrong Company Data</field>
+            <field name="description">Incorrect company data.</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', self.env.companies.ids),
+    ('date_from', '!=', False),
+    ('date_to', '!=', False),
+    ('is_refunded', '=', False),
+    ('is_corrected', '=', False),
+    ('keep_wrong_version', '=', False),
+    ('is_refund_payslip', '=', False),
+])
+warning_details = defaultdict(list)
+warning_records = self.env['hr.payslip']
+for payslip in payslips:
+    if not payslip.state in ['validated', 'paid']:
+        continue
+    if payslip.has_wrong_company_data:
+        warning_records |= payslip
+        warning_details[payslip].append({
+            'message': _get_payroll_translation("The company has been updated."),
+            'action_text': _get_payroll_translation('Update Payslip'),
+            'action': payslip.action_adjust_payslip(),
+            'level': 'warning',
+        })
+    if payslip.is_wrong_company_version:
+        warning_records |= payslip
+        warning_details[payslip].append({
+            'message': _get_payroll_translation("The company's version has changed."),
+            'action_text': _get_payroll_translation('Update Payslip'),
+            'action': payslip.action_adjust_payslip(),
+            'level': 'warning',
+        })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_salary_attachment_closed" model="hr.payroll.warning">
+            <field name="name">Salary Attachment Closed</field>
+            <field name="description">Salary attachment is closed</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', self.env.companies.ids),
+    ('state', '=', 'validated'),
+    ('date_from', '!=', False),
+    ('date_to', '!=', False)])
+warning_details = defaultdict(list)
+warning_records = self.env['hr.payslip']
+for payslip in payslips:
+    closed_attachments = payslip.salary_attachment_ids.filtered(
+        lambda a: a.state == 'close'
+    )
+    if not closed_attachments:
+        continue
+
+    warning_records |= payslip
+    for attachment in closed_attachments:
+        warning_details[payslip].append({
+            'message': _get_payroll_translation("Related payslip adjustment has been closed"),
+            'action_text': _get_payroll_translation('Adjustment'),
+            'action': attachment._get_records_action(),
+            'level': 'warning',
+        })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_salary_attachment_created" model="hr.payroll.warning">
+            <field name="name">Salary Attachment Created</field>
+            <field name="description">Salary attachment created.</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', self.env.companies.ids),
+    ('state', '=', 'validated'),
+    ('date_from', '!=', False),
+    ('date_to', '!=', False)])
+warning_details = defaultdict(list)
+warning_records = self.env['hr.payslip']
+for payslip in payslips:
+    ref_date = payslip.done_date or payslip.create_date
+    if not ref_date:
+        continue
+    new_attachments = payslip.employee_id.salary_attachment_ids.filtered(
+        lambda a: a.state == 'open' and a.date_start &lt;= payslip.date_to and a.create_date &gt; ref_date
+    )
+    if not new_attachments:
+        continue
+
+    warning_records |= payslip
+    for attachment in new_attachments:
+        warning_details[payslip].append({
+            'message': _get_payroll_translation("A payslip adjustment has been created"),
+            'action_text': _get_payroll_translation('Adjustment'),
+            'action': attachment._get_records_action(),
+            'level': 'warning',
+        })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_duplicate_payslips" model="hr.payroll.warning">
+            <field name="name">Duplicate Payslips</field>
+            <field name="description">Duplicate payslips.</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', self.env.companies.ids),
+    ('version_id', '!=', False),
+    ('struct_id', '!=', False),
+])
+similar_payslips = payslips._get_similar_payslips()
+warning_details = defaultdict(list)
+warning_records = self.env['hr.payslip']
+for payslip in payslips:
+    key = (payslip.version_id, payslip.struct_id, payslip.date_from, payslip.date_to, payslip.ignore_worked_day_lines)
+    duplicates = similar_payslips.get(key, self.env['hr.payslip'])
+    if duplicates:
+        if payslip.origin_payslip_id:
+            duplicates -= payslip.origin_payslip_id + payslip.origin_payslip_id.related_payslip_ids
+        if payslip.related_payslip_ids:
+            duplicates -= payslip.related_payslip_ids
+        if len(duplicates) &gt; 1:
+            warning_records |= payslip
+            warning_details[payslip].append({
+                'message': _get_payroll_translation("Duplicate payslips"),
+                'action_text': _get_payroll_translation('Duplicates'),
+                'action': duplicates._get_records_action(name=_get_payroll_translation("Duplicate Payslips")),
+                'level': 'warning',
+            })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_issue_bank_accounts" model="hr.payroll.warning">
+            <field name="name">Issue Bank Accounts</field>
+            <field name="description">Bank accounts with payment issues.</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', self.env.companies.ids),
+    ('state', '=', 'validated')])
+warning_details = defaultdict(list)
+warning_records = self.env['hr.payslip']
+for payslip in payslips:
+    banks = payslip.employee_id.bank_account_ids
+    if not banks:
+        warning_records |= payslip
+        warning_details[payslip].append({
+            'message': _get_payroll_translation("No bank account"),
+            'action_text': _get_payroll_translation('Employee'),
+            'action': payslip.employee_id._get_records_action(),
+            'level': 'warning',
+        })
+    elif any(not b.allow_out_payment for b in banks):
+        warning_records |= payslip
+        warning_details[payslip].append({
+            'message': _get_payroll_translation("Untrusted bank accounts"),
+            'action_text': _get_payroll_translation('Bank Accounts'),
+            'action': banks._get_records_action(),
+            'level': 'warning',
+        })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_payslip_payrun_period_mismatch" model="hr.payroll.warning">
+            <field name="name">Payslip period does not match payrun</field>
+            <field name="description">Payslip period mismatch.</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+warning_records = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', self.env.companies.ids),
+    ('payslip_run_id', '!=', False),
+    ('origin_payslip_id', '=', False)
+]).filtered(lambda p: p.payslip_run_id.date_start != p.date_from or p.payslip_run_id.date_end != p.date_to)
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_leaves_not_validated" model="hr.payroll.warning">
+            <field name="name">Time Off Not Validated</field>
+            <field name="description">A time off overlapping this payslip period is not validated.</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+# only draft payslips still allow fixing the time off before validation
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', self.env.companies.ids),
+    ('state', '=', 'draft'),
+    ('date_from', '!=', False),
+    ('date_to', '!=', False),
+])
+warning_details = defaultdict(list)
+warning_records = self.env['hr.payslip']
+for payslip in payslips:
+    # keep the leaves overlapping the payslip period that still need an action
+    pending_leaves = payslip.employee_id.leave_ids.filtered_domain([
+          ('state', 'in', ('confirm', 'validate1')),
+          ('date_from', '&lt;=', payslip.date_to),
+          ('date_to', '&gt;=', payslip.date_from),
+      ])
+    if pending_leaves:
+        warning_records |= payslip
+        warning_details[payslip].append({
+            'message': _get_payroll_translation('A time off overlapping this payslip period is not validated.'),
+            'action_text': _get_payroll_translation('Time Offs'),
+            'action': pending_leaves._get_records_action(),
+            'level': 'warning',
+        })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_payrun_before_first_pay" model="hr.payroll.warning">
+            <field name="name">Payslip(s) Before First Pay</field>
+            <field name="description">No Payrun allowed before first Scheduled Pay</field>
+            <field name="country_id" eval="False"/>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="True"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="button_name">Review Payslips</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+warning_records = self.env['hr.payslip']
+domain = []
+for company in self.env.companies:
+    if company.first_payrun_date:
+        domain.append([
+            ('company_id', '=', company.id),
+            ('state', 'in', ['draft', 'validated']),
+            ('date_from', '&lt;', company.first_payrun_date),
+        ])
+if domain:
+    if len(domain) == 1:
+        final_domain = domain[0]
+    else:
+        final_domain = ['|'] * (len(domain) - 1)
+        for part in domain:
+            final_domain += part
+    warning_records = self.env['hr.payslip'].search(final_domain)
+            </field>
+        </record>
+    </data>
+</odoo>

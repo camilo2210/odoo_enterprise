@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_in_schedule3_profit_and_loss" model="account.report">
+        <field name="name">Profit and Loss (Schedule III)</field>
+        <field name="country_id" ref="base.in"/>
+        <field name="availability_condition">coa</field>
+        <field name="chart_template">in_sch3</field>
+        <field name="root_report_id" ref="account_reports.profit_and_loss"/>
+        <field name="column_ids">
+            <record id="profit_and_loss_balance" model="account.report.column">
+                <field name="name">Balance</field>
+                <field name="expression_label">balance</field>
+            </record>
+        </field>
+        <field name="line_ids">
+            <record id="l10n_in_s3_pl_revenue_from_operations" model="account.report.line">
+                <field name="name">I. Revenue from operations</field>
+                <field name="code">RO</field>
+                <field name="aggregation_formula">ROSP.balance + ROSS.balance + ROOOR.balance</field>
+                <field name="children_ids">
+                    <record id="l10n_in_s3_pl_sale_of_product" model="account.report.line">
+                        <field name="name">(A) Sale of products</field>
+                        <field name="code">ROSP</field>
+                        <field name="groupby">account_id</field>
+                        <field name="domain_formula">-sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_sale_of_products'))])</field>
+                    </record>
+                    <record id="l10n_in_s3_pl_sale_of_services" model="account.report.line">
+                        <field name="name">(B) Sale of services</field>
+                        <field name="code">ROSS</field>
+                        <field name="groupby">account_id</field>
+                        <field name="domain_formula">-sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_sale_of_services'))])</field>
+                    </record>
+                    <record id="l10n_in_s3_pl_other_operating_revenues" model="account.report.line">
+                        <field name="name">(C) Other operating revenues</field>
+                        <field name="code">ROOOR</field>
+                        <field name="groupby">account_id</field>
+                        <field name="domain_formula">-sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_other_operating_revenues'))])</field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_in_s3_pl_other_income" model="account.report.line">
+                <field name="name">II. Other Income</field>
+                <field name="code">OI</field>
+                <field name="aggregation_formula">OIII.balance + OIDI.balance + OIGSI.balance + OIONI.balance</field>
+                <field name="children_ids">
+                    <record id="l10n_in_s3_pl_interest_income" model="account.report.line">
+                        <field name="name">(A) Interest Income - Fixed Deposits</field>
+                        <field name="code">OIII</field>
+                        <field name="groupby">account_id</field>
+                        <field name="domain_formula">-sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_interest_income'))])</field>
+                    </record>
+                    <record id="l10n_in_s3_pl_dividend_income" model="account.report.line">
+                        <field name="name">(B) Dividend Income</field>
+                        <field name="code">OIDI</field>
+                        <field name="groupby">account_id</field>
+                        <field name="domain_formula">-sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_dividend_income'))])</field>
+                    </record>
+                    <record id="l10n_in_s3_pl_gain_loss_sale_investment" model="account.report.line">
+                        <field name="name">(C) Net gain/loss on sale of investments</field>
+                        <field name="code">OIGSI</field>
+                        <field name="groupby">account_id</field>
+                        <field name="domain_formula">-sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_net_gain_loss'))])</field>
+                    </record>
+                    <record id="l10n_in_s3_pl_other_non_operating_income" model="account.report.line">
+                        <field name="name">(D) Other non-operating income</field>
+                        <field name="code">OIONI</field>
+                        <field name="groupby">account_id</field>
+                        <field name="domain_formula">-sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_other_non_operating_income'))])</field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_in_s3_pl_total_income" model="account.report.line">
+                <field name="name">III. Total Income (I + II)</field>
+                <field name="aggregation_formula">RO.balance + OI.balance</field>
+            </record>
+            <record id="l10n_in_s3_pl_expenses" model="account.report.line">
+                <field name="name">IV. Expenses</field>
+                <field name="groupby">account_id</field>
+                <field name="domain_formula">sum([('account_id.tag_ids', '=', ref('l10n_in.account_tag_expenses'))])</field>
+            </record>
+        </field>
+    </record>
+</odoo>

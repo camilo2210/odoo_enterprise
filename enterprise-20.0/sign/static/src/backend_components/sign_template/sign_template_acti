@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <div t-name="sign.Template" class="d-flex flex-column h-100">
+        <SignTemplateControlPanel
+            actionType="this.actionType"
+            hasSignRequests="this.hasSignRequests"
+            responsibleCount="this.responsibleCount"
+            signTemplate="this.signTemplate"
+            goBackToKanban.bind="this.goBackToKanban"
+            signStatus="this.signStatus"
+            manageTemplateAccess="this.manageTemplateAccess"
+            onTemplateSaveClick.bind="this.onTemplateSaveClick"
+            hasSignersWithoutItems="this.hasSignersWithoutItems"
+            documentId="this.state.selectedDocumentId"
+            onEditTemplate.bind="this.onEditTemplate"
+            referenceDoc="this.referenceDoc"
+            activityId="this.activityId"
+            noDefaultSigner="this.noDefaultSigner"
+            logRequestActivity="this.logRequestActivity"
+            defaultActivityTypeId="this.defaultActivityTypeId"
+        />
+        <div class="d-flex flex-grow-1 h-100 overflow-hidden">
+            <SignTemplateSidebar t-if="!this.uiService.isSmall" t-props="this.signTemplateSidebarProps"/>
+            <div class="o_sign_documents_container mx-3 bg-view border border-bottom-0 rounded-4 rounded-bottom-0 overflow-hidden">
+                <t t-foreach="this.state.documents" t-as="document" t-key="document.id">
+                    <div t-attf-class="{{document.id == this.state.selectedDocumentId ? 'o_sign_visible_document' : 'o_sign_invisible_document'}}">
+                        <SignTemplateBody t-props="this.getSignTemplateBodyProps(document.id)"/>
+                    </div>
+                </t>
+            </div>
+        </div>
+        <SignTemplateMobileShell t-if="this.uiService.isSmall" t-props="this.signTemplateMobileShellProps"/>
+    </div>
+</templates>

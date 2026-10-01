@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_skill_campaign_activities_sorter" model="ai.skill">
+        <field name="name">Campaign Activities Sorter</field>
+        <field name="description">Tool to sort the marketing campaign activities.</field>
+        <field name="instructions">
+# Campaign Activities Sorter
+
+This tool recomputes the `coordinates` of every activity in a campaign so the workflow
+displays correctly in the UI.
+
+Run it after each create that adds activities, and after any change to a `parent_id` or
+`triggering_activity_id` - not once at the end. A new activity has no position until this runs,
+so everything added since the last sort sits at the origin, stacked on top of what was already
+there, while the user watches the canvas.
+
+Never set `coordinates` yourself. This tool is the only thing that sets them, and it takes no
+spacing, offset, direction or arrangement parameters - it recomputes the entire layout in one
+pass or not at all.
+
+So when a user asks for manual positioning - more space between steps, a specific arrangement,
+moving one step - tell them that isn't available, offer to re-run the automatic layout instead,
+and ask before running it. Do not run it uninvited in response to a layout request, and do not
+reorder or restructure activities as a substitute.
+
+After a structural change you made yourself, run it without asking: that is part of the write,
+not only of finishing.
+
+Sorting is not a change. It rearranges what already exists and never creates, edits or removes
+anything. Never report a sort as though it were the change the user asked for, and never run it
+in place of the tool that actually does the work.
+
+After sorting, re-read the activities and confirm the tree is what you intended. The tool tells
+you whether it succeeded - check that before moving on.
+        </field>
+        <field name="tool_ids" eval="[(6, 0, [
+            ref('ir_actions_sort_campaign_steps'),
+        ])]"/>
+    </record>
+
+    <record id="ai_skill_check_for_module_availability" model="ai.skill">
+        <field name="name">Check For Module Availability</field>
+        <field name="description">Tool to check whether a given module is installed.</field>
+        <field name="instructions">
+# Module Availability Checker
+
+Call this before creating any record that depends on an optional module - and before creating
+any record that *supports* one. Check the whole chain up front, not step by step as you reach
+each one.
+
+The order matters. If the user asks for something like "text them a discount code", the coupon
+is useless without the SMS step that sends it, and that step needs `marketing_automation_sms`.
+Check the module before creating the coupon. Creating the supporting record first and discovering
+the blocker afterwards leaves the user with debris they did not ask for and cannot use.
+
+| Functionality requested | Module to check |
+|---|---|
+| SMS steps | `marketing_automation_sms` |
+| WhatsApp steps | `marketing_automation_whatsapp` |
+| Coupons, loyalty, discounts, gift cards, eWallets | `marketing_automation_loyalty` |
+| Lead / CRM targeting | `marketing_automation_crm` |
+
+The table is not exhaustive. If a request may depend on another module, check it.
+
+If a module is missing: do not create the dependent record, do not create its related records,
+and do not substitute a different activity type to approximate the behaviour. Tell the user in
+one sentence what needs installing and why.
+
+If the request has independent parts and only some are blocked, complete the unblocked parts
+only when they stand on their own and the result is still a coherent campaign - and say clearly
+what was left out. Parts are not independent if one exists to serve another: those are a single
+chain, and a blocked chain is built in full or not at all.
+
+Existing records in a campaign do not prove the module is currently available, and an existing
+dependency in a campaign is not a reason to block an unrelated edit.
+        </field>
+        <field name="tool_ids" eval="[(6, 0, [
+            ref('ir_actions_check_module_installed'),
+        ])]"/>
+    </record>
+    <record id="ai_skill_campaign_step_deletion" model="ai.skill">
+        <field name="name">Campaign Step Deletion</field>
+        <field name="description">Tool to remove a step from a marketing campaign while keeping the workflow connected.</field>
+        <field name="instructions">
+# Campaign Step Deletion
+
+This is the only supported way to remove a campaign activity. Use it instead of the generic
+record-deletion tool, always.
+
+The generic tool unlinks the record. It does not know about the campaign tree, so the deleted
+step's children are left with a `parent_id` pointing at nothing: orphaned activities that no
+longer run and that you cannot repair afterwards. This tool removes the step and reconnects the
+workflow around it.
+
+## Parameters
+
+`activity_id` - the `marketing.activity` to act on.
+
+`step_type` - which part of the node you are removing. A canvas step is not always one record:
+use `delay` to drop only the waiting period and keep the step itself, `trigger` to drop the
+interaction node, or the activity's own type (`email`, `action`, `split`, `log_note`,
+`subscribe_to_list`, `structure`) to remove the activity.
+
+`cascade_delete` - `false` removes just this step and reattaches whatever was below it to
+whatever was above. `true` removes this step and everything underneath it. Send it explicitly
+every time.
+
+## Which one to send
+
+`cascade_delete` has exactly one use: deleting the **root** activity, the one with
+`trigger_type = 'begin'`. Everything in the campaign hangs off the root, so removing it removes
+the whole workflow - there is no reattaching to be done.
+
+- **Any step other than the root:** `false`. Always. The step goes, the rest stays connected.
+- **The root:** tell the user plainly that this will remove every step in the campaign, say how
+  many and which, ask, and stop and wait. Call the tool with `true` only after they say yes.
+
+Never send `true` for a non-root step, and never remove the root without asking first.
+
+Only delete when the user asked for it. Never remove a step to simplify a workflow, to make room
+for a new one, or to undo a mistake of your own.
+
+## Afterwards
+
+The tool sorts the campaign for you, so there is no need to call the sorter again unless you
+made further structural changes.
+
+One call removes the step: pass the activity's own type as `step_type` and the whole thing
+goes. You do not need separate calls for its delay and its trigger - use those values only when
+the user wants to keep the step and drop just that part.
+
+Read what it returns rather than assuming it worked. `remaining_activity_ids` is what the
+campaign has left; the id you deleted must not appear in it. If it does, the deletion did not
+happen and you must not describe it as done. Then re-read the campaign and run the standard
+checks - a deletion changes the tree.
+
+Deleting an email step does not delete its mailing. The content stays in the campaign, unused.
+Mention it if it is relevant; do not remove it unless the user asks.
+        </field>
+        <field name="tool_ids" eval="[(6, 0, [
+            ref('ir_actions_delete_campaign_step'),
+        ])]"/>
+    </record>
+    <record id="ai_skill_campaign_examples" model="ai.skill">
+        <field name="name">Campaign Design Examples</field>
+        <field name="description">Examples of well-formed marketing campaigns that ship with Odoo, as evidence of what valid structure and a sensible size look like. Load when designing a new campaign or deciding how many steps one should have.</field>
+        <field name="instructions">
+Campaigns that ship with Odoo, as evidence of what valid structure looks like.
+
+**Commercial prospection** - `res.partner`. Two independent sequences, so two roots.
+```
+Offer free catalog             email      begin        +1h
+
+After 7 days                   email      begin        +7d
+- Message for sales person    log_note   mail_reply   +1h
+```
+
+**Double Opt-in** - `mailing.contact`; contacts on the Newsletter list.
+```
+Confirmation      email               begin        +0h
+- Add to list    subscribe_to_list   mail_click   +0h
+```
+
+Worth reading for:
+
+- **A campaign can be one activity.** A root with no children is complete.
+- **The unit is a mailing plus its reactions.** None of these is long.
+- **A follow-up need not be an email** - a note for sales, a list subscription.
+- **`mail_bounce` is worth handling** and users rarely think to ask for it.
+- **Enrollment does the filtering.** "Bought product X", "registered a year ago", "one-time
+  buyers" are `enroll_type` and `enroll_domain` questions, not extra workflow steps. Get the
+  audience right and the workflow gets shorter.
+
+A block under section 11 may add more. These are not a menu. Never name one to the user, never
+offer one, never ask which they want.
+Build from the user's words: a resemblance to one of these is not a reason to add steps nobody
+asked for, and never carry over a domain, list, product, discount, delay or subject line from a
+demo into someone's business. A request matching none of them is normal.
+        </field>
+    </record>
+
+    <record id="ai_skill_campaign_action_steps" model="ai.skill">
+        <field name="name">Campaign Action Steps</field>
+        <field name="description">Rules for campaign steps that change the record itself rather than sending something: setting a priority, a stage or a field value, adding or removing a tag, scheduling a call or an activity for a salesperson, or running a server action that already exists. Load as soon as a request asks for any of these, before planning the step.</field>
+        <field name="instructions">
+Extends section 1, INVARIANTS; section 3, ACTIVITY; and section 7, PRE-ANSWER CHECKLIST.
+
+An action step runs a server action on the record: `activity_type` gains `action`, and the
+activity carries `server_action_id`. Both exist only with this module. The step's `name` is
+derived from the server action, so do not set it.
+
+**You may create a server action in `object_write` or `next_activity` state, and no other.**
+`ir.actions.server.state` has many values - `ai`, `code`, `mail_post`, `log_note`, `sign` and
+more - but they are not yours to create. A step that runs an *existing* action may reference one
+in any state; that is the difference between reusing and creating.
+
+If creating one is refused outright, do not keep trying: say what could not be built (R8).
+
+**Choose the kind from what the user asked, before creating anything.** Nothing on the activity
+records which kind a step is: the kind *is* the `state` of the server action behind it, seen as
+`server_action_state`. `activity_type = 'action'` is the umbrella all three share, not the name
+of one, so setting it decides nothing.
+
+| The user wants | Kind | `state` | Server action |
+|---|---|---|---|
+| a field on the record changed - tag them, set the priority, change the stage | Update Record | `object_write` | Create one for this step |
+| someone scheduled to do something - schedule a call, remind the salesperson | Create an Activity | `next_activity` | Create one for this step |
+| an action that already exists, named or pointed at | Server Action | any | Find and reuse. **Never create one.** |
+
+Almost every request is one of the first two. The user describes the effect they want and will not
+name a state - inferring the kind from their words is your job, not theirs. Each of those two
+needs a server action built for that step: create it, rather than repurposing an unrelated one
+whose name looks close.
+
+Reach for the third only when they point at an action that already exists. If you cannot find it,
+ask which one they mean; never create a substitute and point the step at it, which turns "run the
+thing we have" into "run a thing I invented".
+
+**Build the server action first, then the step that points at it.** Creating the step and then
+asking what action it needs frames every request as the third kind, because by then the only
+question left is which existing action to attach.
+
+Any server action you use or create must have the campaign's `model_id` as its model - it is
+required, and the create fails without it - and an `evaluation_type` of `value` or `sequence`.
+`name` and `explanation` are not surfaced here.
+
+**`object_write`.** `update_path` decides which field is written, and `update_field_id` is
+computed from it - set both, to the same field, or the write silently reverts and looks like it
+did not save. That field is the one the user named, looked up with the field tool rather than
+chosen because a label seemed close.
+
+Where the value goes depends on the field:
+
+- fixed choices: `selection_value`, the id of the `ir.model.fields.selection` record - not the
+  key in `value`
+- a linked record, a tag: `resource_ref` as "model,id", plus `update_m2m_operation` (`add`,
+  `remove`, `set`, `clear`) when the field holds several
+- yes/no: `update_boolean_value`
+- anything else: `value`
+
+```
+state = "object_write", evaluation_type = "value", model_id = (campaign's model_id),
+update_path = "priority", update_field_id = (the priority field's id),
+selection_value = (the id of the priority selection record for High)
+```
+
+**`next_activity`.** `activity_type_id`, `activity_date_deadline_range` with its type, and
+`activity_user_type` of `generic` with `activity_user_field_name` to assign it to whoever the
+record points at.
+
+Whatever the action references - a tag, a choice - must exist first, and R8 applies: prove the
+module, the skill and the step before creating it.
+
+**Before editing an existing server action**, read its `marketing_activity_ids`. If anything
+other than this step uses it, create a new one instead of changing behaviour under them.
+
+Add to the section 7 checklist: every action step has a `server_action_id` whose model equals
+`model_id`, whose `state` matches the kind of step intended, and which already existed if the
+step is meant to run an existing action.
+
+Adds to the reference campaigns in section 8.1 - Tag Hot Contacts, on `res.partner`, enrolling
+contacts that have an email, are not blacklisted and have no user account:
+
+```
+Send Welcome Email        email    begin         +2h
+- Add Tag                 action   mail_click    +2h
+- Check Bounce Contact    action   mail_bounce   +2h
+```
+
+Two listeners on one email, on different events, so this is not the case section 3.2 is about.
+        </field>
+    </record>
+</odoo>

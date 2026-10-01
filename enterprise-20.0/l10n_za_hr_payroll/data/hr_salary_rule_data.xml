@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_za_hr_payroll_structure_za_employee_salary_basic_salary_rule" model="hr.salary.rule">
+        <field name="category_ids" eval="[Command.set([ref('hr_payroll.BASIC')])]"/>
+        <field name="name">Basic Salary</field>
+        <field name="sequence">1</field>
+        <field name="code">BASIC</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = sum(
+    line.amount for line in payslip.worked_days_line_ids
+    if line.work_entry_type_id.code not in ('040.00', 'OVERTIME_PH')
+)
+        </field>
+        <field name="struct_ids" eval="[Command.set([ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary')])]"/>
+        <field name="bold" eval="True"/>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <!-- ALLOWANCES -->
+
+    <record id="l10n_za_employees_salary_fixed_bonus" model="hr.salary.rule">
+        <field name="category_ids" eval="[Command.set([ref('hr_payroll.ALW')])]"/>
+        <field name="name">Fixed Bonus</field>
+        <field name="code">BONUS</field>
+        <field name="sequence">10</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_section" ref="hr_payroll.default_salary_rule_section"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[Command.set([ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary')])]"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <record id="l10n_za_regular_pay_overtime_work_days" model="hr.salary.rule">
+        <field name="name">Overtime - Work Days</field>
+        <field name="category_ids" eval="[Command.set([ref('hr_payroll.ALW')])]"/>
+        <field name="code">OVERTIME</field>
+        <field name="sequence">20</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = '040.00' in worked_days</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+overtime_rate = worked_days['040.00'].work_entry_type_id.amount_rate or 1.0
+result_qty = worked_days['040.00'].number_of_hours
+result_rate = overtime_rate * 100
+result = 0
+if overtime_rate and result_qty:
+    result = worked_days['040.00'].amount / (overtime_rate * result_qty)
+        </field>
+        <field name="struct_ids" eval="[Command.set([ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary')])]"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <record id="l10n_za_regular_pay_overtime_public_holidays" model="hr.salary.rule">
+        <field name="name">Overtime - Public Holidays</field>
+        <field name="category_ids" eval="[Command.set([ref('hr_payroll.ALW')])]"/>
+        <field name="code">OVERTIME_PH</field>
+        <field name="sequence">21</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'OVERTIME_PH' in worked_days</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+overtime_rate = worked_days['OVERTIME_PH'].work_entry_type_id.amount_rate or 1.0
+result_qty = worked_days['OVERTIME_PH'].number_of_hours
+result_rate = overtime_rate * 100
+result = 0
+if overtime_rate and result_qty:
+    result = worked_days['OVERTIME_PH'].amount / (overtime_rate * result_qty)
+        </field>
+        <field name="struct_ids" eval="[Command.set([ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary')])]"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <record id="l10n_za_employees_allowance_total" model="hr.salary.rule">
+        <field name="category_ids" eval="[Command.set([ref('l10n_za_hr_payroll.ZA_ALW')])]"/>
+        <field name="name">Total Allowances</field>
+        <field name="code">TOTAL_ALLOWANCES</field>
+        <field name="sequence">30</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = categories['ALW']</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = categories['ALW']</field>
+        <field name="struct_ids" eval="[Command.set([ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary')])]"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="bold" eval="True"/>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <!-- GROSS -->
+
+    <record id="l10n_za_hr_payroll_structure_za_employee_salary_gross_salary_rule" model="hr.salary.rule">
+        <field name="category_ids" eval="[Command.set([ref('hr_payroll.GROSS')])]"/>
+        <field name="name">Gross Salary</field>
+        <field name="sequence">110</field>
+        <field name="code">GROSS</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['BASIC'] + categories['ZA_ALW']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary'),
+        ])]"/>
+        <field name="bold" eval="True"/>
+        <field name="space_above" eval="True"/>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <record id="l10n_za_employees_salary_gross_taxable" model="hr.salary.rule">
+        <field name="category_ids" eval="[Command.set([ref('hr_payroll.GROSS')])]"/>
+        <field name="name">Gross Taxable</field>
+        <field name="code">GROSS_TAXABLE</field>
+        <field name="sequence">111</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['BASIC'] + categories['ZA_ALW']
+        </field>
+        <field name="struct_ids" eval="[Command.set([ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary')])]"/>
+        <field name="bold" eval="True"/>
+        <field name="space_above" eval="True"/>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <!-- INCOME TAX -->
+
+    <record id="l10n_za_employee_salary_income_tax" model="hr.salary.rule">
+        <field name="category_ids" eval="[Command.set([ref('hr_payroll.DED')])]"/>
+        <field name="name">Income Tax</field>
+        <field name="code">INCOME_TAX</field>
+        <field name="sequence">120</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="amount_python_compute">
+if not employee.birthday:
+    raise UserError(_("Employee %s has no birthday set. Birthday is required to compute income tax.") % employee.name)
+annual_taxable = result_rules['GROSS_TAXABLE']['total'] * 12
+reference_date = payslip.date_to
+birthday = employee.birthday
+age = reference_date.year - birthday.year - (
+    (reference_date.month, reference_date.day) &lt; (birthday.month, birthday.day)
+)
+income_tax_thresholds = payslip._rule_parameter('l10n_za_income_tax_thresholds')
+threshold = 0
+for max_age, value in income_tax_thresholds:
+    if max_age == 'inf' or age &lt; max_age:
+        threshold = value
+        break
+if annual_taxable &lt;= threshold:
+    result = 0
+else:
+    income_tax_breakdown = payslip._rule_parameter('l10n_za_income_tax_breakdown')
+    lower_limit = 0
+    for upper_limit, base_tax, rate in income_tax_breakdown:
+        if upper_limit == 'inf' or annual_taxable &lt;= float(upper_limit):
+            annual_tax = base_tax + (annual_taxable - lower_limit) * rate
+            result = annual_tax / 12
+            break
+        lower_limit = float(upper_limit)
+        </field>
+        <field name="struct_ids" eval="[Command.set([ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary')])]"/>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <!-- TAX REBATES -->
+
+    <record id="l10n_za_employee_salary_income_tax_rebate" model="hr.salary.rule">
+        <field name="category_ids" eval="[Command.set([ref('l10n_za_hr_payroll.ZA_TAX_REBATE')])]"/>
+        <field name="name">Income Tax Rebate</field>
+        <field name="code">INCOME_TAX_REBATE</field>
+        <field name="sequence">130</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="amount_python_compute">
+if not employee.birthday:
+    raise UserError(_("Employee %s has no birthday set. Birthday is required to compute the income tax rebate.") % employee.name)
+reference_date = payslip.date_to
+birthday = employee.birthday
+age = reference_date.year - birthday.year - (
+    (reference_date.month, reference_date.day) &lt;
+    (birthday.month, birthday.day)
+)
+rebates = payslip._rule_parameter('l10n_za_income_tax_rebates')
+rebate = 0
+for minimum_age, amount in rebates:
+    if age &gt;= minimum_age:
+        rebate += amount
+result = rebate / 12
+        </field>
+        <field name="struct_ids" eval="[Command.set([ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary')])]"/>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <record id="l10n_za_employee_salary_medical_tax_credit" model="hr.salary.rule">
+        <field name="category_ids" eval="[Command.set([ref('l10n_za_hr_payroll.ZA_TAX_REBATE')])]"/>
+        <field name="name">Medical Scheme Fees Tax Credit</field>
+        <field name="code">MEDICAL_TAX_CREDIT</field>
+        <field name="sequence">131</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+result = (
+    version.l10n_za_employee_medical_scheme_contribution
+    + version.l10n_za_dependant_medical_scheme_contribution
+    * version.l10n_za_employee_dependant_count
+    ) &gt; 0
+</field>
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="amount_python_compute">
+first_member_credit, second_member_credit, additional_member_credit = payslip._rule_parameter(
+    'l10n_za_medical_tax_credit'
+)
+dependants = version.l10n_za_employee_dependant_count or 0
+total_members = dependants + 1
+if total_members == 1:
+    result = first_member_credit
+elif total_members == 2:
+    result = first_member_credit + second_member_credit
+elif total_members &gt; 2:
+    result = first_member_credit + second_member_credit + (total_members - 2) * additional_member_credit
+else:
+    result = 0
+        </field>
+        <field name="struct_ids" eval="[Command.set([ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary')])]"/>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <!-- DEDUCTIONS -->
+
+    <record id="l10n_za_employees_salary_paye" model="hr.salary.rule">
+        <field name="category_ids" eval="[Command.set([ref('l10n_za_hr_payroll.STATUTORY_DED')])]"/>
+        <field name="name">P.A.Y.E.</field>
+        <field name="code">PAYE</field>
+        <field name="sequence">140</field>
+        <field name="condition_select">none</field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = max(result_rules['INCOME_TAX']['total'] -categories['ZA_TAX_REBATE'], 0)
+        </field>
+        <field name="struct_ids" eval="[Command.set([ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary')])]"/>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <record id="l10n_za_employees_salary_uif" model="hr.salary.rule">
+        <field name="category_ids" eval="[Command.set([ref('l10n_za_hr_payroll.STATUTORY_DED')])]"/>
+        <field name="name">U.I.F</field>
+        <field name="code">AMOUNT_UIF</field>
+        <field name="sequence">141</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+uif_rate = payslip._rule_parameter('l10n_za_uif_rate')
+uif_maximum_contribution = payslip._rule_parameter('l10n_za_uif_maximum_contribution')
+result = min(result_rules['GROSS']['total'] * uif_rate, uif_maximum_contribution)
+        </field>
+        <field name="struct_ids" eval="[Command.set([ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary')])]"/>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <record id="l10n_za_employees_salary_total_statutory_deductions" model="hr.salary.rule">
+        <field name="category_ids" eval="[Command.set([ref('l10n_za_hr_payroll.TOTAL_DED')])]"/>
+        <field name="name">Total Statutory Deductions</field>
+        <field name="code">TOTAL_STATUTORY_DEDUCTIONS</field>
+        <field name="sequence">150</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = categories['STATUTORY_DED']</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = categories['STATUTORY_DED']</field>
+        <field name="struct_ids" eval="[Command.set([ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary')])]"/>
+        <field name="bold" eval="True"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <record id="l10n_za_employees_salary_medical_scheme_contribution" model="hr.salary.rule">
+        <field name="category_ids" eval="[Command.set([ref('l10n_za_hr_payroll.OTHER_DED')])]"/>
+        <field name="name">Medical Scheme Contribution</field>
+        <field name="code">MEDICAL_SCHEME_CONTRIBUTION</field>
+        <field name="sequence">160</field>
+        <field name="condition_select">none</field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = (
+    version.l10n_za_employee_medical_scheme_contribution
+    + version.l10n_za_dependant_medical_scheme_contribution
+    * version.l10n_za_employee_dependant_count
+)
+        </field>
+        <field name="struct_ids" eval="[Command.set([ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary')])]"/>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <record id="l10n_za_employees_deductions" model="hr.salary.rule">
+        <field name="category_ids" eval="[Command.set([ref('l10n_za_hr_payroll.OTHER_DED')])]"/>
+        <field name="name">Deductions</field>
+        <field name="code">DEDUCTION</field>
+        <field name="sequence">161</field>
+        <field name="condition_select">property_input</field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_section" ref="hr_payroll.default_salary_rule_section"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[Command.set([ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary')])]"/>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <record id="l10n_za_employees_salary_total_other_deductions" model="hr.salary.rule">
+        <field name="category_ids" eval="[Command.set([ref('l10n_za_hr_payroll.TOTAL_DED')])]"/>
+        <field name="name">Total Other Deductions</field>
+        <field name="code">TOTAL_OTHER_DEDUCTIONS</field>
+        <field name="sequence">170</field>
+        <field name="condition_select">none</field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['OTHER_DED']
+        </field>
+        <field name="struct_ids" eval="[Command.set([ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary')])]"/>
+        <field name="bold" eval="True"/>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <record id="l10n_za_employees_total_deductions" model="hr.salary.rule">
+        <field name="category_ids" eval="[Command.set([ref('hr_payroll.DED')])]"/>
+        <field name="name">Total Deductions</field>
+        <field name="code">TOTAL_DED</field>
+        <field name="sequence">180</field>
+        <field name="condition_select">python</field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="condition_python">result = categories['TOTAL_DED']</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['TOTAL_DED']
+        </field>
+        <field name="struct_ids" eval="[Command.set([ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary')])]"/>
+        <field name="bold" eval="True"/>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <!-- NET -->
+
+    <record id="l10n_za_hr_payroll_structure_za_employee_salary_net_salary" model="hr.salary.rule">
+        <field name="category_ids" eval="[Command.set([ref('hr_payroll.NET')])]"/>
+        <field name="name">Net Salary</field>
+        <field name="sequence">200</field>
+        <field name="code">NET</field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="condition_select">none</field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = result_rules['GROSS']['total'] - result_rules['TOTAL_DED']['total']
+        </field>
+        <field name="struct_ids" eval="[Command.set([ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary')])]"/>
+        <field name="bold" eval="True"/>
+        <field name="space_above" eval="True"/>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <record id="l10n_za_employer_salary_sdl" model="hr.salary.rule">
+        <field name="category_ids" eval="[Command.set([ref('hr_payroll.NET')])]"/>
+        <field name="name">S.D.L</field>
+        <field name="code">AMOUNT_SDL</field>
+        <field name="sequence">201</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+if employee.company_id.l10n_za_eligible_for_sdl:
+    gross = result_rules['GROSS']['total']
+    value = payslip._rule_parameter('l10n_za_sdl_value')
+    result = gross * value
+else:
+    result = 0
+        </field>
+        <field name="struct_ids" eval="[Command.set([ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary')])]"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="country_id" ref="base.za"/>
+    </record>
+
+    <record id="l10n_za_employer_salary_uif" model="hr.salary.rule">
+        <field name="category_ids" eval="[Command.set([ref('hr_payroll.NET')])]"/>
+        <field name="name">U.I.F (Employer)</field>
+        <field name="code">AMOUNT_UIF_EMPLOYER</field>
+        <field name="sequence">202</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+uif_rate = payslip._rule_parameter('l10n_za_uif_rate')
+uif_maximum_contribution = payslip._rule_parameter('l10n_za_uif_maximum_contribution')
+result = min(result_rules['GROSS']['total'] * uif_rate, uif_maximum_contribution)
+        </field>
+        <field name="struct_ids" eval="[Command.set([ref('l10n_za_hr_payroll.hr_payroll_structure_za_employee_salary')])]"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="country_id" ref="base.za"/>
+    </record>
+</odoo>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_contract_benefit_action" model="ir.actions.act_window">
+        <field name="name">Benefits</field>
+        <field name="res_model">hr.contract.salary.benefit</field>
+        <field name="context">{'active_test': False, 'search_default_configurable_ids': 1, 'search_default_groupby_benefit_type': 1}</field>
+        <field name="domain">[('user_has_access', '=', True)]</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="hr_contract_benefit_view_tree" model="ir.ui.view">
+        <field name="name">hr.contract.salary.benefit.view.list</field>
+        <field name="model">hr.contract.salary.benefit</field>
+        <field name="arch" type="xml">
+            <list string="Salary Package Benefit" multi_edit="1">
+                <field name="sequence" widget="handle"/>
+                <field name="active" widget="boolean_toggle"/>
+                <field name="name" width="300"/>
+                <field name="description" width="900"/>
+                <field name="country_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="hr_contract_benefit_view_search" model="ir.ui.view">
+        <field name="name">hr.contract.salary.benefit.view.search</field>
+        <field name="model">hr.contract.salary.benefit</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <filter name="has_view_ids" string="Has Views" domain="['|', ('view_ids', '!=', False), ('salary_rule_ids', '!=', False)]"/>
+                <group>
+                    <filter string="Structure Type" name="groupby_structure_type" context="{'group_by':'structure_type_id'}" />
+                    <filter string="Benefit Type" name="groupby_benefit_type" context="{'group_by':'benefit_type_id'}" />
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="hr_contract_benefit_view_form" model="ir.ui.view">
+        <field name="name">hr.contract.salary.benefit.view.form</field>
+        <field name="model">hr.contract.salary.benefit</field>
+        <field name="arch" type="xml">
+            <form string="Salary Package Benefit">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="active"/>
+                    <label for="name" string="Benefit"/>
+                    <div class="oe_title mb-3">
+                        <h1><field name="name" placeholder="e.g. Meal Vouchers"/></h1>
+                    </div>
+                    <group class="px-3">
+                        <group class="o_form_fw_labels">
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="benefit_type_id"/>
+                            <field name="source"/>
+                            <field name="res_field_public" groups="!base.group_erp_manager" invisible="source != 'field'"/>
+                            <field name="res_field_id" placeholder="No related field" groups="base.group_erp_manager" invisible="source != 'field'"/>
+                            <field name="salary_rule_id" string="Related Salary Rule" placeholder="No related salary rule" invisible="source != 'rule'"/>
+                            <field name="cost_res_field_public" groups="!base.group_erp_manager" invisible="source != 'field'"/>
+                            <field name="cost_res_field_id" groups="base.group_erp_manager" placeholder="Doesn't impact net salary" invisible="source != 'field'"/>
+                        </group>
+                        <group>
+                            <field name="structure_type_id" placeholder="Select a structure type"/>
+                            <field name="view_ids" widget="many2many_tags" options="{'no_create': True}" groups="base.group_no_one" readonly="1"/>
+                            <field name="salary_rule_ids" placeholder="No related salary rule" widget="many2many_tags" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

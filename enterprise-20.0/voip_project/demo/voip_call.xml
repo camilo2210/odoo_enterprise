@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<odoo noupdate="0">
+
+<record id="project.project_1_task_6_activity_1" model="mail.activity">
+    <field name="active" eval="False"/>
+</record>
+
+<record id="voip_activity_message_demo_project" model="mail.message">
+    <field name="model">project.task</field>
+    <field name="res_id" ref="project.project_1_task_6"/>
+    <field name="subtype_id" ref="mail.mt_activities"/>
+    <field name="message_type">notification</field>
+    <field name="author_id" ref="base.partner_admin"/>
+    <field name="mail_activity_type_id" ref="mail.mail_activity_data_call"/>
+    <field name="date" eval="datetime.now().replace(hour=17, minute=38, second=48, microsecond=0) - timedelta(days=11)"/>
+    <field name="body" model="mail.render.mixin" eval="obj().env['mail.render.mixin']._render_template_qweb_view('voip.message_call_activity_done', 'project.task', [ref('project.project_1_task_6')], add_context={'activity': obj().env.ref('project.project_1_task_6_activity_1'), 'feedback': False, 'display_assignee': False})[ref('project.project_1_task_6')]"/>
+</record>
+
+<record id="voip.voip_call_demo_project_logged" model="voip.call">
+    <field name="activity_id" ref="project.project_1_task_6_activity_1"/>
+    <field name="activity_mail_message_id" ref="voip_activity_message_demo_project"/>
+</record>
+
+<function model="voip.call" name="update_activity_message" eval="[[ref('voip.voip_call_demo_project_logged')]]"/>
+
+</odoo>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- default priority: applies before `ai`'s form inherit (priority 20), so
+         the Actions page stays left of the AI Prompt one -->
+    <record id="ir_actions_server_view_form" model="ir.ui.view">
+        <field name="name">ir.actions.server.view.form.inherit.ai.agentic</field>
+        <field name="model">ir.actions.server</field>
+        <field name="inherit_id" ref="base.view_server_action_form"/>
+        <field name="arch" type="xml">
+            <data>
+                <!-- the multi-action steps belong in their own page, next to
+                     Explanation, like on the scheduled action form -->
+                <xpath expr="//field[@name='child_ids']/.." position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//page[@name='explanation']" position="before">
+                    <page string="Actions" name="multi_actions" invisible="state != 'multi'">
+                        <field name="child_ids" widget="many2many" mode="kanban" context="{
+                            'is_modal': 1,
+                            'default_model_id': model_id,
+                        }"/>
+                    </page>
+                </xpath>
+            </data>
+        </field>
+    </record>
+</odoo>

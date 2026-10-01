@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="voip_ivr_view_list" model="ir.ui.view">
+        <field name="name">voip.ivr.view.list</field>
+        <field name="model">voip.ivr</field>
+        <field name="arch" type="xml">
+            <list string="Menus" js_class="voip_phone_number_required_list" duplicate="false">
+                <field name="name"/>
+                <field name="greeting_sound_id"/>
+                <field name="input_count" string="Inputs"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="voip_ivr_view_form" model="ir.ui.view">
+        <field name="name">voip.ivr.view.form</field>
+        <field name="model">voip.ivr</field>
+        <field name="arch" type="xml">
+            <form string="Menu" duplicate="false">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" default_focus="1" placeholder="e.g. Main Menu"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="is_call_flow_node_configuration" invisible="1"/>
+                        <field name="menu_sound_id" invisible="1"/>
+                        <label for="callflow_id" string="Destinations" invisible="not callflow_id or is_call_flow_node_configuration"/>
+                        <div invisible="not callflow_id or is_call_flow_node_configuration">
+                            <span>Edit on Call Flow </span><field name="callflow_id" class="oe_inline"/><span></span>
+                        </div>
+                    </group>
+                    <field name="source_type" invisible="1"/>
+                    <field name="data_version" invisible="1"/>
+                    <field name="data_filename" invisible="1"/>
+                    <field name="generated_tts_voice" invisible="1"/>
+                    <div class="o-voip-SoundForm row g-3">
+                        <div class="col-12 col-lg-8">
+                            <field name="data" widget="voip_audio_binary" filename="data_filename" class="w-100" nolabel="1" required="source_type == 'upload'" options="{'accepted_file_extensions': '.wav', 'allowed_mime_type': 'audio/wav,audio/x-wav', 'audio_record_field': 'menu_sound_id'}"/>
+                        </div>
+                        <div class="o-voip-SoundForm-tts col-12 col-lg-4 d-flex flex-column gap-2">
+                            <field name="tts_text" widget="voip_tts_text" nolabel="1" placeholder="Write your text here"/>
+                            <field name="tts_voice" widget="voip_tts_voice_selection" nolabel="1" required="source_type == 'tts'"/>
+                            <field name="generated_tts_text" widget="voip_tts_generate" class="align-self-start" nolabel="1"/>
+                        </div>
+                    </div>
+                    <notebook>
+                        <page name="options" string="Inputs">
+                            <field name="option_ids" readonly="callflow_id and not is_call_flow_node_configuration">
+                                <list editable="bottom" open_form_view="0">
+                                    <field name="digit" string="Inputs" readonly="parent.callflow_id and not parent.is_call_flow_node_configuration"/>
+                                    <field name="destination_ref" widget="voip_extension_destination" options="{'no_open': True}" column_invisible="parent.callflow_id or parent.is_call_flow_node_configuration" required="not parent.callflow_id and not parent.is_call_flow_node_configuration"/>
+                                </list>
+                            </field>
+                            <div class="text-muted mt-1">Multi-digits inputs are supported.</div>
+                        </page>
+                        <page name="settings" string="Options">
+                            <group>
+                                <group string="Sounds">
+                                    <field name="greeting_sound_id" string="Greeting" placeholder="No Sound"/>
+                                    <field name="invalid_sound_id" string="Invalid Input" placeholder="No Sound" help="The sound played when the caller chooses an invalid option. Not used if an invalid destination is set."/>
+                                </group>
+                                <group string="Timeout">
+                                    <label for="timeout"/>
+                                    <div class="o_row">
+                                        <field name="timeout" class="oe_inline" nolabel="1" help="Number of seconds to wait after the menu sound is played before either replaying the menu, redirecting the call to the timeout destination (if set) or aborting the call (if the maximum number of tries has been reached)."/>
+                                        <span>seconds</span>
+                                    </div>
+                                    <label for="max_tries" string="Abort after"/>
+                                    <div class="o_row">
+                                        <field name="max_tries" class="oe_inline" nolabel="1"/><span>invalid inputs or timeouts, play</span><field name="abort_sound_id" class="oe_inline flex-grow-1" nolabel="1" placeholder="No Sound" help="The sound played when the caller reaches the maximum number of tries. Not used if an abort destination is set."/>
+                                    </div>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Destinations" invisible="callflow_id or is_call_flow_node_configuration">
+                                    <label for="invalid_destination_ref"/>
+                                    <div class="position-relative">
+                                        <field name="invalid_destination_ref" nolabel="1"/>
+                                        <span class="position-absolute top-0 start-0 text-muted pe-none" invisible="invalid_destination_ref">Replay menu</span>
+                                    </div>
+                                    <label for="timeout_destination_ref"/>
+                                    <div class="position-relative">
+                                        <field name="timeout_destination_ref" nolabel="1"/>
+                                        <span class="position-absolute top-0 start-0 text-muted pe-none" invisible="timeout_destination_ref">Replay menu</span>
+                                    </div>
+                                    <label for="abort_destination_ref"/>
+                                    <div class="position-relative">
+                                        <field name="abort_destination_ref" nolabel="1"/>
+                                        <span class="position-absolute top-0 start-0 text-muted pe-none" invisible="abort_destination_ref">Hang up</span>
+                                    </div>
+                                </group>
+                                <group/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_voip_ivr" model="ir.actions.act_window">
+        <field name="name">Menus</field>
+        <field name="res_model">voip.ivr</field>
+        <field name="view_mode">list,form</field>
+        <!-- A "Play Audio" node's wrapper Menu is an implementation detail
+             (see get_or_create_audio_message_wrapper): it isn't a Menu the
+             client configured, so it has no business in their Menus list. -->
+        <field name="domain">[("is_audio_message", "=", False)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder" aria-hidden="true"/>
+            <p>
+                Menus (also called IVRs) ask callers to press certain digits to progress in the call flow.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="voip_ivr_menu" name="Menus" parent="voip.voip_pbx_configuration_menu" action="action_voip_ivr" sequence="20" groups="voip.group_voip_admin"/>
+</odoo>

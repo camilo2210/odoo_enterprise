@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="l10n_mx_fiscal_regime_receptor">
+        <div t-if="cfdi_values['receptor_fiscal_regime_name'] or o.l10n_mx_edi_cfdi_to_public" name="cfdi_receptor_fiscal_regime" >
+            <span>Fiscal Regime:</span>
+            <span t-if="not o.l10n_mx_edi_cfdi_to_public" t-out="cfdi_values['receptor_fiscal_regime_name']">601</span>
+            <span t-else="">Without fiscal obligations</span>
+        </div>
+    </template>
+    <template id="report_invoice_document" inherit_id="account.report_invoice_document" primary="True">
+        <xpath expr="//div[@id='partner_vat_address_not_same_as_shipping']" position="after">
+            <span t-if="o.company_id.vat != o.l10n_mx_edi_cfdi_supplier_rfc" name="l10n_mx_edi_cfdi_supplier_rfc">
+                <span>XML VAT: </span>
+                <span t-out="o.l10n_mx_edi_cfdi_supplier_rfc">EKU9003173C9</span>
+            </span>
+            <t t-call="l10n_mx_edi.l10n_mx_fiscal_regime_receptor"/>
+            <div name="identification_no" t-if="o.l10n_mx_edi_cfdi_to_public and
+                o.partner_id.country_code != 'MX' and o.partner_id.vat">
+                <span>Identification No.: </span>
+                <span t-field="o.partner_id.vat"/>
+            </div>
+        </xpath>
+        <xpath expr="//div[@id='partner_vat_address_same_as_shipping']" position="after">
+            <span t-if="o.company_id.vat != o.l10n_mx_edi_cfdi_supplier_rfc" name="l10n_mx_edi_cfdi_supplier_rfc">
+                <span>XML VAT: </span>
+                <span t-field="o.l10n_mx_edi_cfdi_supplier_rfc">EKU9003173C9</span>
+            </span>
+            <t t-call="l10n_mx_edi.l10n_mx_fiscal_regime_receptor"/>
+            <div name="identification_no" t-if="o.l10n_mx_edi_cfdi_to_public and
+                o.partner_id.country_code != 'MX' and o.partner_id.vat">
+                <span>Identification No.: </span>
+                <span t-field="o.partner_id.vat"/>
+            </div>
+        </xpath>
+       <xpath expr="//div[@id='partner_vat_no_shipping']" position="after">
+            <span t-if="o.company_id.vat != o.l10n_mx_edi_cfdi_supplier_rfc" name="l10n_mx_edi_cfdi_supplier_rfc">
+                <span>XML VAT: </span>
+                <span t-out="o.l10n_mx_edi_cfdi_supplier_rfc">EKU9003173C9</span>
+            </span>
+            <t t-call="l10n_mx_edi.l10n_mx_fiscal_regime_receptor"/>
+            <div name="identification_no" t-if="o.l10n_mx_edi_cfdi_to_public and
+                o.partner_id.country_code != 'MX' and o.partner_id.vat">
+                <span>Identification No.: </span>
+                <span t-field="o.partner_id.vat"/>
+            </div>
+        </xpath>
+        <xpath expr="//div[@name='customer_code']" position="after">
+            <t t-set="original_o_grid_layout" t-value="o_grid_layout"/>
+            <t t-set="o_grid_layout" t-value="'col'"/>
+            <t t-if="cfdi_values['usage']">
+                <div name="l10n_mx_edi_cfdi_usage" t-att-class="o_grid_layout">
+                    <strong>Usage</strong>
+                    <div><span t-out="cfdi_values['usage']">S01</span><span> - </span><span t-out="cfdi_values['usage_desc']">Without fiscal effects</span></div>
+                </div>
+            </t>
+            <t t-if="cfdi_values['payment_way']">
+                <div name="l10n_mx_edi_cfdi_payment_way" t-att-class="o_grid_layout">
+                    <strong>Payment Way:</strong>
+                    <div t-out="cfdi_values['payment_way']">01 - Efectivo</div>
+                </div>
+            </t>
+            <div name="l10n_mx_edi_cfdi_payment_method" t-att-class="o_grid_layout">
+                <strong>Payment Method:</strong>
+                <div t-out="cfdi_values['payment_method']">PUE</div>
+            </div>
+            <div name="l10n_mx_edi_cfdi_bank_account" t-if="cfdi_values['bank_account']" t-att-class="o_grid_layout">
+                <strong>Bank Account:</strong>
+                <div t-out="cfdi_values['bank_account']">No identificado</div>
+            </div>
+            <t t-set="o_grid_layout" t-value="original_o_grid_layout"/>
+        </xpath>
+
+        <xpath expr="//div[@id='informations']" position="after">
+            <t t-if="cfdi_values['cfdi_relation_data']">
+                <div class="row mt-3 mb-1" id="cfdi_relation_data">
+                    <div class="col-2 fw-bold">CFDI Related:   </div>
+                    <div class="col">
+                        <table id="cfdi_relation_table" class="text-start table table-borderless">
+                            <thead>
+                                <tr>
+                                    <th name="th_uuid">UUID</th>
+                                    <th name="th_relation_type">Relation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="cfdi_values['cfdi_relation_data']" t-as="cfdi_related">
+                                    <tr>
+                                        <td name="td_uuid">
+                                            <span t-out="cfdi_related['uuid']" id="uuid"/>
+                                        </td>
+                                        <td name="td_relation_type">
+                                            <span t-out="cfdi_related['relation_type']"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+
+        <xpath expr="//div[@id='payment_term']" position="after">
+            <div class="row col-12" id="complement">
+                <div class="barcode col-3">
+                    <img alt="Barcode" t-att-src="cfdi_values['barcode_src']"/>
+                </div>
+                <div class="complement-details col-9">
+                    <div class="digital-stamp">
+                        <span>Digital stamp of the emitter</span>
+                    </div>
+                    <div class="digital-stamp-content">
+                        <span t-out="cfdi_values['sello']">No identificado</span>
+                    </div>
+                    <div class="digital-stamp">
+                        <span>Digital stamp SAT</span>
+                    </div>
+                    <div class="digital-stamp-content">
+                        <span t-out="cfdi_values['sello_sat']">No identificado</span>
+                    </div>
+                    <div class="digital-stamp">
+                        <span>Original chain complement of digital certification SAT</span>
+                    </div>
+                    <div class="digital-stamp-content">
+                        <span class="nowrap" t-out="cfdi_values['cadena']">No identificado</span>
+                    </div>
+                    <div class="digital-stamp">
+                        <span>Extra Info</span>
+                    </div>
+                    <div class="digital-stamp-content">
+                        <span>Emitter certificate:</span> <span t-out="cfdi_values['certificate_number']">30001000000500003416</span>
+                        <span> | SAT Certificate:</span> <span t-out="cfdi_values['certificate_sat_number']">30001000000500003442</span>
+                        <span> | Expedition place:</span> <span t-out="cfdi_values['expedition']">20928</span>
+                        <span> | CFDI Type:</span> <span t-out="cfdi_values['cfdi_type_label']">No identificado</span>
+                        <span> | Export:</span> <span t-out="cfdi_values['export_type']">01</span>
+                        <span> | Fiscal Regime:</span><span t-out="cfdi_values['fiscal_regime']">601</span>
+                        <span> | Emission Date:</span> <span t-out="cfdi_values['emission_date_str']">2023-09-12</span>
+                        <span> | Certification Date:</span> <span t-out="cfdi_values['stamp_date']">2023-09-12</span>
+                        <span> | Fiscal Folio:</span> <span t-out="cfdi_values['uuid']">No identificado</span>
+                    </div>
+                    <div class="digital-stamp-content text-center">
+                        <strong>This document is a printed representation of a CFDI</strong>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+
+        <xpath expr="//div[@name='incoterm_id']" position='after'>
+            <div class="col" name="cfdi_currency">
+                <strong>Currency</strong>
+                <div>
+                    <span t-field="o.currency_id.name"/>
+                </div>
+            </div>
+            <div class="col" t-if="cfdi_values['currency_rate']" name="cfdi_currency_rate">
+                <strong>Currency rate</strong>
+                <div>
+                    <span t-out="cfdi_values['currency_rate']"/>
+                </div>
+            </div>
+        </xpath>
+
+        <!-- new cfdi concepto lines table -->
+        <xpath expr="//table[@name='invoice_line_table']" position="before">
+            <t t-set="has_totals_table_class" t-value="'o_has_total_table mb-0 o_main_table '"/>
+            <table t-att-class="has_totals_table_class + 'table table-borderless'" name="conceptos_table">
+                <thead t-attf-style="#{cfdi_values['has_long_desc'] and 'display: table-row-group;' or ''}">
+                    <tr>
+                        <th name="th_concepto_description" class="text-start text-wrap"><span>Description</span></th>
+                        <th name="th_concepto_predial_account" class="text-start" t-if="cfdi_values['has_predial']"><span>Cuenta Predial</span></th>
+                        <th name="th_concepto_product_service_code" class="text-end"><span>Product Code</span></th>
+                        <th name="th_concepto_quantity" class="text-end"><span>Quantity</span></th>
+                        <th name="th_concepto_price_unit" t-attf-class="text-end text-nowrap {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}"><span>Unit Price</span></th>
+                        <th name="th_concepto_discount" t-if="cfdi_values['has_discount']" class="text-end"><span>Discount</span></th>
+                        <th name="th_concepto_unit_code" class="text-end"><span>Unit Code</span></th>
+                        <th name="th_concepto_subtotal" class="text-end"><span>Amount</span></th>
+                        <th name="th_concepto_tax_object" class="text-end"><span>Tax Object</span></th>
+                    </tr>
+                </thead>
+                <tbody class="invoice_tbody">
+                    <t t-foreach="cfdi_values['conceptos_list']" t-as="concepto">
+                        <tr >
+                            <td name="td_concepto_description">
+                                <span t-out="concepto['description']" t-options="{'widget': 'text'}"/>
+                            </td>
+                            <td name="td_concepto_predial_account" class="text-end" t-if="cfdi_values['has_predial']">
+                                <span  class="text-nowrap" t-out="concepto['predial_account']"/>
+                            </td>
+                            <td name="td_concepto_product_service_code" class="text-end">
+                                <span  class="text-nowrap" t-out="concepto['product_service_code']"/>
+                            </td>
+                            <td name="td_concepto_quantity" class="o_td_quantity text-end text-nowrap">
+                                <span t-out="concepto['quantity']" t-options="{'widget': 'float', 'decimal_precision': 'Product Unit'}"/>
+                                <span t-out="concepto['unit']"/>
+                            </td>
+                            <td name="td_concepto_price_unit" t-attf-class="text-end text-nowrap {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                                <span t-out="concepto['price_unit']" t-options="{'widget': 'float', 'decimal_precision': 'Product Price'}"/>
+                                <span t-field="o.currency_id.name"/>
+                            </td>
+                            <td name="td_concepto_discount" t-if="cfdi_values['has_discount']" t-attf-class="text-end text-nowrap {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                                <span t-out="concepto['discount']" t-options="{'widget': 'float', 'decimal_precision': 'Product Price'}"/>
+                                <span t-field="o.currency_id.name"/>
+                            </td>
+                            <td name="td_concepto_unit_code" class="text-end">
+                                <span t-out="concepto['unit_code']"/>
+                            </td>
+                            <td name="td_concepto_subtotal" class="text-end o_price_total text-nowrap">
+                                <span t-out="concepto['amount']" t-options="{'widget': 'float', 'decimal_precision': 'Product Price'}"/>
+                                <span t-field="o.currency_id.name"/>
+                            </td>
+                            <td name="td_concepto_tax_object" class="text-end">
+                                <span t-out="concepto['tax_object']"/>
+                            </td>
+                        </tr>
+                        </t>
+                </tbody>
+            </table>
+        </xpath>
+
+        <!-- We will not use the invoice line table template -->
+        <xpath expr="//table[@name='invoice_line_table']" position="attributes">
+            <attribute name="t-if">False</attribute>
+        </xpath>
+
+        <!-- We will not use the tax totals template -->
+        <xpath expr="//t[@t-call='account.document_tax_totals']" position="attributes">
+            <attribute name="t-if">False</attribute>
+        </xpath>
+        <xpath expr="//t[@t-call='account.document_tax_totals']" position="after">
+            <tr class="o_subtotal">
+                <td>
+                    <span>Subtotal</span>
+                </td>
+                <td class="text-end">
+                    <span t-att-class="oe_subtotal_footer_separator">
+                        <t t-out="cfdi_values['amount_subtotal']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                    </span>
+                    <span t-field="o.currency_id.name"/>
+                </td>
+            </tr>
+            <tr class="o_taxes" t-foreach="cfdi_values['impuestos_list']" t-as="impuesto">
+                <td style="max-width: 200px;">
+                    <span t-out="impuesto['tax_name']"/>
+                    <t t-if="not impuesto.get('is_local_tax')">
+                        <span>
+                            <span t-if="impuesto['factor_type'] != 'Exento'">
+                                <t t-out="impuesto['rate_or_fee']" t-options="{'widget': 'float', 'precision': 2}"/><t t-if="impuesto['factor_type'] == 'Tasa'">%</t>
+                            </span>
+                            <span t-else="">Exempt</span>
+                        </span>
+                        on
+                        <span t-out="impuesto['amount_base']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                    </t>
+                </td>
+                <td class="text-end o_price_total text-nowrap">
+                    <span>
+                        <t t-out="impuesto['amount_tax']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                    </span>
+                    <span t-field="o.currency_id.name"/>
+                </td>
+            </tr>
+            <tr t-if="cfdi_values['has_discount']">
+                <td class="o_discount">
+                    <span>Discount</span>
+                </td>
+                <td class="text-end text-nowrap">
+                    <span t-out="cfdi_values['amount_discount']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                    <span t-field="o.currency_id.name"/>
+                </td>
+            </tr>
+            <tr class="o_total">
+                <td><strong>Total</strong></td>
+                <td class="text-end">
+                    <strong t-out="cfdi_values['total_amount']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                    <strong t-field="o.currency_id.name"/>
+                </td>
+            </tr>
+        </xpath>
+        <xpath expr="//span[@t-field='o.amount_total_words']" position="attributes">
+            <attribute name="t-field"/>
+            <attribute name="t-out">cfdi_values['total_amount_text']</attribute>
+        </xpath>
+
+        <!-- Not show company currency tax totals table if document is succesfully signed -->
+        <xpath expr="//t[@t-call='account.document_tax_totals_company_currency_template']" position="attributes">
+            <attribute name="t-if">False</attribute>
+        </xpath>
+    </template>
+
+    <template id="report_invoice_document_inherit_l10n_mx_edi" inherit_id="account.report_invoice_document">
+        <xpath expr="//t[@t-set='layout_document_title']" position="after">
+            <t t-if="show_no_cfdi_label" t-set="layout_document_title">
+                <t t-out="layout_document_title"/>
+                <span class="text-danger">(NOT A CFDI INVOICE)</span>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- Workaround for Studio reports, see odoo/odoo#60660 -->
+    <template id="report_invoice" inherit_id="account.report_invoice">
+        <xpath expr="//t[@t-set='lang']" position="after">
+            <t t-set="is_mx_invoice" t-value="o._l10n_mx_edi_is_cfdi_document() and o.is_sale_document()"/>
+        </xpath>
+        <xpath expr="//t[@t-call='account.report_invoice_document']" position="attributes">
+            <attribute name="show_no_cfdi_label">is_mx_invoice</attribute>
+        </xpath>
+        <xpath expr="//t[@t-call='account.report_invoice_document']" position="after">
+            <t t-elif="o._get_name_invoice_report() == 'l10n_mx_edi.report_invoice_document'">
+                <t t-set="cfdi_values" t-value="o._l10n_mx_edi_get_extra_invoice_report_values()"/>
+                <!-- Only show MX PDF report if sucessfully decoded CFDI attachment -->
+                <t t-if="cfdi_values" t-call="l10n_mx_edi.report_invoice_document"
+                    t-lang="lang"
+                    cfdi_values="cfdi_values"/>
+                <t t-else="" t-call="account.report_invoice_document"
+                    t-lang="lang"
+                    show_no_cfdi_label="is_mx_invoice"/>
+            </t>
+        </xpath>
+    </template>
+</odoo>

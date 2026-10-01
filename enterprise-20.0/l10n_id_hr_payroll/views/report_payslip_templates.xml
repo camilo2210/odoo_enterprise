@@ -1,0 +1,176 @@
+<?xml version="1.0"?>
+<odoo>
+<template id="report_payslip_id" inherit_id="hr_payroll.report_payslip" primary="True">
+    <xpath expr="//div[@id='payslip_lines_table']" position="replace">
+        <div id="l10n_id_payslip_lines_table">
+            <t t-set="report_data" t-value="o._l10n_id_get_payslip_report_data()"/>
+            <div class="row">
+                <div class="col-6 pe-3">
+                    <table class="table table-sm table-borderless">
+                        <thead class="o_black_border">
+                            <tr>
+                                <th id="l10n_id_income_header_name">Income</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="report_data['income_lines']" t-as="line">
+                                <td><span t-field="line.name"/><t t-if="line.code in report_data['taxable_line_codes']">*</t></td>
+                                <td class="text-end">
+                                    <span t-out="line.total"
+                                        t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="o_total o_border_bottom fw-bold">Total Earnings</td>
+                                <td class="o_total o_border_bottom fw-bold text-end">
+                                    <span t-out="report_data['income_total']"
+                                        t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-6 ps-3">
+                    <table class="table table-sm table-borderless">
+                        <thead class="o_black_border">
+                            <tr>
+                                <th id="l10n_id_deduction_header_name">Deduction</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="report_data['deduction_lines']" t-as="line">
+                                <td><span t-field="line.name"/></td>
+                                <td class="text-end">
+                                    <span t-out="line.total"
+                                        t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="o_total o_border_bottom fw-bold">Total Deduction</td>
+                                <td class="o_total o_border_bottom fw-bold text-end">
+                                    <span t-out="report_data['deduction_total']"
+                                        t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6 pe-3 mt-3">
+                    <table class="table table-sm table-borderless">
+                        <thead class="o_black_border">
+                            <tr>
+                                <th id="l10n_id_benefits_header_name">Benefits</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="report_data['benefits_lines']" t-as="line">
+                                <td><span t-field="line.name"/><t t-if="line.code in report_data['taxable_line_codes']">*</t></td>
+                                <td class="text-end">
+                                    <span t-out="line.total"
+                                        t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="o_total o_border_bottom fw-bold">Total Benefits</td>
+                                <td class="o_total o_border_bottom fw-bold text-end">
+                                    <span t-out="report_data['benefits_total']"
+                                        t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-6 ps-3 mt-3" id="l10n_id_attendance_col"/>
+            </div>
+            <div class="row">
+                <div class="col-6 pe-3 mt-3">
+                    <table class="table table-sm table-borderless">
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold fs-6">Taxable Salary</td>
+                                <td class="fw-bold text-end fs-6">
+                                    <span t-out="report_data['taxable']"
+                                        t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold fs-6">Take Home Pay</td>
+                                <td class="fw-bold text-end fs-6">
+                                    <span t-out="report_data['net']"
+                                        t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="oe_structure"></div>
+        </div>
+    </xpath>
+    <xpath expr="//div[@id='to_pay']" position="replace"/>
+
+    <!-- Remove header fields for Indonesian Payslip -->
+    <xpath expr="//div[@id='employee_email']" position="replace"/>
+    <xpath expr="//div[@id='employee_marital']" position="replace"/>
+    <xpath expr="//div[@id='employee_private_address']" position="replace"/>
+    <xpath expr="//div[@id='wage']" position="replace"/>
+    <xpath expr="//div[@id='computed_on']" position="replace"/>
+    <xpath expr="//div[@id='contract_start']" position="replace"/>
+    <xpath expr="//div[@id='contract_type']" position="replace"/>
+    <xpath expr="//div[@id='working_schedule']" position="replace"/>
+
+    <!-- Add two fields for Indonesian payslips -->
+    <xpath expr="//div[@id='pay_period']" position="after">
+        <div id="l10n_id_employee_npwp" t-if="o.employee_id.work_contact_id.vat">
+            <strong class="me-2">NPWP:</strong>
+            <span t-field="o.employee_id.work_contact_id.vat"/>
+        </div>
+        <div id="l10n_id_employee_ptkp" t-if="o.version_id.l10n_id_kode_ptkp">
+            <strong class="me-2">PTKP:</strong>
+            <span t-field="o.version_id.l10n_id_kode_ptkp"/>
+        </div>
+    </xpath>
+
+    <!-- Align the Other Information column with the Deduction column below it -->
+    <xpath expr="//div[@id='infos_table']//th[hasclass('w-50')]" position="attributes">
+        <attribute name="class" add="ps-3" separator=" "/>
+    </xpath>
+    <xpath expr="//div[@id='infos_table']//td[@id='other_infos']" position="attributes">
+        <attribute name="class" add="ps-3" separator=" "/>
+    </xpath>
+
+    <!-- Attendance Summary Table -->
+    <xpath expr="//div[@id='l10n_id_attendance_col']" position="inside">
+        <xpath expr="//div[@id='worked_days_table']" position="move"/>
+    </xpath>
+    <xpath expr="//th[@id='work_days_header_name']" position="replace">
+        <th id="work_days_header_name">Attendance Summary</th>
+    </xpath>
+    <xpath expr="//th[@id='work_days_header_amount']" position="replace"/>
+    <xpath expr="//td[@id='worked_days_amount']" position="replace"/>
+    <xpath expr="//td[@id='worked_days_total_amount']" position="replace"/>
+
+    <xpath expr="//div[hasclass('page')]" position="attributes">
+        <attribute name="style">font-size: 14px;</attribute>
+    </xpath>
+    
+    <xpath expr="//div[@id='note']" position="after">
+        <div id="l10n_id_benefits_note" class="mt-3 fst-italic">
+            *Company-benefits [Allowance] are part of taxable salary
+        </div>
+    </xpath>
+</template>
+
+<template id="report_payslip_id_lang">
+    <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="o">
+            <t t-call="l10n_id_hr_payroll.report_payslip_id"/>
+        </t>
+    </t>
+</template>
+</odoo>

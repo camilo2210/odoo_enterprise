@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="worksheet_template_view_form" model="ir.ui.view">
+        <field name="name">worksheet.template.view.form</field>
+        <field name="model">worksheet.template</field>
+        <field name="priority">10</field>
+        <field name="arch" type="xml">
+            <form string="worksheet" js_class="worksheet_template_form">
+                <sheet>
+                    <group>
+                        <field string="Name" name="name" placeholder="e.g. Device installation"/>
+                        <field name="id" invisible="1"/> <!-- invisible field is needed for the widget 'properties_definition' -->
+                        <field name="worksheet_count" invisible="1"/> <!-- needed for the custom deletion confirmation dialog message -->
+                        <field string="Company" name="company_id"/>
+                    </group>
+                    <group string="Worksheet Fields" id="worksheet_group"/>
+                    <div class="fst-italic text-muted mb-2">
+                        Add the fields technicians will fill out for this worksheet.
+                    </div>
+                    <field name="worksheet_properties_definition" widget="worksheet_properties_definition"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="worksheet_template_view_form_quick_create" model="ir.ui.view">
+        <field name="name">worksheet.template.view.form</field>
+        <field name="model">worksheet.template</field>
+        <field name="priority">20</field>
+        <field name="mode">primary</field>
+        <field name="inherit_id" ref="worksheet.worksheet_template_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@id='worksheet_group']" position="replace"/>
+        </field>
+    </record>
+
+    <record id="worksheet_template_view_list" model="ir.ui.view">
+        <field name="name">worksheet.template.view.list</field>
+        <field name="model">worksheet.template</field>
+        <field name="arch" type="xml">
+            <list string="worksheet" multi_edit="1" js_class="worksheet_template_list">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="worksheet_count" column_invisible="1"/> <!-- needed for the custom deletion confirmation dialog message -->
+                <field name="company_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_worksheet_properties_definition_kanban" model="ir.ui.view">
+        <field name="name">worksheet.template.properties.definition.kanban</field>
+        <field name="model">worksheet.template</field>
+        <field name="arch" type="xml">
+            <kanban string="worksheet" js_class="worksheet_template_kanban">
+                <templates>
+                    <t t-name="card">
+                        <field name="name"/>
+                        <field name="company_id"/>
+                        <field name="worksheet_count" invisible="1"/> <!-- needed for the custom deletion confirmation dialog message -->
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="worksheet_template_view_search" model="ir.ui.view">
+        <field name="name">worksheet.template.view.search</field>
+        <field name="model">worksheet.template</field>
+        <field name="arch" type="xml">
+            <search string="Worksheet Template Search">
+                <field name="name"/>
+                <field name="company_id"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Company" name="Company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

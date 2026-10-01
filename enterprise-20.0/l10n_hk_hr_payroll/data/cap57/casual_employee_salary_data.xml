@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="cap57_casual_employees_salary_eemc" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.EEMPF')])]"/>
+        <field name="name">Employee Mandatory Contribution</field>
+        <field name="code">EEMC</field>
+        <field name="sequence">116</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+has_earnings = any(line.amount &gt; 0 for line in payslip.worked_days_line_ids)
+will_contribute = not employee.birthday or (
+    payslip.date_to - relativedelta(years=18) &gt;= employee.birthday &gt; payslip.date_from - relativedelta(years=65)
+)
+result = will_contribute and has_earnings and not version.l10n_hk_mpf_exempt
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+scale = payslip._rule_parameter('l10n_hk_mpf_industry_scheme_contribution_scale')
+
+# Make sure to take into account any extra income for the period, and prorate it to a daily basis
+total_worked_gross = sum(wage for day, wage in l10n_hk_gross_daily_wages)
+extra_income = result_rules['GROSS']['total'] - total_worked_gross
+extra_daily = extra_income / len(l10n_hk_gross_daily_wages) if l10n_hk_gross_daily_wages else 0
+
+total_eempf = 0
+for day, daily_wage in l10n_hk_gross_daily_wages:
+    if employee.birthday:
+        age_on_day = relativedelta(day, employee.birthday).years
+        if age_on_day &lt; 18 or age_on_day &gt;= 65:
+            continue
+
+    daily_wage = daily_wage + extra_daily
+    matching_eempf = 0
+    for (wage, _, eempf) in scale:
+        if not wage or wage &gt; daily_wage:
+            matching_eempf = eempf
+            break
+    total_eempf += matching_eempf
+result = -total_eempf
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="appears_on_payslip">always</field>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="cap57_casual_employees_salary_ermc" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.ERMPF')])]"/>
+        <field name="name">Employer Mandatory Contribution</field>
+        <field name="code">ERMC</field>
+        <field name="sequence">117</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+has_earnings = any(line.amount &gt; 0 for line in payslip.worked_days_line_ids)
+will_contribute = not employee.birthday or (
+    payslip.date_to - relativedelta(years=18) &gt;= employee.birthday &gt; payslip.date_from - relativedelta(years=65)
+)
+result = will_contribute and has_earnings and not version.l10n_hk_mpf_exempt
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+scale = payslip._rule_parameter('l10n_hk_mpf_industry_scheme_contribution_scale')
+
+# Make sure to take into account any extra income for the period, and prorate it to a daily basis
+total_worked_gross = sum(wage for day, wage in l10n_hk_gross_daily_wages)
+extra_income = result_rules['GROSS']['total'] - total_worked_gross
+extra_daily = extra_income / len(l10n_hk_gross_daily_wages) if l10n_hk_gross_daily_wages else 0
+
+total_ermpf = 0
+for day, daily_wage in l10n_hk_gross_daily_wages:
+    if employee.birthday:
+        age_on_day = relativedelta(day, employee.birthday).years
+        if age_on_day &lt; 18 or age_on_day &gt;= 65:
+            continue
+
+    daily_wage = daily_wage + extra_daily
+    matching_ermpf = 0
+    for (wage, ermpf, _) in scale:
+        if not wage or wage &gt; daily_wage:
+            matching_ermpf = ermpf
+            break
+    total_ermpf += matching_ermpf
+
+result = -total_ermpf
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="cap57_casual_employees_salary_eevc" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.EEMPF')])]"/>
+        <field name="name">Employee Voluntary Contribution</field>
+        <field name="code">EEVC</field>
+        <field name="sequence">118</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = version.l10n_hk_member_class_ct_eevc_id</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+contribution_type = version.l10n_hk_member_class_ct_eevc_id
+
+if contribution_type.definition_of_income == 'basic_salary':
+    mpf_relevant_income = l10n_hk_payrun_category_totals['HK_BASIC'] + categories['HK_BASIC']
+else:
+    mpf_relevant_income = l10n_hk_payrun_totals['GROSS'] + result_rules['GROSS']['total']
+
+is_exempt = version.l10n_hk_mpf_exempt
+if contribution_type.contribution_option == 'percentage':
+    contribution_amount = ((contribution_type.amount / 100) * mpf_relevant_income)
+    result = -(abs(contribution_amount) - abs(l10n_hk_payrun_totals['EEVC']))
+elif contribution_type.contribution_option == 'fixed':
+    result = -payslip._l10n_hk_hr_payroll_from_to_schedule(contribution_type.amount * worked_days_prorata_rate, from_schedule='monthly')
+else:  # Top up
+    contribution_amount = max(((contribution_type.amount / 100) * mpf_relevant_income) - (0 if is_exempt else abs(result_rules['EEMC']['total'])), 0)
+    result = -(abs(contribution_amount) - abs(l10n_hk_payrun_totals['EEVC']))
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="appears_on_payslip">always</field>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="cap57_casual_employees_salary_ervc" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.ERMPF')])]"/>
+        <field name="name">Employer Voluntary Contribution</field>
+        <field name="code">ERVC</field>
+        <field name="sequence">119</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = version.l10n_hk_member_class_ct_ervc_id</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+contribution_type = version.l10n_hk_member_class_ct_ervc_id
+
+if contribution_type.definition_of_income == 'basic_salary':
+    mpf_relevant_income = l10n_hk_payrun_category_totals['HK_BASIC'] + categories['HK_BASIC']
+else:
+    mpf_relevant_income = l10n_hk_payrun_totals['GROSS'] + result_rules['GROSS']['total']
+
+is_exempt = version.l10n_hk_mpf_exempt
+if contribution_type.contribution_option == 'percentage':
+    contribution_amount = ((contribution_type.amount / 100) * mpf_relevant_income)
+    result = -(abs(contribution_amount) - abs(l10n_hk_payrun_totals['ERVC']))
+elif contribution_type.contribution_option == 'fixed':
+    result = -payslip._l10n_hk_hr_payroll_from_to_schedule(contribution_type.amount * worked_days_prorata_rate, from_schedule='monthly')
+elif contribution_type.contribution_option == 'match':
+    result = result_rules['EEVC']['total']
+else:  # Top up
+    contribution_amount = max(((contribution_type.amount / 100) * mpf_relevant_income) - (0 if is_exempt else abs(result_rules['EEMC']['total'])), 0)
+    result = -(abs(contribution_amount) - abs(l10n_hk_payrun_totals['ERVC']))
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="cap57_casual_employees_salary_ervc_two" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.ERMPF')])]"/>
+        <field name="name">Employer Voluntary Contribution 2</field>
+        <field name="code">ERVC2</field>
+        <field name="sequence">120</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = version.l10n_hk_member_class_ct_ervc2_id</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+contribution_type = version.l10n_hk_member_class_ct_ervc2_id
+
+if contribution_type.definition_of_income == 'basic_salary':
+    mpf_relevant_income = l10n_hk_payrun_category_totals['HK_BASIC'] + categories['HK_BASIC']
+else:
+    mpf_relevant_income = l10n_hk_payrun_totals['GROSS'] + result_rules['GROSS']['total']
+
+is_exempt = version.l10n_hk_mpf_exempt
+if contribution_type.contribution_option == 'percentage':
+    contribution_amount = ((contribution_type.amount / 100) * mpf_relevant_income)
+    result = -(abs(contribution_amount) - abs(l10n_hk_payrun_totals['ERVC2']))
+elif contribution_type.contribution_option == 'fixed':
+    result = -payslip._l10n_hk_hr_payroll_from_to_schedule(contribution_type.amount * worked_days_prorata_rate, from_schedule='monthly')
+elif contribution_type.contribution_option == 'match':
+    result = result_rules['EEVC']['total']
+else:  # Top up
+    contribution_amount = max(((contribution_type.amount / 100) * mpf_relevant_income) - (0 if is_exempt else abs(result_rules['EEMC']['total'])), 0)
+    result = -(abs(contribution_amount) - abs(l10n_hk_payrun_totals['ERVC2']))
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+        <field name="appears_on_payslip">non_zero</field>
+    </record>
+</odoo>

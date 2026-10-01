@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="iot_device_view_form" model="ir.ui.view">
+        <field name="name">iot.device.view.form</field>
+        <field name="model">iot.device</field>
+        <field name="arch" type="xml">
+            <form create="false" js_class="iot_device_form">
+                <header>
+                    <widget name="test_iot_device" btn_name="Test" btn_class="primary" invisible="type not in ['printer', 'fiscal_data_module', 'payment']"/>
+                    <field name="connected_status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group name="iot_device_details">
+                        <group>
+                            <field name="iot_id" readonly="True"/>
+                            <field name="identifier" readonly="True"/>
+                            <field name="is_scanner" invisible="type not in ['keyboard', 'scanner']"/>
+                            <field name="keyboard_layout" invisible="type not in ['keyboard', 'scanner']"/>
+                            <field name="display_url" invisible="type != 'display'"/>
+                            <field name="display_orientation" invisible="type != 'display'"/>
+                        </group>
+                        <group>
+                            <field name="type"/>
+                            <field name="printer_id" invisible= "type != 'printer'"/>
+                        </group>
+                    </group>
+                    <!-- notebook only for overrides -->
+                    <notebook/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="iot_device_view_kanban" model="ir.ui.view">
+        <field name="name">iot.device.view.kanban</field>
+        <field name="model">iot.device</field>
+        <field name="arch" type="xml">
+            <kanban create="false" group_create="false" default_group_by="iot_id" default_order="type">
+                <field name="type"/>
+                <field name="connection"/>
+                <field name="connected_status"/>
+                <templates>
+                    <t t-name="card" class="row g-0 p-0">
+                        <aside class="col-3 text-center align-self-center">
+                            <t t-set="types" t-value="{'camera': 'camera', 'printer': 'printer', 'device': 'rulers', 'payment': 'payment-terminal', 'scale': 'scales', 'keyboard': 'keyboard', 'scanner': 'barcode-scanner', 'display': 'desktop', 'fiscal_data_module': 'fdm', 'unsupported': 'unsupported'}"/>
+                            <img t-attf-src="/iot/static/src/img/#{types[record.type.raw_value]}.svg" t-attf-alt="Device type is #{record.type.raw_value}" class="w-50"/>
+                        </aside>
+                        <main class="col p-2 border-start">
+                            <div class="text-truncate fw-bold d-flex align-items-center justify-content-between" t-att-title="record.name.raw_value">
+                                <field name="name" class="text-truncate"/>
+                                <i class="oi oi-filled text-success" data-icon="circle" t-if="record.connected_status.raw_value == 'connected'"/>
+                                <i class="oi oi-filled text-danger" data-icon="circle" t-else=""/>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <t t-set="connections" t-value="{'network': 'wifi', 'direct': 'usb', 'bluetooth': 'bluetooth', 'serial': 'usb', 'hdmi': 'usb'}"/>
+                                <i class="oi oi-fw" t-att-data-icon="connections[record.connection.raw_value]" title="connection_type"/>
+                                <field name="iot_id" class="text-truncate" readonly="1"/>
+                            </div>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="iot_device_view_list" model="ir.ui.view">
+        <field name="name">iot.device.view.list</field>
+        <field name="model">iot.device</field>
+        <field name="arch" type="xml">
+            <list create="false" group_create="false" sample="1" default_group_by="iot_id" default_order="type">
+                <field name="name"/>
+                <field name="iot_id"/>
+                <field name="identifier"/>
+                <field name="connected_status"/>
+            </list>
+        </field>
+    </record>
+    <record id="iot_device_search" model="ir.ui.view">
+        <field name="name">iot.device.view.search</field>
+        <field name="model">iot.device</field>
+        <field name="arch" type="xml">
+            <search string="IoT Device">
+                <field name="name"/>
+                <field name="type"/>
+                <field name="iot_id"/>
+                <group>
+                    <filter name="group_by_connection" string="Connection" context="{'group_by':'connection'}"/>
+                    <filter name="group_by_iot_box" string="IoT Box" context="{'group_by':'iot_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

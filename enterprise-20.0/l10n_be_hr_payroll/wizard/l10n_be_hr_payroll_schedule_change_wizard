@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_be_hr_payroll_schedule_change_wizard_view_form" model="ir.ui.view">
+        <field name="name">l10n_be.hr.payroll.schedule.change.wizard.view.form</field>
+        <field name="model">l10n_be.hr.payroll.schedule.change.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Working Schedule Change">
+                <field name="version_id" invisible="1"/>
+                <field name="company_id" invisible="1"/>
+                <field name="currency_id" invisible="1"/>
+                <field name="leave_allocation_id" invisible="1"/>
+                <field name="requires_new_contract" invisible="1"/>
+                <field name="initial_time_off_allocation" invisible="1"/>
+                <field name="time_off_allocation_hours" invisible="1"/>
+                <group>
+                    <label for="date_start" string="From"/>
+                    <div class="o_row" name="contract_dates">
+                        <field name="date_start" placeholder="Not Employed" class="o_hr_narrow_field me-3"/>
+                        <span invisible="not date_start">To</span>
+                        <field name="date_end" placeholder="Indefinite" widget="date_dynamic_min" options="{'min_date_field': 'date_start'}" class="o_hr_narrow_field ms-3" invisible="not date_start"/>
+                    </div>
+                    <label for="current_resource_calendar_id" string="Current Schedule"/>
+                    <field name="current_resource_calendar_id" readonly="1" nolabel="1"/>
+                    <label for="resource_calendar_id" string="New Schedule"/>
+                    <field name="resource_calendar_id" readonly="1" nolabel="1"/>
+                </group>
+                <group>
+                    <group string="Paid time off" invisible="not leave_allocation_id">
+                        <field name="initial_time_off_allocation" string="Original allocation"/>
+                        <field name="remaining_time_off_allocation" string="Remaining time off"/>
+                        <label for="adapt_allocation"/>
+                        <div class="o_row">
+                            <field name="adapt_allocation"/>
+                            <span invisible="not adapt_allocation" class="ms-2">
+                                <field name="time_off_allocation" nolabel="1" class="o_hr_narrow_field" readonly="0"/>
+                                <span>days</span>
+                            </span>
+                        </div>
+                    </group>
+                    <group string="Paid time off" invisible="leave_allocation_id">
+                        <div class="alert alert-warning" role="alert"
+                             colspan="2">
+                            No time off allocation has been found for Paid time off, no changes will occur to time off for this employee.
+                        </div>
+                    </group>
+                    <group string="Wage">
+                        <field name="current_wage" string="Current wage" readonly="1"/>
+                        <label for="adapt_wage"/>
+                        <div class="o_row">
+                            <field name="adapt_wage"/>
+                            <span invisible="not adapt_wage" class="ms-2">
+                                <field name="wage" nolabel="1" class="o_hr_narrow_field"/>
+                            </span>
+                            <span class="badge rounded-pill text-bg-info ms-2"
+                                  invisible="not reorganisation_measure_ids"
+                                  title="The wage will be prorated on the payslip due to the work reorganisation.">
+                                WRT
+                            </span>
+                        </div>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_validate" string="Confirm" type="object" class="oe_highlight"/>
+                    <button class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="schedule_change_wizard_action" model="ir.actions.act_window">
+        <field name="name">Working Schedule Change</field>
+        <field name="res_model">l10n_be.hr.payroll.schedule.change.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <t t-inherit="social.StreamPostCommentsOriginalPost" t-inherit-mode="extension">
+        <xpath expr="//span[hasclass('o_social_original_post_author_image')]" position="inside">
+            <img t-if="this.originalPost.twitter_profile_image_url.value" t-att-src="this.originalPost.twitter_profile_image_url.value" alt="Author Image" class="rounded"/>
+        </xpath>
+        <xpath expr="//img[hasclass('o_social_original_post_single')]" position="after">
+            <a t-elif="this.originalPost.media_type.raw_value === 'twitter'" class="position-relative d-flex w-100 o_social_subtle_btn" target="_blank" t-att-href="this.originalPost.post_link.value">
+                <img t-att-src="content.thumbnail_url" class="shadow o_social_original_post_single" alt="Image Url" />
+                <div class="position-absolute top-50 start-50 translate-middle">
+                    <i class="oi oi-4x" data-icon="play_arrow"/>
+                </div>
+            </a>
+        </xpath>
+        <xpath expr="//div[hasclass('o_social_comments_modal_original_post_content')]" position="inside">
+            <div class="o_social_original_post_twitter_stats d-flex justify-content-around"
+                t-if="this.originalPost.media_type.raw_value === 'twitter'">
+                <div class="o_social_twitter_likes px-2"
+                    t-att-class="{'o_social_twitter_user_likes': this.originalPost.twitter_user_likes.raw_value}"
+                    t-att-data-user-likes="this.originalPost.twitter_user_likes.raw_value"
+                    t-att-data-post-id="this.originalPost.id.raw_value"
+                    t-on-click="() => this.twitterProps.onTwitterTweetLike()">
+                    <i class="oi oi-filled me-1" data-icon="favorite" title="Likes"/>
+                    <b t-if="this.originalPost.twitter_likes_count.raw_value"
+                        class="o_social_likes_count"
+                        t-out="this.originalPost.twitter_likes_count.raw_value"/>
+                </div>
+                <div class="d-flex flex-grow-1 justify-content-end px-2 text-muted">
+                    <div t-if="this.originalPost.twitter_retweet_count.raw_value > 0">
+                        <i class="oi me-1" data-icon="repeat" title="Repost count"/>
+                        <t t-out="this.originalPost.twitter_retweet_count.value"/>
+                    </div>
+                </div>
+            </div>
+            <t t-set="formattedMessage">
+                <t t-out="this._formatCommentStreamPost(this.originalPost.twitter_quoted_tweet_message.raw_value)"/>
+            </t>
+            <t t-if="this.originalPost.twitter_quoted_tweet_id_str?.raw_value"
+                t-call="social_twitter.StreamPostQuotedTweet"
+                formattedMessage="formattedMessage"
+                post="this.originalPost">
+            </t>
+        </xpath>
+    </t>
+
+    <t t-name="social_twitter.StreamPostQuotedTweet">
+        <t t-set="unknown_author_name_label">Unknown</t>
+        <div class="border rounded p-2 my-2">
+            <t t-set="author_info">
+                <span t-if="post.twitter_profile_image_url.raw_value"
+                    class="o_social_stream_post_author_image o_social_author_image o_avatar position-relative rounded overflow-hidden">
+                    <img t-att-src="post.twitter_quoted_tweet_profile_image_url.raw_value
+                        or '/base/static/img/avatar_grey.png'"
+                        alt="Author Image" class="rounded"/>
+                </span>
+                <span class="o_social_stream_post_author_image o_social_author_image o_avatar position-relative rounded overflow-hidden"/>
+                <span class="o_social_stream_post_author_name text-truncate ms-2"
+                    t-out="post.twitter_quoted_tweet_author_name.value or unknown_author_name_label"
+                    t-att-title="post.twitter_quoted_tweet_author_name.value or unknown_author_name_label"/>
+            </t>
+            <a t-if="post.twitter_quoted_tweet_author_link.value"
+                class="o_social_stream_post_author d-inline-flex align-items-center"
+                t-att-href="post.twitter_quoted_tweet_author_link.value"
+                t-att-title="post.twitter_quoted_tweet_author_name.value or unknown_author_name_label"
+                t-out="author_info"
+                target="_blank"/>
+            <div t-else=""
+                class="o_social_stream_post_author d-inline-flex align-items-center"
+                t-out="author_info"/>
+            <div name="o_social_stream_post_message_text" class="o_social_stream_post_message_text overflow-hidden">
+                <span t-if="formattedMessage" t-out="formattedMessage"/>
+                <span t-else="" class="fst-italic">Empty post</span>
+            </div>
+        </div>
+    </t>
+
+    <t t-inherit="social.StreamPostComment" t-inherit-mode="extension">
+        <xpath expr="//*[hasclass('o_social_comment_reply')]" position="attributes">
+            <attribute name="t-att-class">
+                this.props.originalPost.media_type.raw_value === 'twitter'
+                and !this.comment.canReply
+                and 'd-none'
+            </attribute>
+        </xpath>
+        <xpath expr="//*[hasclass('o_social_comment_reply')]" position="after">
+            <!-- Shown when we cannot reply to a comment -->
+            <span title="You cannot reply from an external service because this post doesn't mention or quote your account."
+                class="text-muted"
+                t-att-class="(this.props.originalPost.media_type.raw_value !== 'twitter' or this.comment.canReply) and 'd-none'">
+                Reply
+            </span>
+        </xpath>
+    </t>
+
+    <t t-inherit="social.StreamPostCommentsReply" t-inherit-mode="extension">
+        <xpath expr="//form" position="inside">
+            <input t-if="this.comment &amp;&amp; this.comment.from &amp;&amp; this.comment.from.screen_name"
+                type="hidden" name="answering_to"
+                t-att-value="this.isCommentReply ? this.comment.from.screen_name : ''"/>
+        </xpath>
+
+        <xpath expr="//t[@t-set='write_comment_text']" position="after">
+            <t t-set="write_comment_text" t-if="this.originalPost.media_type.raw_value === 'twitter' and !this.originalPost.twitter_can_reply.raw_value">You cannot reply from an external service because this post doesn't mention or quote your account.</t>
+        </xpath>
+    </t>
+
+    <t t-name="social_twitter.TwitterQuoteDialog">
+        <Dialog title="this.props.title" size="'md'" bodyClass="'o_social_quote_modal o_social_comments_modal'">
+            <StreamPostCommentsReplyTwitterQuote
+                    mediaSpecificProps="this.props.mediaSpecificProps"
+                    originalPost="this.originalPost"
+                    onAddComment="() => {}"
+                    preventAddComment="() => {}"/>
+            <t t-call="social_twitter.StreamPostCommentsOriginalPostQuote"/>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-on-click="this._confirmQuoteTweet">Post</button>
+                <button class="btn btn-secondary" t-on-click="() => this.props.close()">Discard</button>
+            </t>
+        </Dialog>
+    </t>
+
+    <t t-name="social_twitter.StreamPostCommentsReplyQuote" t-inherit="social.StreamPostCommentsReply" t-inherit-mode="primary">
+        <xpath expr="//textarea[@name='message']" position="attributes">
+            <attribute name="t-on-keydown"/>
+        </xpath>
+        <xpath expr="//div[@name='o_social_textarea_helper']" position="replace"/>
+    </t>
+
+    <t t-name="social_twitter.StreamPostCommentsOriginalPostQuote" t-inherit="social.StreamPostCommentsOriginalPost" t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('o_social_comments_modal_original_post')]" position="attributes">
+            <attribute name="class">p-3 mt-3 border rounded</attribute>
+        </xpath>
+    </t>
+
+    <!--Old-->
+
+    <t t-name="social_twitter.TwitterUsersAutocompleteField" t-inherit="web.CharField">
+        <xpath expr="//t[@t-else='']" position="replace">
+            <AutoComplete autofocus="true" value="this.value" sources="this.sources" inputDebounceDelay="500" class="'o_social_twitter_users_autocomplete'">
+                <t t-set-slot="option" t-slot-scope="optionScope">
+                    <div t-attf-class="o_social_twitter_users_autocomplete_suggestion clearfix#{this.suggestion_index == 0 and ' active' or ''}">
+                        <img t-att-src="optionScope.data['profile_image_url']" alt="X Profile Image"/>
+                        <div class="o_twitter_users_autocomplete_info">
+                            <strong><span class="o_twitter_users_autocomplete_info_name">
+                                <t t-out="optionScope.label" />
+                            </span></strong>
+                            <br/>
+                            <span><small t-out="optionScope.data['description']" /></span>
+                        </div>
+                    </div>
+                </t>
+            </AutoComplete>
+        </xpath>
+    </t>
+
+    <t t-inherit="social.MediaCarouselDialog" t-inherit-mode="extension">
+        <xpath expr="//video[@t-else='']" position="before">
+            <!-- redirect to post instead of showing the video" -->
+            <a t-elif="this.props.mediaType === 'twitter' and media.type === 'video'" class="o_social_subtle_btn" target="_blank" t-att-href="media.url">
+                <div class="position-absolute top-50 start-50 translate-middle">
+                    <i class="oi oi-4x" data-icon="play_arrow"/>
+                </div>
+                <img t-att-src="media.thumbnail_url" class="shadow" alt="Image Url" />
+            </a>
+        </xpath>
+    </t>
+</odoo>

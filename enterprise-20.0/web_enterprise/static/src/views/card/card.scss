@@ -1,0 +1,72 @@
+.o_card_record {
+    --Card-border-color: var(--border-color);
+    --Card-border-radius:
+            var(--Card-border-radius-top, 0) var(--Card-border-radius-top, 0)
+            var(--Card-border-radius-bottom, 0) var(--Card-border-radius-bottom, 0);
+    --Card-padding-v: 10px;
+    --Card-padding-h: 14px;
+
+    --badge-padding-x: 0.52em;
+    --o-Badge-lineHeight: 1.166;
+    --o-Badge-fontSize: 0.769234em;
+    --o-Badge-fontWeight: 600;
+
+    box-shadow: var(--Card-box-shadow);
+    font-size: var(--Card-font-size, small);
+
+    aside {
+        border-top-left-radius: calc(var(--Card-border-radius-top, 0) - var(--Card-border-width, #{$border-width}));
+        border-bottom-left-radius: calc(var(--Card-border-radius-bottom, 0) - var(--Card-border-width, #{$border-width}));
+
+        > * {
+            border-top-left-radius: inherit;
+            border-bottom-left-radius: inherit;
+            overflow: hidden;
+        }
+    }
+
+    &.cursor-pointer:hover {
+        --Card-border-color: #{$gray-400};
+
+        z-index: 1;
+    }
+
+    // Records colours
+    &.o_kanban_record_colored::after {
+        @include o-position-absolute(0, auto, 0, 0);
+        width: 3px;
+        border-right: 4px solid transparent;
+        border-radius: inherit;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        content: "";
+    }
+
+    @for $size from 2 through length($o-colors) {
+        // Note: the first color is not defined as it is the 'no color' for kanban
+        &.o_kanban_color_#{$size - 1}::after {
+            border-left: 3px solid nth($o-colors, $size);
+        }
+    }
+}
+
+.o_kanban_renderer.o_kanban_ungrouped .o_kanban_record {
+    @include media-breakpoint-down(md) {
+        margin: 0 0 (2 * $border-width);
+    }
+
+    @include media-breakpoint-up(md) {
+        --Card-border-radius-top: var(--border-radius-lg);
+        --Card-border-radius-bottom: var(--border-radius-lg);
+    }
+}
+
+:where(.o_kanban_group) .o_card_record {
+    &:first-of-type {
+        --Card-border-radius-top: var(--border-radius-lg);
+    }
+
+    &:last-of-type {
+        --Card-border-radius-bottom: var(--border-radius-lg);
+    }
+}

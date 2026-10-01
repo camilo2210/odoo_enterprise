@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="marketing_activity_view_form_delay" model="ir.ui.view">
+        <field name="name">marketing.activity.view.form.delay</field>
+        <field name="model">marketing.activity</field>
+        <field name="priority">64</field>
+        <field name="arch" type="xml">
+            <form string="Create a Step">
+                <sheet>
+                    <div class="d-flex align-items-center">
+                        <i class="oi oi-2x mb-auto p-2 bg-300 rounded" data-icon="hourglass_empty" title="Delay icon"/>
+                        <h1 class="ps-1">Delay</h1>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <label for="interval_number" string="Wait for"/>
+                        <div>
+                            <field name="interval_number" nolabel="1" class="w-75" options="{'type': 'number', 'min': 1}"/>
+                            <field name="interval_type" nolabel="1" class="w-25"/>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="marketing_activity_view_form_trigger" model="ir.ui.view">
+        <field name="name">marketing.activity.view.form.trigger</field>
+        <field name="model">marketing.activity</field>
+        <field name="priority">64</field>
+        <field name="arch" type="xml">
+            <form string="Create a step">
+                <sheet>
+                    <div class="d-flex align-items-center">
+                        <i class="oi oi-2x mb-auto p-2 bg-300 rounded" data-icon="pause_circle" title="Wait icon"/>
+                        <h1 class="ps-1">Condition Delay</h1>
+                    </div>
+                    <field name="campaign_id" invisible="1"/>
+                    <field name="model_id" invisible="1"/>
+                    <field name="model_name" invisible="1"/>
+                    <field name="trigger_category_ui" invisible="1"/>
+                    <field name="trigger_type" invisible="1"/>
+                    <field name="trigger_type_category" widget="badges_selection"/>
+                    <group invisible="not trigger_type_category">
+                        <label for="wait_value_domain" string="Filter" invisible="trigger_type_category != 'domain'"/>
+                        <field name="wait_value_domain" widget="domain" invisible="trigger_type_category != 'domain'" nolabel="1" options="{'in_dialog': True, 'foldable': True, 'model': 'model_name'}"/>
+                        <field name="allowed_trigger_type_ui" invisible="1"/>
+                        <field name="triggering_activity_id" invisible="trigger_type_category != 'interaction'" required="trigger_type_category == 'interaction'"
+                               domain="[
+                                    ('campaign_id', '=', campaign_id),
+                                    ('can_be_triggering_activity', '=', True),
+                                    ('id', 'not any', ['|', ('id', '=', id), ('id', 'child_of', id)])]"
+                               options="{'no_create': True, 'no_create_edit': True, 'no_open': True}"/>
+                        <field name="trigger_type_ui" string="On" invisible="trigger_type_category != 'interaction'" required="trigger_type_category == 'interaction'" class="w-100" widget="badges_selection" options="{'allowed_selection_field': 'allowed_trigger_type_ui'}"/>
+                        <field name="validity_duration" string="Time limit"/>
+                        <label invisible="not validity_duration" for="validity_duration_number" string="Wait"/>
+                        <div invisible="not validity_duration" class="d-inline-flex" colspan="1">
+                            <field name="validity_duration_number" class="col-auto flex-shrink-1"/>
+                            <field name="validity_duration_type" class="col-auto flex-shrink-1 pe-1"/>
+                            <span class="ps-1 col-auto">before cancelling</span>
+                        </div>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="marketing_activity_view_form_mailing" model="ir.ui.view">
+        <field name="name">marketing.activity.view.form.mailing</field>
+        <field name="priority">64</field>
+        <field name="model">marketing.activity</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="campaign_id" invisible="1"/>
+                    <field name="utm_campaign_id" invisible="1"/>
+                    <field name="model_id" invisible="1"/>
+                    <field name="model_name" invisible="1"/>
+                    <field name="activity_type" invisible="1"/>
+                    <field name="trigger_type" invisible="1"/>
+                    <div class="o_marketing_activity_title">
+                        <div class="d-flex align-items-center" invisible="activity_type != 'action'">
+                            <i class="oi oi-2x mb-auto p-2 bg-300 rounded" data-icon="settings" title="Action icon"/>
+                            <h1 class="ps-1"><field name="name"/></h1>
+                        </div>
+                        <div class="d-flex align-items-center" invisible="activity_type != 'mail'">
+                            <i class="oi oi-2x mb-auto p-2 bg-300 rounded" data-icon="email" title="Email Icon"/>
+                            <h1 class="ps-1"><field name="name"/></h1>
+                        </div>
+                        <div class="d-flex align-items-center" invisible="activity_type != 'split'">
+                            <i class="oi oi-2x mb-auto p-2 bg-300 rounded" data-icon="signpost" title="Split icon"/>
+                            <h1 class="ps-1">If/Else Split</h1>
+                        </div>
+                    </div>
+                    <group>
+                        <field name="campaign_mass_mailing_count" invisible="1"/>
+                        <field name="mass_mailing_id_mailing_type" invisible="1"/>
+                        <field name="trigger_type_category" nolabel="1" colspan="2" widget="badges_selection" invisible="activity_type != 'split'"/>
+                        <field name="split_domain" invisible="activity_type != 'split' or trigger_type_category != 'domain'" widget="domain" options="{'in_dialog': True, 'foldable': True, 'model': 'model_name'}"/>
+                        <field name="triggering_activity_id" invisible="activity_type != 'split' or trigger_type_category != 'interaction'" 
+                               required="activity_type == 'split' and trigger_type_category == 'interaction'" 
+                               domain="[
+                                    ('campaign_id', '=', campaign_id),
+                                    ('can_be_triggering_activity', '=', True),
+                                    ('id', 'not any', ['|', ('id', '=', id), ('id', 'child_of', id)])]"
+                                options="{'no_create': True, 'no_create_edit': True, 'no_open': True}"
+                                placeholder="Select a Mailing Activity..."/>
+                        <field name="allowed_trigger_type_ui" invisible="1"/>
+                        <field name="trigger_type_ui" string="On" widget="badges_selection" invisible="activity_type != 'split' or trigger_type_category != 'interaction'" required="activity_type == 'split' and trigger_type_category == 'interacton'" options="{'allowed_selection_field': 'allowed_trigger_type_ui'}"/>
+                        <field name="mass_mailing_id"
+                                    widget="mailing_many2one"
+                                    domain="[
+                                        ('mailing_model_id', '=', model_id),
+                                        ('use_in_marketing_automation', '=', True),
+                                        ('mailing_type', '=', mass_mailing_id_mailing_type),
+                                        ('campaign_id', '=', utm_campaign_id),
+                                        ('state', '=', 'done'),
+                                    ]"
+                                    context="{
+                                        'default_state': 'done',
+                                        'default_mailing_model_id': model_id,
+                                        'default_use_in_marketing_automation': True,
+                                        'default_campaign_id': utm_campaign_id,
+                                        'default_mailing_type': mass_mailing_id_mailing_type}"
+                                    options="{'no_quick_create': True}"
+                                    string="Mailing"
+                                    placeholder="Pick or Create a Template..." invisible="activity_type != 'mail'"/>
+                        <field name="server_action_id" options="{'no_create': True, 'no_quick_create':True}" domain="[('model_id', '=', model_id)]" 
+                                invisible="activity_type != 'action'"
+                                required="activity_type == 'action'"
+                                placeholder="Pick a Server Action..."/>
+                    </group>
+                    <group>
+                        <field name="activity_domain" colspan="2"
+                            invisible="activity_type == 'split'"
+                            widget="domain"
+                            nolabel="1"
+                            options="{'in_dialog': True, 'foldable': True, 'model': 'model_name'}"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="marketing_activity_view_form_log_note" model="ir.ui.view">
+        <field name="name">marketing.activity.view.form.log.note</field>
+        <field name="model">marketing.activity</field>
+        <field name="priority">64</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="d-flex align-items-center">
+                        <i class="oi oi-2x mb-auto p-2 bg-300 rounded" data-icon="edit_square" title="Log icon"/>
+                        <h1 class="ps-1">Log Note</h1>
+                    </div>
+                    <field name="campaign_id" invisible="1"/>
+                    <group>
+                        <field name="log_note_body" widget="text_emojis" required="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="marketing_activity_view_form_subscribe_to_list" model="ir.ui.view">
+        <field name="name">marketing.activity.view.form.subscribe.to.list</field>
+        <field name="model">marketing.activity</field>
+        <field name="priority">64</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="d-flex align-items-center">
+                        <i class="oi oi-2x mb-auto p-2 bg-300 rounded" data-icon="contact_mail" title="Update icon"/>
+                        <h1 class="ps-1">Update Subscription</h1>
+                    </div>
+                    <group>
+                        <field name="campaign_id" invisible="1"/>
+                        <label for="subscribe_to_list_id" string="Mailing List"/>
+                        <field name="subscribe_to_list_id" nolabel="1" required="1"/>
+                        <label for="subscribe_to_list_action" string="Behavior"/>
+                        <field name="subscribe_to_list_action" required="1" nolabel="1" widget="radio"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="marketing_activity_view_form" model="ir.ui.view">
+        <field name="name">marketing.activity.view.form</field>
+        <field name="priority">16</field>
+        <field name="model">marketing.activity</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Activity Name" />
+                        <h1><field name="name" required="1" placeholder="e.g. eCommerce Offers" /></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="model_id" invisible="1"/>
+                            <field name="model_name" invisible="1"/>
+                            <field name="utm_campaign_id" invisible="1"/>
+                            <field name="mass_mailing_id_mailing_type" invisible="1" />
+                            <field name="activity_type" widget="radio" options="{'horizontal': true}" />
+                            <label for="mass_mailing_id" string="Mail Template" invisible="activity_type != 'mail'"/>
+                            <field name="mass_mailing_id"
+                                domain="[
+                                    ('mailing_model_id', '=', model_id),
+                                    ('use_in_marketing_automation', '=', True),
+                                    ('mailing_type', '=', mass_mailing_id_mailing_type),
+                                    ('campaign_id', '=', utm_campaign_id),
+                                    ('state', '=', 'done'),
+                                ]"
+                                context="{
+                                    'default_state': 'done',
+                                    'default_mailing_model_id': model_id,
+                                    'default_use_in_marketing_automation': True,
+                                    'default_campaign_id': utm_campaign_id,
+                                    'default_mailing_type': mass_mailing_id_mailing_type}"
+                                invisible="activity_type != 'mail'"
+                                options="{'no_quick_create': True}"
+                                placeholder="Pick or Create a Template..."
+                                nolabel="1"/>
+                            <field name="server_action_id" domain="[('model_id', '=', model_id)]"
+                                context="{'default_model_id': model_id,
+                                          'form_view_ref': 'marketing_automation.ir_actions_server_view_form_marketing_automation'}"
+                                invisible="activity_type != 'action'"
+                                required="activity_type == 'action'"
+                                placeholder="Pick a Server Action..."/>
+                            <field name="log_note_body" invisible="activity_type != 'log_note'"/>
+                            <field name="subscribe_to_list_action" invisible="activity_type != 'subscribe_to_list'"/>
+                            <field name="subscribe_to_list_id" invisible="activity_type != 'subscribe_to_list'"/>
+                            <label for="interval_number" string="Trigger"/>
+                            <div>
+                                <div>
+                                    <field name="interval_number" nolabel="1" class="w-25"/>
+                                    <field name="interval_type" nolabel="1" class="w-75"/>
+                                </div>
+                                <div>
+                                    <span class="d-inline-block w-25">after</span>
+                                    <field name="trigger_type" class="w-75"/>
+                                </div>
+                                <field name="wait_value_domain"
+                                    invisible="trigger_type != 'wait_value'"
+                                    widget="domain"
+                                    options="{'in_dialog': True, 'foldable': True, 'model': 'model_name'}"/>
+                            </div>
+                            <!-- Hierarchy: parent -->
+                            <label for="parent_id" invisible="trigger_type == 'begin'"/>
+                            <div invisible="trigger_type == 'begin'">
+                                <field name="allowed_parent_ids" invisible="1"/>
+                                <field name="parent_id"
+                                    domain="[('id', 'in', allowed_parent_ids)]"
+                                    required="trigger_type != 'begin'"
+                                    options="{'no_create_edit': True, 'no_create': True}"/>
+                            </div>
+                            <!-- Trigger dependency -->
+                            <label for="triggering_activity_id" invisible="trigger_type_category != 'interaction'"/>
+                            <div invisible="trigger_type_category != 'interaction'">
+                                <field name="triggering_activity_allowed_ids" invisible="1"/>
+                                <field name="triggering_activity_id"
+                                    domain="[('id', 'in', triggering_activity_allowed_ids)]"
+                                    required="trigger_type_category == 'interaction'"
+                                    options="{'no_create_edit': True, 'no_create': True}"/>
+                            </div>
+                            <!-- Global time limitation -->
+                            <field name="validity_duration" string="Expiry Duration"/>
+                            <label for="validity_duration_number" string="Cancel after" invisible="not validity_duration"/>
+                            <div invisible="not validity_duration">
+                                <field name="validity_duration_number" nolabel="1" class="w-25"/>
+                                <field name="validity_duration_type" nolabel="1" class="w-75"/>
+                            </div>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="activity_domain" colspan="2"
+                            invisible="activity_type == 'split'"
+                            widget="domain"
+                            options="{'in_dialog': True, 'foldable': True, 'model': 'model_name'}"/>
+                        <field name="split_domain" colspan="2"
+                            invisible="activity_type != 'split'"
+                            widget="domain"
+                            options="{'in_dialog': True, 'foldable': True, 'model': 'model_name'}"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="marketing_activity_view_list" model="ir.ui.view">
+        <field name="name">marketing.activity.view.list</field>
+        <field name="model">marketing.activity</field>
+        <field name="arch" type="xml">
+            <list string="Activities" sample="1">
+                <field name="name"/>
+                <field name="activity_type"/>
+                <field name="campaign_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="marketing_activity_view_search" model="ir.ui.view">
+        <field name="name">marketing.activity.view.search</field>
+        <field name="model">marketing.activity</field>
+        <field name="arch" type="xml">
+            <search string="Search Activities">
+                <field name="name" string="Campaign"/>
+                <field name="mass_mailing_id" string="Mailing"/>
+                <field name="server_action_id" string="Server Action"/>
+                <group>
+                    <filter name="group_by_campaign_id" string="Campaign" context="{'group_by': 'campaign_id'}"/>
+                    <filter name="group_by_utm_campaign_id" string="UTM Campaign" context="{'group_by': 'utm_campaign_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="marketing_activity_action" model="ir.actions.act_window">
+        <field name="name">Activities</field>
+        <field name="res_model">marketing.activity</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">Create an Activity</p></field>
+    </record>
+
+    <record id="marketing_activity_open_marketing_activity_form_view" model="ir.actions.act_window">
+        <field name="target">new</field>
+        <field name="name">Create Step</field>
+        <field name="res_model">marketing.activity</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="marketing_automation.marketing_activity_view_form_mailing"/>
+    </record>
+
+    <record id="marketing_activity_open_delay_form_view" model="ir.actions.act_window">
+        <field name="target">new</field>
+        <field name="name">Create Step</field>
+        <field name="res_model">marketing.activity</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="marketing_automation.marketing_activity_view_form_delay"/>
+        <field name="context">{'dialog_size': 'medium'}</field>
+    </record>
+
+    <record id="marketing_activity_open_trigger_form_view" model="ir.actions.act_window">
+        <field name="target">new</field>
+        <field name="name">Create Step</field>
+        <field name="res_model">marketing.activity</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="marketing_automation.marketing_activity_view_form_trigger"/>
+        <field name="context">{'default_trigger_type': 'wait_value'}</field>
+    </record>
+
+    <record id="marketing_activity_open_log_note_form_view" model="ir.actions.act_window">
+        <field name="target">new</field>
+        <field name="name">Create Step</field>
+        <field name="res_model">marketing.activity</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="marketing_automation.marketing_activity_view_form_log_note"/>
+        <field name="context">{'dialog_size': 'medium'}</field>
+    </record>
+
+    <record id="marketing_activity_open_subscribe_to_list_form_view" model="ir.actions.act_window">
+        <field name="target">new</field>
+        <field name="name">Create Step</field>
+        <field name="res_model">marketing.activity</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="marketing_automation.marketing_activity_view_form_subscribe_to_list"/>
+        <field name="context">{'dialog_size': 'medium', 'default_subscribe_to_list_action': 'add'}</field>
+    </record>
+
+    <record id="marketing_activity_action_open_ir_actions_server_form_view" model="ir.actions.act_window">
+        <field name="target">new</field>
+        <field name="name">Create Step</field>
+        <field name="res_model">ir.actions.server</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="marketing_automation.ir_actions_server_view_form_simple_marketing_automation"/>
+    </record>
+</odoo>

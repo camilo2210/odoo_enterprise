@@ -1,0 +1,86 @@
+id,name,model_id,group_id/id,operation,domain
+hr_appraisal_all_rule,All Appraisal,hr.appraisal,hr_appraisal.group_hr_appraisal_user,cru,
+hr_appraisal_emp_rule,Employee Appraisal,hr.appraisal,base.group_user,cru,"['|', '|', ('employee_id.user_id', '=', user.id), ('manager_ids', 'in', user.employee_ids.ids), ('employee_id.id', 'child_of', user.employee_ids.ids)]"
+hr_appraisal_emp_rule_delete_new,Employee Appraisal: delete new,hr.appraisal,base.group_user,crud,"[
+            '|',
+            ('employee_id.user_id', '=', user.id),
+            ('manager_ids', 'in', user.employee_ids.ids)
+        ]"
+hr_appraisal_rule_base_user,Employee Appraisal: read todo,hr.appraisal,base.group_user,r,"[
+            '|',
+            ('employee_id.user_id', '=', user.id),
+            ('manager_ids.user_id', 'in', user.ids),
+        ]"
+hr_appraisal_comp_rule,Appraisal multi-company,hr.appraisal,,crud,"[('company_id', 'in', company_ids + [False])]"
+access_hr_appraisal_note_user,hr.appraisal.note.user,hr.appraisal.note,base.group_user,r,
+access_hr_appraisal_note_manager,hr.appraisal.note.manager,hr.appraisal.note,hr_appraisal.group_hr_appraisal_manager,crud,
+hr_appraisal_note_comp_rule,Appraisal Plan multi-company,hr.appraisal.note,,crud,"[('company_id', 'in', company_ids + [False])]"
+hr_appraisal_goal_all,Appraisal: An appraisal manager can see all goals,hr.appraisal.goal,hr_appraisal.group_hr_appraisal_user,crud,
+hr_appraisal_goal_own_create,Appraisal: An employee can create his own goals or his subordinates',hr.appraisal.goal,base.group_user,cr,"[
+            ('employee_ids', '!=', False),
+            '|',
+                '|',
+                    '|',
+                        '|',
+                            ('is_manager', '=', True),
+                            ('employee_ids.user_id', '=', user.id),
+                        ('manager_ids.user_id', '=', user.id),
+                    '&',
+                        ('employee_ids.parent_id', '!=', False),
+                        ('employee_ids.parent_id.user_id', '=', user.id),
+                '&',
+                    ('employee_ids.last_appraisal_id.manager_ids.user_id', '=', user.id),
+                    ('employee_ids.last_appraisal_id.state', 'in', ['1_new', '2_pending'])
+        ]"
+hr_appraisal_goal_template_own_write,Appraisal: An employee can edit his own goals or his subordinates' (only goals without child),hr.appraisal.goal,base.group_user,u,"[
+            ('child_ids', '=', False),
+            ('employee_ids', '!=', False),
+            '|',
+                '|',
+                    '|',
+                        '|',
+                            ('is_manager', '=', True),
+                            ('employee_ids.user_id', '=', user.id),
+                        ('manager_ids.user_id', '=', user.id),
+                    '&',
+                        ('employee_ids.parent_id', '!=', False),
+                        ('employee_ids.parent_id.user_id', '=', user.id),
+                '&',
+                    ('employee_ids.last_appraisal_id.manager_ids.user_id', '=', user.id),
+                    ('employee_ids.last_appraisal_id.state', 'in', ['1_new', '2_pending'])
+        ]"
+hr_appraisal_goal_own_delete,"Appraisal: An employee can delete his own goals,if he created it, or his subordinates'",hr.appraisal.goal,base.group_user,d,"[
+            ('employee_ids', '!=', False),
+            '|',
+                '&',
+                    ('employee_ids.user_id', '=', user.id),
+                    ('create_uid', '=', user.id),
+                '|',
+                    '&',
+                        ('employee_ids.user_id', '!=', user.id),
+                        ('employee_ids.parent_id.user_id', '=', user.id),
+                    '&',
+                        ('employee_ids.last_appraisal_id.manager_ids.user_id', '=', user.id),
+                        ('employee_ids.last_appraisal_id.state', 'in', ['1_new', '2_pending']),
+        ]"
+hr_appraisal_goal_company_rule,Appraisal Goal multi-company,hr.appraisal.goal,,crud,"[('company_id', 'in', company_ids + [False])]"
+access_hr_appraisal_goal_tag_user,hr.appraisal.goal.tag.user,hr.appraisal.goal.tag,base.group_user,r,
+access_hr_appraisal_goal_tag_manager,hr.appraisal.goal.tag.manager,hr.appraisal.goal.tag,hr_appraisal.group_hr_appraisal_manager,crud,
+access_request_appraisal,access.request.appraisal,request.appraisal,base.group_user,cru,
+access_hr_appraisal_template_base_user,hr.appraisal.template,hr.appraisal.template,base.group_user,r,
+access_hr_appraisal_template_user,hr.appraisal.template,hr.appraisal.template,hr_appraisal.group_hr_appraisal_user,cru,
+access_hr_appraisal_template_manager,hr.appraisal.template,hr.appraisal.template,hr_appraisal.group_hr_appraisal_manager,crud,
+hr_appraisal_template_comp_rule,Appraisal Template multi-company,hr.appraisal.template,,crud,"[('company_id', 'in', company_ids  + [False])]"
+hr_appraisal_campaign_responsible,Appraisal Campaign wizard Responsible,hr.appraisal.campaign.wizard,base.group_user,cru,"[
+            '|',
+            ('employee_ids', '=', False),
+            ('employee_ids', 'child_of', user.employee_ids.ids)
+        ]"
+hr_appraisal_campaign_wizard_manager,Admin: access appraisals campaign,hr.appraisal.campaign.wizard,hr_appraisal.group_hr_appraisal_user,cru,"[
+            (1, '=', 1)
+        ]"
+access_hr_appraisal_campaign_wizard_manager,hr.appraisal.hr_appraisal_campaign_wizard,hr.appraisal.campaign.wizard,hr_appraisal.group_hr_appraisal_manager,d,
+access_mail_activity_plan_hr_appraisal_manager,mail.activity.plan.hr.appraisal.manager,mail.activity.plan,hr_appraisal.group_hr_appraisal_manager,r,
+mail_plan_rule_group_hr_appraisal_manager_appraisal,Manager can manage appraisal plans,mail.activity.plan,hr_appraisal.group_hr_appraisal_manager,cud,"[('res_model', '=', 'hr.appraisal')]"
+access_mail_activity_plan_template_hr_appraisal_manager,mail.activity.plan.template.hr.appraisal.manager,mail.activity.plan.template,hr_appraisal.group_hr_appraisal_manager,r,
+mail_plan_templates_rule_group_hr_appraisal_manager_appraisal,Manager can manage appraisal plan templates,mail.activity.plan.template,hr_appraisal.group_hr_appraisal_manager,cud,"[('plan_id.res_model', '=', 'hr.appraisal')]"

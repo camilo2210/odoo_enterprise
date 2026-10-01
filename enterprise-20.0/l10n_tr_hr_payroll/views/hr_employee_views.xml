@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_employee_form_inherit_l10n_tr_hr_payroll" model="ir.ui.view">
+        <field name="name">view.employee.form.inherit.l10n_tr_hr_payroll</field>
+        <field name="model">hr.employee</field>
+        <field name="priority">60</field>
+        <field name="inherit_id" ref="hr_payroll.payroll_hr_employee_view_form"/>
+        <field name="arch" type="xml">
+            <group name="citizenship" position="inside">
+                <field name="l10n_tr_social_insurance_number" invisible="country_code != 'TR'"/>
+                <field name="l10n_tr_document_type" invisible="country_code != 'TR'"/>
+                <field name="l10n_tr_social_security_law" invisible="country_code != 'TR'"/>
+            </group>
+            <label for="wage" position="attributes">
+                <attribute name="invisible" separator="or" add="country_code == 'TR' and l10n_tr_is_net_to_gross" />
+            </label>
+
+            <label for="wage" position="before">
+                <field name="l10n_tr_is_net_to_gross" invisible="country_code != 'TR'" />
+                <field name="l10n_tr_is_rd_incentive" invisible="country_code != 'TR'" />
+                <label for="wage" string="Net Wage" invisible="not l10n_tr_is_net_to_gross or country_code != 'TR'" />
+            </label>
+
+            <group name="payroll_group" position="inside">
+                <group string="Allowances" invisible="country_code != 'TR'">
+                    <label for="l10n_tr_food_allowance" string="Food Allowance"/>
+                    <div class="o_row" name="l10n_tr_food_allowance">
+                        <field name="l10n_tr_food_allowance" class="o_hr_narrow_field"/>
+                        <span>/ month</span>
+                    </div>
+                </group>
+            </group>
+
+        </field>
+    </record>
+    <record id="l10n_tr_hr_payroll_employee_view_form" model="ir.ui.view">
+        <field name="name">hr.employee.view.form.inherit.l10n.tr.hr.payroll</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr_payroll.payroll_hr_employee_view_form"/>
+        <field name="arch" type="xml">
+            <group name="work" position="inside">
+                <field name="l10n_tr_job_code" invisible="country_code != 'TR'"/>
+            </group>
+            <group name="work" position="after">
+                <group name="employee_insurance" string="Employee Insurance" invisible="country_code != 'TR'">
+                    <field name="l10n_tr_insurance_type"/>
+                    <field name="l10n_tr_labour_sector"/>
+                    <field name="l10n_tr_occupational_code"/>
+                </group>
+            </group>
+            <field name="legal_name" position="after">
+                <field name="l10n_tr_first_name" string="First Name" invisible="country_code != 'TR'"/>
+                <field name="l10n_tr_last_name" string="Last Name" invisible="country_code != 'TR'"/>
+            </field>
+            <group name="hr_family_group" position="inside">
+                <field name="l10n_tr_is_ex_convict" invisible="country_code != 'TR'"/>
+            </group>
+            <group name="hr_education_group" position="inside">
+                <field name="l10n_tr_graduation_year" invisible="country_code != 'TR'"/>
+            </group>
+        </field>
+    </record>
+</odoo>

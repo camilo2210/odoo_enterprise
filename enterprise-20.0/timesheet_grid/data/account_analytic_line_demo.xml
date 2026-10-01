@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Validate timesheets if older than 10 days -->
+        <function model="account.analytic.line" name="action_validate_timesheet">
+            <value model="account.analytic.line" eval="obj().search([('date', '&lt;', (DateTime.now() + relativedelta(days=-10)).date()), ('validated', '=', False)]).ids"/>
+        </function>
+
+        <!-- Activate the Timesheets Assistant feature -->
+        <record model="res.config.settings" id="res_config_settings_enable_timesheets_assistant">
+            <field name="group_timesheet_assistant" eval="1"/>
+        </record>
+        <function model="res.config.settings" name="execute">
+            <value eval="[ref('res_config_settings_enable_timesheets_assistant')]"/>
+        </function>
+    </data>
+</odoo>

@@ -1,0 +1,90 @@
+<odoo>
+    <template id="report_wage_types_document">
+        <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="wizard">
+        <t t-set="company" t-value="doc.get('company')"/>
+        <t t-call="web.external_layout_standard">
+            <div class="page">
+                 <h2>
+                    <t t-set="month_selection" t-value="wizard._fields['month']._description_selection(wizard.env)"/>
+                    <t t-out="company.name"/> - Wage Types Report - <t t-out="dict(month_selection).get(month, '')"/> <t t-out="year"/>
+                </h2>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>+/-</th>
+                            <th>Gross</th>
+                            <th>AVS</th>
+                            <th>LAA</th>
+                            <th>LAAC</th>
+                            <th>IJM</th>
+                            <th>ST</th>
+                            <th>Certificate</th>
+                            <th>Statistic (M)</th>
+                            <th>Statistic (Y)</th>
+                            <th>LPP Forecast</th>
+                            <th>LPP Factor</th>
+                            <th>LPP Retroactive</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="doc.get('salary_rules', [])" t-as="rule">
+                            <tr t-if="rule.l10n_ch_code">
+                                <td><t t-out="rule.l10n_ch_code"/></td>
+                                <td><t t-out="rule.name"/></td>
+                                <td>
+                                    <t t-if="any(code in rule.category_ids.mapped('code') for code in ['BASIC', 'ALW'])">
+                                        +
+                                    </t>
+                                    <t t-elif="'DED' in rule.category_ids.mapped('code')">
+                                        -
+                                    </t>
+                                </td>
+                                <td>
+                                    <t t-out="1 if rule.l10n_ch_gross_included else 0"/>
+                                </td>
+                                <td>
+                                    <t t-out="1 if rule.l10n_ch_ac_included else 0"/>
+                                </td>
+                                <td>
+                                    <t t-out="1 if rule.l10n_ch_aanp_included else 0"/>
+                                </td>
+                                <td>
+                                    <t t-out="1 if rule.l10n_ch_laac_included else 0"/>
+                                </td>
+                                <td>
+                                    <t t-out="1 if rule.l10n_ch_ijm_included else 0"/>
+                                </td>
+                                <td>
+                                    <t t-out="1 if rule.l10n_ch_source_tax_included else 0"/>
+                                </td>
+                                <td>
+                                    <t t-out="rule.l10n_ch_salary_certificate"/>
+                                </td>
+                                <td>
+                                    <t t-out="rule.l10n_ch_wage_statement"/>
+                                </td>
+                                <td>
+                                    <t t-out="rule.l10n_ch_yearly_statement"/>
+                                </td>
+                                <td>
+                                    <t t-out="1 if rule.l10n_ch_lpp_forecast else ''"/>
+                                </td>
+                                <td>
+                                    <t t-out="rule.l10n_ch_lpp_factor or ''"/>
+                                </td>
+                                <td>
+                                    <t t-out="1 if rule.l10n_ch_lpp_retroactive else ''"/>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+        </t>
+        </t>
+        </t>
+    </template>
+</odoo>

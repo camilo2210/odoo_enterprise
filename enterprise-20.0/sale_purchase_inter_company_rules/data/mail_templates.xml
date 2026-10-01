@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="cancelled_interco_so_po" technical_usage="mail_post_source">
+        <div>
+            <strong t-if="partner_id"><t t-out="partner_id._get_html_link()"/></strong>
+            <t t-if="cancelled_so">
+                The related sale order: <a href="#" data-oe-model="sale.order" t-att-data-oe-id="cancelled_so.id"><t t-out="cancelled_so.name"/></a>
+            </t>
+            <t t-elif="cancelled_po">
+                The related purchase order: <a href="#" data-oe-model="purchase.order" t-att-data-oe-id="cancelled_po.id"><t t-out="cancelled_po.name"/></a>
+            </t>
+            has been cancelled.
+        </div>
+    </template>
+
+    <template id="updated_vals_interco_so_po" technical_usage="mail_post_source">
+        <div>
+            <strong t-if="partner_id"><t t-out="partner_id._get_html_link()"/></strong>
+            <strong>
+                <t t-if="updated_po">
+                    The following value(s) have been updated from the linked Purchase Order:
+                </t>
+                <t t-else="updated_so">
+                    The following value(s) have been updated from the linked Sales Order:
+                </t>
+            </strong>
+            <ul>
+                <t t-foreach="products_to_changes.items()" t-as="changes_per_product">
+                    <li>
+                        <t t-if="not changes_per_product[0]">
+                            <t t-foreach="changes_per_product[1]" t-as="change">
+                                <t t-out="change['field_label']"/>: <t t-out="change['old_value']"/> → <t t-out="change['new_value']"/>
+                            </t>
+                        </t>
+                        <t t-else="">
+                            <strong><t t-out="changes_per_product[0].display_name"/></strong>
+                            <ul>
+                                <t t-foreach="changes_per_product[1]" t-as="change">
+                                    <li><t t-out="change['field_label']"/>: <t t-out="change['old_value']"/> → <t t-out="change['new_value']"/></li>
+                                </t>
+                            </ul>
+                        </t>
+                    </li>
+                </t>
+            </ul>
+        </div>
+    </template>
+
+    <template id="added_lines_interco_so_po" technical_usage="mail_post_source">
+        <div>
+            <strong t-if="partner_id"><t t-out="partner_id._get_html_link()"/></strong>
+            <strong>
+                <t t-if="updated_po">
+                    The following value(s) have been added from the linked Purchase Order:
+                </t>
+                <t t-else="updated_so">
+                    The following value(s) have been added from the linked Sales Order:
+                </t>
+            </strong>
+            <ul>
+                <t t-foreach="lines" t-as="line">
+                    <li>
+                        <t t-if="line.display_type">
+                            <t t-if="line.display_type == 'line_note'" t-set="label">Note</t>
+                            <t t-if="line.display_type == 'line_section'" t-set="label">Section</t>
+                            <t t-if="line.display_type == 'line_subsection'" t-set="label">Subsection</t>
+                            <strong><t t-out="label"/>:</strong>
+                            <t t-out="line.name"/>
+                        </t>
+                        <t t-else="">
+                            <strong><t t-out="line.product_id.display_name"/></strong>
+                            <ul>
+                                <li>
+                                    <t t-if="updated_po">
+                                        <t t-out="line._fields['product_uom_qty'].string"/> <t t-out="line.product_uom_qty"/>
+                                        <t t-if="display_uom"><t t-out="line.product_uom_id.display_name"/></t>
+                                    </t>
+                                    <t t-else="">
+                                        <t t-out="line._fields['product_qty'].string"/> <t t-out="line.product_qty"/>
+                                        <t t-if="display_uom"><t t-out="line.uom_id.display_name"/></t>
+                                    </t>
+                                </li>
+                                <li>
+                                    <t t-out="line._fields['price_unit'].string"/> <t t-out="line.price_unit"/>
+                                </li>
+                                <t t-if="line.discount">
+                                    <li>
+                                        <t t-out="line._fields['discount'].string"/> <t t-out="line.discount"/>
+                                    </li>
+                                </t>
+                            </ul>
+                        </t>
+                    </li>
+                </t>
+            </ul>
+        </div>
+    </template>
+</odoo>

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="planning_slot_view_list" model="ir.ui.view">
+        <field name="name">planning.slot.inherit.view.list</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sale_line_id']" position="after">
+                <field name="under_warranty" readonly="not can_edit" optional="hide" groups="planning.group_planning_manager"/>
+            </xpath>
+            <xpath expr="//field[@name='sale_line_id']" position="attributes">
+                <attribute name="groups">planning.group_planning_manager</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_slot_view_card" model="ir.ui.view">
+        <field name="name">planning.slot.card.inherit</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_card"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='can_edit']" position="after">
+                <field name="under_warranty" groups="planning.group_planning_manager"/>
+            </xpath>
+            <xpath expr="//div[@name='sale_line_id_div']" position="inside">
+                <t t-if="record.under_warranty.raw_value" groups="planning.group_planning_manager">
+                    (Under Warranty)
+                </t>
+            </xpath>
+            <xpath expr="//div[@name='sale']" position="attributes">
+                <attribute name="groups">planning.group_planning_manager</attribute>
+                <attribute name="t-if" add="record.partner_id.raw_value" separator=" and "/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_view_form" model="ir.ui.view">
+        <field name="name">planning.slot.inherit.view.form</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_form"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="after">
+                <div class="alert alert-warning text-center py-2 mb-2" role="alert" invisible="not sale_warning_text">
+                    <field name="sale_warning_text" class="fw-bold"/>
+                </div>
+            </xpath>
+            <xpath expr="//button[@name='action_complete']" position="after">
+                <t groups="planning.group_field_service_allow_material">
+                    <button
+                        name="action_view_material"
+                        type="object"
+                        class="btn btn-secondary"
+                        invisible="not partner_id or state in ['1_draft', '2_published'] or not can_edit"
+                    >
+                        <field name="material_line_product_count" class="d-flex-inline"/> Products
+                    </button>
+                </t>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <t groups="planning.group_field_service_allow_quotations">
+                    <t groups="planning.group_planning_user">
+                        <button name="action_view_quotations"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="attach_money"
+                            groups="sales_team.group_sale_salesman"
+                        >
+                            <field string="Quotations" name="quotations_count" widget="statinfo"/>
+                        </button>
+                    </t>
+                </t>
+                <button type="object" name="action_open_timesheets" icon="schedule" groups="hr_timesheet.group_hr_timesheet_approver"
+                    invisible="not allow_timesheets or not employee_public_ids">
+                    <div class="o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="intervention_effective_hours" widget="timesheet_uom"/>
+                        </span>
+                        <span class="o_stat_text">Recorded</span>
+                    </div>
+                </button>
+            </xpath>
+            <xpath expr="//label[@for='sale_line_id']" position="attributes">
+                <attribute name="groups">planning.group_planning_manager</attribute>
+                <attribute name="invisible">not partner_id</attribute>
+            </xpath>
+            <xpath expr="//div[@name='sale_order_div']" position="attributes">
+                <attribute name="groups">planning.group_planning_manager</attribute>
+                <attribute name="invisible">not partner_id</attribute>
+            </xpath>
+            <xpath expr="//field[@name='sale_line_id'][2]" position="attributes">
+                <attribute name="widget">slot_sale_line_id</attribute>
+                <attribute name="context">{'with_planning_remaining_hours': True, 'with_price_unit': True, 'create_for_planning_slot_id': id, 'default_partner_id': partner_id}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='sale_line_plannable']" position="after">
+                <field name="under_warranty" groups="planning.group_planning_manager" invisible="not partner_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_view_form_in_gantt" model="ir.ui.view">
+        <field name="name">planning.slot.inherit.view.form.in.gantt</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning_field_service.planning_view_form_in_gantt"/>
+        <field name="arch" type="xml">
+            <xpath expr="//footer/button[@name='action_complete']" position="after">
+                <t groups="planning.group_field_service_allow_material">
+                    <button
+                        name="action_view_material"
+                        type="object"
+                        class="btn btn-secondary"
+                        invisible="not partner_id or state in ['1_draft', '2_published'] or not can_edit"
+                    >
+                        <field name="material_line_product_count" class="d-flex-inline"/> Products
+                    </button>
+                </t>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_slot_view_search" model="ir.ui.view">
+        <field name="name">planning.slot.search</field>
+        <field name="model">planning.slot</field>
+        <field name="priority">60</field>
+        <field name="inherit_id" ref="planning_field_service.planning_slot_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <xpath expr="//field[@name='sale_order_id']" position="move"/>
+            </xpath>
+            <xpath expr="//filter[@name='group_by_customer']" position="after">
+                <xpath expr="//filter[@name='group_by_sale_order']" position="move"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_action_schedule_by_sale_order_item_view_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="5"/>
+        <field name="view_mode">map</field>
+        <field name="act_window_id" ref="sale_planning.sale_planning_action_schedule_by_sale_order"/>
+    </record>
+
+    <record id="planning_action_schedule_by_sale_order_item_view_activity" model="ir.actions.act_window.view">
+        <field name="sequence" eval="100"/>
+        <field name="view_mode">activity</field>
+        <field name="act_window_id" ref="sale_planning.sale_planning_action_schedule_by_sale_order"/>
+    </record>
+</odoo>

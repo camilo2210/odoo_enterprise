@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.ui.view" id="res_config_settings_view_form_inherit_l10n_at_pos">
+        <field name="name">res.config.settings.view.form.inherit.l10n_at_pos</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//setting[@id='austria_pos_localization']" position="inside">
+                <div class="alert alert-warning" role="alert"
+                    invisible="not (country_code == 'AT' and not l10n_at_fiskaly_access_token and l10n_at_fiskaly_api_key and l10n_at_fiskaly_api_secret)">
+                    Your Fiskaly credentials are configured, but you are not authenticated. Please try to authenticate again.
+                </div>
+                <group string="Fiskaly API Credentials">
+                    <field name="l10n_at_pos_test_mode" widget="boolean_toggle" readonly="l10n_at_fiskaly_access_token" groups="base.group_no_one,base.group_system" invisible="l10n_at_fiskaly_organization_id"
+                        help="Enable this to use Fiskaly services for testing purposes"/>
+                    <field name="l10n_at_fiskaly_api_key" string="API Key"/>
+                    <field name="l10n_at_fiskaly_api_secret" string="API Secret" password="1"/>
+                    <div class="d-flex gap-2">
+                        <button name="action_auth_fiskaly_credentials"
+                                string="Authenticate Keys" type="object" class="btn-primary"
+                                invisible="not (not l10n_at_fiskaly_access_token and l10n_at_fiskaly_api_key and l10n_at_fiskaly_api_secret)"/>
+                        <button name="action_generate_fiskaly_credentials"
+                                string="Generate Keys" type="object" class="btn-primary"
+                                confirm="It will generate a new API key and secret or retrieve an existing one if available in the system. Would you like to proceed?"
+                                invisible="l10n_at_fiskaly_api_key and l10n_at_fiskaly_api_secret"/>
+                        <button name="action_generate_fiskaly_credentials"
+                                groups="base.group_no_one"
+                                string="Generate Keys" type="object" class="btn-secondary"
+                                confirm="It will generate a new API key and secret or retrieve an existing one if available in the system. Would you like to proceed?"
+                                invisible="not (l10n_at_fiskaly_api_key and l10n_at_fiskaly_api_secret)"/>
+                    </div>
+                </group>
+
+                <group string="FON Credentials" invisible="not l10n_at_fiskaly_access_token">
+                    <field name="l10n_at_fon_participant_id"/>
+                    <field name="l10n_at_fon_user_id"/>
+                    <field name="l10n_at_fon_user_pin" password="1"/>
+                    <field name="l10n_at_cash_regid"/>
+                    <button name="action_l10n_at_authenticate_fon_credentials" string="Authenticate FON" type="object"
+                        class="btn-primary" invisible="not l10n_at_fon_participant_id or not l10n_at_fon_user_id or not l10n_at_fon_user_pin"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

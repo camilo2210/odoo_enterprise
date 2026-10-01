@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="knowledge.Sidebar">
+        <aside class="o_knowledge_sidebar position-md-relative d-flex flex-shrink-0 d-print-none bg-100"
+            t-attf-style="--knowledge-article-sidebar-size: #{this.state.sidebarSize}px">
+            <div class="o_knowledge_sidebar_content d-flex flex-column flex-grow-1 min-w-0 ps-md-2 pe-md-0 border border-transparent">
+                <!-- Search bar -->
+                <div class="d-flex gap-1 py-2">
+                    <button class="o_knowledge_toggle_sidebar btn btn-secondary"
+                        t-on-click="() => this.env.toggleAsideMobile()"
+                        data-tooltip="Toggle aside menu"
+                        aria-label="Toggle aside menu">
+                        <i class="oi" data-icon="left_panel_close" aria-hidden="true"/>
+                    </button>
+                    <a t-if="this.isPortalUser" href="/my" data-hotkey="h"
+                        class="o_knowledge_portal_home btn btn-secondary"
+                        data-tooltip="Back to My Account"
+                        aria-label="Back to My Account">
+                        <i class="oi" data-icon="home" aria-hidden="true"/>
+                    </a>
+                    <div class="d-flex gap-1 ms-auto">
+                        <button data-hotkey="f" t-on-click="this.onSearchBarClick"
+                            class="o_knowledge_search btn btn-secondary"
+                            data-tooltip="Search for an article or a keyword"
+                            aria-label="Search for an article or a keyword">
+                            <i class="oi" data-icon="search" aria-hidden="true"/>
+                        </button>
+                        <button t-if="this.canCreateArticle and this.isInternalUser" data-hotkey="n" t-on-click="() => this.env.createArticle('private')"
+                            data-tooltip="New article"
+                            aria-label="New article"
+                            class="o_knowledge_create_article btn btn-primary">
+                            <i class="oi" data-icon="add" aria-hidden="true"/>
+                        </button>
+                    </div>
+                </div>
+                <!-- File explorer -->
+                <div t-if="this.state.loading" class="p-5 text-center">
+                    <i class="oi oi-2x oi-spin" data-icon="autorenew" title="loader" role="img"/>
+                </div>
+                <t t-else="" t-call="knowledge.ArticlesTree"/>
+            </div>
+            <span class="o_knowledge_article_form_resizer d-none d-md-flex"
+                  t-on-pointerdown="this.resize">
+                  <span t-attf-class="border-end border-transparent #{this.state.resizing ? 'o_resizer_bg' : ''}"/>
+            </span>
+        </aside>
+    </t>
+
+    <t t-name="knowledge.ArticlesTree">
+        <div t-attf-class="o_knowledge_tree o_scroll_view flex-fill position-relative d-flex flex-column overflow-auto me-md-n3 #{this.state.dragging ? 'o_dragging' : ''}">
+            <div t-ref="this.mainTreeRef" class="o_knowledge_tree_scroller d-flex flex-column flex-fill overflow-auto pe-md-3" t-on-keydown="this.onTreeKeydown">
+                <div t-ref="this.favoriteTreeRef" t-if="this.state.favoriteIds.length" class="o_favorite_container">
+                    <KnowledgeSidebarFavoriteSection rootIds="this.state.favoriteIds" unfoldedIds="this.unfoldedFavoritesIds" record="this.props.record"/>
+                </div>
+                <KnowledgeSidebarWorkspaceSection rootIds="this.state.workspaceIds" unfoldedIds="this.unfoldedArticlesIds" record="this.props.record"/>
+                <KnowledgeSidebarSharedSection rootIds="this.state.sharedIds" unfoldedIds="this.unfoldedArticlesIds" record="this.props.record"/>
+                <KnowledgeSidebarPrivateSection rootIds="this.state.privateIds" unfoldedIds="this.unfoldedArticlesIds" record="this.props.record"/>
+                <!-- Trash is a "o_section" so that one can drop articles in the trash -->
+                <div t-ref="this.sidebarTrashRef" t-if="this.isInternalUser" class="o_section o_knowledge_sidebar_trash position-sticky bottom-0 w-100 bg-100 rounded py-2 mb-2 mt-auto">
+                    <a t-if="!this.state.dragging" href="#" role="button" t-on-click="this.browseTemplates"
+                        class="o_knowledge_load_template_btn btn d-flex align-items-center gap-2 px-2 py-1 rounded text-start text-truncate">
+                        <i class="oi oi-fw" data-icon="design_services"/>
+                        Templates
+                    </a>
+                    <a href="#" role="button" class="btn d-flex align-items-center gap-2 px-2 py-1 rounded text-start text-truncate"
+                        t-on-click="() => this.actionService.doAction('knowledge.knowledge_article_action_trashed')">
+                        <i class="oi oi-fw oi-filled" data-icon="delete"/>
+                        <div t-if="this.state.dragging" class="small">Drop here to delete this article</div>
+                        <t t-else="">Trash</t>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

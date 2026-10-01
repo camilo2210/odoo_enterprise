@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<templates>
+<t t-name="voip.AddressBook">
+    <Tab
+        ungroupedItems="this.sortedContacts"
+        extraClass="'o-voip-AddressBook'"
+        noEntriesMessage.translate="Contacts with a phone number will be shown here."
+        listContextKey="this.state.searchInputValue"
+        onTabEnd="() => this.fetchContacts({ loadMore: true })"
+        state="this.state"
+    >
+        <t t-set-slot="top">
+            <t t-if="this.props.slots?.top" t-call-slot="top"/>
+            <SearchBar t-else="" state="this.state" onInputSearch.bind="this.onInputSearch" onClickBack="this.props.onClickBack" placeholder="this.props.searchPlaceholder"/>
+        </t>
+        <t t-set-slot="entry" t-slot-scope="slot">
+            <t t-set="contact" t-value="slot.item"/>
+            <t t-set="isFolded" t-value="!contact.eq(this.voip.softphone.activeRecord)"/>
+            <t t-set="titleData" t-value="this.getTitleData(contact)"/>
+            <TabEntry
+                record="contact"
+                contactRecord="contact"
+                title="titleData.title"
+                subtitle="titleData.subtitle.text"
+                subtitleIcon="titleData.subtitle.icon"
+                section="slot.section"
+            >
+                <t t-set-slot="side">
+                    <t t-if="isFolded">
+                        <t t-if="this.props.slots?.primaryAction" t-call-slot="primaryAction" contact="contact" isSmall="true"/>
+                        <ActionButton t-else=""
+                            hideLabel="true"
+                            icon="'phone'" iconClass="'oi-filled'"
+                            type="'outline-success'"
+                            onClick="() => this.onClickCall(contact)"
+                            isSmall="true"
+                            name.translate="Call"
+                        />
+                    </t>
+                </t>
+                <t t-set-slot="info">
+                    <PhoneNumber number="contact.phone" country="contact.phone_country_id"/>
+                </t>
+                <t t-set-slot="actions">
+                    <ActionList contact="contact"/>
+                    <ActionButton
+                        t-if="this.props.onClickHistory"
+                        name.translate="History"
+                        icon="'history'"
+                        type="'secondary'"
+                        onClick="() => this.props.onClickHistory(contact)"
+                    />
+                </t>
+                <t t-set-slot="call-to-action">
+                    <t t-if="this.props.slots?.primaryAction" t-call-slot="primaryAction" contact="contact" isSmall="false" />
+                    <ActionButton t-else=""
+                        icon="'phone'" iconClass="'oi-filled'"
+                        name.translate="Call"
+                        type="'success'"
+                        onClick="() => this.onClickCall(contact)"
+                    />
+                </t>
+            </TabEntry>
+        </t>
+        <t t-set-slot="no-search-results">
+            <NoSearchResults
+                icon="'contact_page'"
+                noResultsMessage.translate="No contacts found"
+                actionMessage.translate="Create a new contact"
+                actionCallback="() => this.openPartnerForm()"
+            />
+        </t>
+    </Tab>
+</t>
+</templates>

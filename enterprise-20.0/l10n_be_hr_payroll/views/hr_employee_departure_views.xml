@@ -1,0 +1,154 @@
+<odoo>
+    <record id="hr_employee_departure_view_form" model="ir.ui.view">
+        <field name="name">hr.employee.departure.view.form.inherit.hr.fleet</field>
+        <field name="model">hr.employee.departure</field>
+        <field name="inherit_id" ref="hr.hr_employee_departure_view_form"/>
+        <field name="arch" type="xml">
+              <group name="header_group" position="after">
+                <notebook>
+                <page string="Notice Period" invisible="country_code != 'BE' or not departure_reason_id or l10n_be_reason_code in [350, 351] or l10n_be_egov3_code == '999'">
+                    <group>
+                        <group class="o_label_nowrap">
+                            <field name="l10n_be_notice_respect" widget="radio"
+                                   invisible="l10n_be_notice_duration_month_before_2014 == 0 and l10n_be_notice_duration_week_after_2014 == 0"/>
+                            <field name="l10n_be_first_contract_id"/>
+                            <field name="l10n_be_seniority_description"/>
+                        </group>
+                        <group class="o_label_nowrap">
+                            <field name="l10n_be_notice_period_start" invisible="l10n_be_notice_respect == 'without'"/>
+                            <field name="l10n_be_notice_period_theoretical_end" invisible="l10n_be_notice_respect != 'partial'"/>
+                            <label for="departure_date" string="Notice Period End" invisible="l10n_be_notice_respect != 'with'"/>
+                            <field name="departure_date" invisible="l10n_be_notice_respect == 'without' or l10n_be_notice_respect == 'partial'" nolabel="1"
+                                readonly="l10n_be_notice_respect != 'partial'"/>
+                            <label for="l10n_be_notice_duration_month_before_2014" string="Notice Duration" invisible="l10n_be_notice_respect != 'with'"/>
+                            <label for="l10n_be_notice_duration_month_before_2014" string="Notice Duration To Be Paid" invisible="l10n_be_notice_respect != 'without'"/>
+                            <div invisible="l10n_be_notice_respect == 'partial'">
+                                <field name="l10n_be_notice_duration_month_before_2014" nolabel="1" class="oe_inline" invisible="l10n_be_notice_duration_month_before_2014 == 0"/>
+                                <span invisible="l10n_be_notice_duration_month_before_2014 == 0"> months and </span>
+                                <field name="l10n_be_notice_duration_week_after_2014" nolabel="1" class="oe_inline"/>
+                                <span> weeks</span>
+                            </div>
+                            <label for="l10n_be_notice_duration" string="Notice Duration" invisible="l10n_be_notice_respect != 'partial'"/>
+                            <div invisible="l10n_be_notice_respect != 'partial'">
+                                <field name="l10n_be_notice_duration" nolabel="1" class="oe_inline"/>
+                                <span> weeks</span>
+                            </div>
+                            <field name="departure_date" readonly="l10n_be_notice_respect != 'partial'"/>
+                            <field name="l10n_be_professional_reclassification" string="Outplacement" placeholder="None" widget="outplacement_selection"
+                                invisible="l10n_be_reason_code not in (342, 358, 359)"/>
+                        </group>
+                        <group>
+                            <field name="l10n_be_salary_december_2013" invisible="not l10n_be_salary_visibility"/>
+                        </group>
+                    </group>
+                </page>
+                <page string="Holiday Attests" invisible="country_code != 'BE' or l10n_be_egov3_code == '999'">
+                    <field name="currency_id" invisible="1"/> <!-- For monetary fields -->
+                    <group class="o_label_nowrap">
+                        <group string="Payroll" colspan="2">
+                            <label for="l10n_be_net_n1"/>
+                            <span class="o_row">
+                                <field name="l10n_be_net_n1" class="o_hr_narrow_field" readonly="1"/>
+                                <widget name="payslips_internal_link" payslips_year="n1"/>
+                            </span>
+                            <label for="l10n_be_net_n"/>
+                            <span class="o_row">
+                                <field name="l10n_be_net_n" class="o_hr_narrow_field" readonly="1"/>
+                                <widget name="payslips_internal_link" payslips_year="n"/>
+                            </span>
+                        </group>
+                        <group>
+                            <field name="l10n_be_fictitious_remuneration_n1"
+                                invisible="not l10n_be_fictitious_remuneration_n1 and not l10n_be_fictitious_remuneration_n"/>
+                            <field name="l10n_be_gross_reference_remuneration_n1"
+                                invisible="not l10n_be_fictitious_remuneration_n1 and not l10n_be_fictitious_remuneration_n"/>
+                        </group>
+                        <group>
+                            <field name="l10n_be_fictitious_remuneration_n"
+                                invisible="not l10n_be_fictitious_remuneration_n1 and not l10n_be_fictitious_remuneration_n"/>
+                            <field name="l10n_be_gross_reference_remuneration_n"
+                                invisible="not l10n_be_fictitious_remuneration_n1 and not l10n_be_fictitious_remuneration_n"/>
+                        </group>
+                        <group string="Holiday Rights" colspan="2">
+                            <field name="l10n_be_time_off_line_ids" nolabel="1" colspan="2">
+                                <list create="0" no_open="1" delete="0">
+                                    <field name="work_entry_type_and_year" string="Time Off Type"/>
+                                    <field name="leave_allocation_count_show" nolabel="1"/>
+                                    <field name="leave_count_show" nolabel="1"/>
+                                    <field name="left_leave_count_show" nolabel="1"/>
+                                </list>
+                            </field>
+                        </group>
+                    </group>
+                </page>
+              </notebook>
+            </group>
+            <button name="action_register" position="attributes">
+                <attribute name="invisible" add="country_code == 'BE' and l10n_be_egov3_code != '999'" separator="or"/>
+            </button>
+            <button special="save" position="attributes">
+                <attribute name="invisible" add="country_code == 'BE'" separator="or"/>
+            </button>
+            <button name="action_register" position="after">
+                <button name="action_register" string="Confirm" type="object" class="oe_highlight"
+                    invisible="country_code != 'BE' or not apply_immediately or l10n_be_notice_respect == 'with' or l10n_be_egov3_code == '999'"/>
+                <button string="Confirm" special="save" class="oe_highlight"
+                    invisible="country_code != 'BE' or (apply_immediately and l10n_be_notice_respect != 'with')"/>
+            </button>
+            <field name="action_date" position="replace">
+                <field name="action_date" string="Archive Employee On" readonly="apply_date"
+                       placeholder="Don't archive" invisible="country_code != 'BE'"/>
+                <field name="action_date" string="Archive Employee On" readonly="apply_date"
+                       placeholder="The day after departure" invisible="country_code == 'BE'"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_hr_payroll_employee_departure_holiday_attests_n_payslips" model="ir.ui.view">
+        <field name="name">view_hr_payroll_employee_departure_holiday_attests_n_payslips</field>
+        <field name="model">hr.employee.departure</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="l10n_be_payslip_n_ids" nolabel="1" colspan="2">
+                        <list create="0" delete="0">
+                            <field name="currency_id" column_invisible="1"/> <!-- For monetary fields -->
+                            <field name="payslip_run_id" readonly="state not in ['draft', 'draft']"/>
+                            <field name="date_from" string="Period" widget="daterange" options="{'end_date_field': 'date_to', 'hide_in_payrun': 1}" readonly="state in ['cancel', 'validated', 'paid']"/>
+                            <field name="date_to" invisible="1" column_invisible="1" readonly="state in ['cancel', 'validated', 'paid']"/>
+                            <field name="line_ids" column_invisible="True" readonly="state not in ['draft', 'draft']"/>
+                            <field name="basic_wage" sum="Total basic wage" optional="hide"/>
+                            <field name="gross_wage" string="Taxable Wage" sum="Total taxable wage" optional="hide"/>
+                            <field name="net_wage" sum="Total net wage" optional="hide"/>
+                            <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'draft'" decoration-success="state == 'validated'" decoration-primary="state == 'paid'"/>
+                        </list>
+                    </field>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_hr_payroll_employee_departure_holiday_attests_n1_payslips" model="ir.ui.view">
+        <field name="name">view_hr_payroll_employee_departure_holiday_attests_n1_payslips</field>
+        <field name="model">hr.employee.departure</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="l10n_be_payslip_n1_ids" nolabel="1" colspan="2">
+                        <list create="0" delete="0">
+                            <field name="currency_id" column_invisible="1"/> <!-- For monetary fields -->
+                            <field name="payslip_run_id" readonly="state not in ['draft', 'draft']"/>
+                            <field name="date_from" string="Period" widget="daterange" options="{'end_date_field': 'date_to', 'hide_in_payrun': 1}" readonly="state in ['cancel', 'validated', 'paid']"/>
+                            <field name="date_to" invisible="1" column_invisible="1" readonly="state in ['cancel', 'validated', 'paid']"/>
+                            <field name="line_ids" column_invisible="True" readonly="state not in ['draft', 'draft']"/>
+                            <field name="basic_wage" sum="Total basic wage" optional="hide"/>
+                            <field name="gross_wage" string="Taxable Wage" sum="Total taxable wage" optional="hide"/>
+                            <field name="net_wage" sum="Total net wage" optional="hide"/>
+                            <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'draft'" decoration-success="state == 'validated'" decoration-primary="state == 'paid'"/>
+                        </list>
+                    </field>
+                </group>
+            </form>
+        </field>
+    </record>
+</odoo>

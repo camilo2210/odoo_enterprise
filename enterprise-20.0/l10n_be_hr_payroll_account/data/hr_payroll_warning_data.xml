@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="hr_payroll_warning_onss_payment" model="hr.payroll.warning">
+            <field name="name">ONSS Payment</field>
+            <field name="description">Late payment incurs a 10% surcharge + 7% late interest</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">info</field>
+            <field name="warning_offset_days">30</field>
+            <field name="closing_on">end_of_quarter</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+company = self.env.company
+if company.country_id.code == 'BE' and company.first_payrun_date:
+    first_report_quarter = company.first_payrun_date.month // 3 + 1
+    first_report_year = company.first_payrun_date.year
+    reports = self.env['l10n_be.dmfa'].search([
+        ('company_id', '=', company.id),
+        ('state', '=', 'done'),
+        ('year', '>=', str(first_report_year)),
+    ]).sorted(key=lambda r: (r.year, r.quarter))
+    if reports:
+        warning_records = company
+        warning_count = 0
+        quarter = int(reports[0].quarter)
+        year = int(reports[0].year)
+        warning_title = _get_payroll_translation("ONSS Payment %(year)s Q%(quarter)s", year=year, quarter=quarter)
+        warning_deadline = reports[0].quarter_end + relativedelta(days=self.warning_offset_days)
+        additional_context = {
+            'report_ids': reports.ids,
+        }
+            </field>
+            <field name="button_name">Open</field>
+            <field name="button_action" ref="l10n_be_hr_payroll_account.l10n_be_onss_payment_warning_action"/>
+        </record>
+    </data>
+</odoo>

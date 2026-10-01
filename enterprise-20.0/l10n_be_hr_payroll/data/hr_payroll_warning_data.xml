@@ -1,0 +1,2945 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <record id="hr_payroll_warning_invalid_niss" model="hr.payroll.warning">
+            <field name="name">Missing or Invalid NISS Numbers</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="button_name">Review Employees</field>
+            <field name="evaluation_code">
+invalid_niss_employee_ids = self.env['hr.employee']._get_invalid_niss_employee_ids()
+if invalid_niss_employee_ids:
+    warning_records = self.env['hr.employee'].browse(invalid_niss_employee_ids)
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_invalid_category_sales_rep" model="hr.payroll.warning">
+            <field name="name">Invalid Salary Scale for Sales Representatives</field>
+            <field name="description">Category must be C or higher after 6 months and D after 4 years.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="button_name">Review Employees</field>
+            <field name="evaluation_code">
+today = date.today()
+sales_rep_versions = self.env['hr.version'].search([
+    ('l10n_be_is_sale_representative', '=', True),
+    ('l10n_be_egov3_code', '=', 200),
+    ('contract_date_start', '!=', False),
+    ('contract_date_start', '&lt;=', today),
+    '|',
+        ('contract_date_end', '=', False),
+        ('contract_date_end', '&gt;=', today),
+])
+invalid_sales_rep_employees = self.env['hr.employee']
+for version in sales_rep_versions:
+    company_seniority = relativedelta(today, version.employee_id._get_first_contract_date())
+    total_seniority = relativedelta(
+        years=version.l10n_be_scale_seniority,
+        months=version.l10n_be_scale_seniority_months,
+    ) + company_seniority
+
+    have_less_6_months = total_seniority.years == 0 and total_seniority.months &lt; 6
+    if have_less_6_months:
+        # No restriction applies for less 6 months seniority
+        continue
+    if total_seniority.years &lt; 4 and version.l10n_be_salary_scale_id.code not in ['C', 'D']:
+        invalid_sales_rep_employees |= version.employee_id
+    elif total_seniority.years &gt;= 4 and version.l10n_be_salary_scale_id.code != 'D':
+        invalid_sales_rep_employees |= version.employee_id
+
+if invalid_sales_rep_employees:
+    warning_records = invalid_sales_rep_employees
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_invalid_sex" model="hr.payroll.warning">
+            <field name="name">Missing Sex</field>
+            <field name="description">Accepted values: Male, Female</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="button_name">Review Employees</field>
+            <field name="warning_type">domain</field>
+            <field name="model_id" ref="hr.model_hr_employee"/>
+            <field name="warning_domain">[('sex', 'not in', ['male', 'female'])]</field>
+        </record>
+
+        <record id="hr_payroll_warning_jc_not_set" model="hr.payroll.warning">
+            <field name="name">Employees without a Joint Committee</field>
+            <field name="description">Joint Committee required for legal reports.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="button_name">Show Employees</field>
+            <field name="warning_type">domain</field>
+            <field name="model_id" ref="hr.model_hr_employee"/>
+            <field name="warning_domain">[('l10n_be_joint_committee_id', '=', False)]</field>
+        </record>
+
+        <record id="hr_payroll_warning_invalid_lang" model="hr.payroll.warning">
+            <field name="name">Missing DMFA work location language </field>
+            <field name="description">DMFA work location language not set.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="button_name">Review DMFA: Work Location</field>
+            <field name="warning_type">domain</field>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_hr_work_location"/>
+            <field name="warning_domain">[('payslip_language_id', '=', False)]</field>
+        </record>
+
+        <record id="hr_payroll_warning_invalid_work_address" model="hr.payroll.warning">
+            <field name="active" eval="False"/>
+            <field name="name">Missing ONSS identification code</field>
+            <field name="description">ONSS code required for work addresses.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="button_name">Review</field>
+            <field name="button_action" ref="l10n_be_hr_payroll.l10n_be_hr_payroll_action_warning_view_partner_list"/>
+            <field name="evaluation_code">
+belgian_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+address_employees = self.env['hr.employee'].search([
+    ('company_id', 'in', belgian_companies.ids),
+    '|',
+        ('l10n_be_dimona_category', '=', 'stu'),
+        '&amp;',
+            ('l10n_be_dimona_category', '=', 'oth'),
+            ('l10n_be_worker_code_id.dmfa_code', 'in', ['050', '439', '450', '484', '487', '495']),
+])
+past_or_in_contract_employees = address_employees.filtered(
+    lambda emp: emp.current_version_id.is_past or emp.current_version_id.is_in_contract
+)
+work_addresses = past_or_in_contract_employees.mapped('address_id')
+location_units = self.env['hr.work.location'].search([('address_id', 'in', work_addresses.ids), ('location_type', '=', 'dmfa_unit')])
+invalid_addresses = work_addresses - location_units.mapped('address_id')
+if invalid_addresses:
+    warning_records = invalid_addresses
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_sick_more_than_30_days" model="hr.payroll.warning">
+            <field name="name">Employee on Mutual Health (> 30 days Illness)</field>
+            <field name="description">Employee on Mutual Health (> 30 days Illness)</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_model" eval="True"/>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="warning_type">domain</field>
+            <field name="model_id" ref="hr.model_hr_employee"/>
+            <field name="warning_domain">[('l10n_be_long_sick_leave', '=', True)]</field>
+        </record>
+
+        <record id="hr_payroll_warning_employee_with_exceeding_hourly_wage" model="hr.payroll.warning">
+            <field name="name">Exceeding Hourly Wage</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="button_name">Review Employees</field>
+            <field name="warning_type">domain</field>
+            <field name="model_id" ref="hr.model_hr_employee"/>
+            <field name="warning_domain">[('wage_type', '=', 'hourly'), ('hourly_wage', '&gt;=', 17)]</field>
+        </record>
+
+        <record id="hr_payroll_warning_wrong_work_code" model="hr.payroll.warning">
+            <field name="name">Employees are too old for their sub-types</field>
+            <field name="description">Some sub-types are specific for young employees that can be used only until December 31 of the year they turn 18.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="block_payslips" eval="True"/>
+            <field name="display_on_dashboard" eval="True"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_employee"/>
+            <field name="button_name">Update Employees</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+too_old_employees = self.env['hr.employee']._get_l10n_be_too_old_worker_code_employees(employees=records or None)
+warning_records = too_old_employees
+if too_old_employees:
+    update_action_id = self.env.ref('l10n_be_hr_payroll.l10n_be_hr_payroll_action_update_too_old_worker_codes').id
+    warning_action = {
+        'type': 'ir.actions.server',
+        'id': update_action_id,
+        'context': {
+            'active_model': 'hr.employee',
+            'active_ids': too_old_employees.ids,
+        },
+    }
+    warning_details = defaultdict(list)
+    for employee in too_old_employees:
+        detail = {
+            'message': _get_payroll_translation("This sub-type can only be used until December 31 of the year the employee turns 18."),
+            'level': 'warning',
+            'action_text': _get_payroll_translation("Update Sub-type"),
+            'action': {
+                'type': 'ir.actions.server',
+                'id': update_action_id,
+                'context': {
+                    'active_model': 'hr.employee',
+                    'active_ids': employee.ids,
+                },
+            },
+        }
+        for version in employee.version_ids:
+            warning_details[version].append(detail)
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_dimonas_to_submit" model="hr.payroll.warning">
+            <field name="name">Dimonas to submit</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="button_name">Submission Review</field>
+            <field name="warning_offset_days">-5</field>
+            <field name="closing_on">contract_start</field>
+            <field name="warning_type">domain</field>
+            <field name="model_id" ref="hr.model_hr_employee"></field>
+            <field name="warning_domain">[('l10n_be_dimona_next_action', '=', 'update')]</field>
+        </record>
+
+        <record id="hr_payroll_warning_incorrect_configuration_meal_voucher" model="hr.payroll.warning">
+            <field name="name">Incorrect Meal Voucher Configuration</field>
+            <field name="description">Max €10 and must exceed employee share (min €1.09).</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="button_name">Review Employees</field>
+            <field name="block_payslips">True</field>
+            <field name="warning_type">domain</field>
+            <field name="model_id" ref="hr.model_hr_employee"></field>
+            <field name="warning_domain">[('is_meal_voucher_valid', '=', False)]</field>
+        </record>
+
+        <record id="hr_payroll_warning_nearly_expired_contracts" model="hr.payroll.warning">
+            <field name="name">Missing Dimona Out</field>
+            <field name="description">Missing Dimona Out for ended contracts.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="button_name">Review Contracts</field>
+            <field name="evaluation_code">
+# Nearly expired contracts
+nearly_expired_contracts = self.env['hr.version']
+for company in self.env.companies:
+    outdated_days = date.today() + relativedelta(days=company.contract_expiration_notice_period)
+    nearly_expired_contracts += self.env['hr.version']._get_nearly_expired_contracts(outdated_days, company.id)
+if nearly_expired_contracts:
+    warning_records = nearly_expired_contracts.employee_id
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_employee_with_4th_CDD" model="hr.payroll.warning">
+            <field name="name">4th consecutive fixed-term contract</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="button_name">Review Employees</field>
+            <field name="evaluation_code">
+belgian_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+to_check_employees = self.env['hr.employee'].search([
+    ('company_id', 'in', belgian_companies.ids),
+    ('fixed_term', '=', True),
+])
+fourth_cdd_employees = self.env['hr.employee']
+for employee in to_check_employees:
+    if employee.has_employee_4th_consecutive_CDD_contract():
+        fourth_cdd_employees |= employee
+
+    if fourth_cdd_employees:
+        warning_records = fourth_cdd_employees
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_running_dimona_declaration_without_employee" model="hr.payroll.warning">
+            <field name="name">Missing employees on opened Dimona declarations</field>
+            <field name="description">Cannot link Dimona to employee by NISS.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="button_name">Review Dimona Declarations</field>
+            <field name="warning_type">domain</field>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_dimona_declaration"/>
+            <field name="warning_domain">[
+                ('employee_id', '=', False),
+                ('date_start', '&lt;=', 'today'),
+                '|',
+                    ('date_end', '&gt;=', 'today'),
+                    ('date_end', '=', False)
+            ]</field>
+        </record>
+
+        <record id="hr_payroll_warning_payslips_outside_dimona_declaration" model="hr.payroll.warning">
+            <field name="name">Payslips Without Dimona</field>
+            <field name="description">Dimona declaration required before working.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="button_name">Review Employees</field>
+            <field name="evaluation_code">
+belgian_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+be_payslips = self.env['hr.payslip'].search([
+    ('employee_id.company_id', 'in', belgian_companies.ids),
+    ('employee_id.active', '=', True),
+])
+
+employees = be_payslips.employee_id
+payslips_by_employee = dict(be_payslips.grouped('employee_id'))
+
+dimonas_by_employee = dict(self.env['l10n.be.dimona.declaration']._read_group(
+    domain=[
+        ('employee_id', 'in', employees.ids),
+        ('date_start', '!=', False),
+    ],
+    groupby=['employee_id'],
+    aggregates=['id:recordset']
+))
+
+warning_records = self.env['hr.employee']
+for employee in employees:
+    employee_payslips = payslips_by_employee[employee].sorted(key=lambda p: p.date_from)
+    employee_dimona_declarations = dimonas_by_employee.get(employee, self.env['l10n.be.dimona.declaration']).sorted(key=lambda d: d.date_start)
+    """
+        Purpose of code in below:
+            For each payslip, determine it is completely inside of any DIMONA declaration or not.
+            Make it fast.
+        Logic of algorithm in below:
+            1. Traverse payslips one by one
+            2. We will keep maxium date that is covered by declarations
+            3. When the declaration's start date is less than or equal to the payslip's start, update the maxium covered date with the end date of declaration
+            4. If payslip's end date is smaller or equal to the max covered declaration date, it means it is inside of at least one declaration
+            5. Time complexity: O(N+M) for below part but we need sorting as well that's why O(NlogN + MlogM) where N: amount of payslips, M: amount of declarations
+    """
+    declaration_amount = len(employee_dimona_declarations)
+    declaration_index = 0
+    latest_date_covered_by_declaration = datetime.min.date()
+    for payslip in employee_payslips:
+        while declaration_index &lt; declaration_amount and employee_dimona_declarations[declaration_index].date_start &lt;= payslip.date_from:
+            declaration_end_date = employee_dimona_declarations[declaration_index].date_end
+            # False end_date means, it covers all dates (it is like infinity)
+            if declaration_end_date == False:
+                declaration_end_date = datetime.max.date()
+
+            latest_date_covered_by_declaration = max(latest_date_covered_by_declaration, declaration_end_date)
+            declaration_index += 1
+
+        # If max covered date of declarations cannot cover till the end of payslip, we should show warning
+        if latest_date_covered_by_declaration &lt; payslip.date_to:
+            warning_records |= employee
+            break
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_missing_company_setting" model="hr.payroll.warning">
+            <field name="name">Configure your company</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">primary</field>
+            <field name="button_name">Setup your company</field>
+            <field name="visible_to">admin</field>
+            <field name="block_payslips">True</field>
+            <field name="button_action" ref="action_company_configuration_wizard"/>
+            <field name="warning_type">python</field>
+            <field name="model_id" ref="hr_payroll.model_payroll_config_settings"/>
+            <field name="sequence">2</field>
+            <field name="evaluation_code">
+company = self.env.company
+if company.country_id.code == 'BE':
+    required_fields = [
+        'l10n_be_company_number',
+        'l10n_be_employer_category_id',
+        'l10n_be_main_joint_committee',
+    ]
+    director_jc_id = self.env['l10n.be.joint.committee'].search([('egov3_code', '=', '999')], limit=1).id
+    all_employees = self.env['hr.employee'].search([('company_id', '=', company.id)])
+
+    l10n_be_has_employees = any(emp.l10n_be_joint_committee_id.id != director_jc_id for emp in all_employees)
+    if l10n_be_has_employees:
+        required_fields += [
+            'l10n_be_revenue_code', 'l10n_be_ffe_employer_type', 'onss_registration_number',
+            'onss_importance_code', 'employee_accident_insurance_name', 'employee_accident_insurance_number',
+        ]
+
+    l10n_be_has_workers = any(emp.version_id and emp.version_id.is_worker() for emp in all_employees)
+    if l10n_be_has_workers:
+        required_fields += [
+            'l10n_be_holiday_pay_fund_name', 'l10n_be_holiday_pay_fund_number',
+            'worker_accident_insurance_name', 'worker_accident_insurance_number',
+        ]
+
+    configs = company.payroll_config_ids
+    warning_records = self.env['payroll.config.settings']
+    warning_count = 0
+    for config in configs:
+        if any(not config[field] for field in required_fields):
+            warning_records |= config
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_missing_meal_vouchers_report" model="hr.payroll.warning">
+            <field name="name">Order Meal Vouchers</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">info</field>
+            <field name="button_name">Generate</field>
+            <field name="button_action" ref="hr_payroll.l10n_be_generate_meal_vouchers_action"/>
+            <field name="warning_type">python</field>
+            <field name="warning_type">domain</field>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="warning_domain">[
+                ('date_from', '&gt;=', '=1d'),
+                ('date_to', '&lt;', '=1d +1m'),
+                ('state', 'in', ['validated', 'paid']),
+                ('l10n_be_meal_vouchers_report_id', '=', False),
+                ('line_ids.salary_rule_id.code', '=', 'MEAL_V_EMP'),
+            ]</field>
+        </record>
+
+        <record id="hr_payroll_warning_exceeded_allocation_allowed_duration" model="hr.payroll.warning">
+            <field name="name">Allocation(s) Exceeding Allowed Duration</field>
+            <field name="description">Allocation requests exceed Joint Committee limit.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="button_name">See Time Off</field>
+            <field name="warning_type">python</field>
+            <field name="model_id" ref="hr_holidays.model_hr_leave"/>
+            <field name="evaluation_code">
+codes = list(self.env['hr.rule.parameter'].sudo()._get_parameter_from_code('leave_durations_by_jc', raise_if_not_found=False))
+leaves = self.env['hr.leave'].search([
+    ('employee_id', 'any', [
+        ('company_id', '=', self.env.company.id)
+    ]),
+    ('work_entry_type_id.country_code', '=', 'BE'),
+    '|',
+        ('work_entry_type_id.code', 'in', codes),
+        ('category_options_ids', 'in', codes),
+]).filtered(lambda leave: leave._check_max_duration_exceeded()[0])
+
+if leaves:
+    warning_records = leaves
+    warning_action = {
+        'type': 'ir.actions.act_window',
+        'name': _get_payroll_translation("Time Off with Exceeded Duration"),
+        'res_model': 'hr.leave',
+        'view_mode': 'list',
+    }
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_l10n_be_negative_leave_balance" model="hr.payroll.warning">
+            <field name="name">Negative Leave Balance</field>
+            <field name="description">This time off is not yet validated, and its employee's tracked leave allocation currently has a negative balance. Approve or refuse it to clear this warning.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="display_on_dashboard" eval="True"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="button_name">Review Time Off</field>
+            <field name="warning_type">python</field>
+            <field name="model_id" ref="hr_holidays.model_hr_leave"/>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+leaves = self.env['hr.leave'].search([
+    ('company_id', 'in', be_companies.ids),
+    ('employee_id', '!=', False),
+    ('work_entry_type_id.country_id.code', '=', 'BE'),
+    ('work_entry_type_id.code', 'in', ['016.00', '142.24', '142.26']),
+    ('state', 'not in', ['validate', 'refuse', 'cancel']),
+])
+warnings_by_id = self.env['hr.leave.allocation']._get_l10n_be_negative_balance_warnings_batch(leaves)
+warning_records = self.env['hr.leave']
+warning_details = defaultdict(list)
+for leave in leaves:
+    messages = warnings_by_id.get(leave.id, [])
+    if messages:
+        warning_records |= leave
+        for message in messages:
+            warning_details[leave].append({'message': message, 'level': 'danger'})
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_minimum_wage" model="hr.payroll.warning">
+            <field name="name">Employees Under Minimum Wage</field>
+            <field name="description">Wage below minimum scale.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="button_name">View Employees</field>
+            <field name="button_action" ref="l10n_be_hr_payroll.l10n_be_hr_payroll_action_warning_min_wage_employee_list"/>
+            <field name="evaluation_code">
+warning_records = self.env['hr.employee']._get_l10n_be_min_wage_invalid_employees()
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_minimum_wage_employee" model="hr.payroll.warning">
+            <field name="name">Employee Under Minimum Wage</field>
+            <field name="description">Wage below minimum scale.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr.model_hr_version"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+versions = self.env['hr.version'].search([
+    ('company_id', 'in', be_companies.ids),
+    ('id', 'in', active_ids),
+])
+warning_records = self.env['hr.version']
+warning_details = defaultdict(list)
+for version in versions:
+    min_wage, wage_type, _ = version._get_l10n_be_min_wage()
+    if min_wage &gt; 0:
+        precision = 4 if wage_type == 'hourly' else 2
+        current_wage = round(version._get_contract_wage(), precision)
+        min_wage_rounded = round(min_wage, precision)
+        if current_wage &lt; min_wage_rounded:
+            warning_records |= version
+            warning_details[version].append({
+                "message": _get_payroll_translation(
+                    "Employee's wage is below the minimum wage for their salary scale. Minimum wage is %(min_wage)s%(currency)s",
+                    min_wage=("%.4f" if wage_type == 'hourly' else "%.2f") % min_wage,
+                    currency=version.company_id.currency_id.symbol,
+                ),
+                "level": "danger",
+                "action_text": _get_payroll_translation("Adjust Wage"),
+                "action": {
+                    "type": "object",
+                    "name": "adjust_wage_to_minimum_scale",
+                    "args": json.dumps([
+                        min_wage,
+                        wage_type,
+                        version.l10n_be_computed_seniority_years,
+                        version.l10n_be_joint_committee_id.egov3_code == "302",
+                    ]),
+                },
+            })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_car_mismatch" model="hr.payroll.warning">
+            <field name="name">Payslips with car different than on employee's contract</field>
+            <field name="description">Encode new car on a new employee record.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="button_name">Review Payslips</field>
+            <field name="evaluation_code">
+self.env.cr.execute("""
+    SELECT p.id
+      FROM hr_payslip AS p
+INNER JOIN hr_version AS c ON c.id = p.version_id
+     WHERE (p.vehicle_id != c.car_id
+        OR c.car_id IS NOT NULL AND p.vehicle_id IS NULL
+        OR p.vehicle_id IS NOT NULL AND c.car_id IS NULL)
+       AND p.company_id IN %s
+       AND p.state = 'draft'
+     GROUP BY p.id
+""", (tuple(self.env.companies.ids), ))
+payslips_with_different_cars_ids = [p[0] for p in self.env.cr.fetchall()]
+if payslips_with_different_cars_ids:
+    warning_records = self.env['hr.payslip'].browse(payslips_with_different_cars_ids)
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_non_matching_birthday" model="hr.payroll.warning">
+            <field name="name">Employees with inconsistent birthday</field>
+            <field name="description">
+For some employees, the birthday indicated on the profile and the one indicated by the NISS code are not consistent.
+            </field>
+            <field name="warning_color_class">warning</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+def _do_birthday_and_niss_disagree(birthday, niss):
+    extracted_date = self.env['hr.employee']._extract_date(niss)
+    return birthday != extracted_date if extracted_date else False
+
+inconsistent_employees = self.env['hr.employee'].search_read([
+    ('company_id', 'in', self.env.companies.filtered(lambda c: c.country_id.code == 'BE').ids),
+    ('contract_date_start', '!=', None),
+], ['id', 'niss', 'birthday'])
+inconsistent_employee_ids = [row['id'] for row in inconsistent_employees if row['birthday'] and row['niss'] and _do_birthday_and_niss_disagree(row['birthday'], row['niss'])]
+if inconsistent_employee_ids:
+    warning_records = self.env['hr.employee'].browse(inconsistent_employee_ids)
+            </field>
+            <field name="button_name">See Employees</field>
+        </record>
+
+        <record id="hr_payroll_warning_work_accident_leave_eligibility" model="hr.payroll.warning">
+            <field name="name">Work Accident Leave Eligibility</field>
+            <field name="description">Ineligible for 009.00 use 110.00 instead.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">domain</field>
+            <field name="warning_domain">[
+                ('version_id.l10n_be_dimona_category', 'in', ['alt', 'ivt']),
+                ('worked_days_line_ids.code', '=', '009.00')
+            ]</field>
+        </record>
+
+        <record id="hr_payroll_warning_company_executive_meal_vouchers" model="hr.payroll.warning">
+            <field name="name">Company Executive Meal Vouchers</field>
+            <field name="description">Meal vouchers exceed annual limit (220).</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', be_companies.ids),
+    ('state', '=', 'draft'),
+    ('struct_id', '!=', False),
+    ('date_from', '!=', False),
+    ('employee_id', '!=', False),
+])
+company_executive_joint_committee = self.env.ref('l10n_be_hr_payroll.l10n_be_joint_committee_999', raise_if_not_found=False)
+payslips = payslips.filtered(lambda pay: pay.l10n_be_joint_committee_id == company_executive_joint_committee)
+max_meal_vouchers = 220
+warning_records = self.env['hr.payslip']
+warning_details = defaultdict(list)
+
+employee_year_pairs = {(p.employee_id.id, p.date_from.year) for p in payslips}
+years = {year for _, year in employee_year_pairs}
+year_payslips_all = self.env['hr.payslip']
+if years:
+    year_payslips_all = self.env['hr.payslip'].search([
+        ('employee_id', 'in', payslips.employee_id.ids),
+        ('date_from', '&gt;=', date(min(years), 1, 1)),
+        ('date_from', '&lt;=', date(max(years), 12, 31)),
+    ])
+
+meal_voucher_values = year_payslips_all._get_line_values(
+    ['MEAL_V_EMP'], vals_list=['quantity']
+)['MEAL_V_EMP']
+
+meal_vouchers_per_employee_year = {}
+for yp in year_payslips_all:
+    key = (yp.employee_id.id, yp.date_from.year)
+    if key in employee_year_pairs:
+        qty = meal_voucher_values.get(yp.id, {}).get('quantity', 0)
+        meal_vouchers_per_employee_year[key] = meal_vouchers_per_employee_year.get(key, 0) + qty
+
+for payslip in payslips:
+    key = (payslip.employee_id.id, payslip.date_from.year)
+    if meal_vouchers_per_employee_year.get(key, 0) &gt; max_meal_vouchers:
+        warning_records |= payslip
+        warning_details[payslip].append({
+            'message': _get_payroll_translation("Meal vouchers exceed annual limit (%(max_count)s).", max_count=max_meal_vouchers),
+            'level': 'warning',
+        })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_ip_limit_reached" model="hr.payroll.warning">
+            <field name="name">Intellectual Property Limit Reached</field>
+            <field name="description">The yearly intellectual property limit of an employee is reached: the exceeding part is paid as a regular remuneration.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+payslips = records.filtered(lambda p:
+    p.state == 'draft'
+    and p.company_id.country_id.code == 'BE'
+    and p.struct_id.code == 'BEMONTHLY'
+    and p.version_id.ip_wage_rate &gt; 0)
+# the yearly limit only exists since 2026
+limit_by_payslip = {}
+for payslip in payslips:
+    limit = self.env['hr.rule.parameter']._get_parameter_from_code('ip_limit', payslip.date_to, raise_if_not_found=False)
+    if limit:
+        limit_by_payslip[payslip] = limit
+payslips = payslips.filtered(lambda p: p in limit_by_payslip)
+warning_records = self.env['hr.payslip']
+warning_details = defaultdict(list)
+if payslips:
+    years = {p.date_to.year for p in payslips}
+    # IP of the validated/paid payslips of the year per employee and IP of the checked payslips,
+    # in one grouped query
+    year_ip_totals = defaultdict(float)
+    current_ip_totals = defaultdict(float)
+    for employee, year_start, slip, total in self.env['hr.payslip.line']._read_group([
+        ('employee_id', 'in', payslips.employee_id.ids),
+        ('code', '=', 'IP'),
+        ('date_to', '&gt;=', date(min(years), 1, 1)),
+        ('date_to', '&lt;=', date(max(years), 12, 31)),
+        '|', ('slip_id', 'in', payslips.ids), ('slip_id.state', 'in', ('validated', 'paid')),
+    ], ['employee_id', 'date_to:year', 'slip_id'], ['total:sum']):
+        if slip in payslips:
+            current_ip_totals[slip] += total
+        else:
+            year_ip_totals[employee.id, year_start.year] += total
+    for payslip, limit in limit_by_payslip.items():
+        # the IP is capped on the limit by the payslip computation
+        year_total = year_ip_totals[payslip.employee_id.id, payslip.date_to.year] + current_ip_totals[payslip]
+        if round(year_total, 2) &gt;= round(limit, 2):
+            warning_records |= payslip
+            warning_details[payslip].append({
+                'message': _get_payroll_translation("The intellectual property limit of %(limit)s is reached: the exceeding part is paid as a regular remuneration", limit=payslip.currency_id.format(limit)),
+                'level': 'warning',
+            })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_upcoming_public_holidays" model="hr.payroll.warning">
+            <field name="name">Upcoming Public Holidays</field>
+            <field name="description">Upcoming public holidays in the next 30 days.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+public_holidays = dict(self.env['resource.calendar.leaves']._read_group(
+    domain=[
+        ('resource_id', '=', False),
+        ('company_id', 'in', be_companies.ids + [False]),
+        ('work_entry_type_id', 'any', [
+            ('code', '=', '006.00'),
+            ('country_id.code', '=', 'BE'),
+        ]),
+    ], groupby=['company_id'], aggregates=['id:recordset']))
+
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', be_companies.ids),
+    ('struct_id.code', '=', 'BEMONTHLY'),
+    ('state', 'in', ['validated', 'draft']),
+    ('date_from', '!=', False),
+    ('employee_id', '!=', False),
+    ('version_id', '!=', False),
+]).filtered(lambda p: p.version_id.contract_date_end or p.employee_id.departure_date)
+
+warning_records = self.env['hr.payslip']
+warning_details = defaultdict(list)
+for payslip in payslips:
+    if not public_holidays.get(payslip.company_id):
+        continue
+    payslip_upcoming_public_holiday = sum(payslip.worked_days_line_ids.filtered_domain([
+        ('work_entry_type_id', 'any', [
+            ('code', '=', '202.00'),
+            ('country_id.code', '=', 'BE'),
+        ]),
+    ]).mapped('number_of_days'))
+    number_of_public_holidays = payslip._get_upcoming_public_holiday_count(public_holidays.get(payslip.company_id)) - payslip_upcoming_public_holiday
+    if number_of_public_holidays &gt; 0:
+        warning_records |= payslip
+        warning_details[payslip].append({
+            'message': _get_payroll_translation(
+                "There are %(count)s public holiday(s) in the 30/14th days following the end of the contract, it should be paid if the employee didn't",
+                count=number_of_public_holidays,
+            ),
+            'level': 'warning',
+        })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_working_schedule_exceeding_38h" model="hr.payroll.warning">
+            <field name="name">Working Schedule Exceeds 38 Hours/Week (CP302)</field>
+            <field name="description">CP302 schedule cannot exceed 38h/week.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr.model_hr_version"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+versions = self.env['hr.version'].search([
+    ('id', 'in', active_ids),
+    ('active', '=', True),
+    ('company_id', 'in', be_companies.ids),
+    ('l10n_be_joint_committee_id.egov3_code', '=', '302'),
+])
+warning_records = self.env['hr.version']
+warning_details = defaultdict(list)
+for version in versions:
+    if version.resource_calendar_id.hours_per_week &gt; 38:
+        warning_records |= version
+        warning_details[version].append({
+            'message': _get_payroll_translation("Working schedule cannot exceed 38h/week."),
+            'level': 'warning',
+        })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_missing_transport_benefit" model="hr.payroll.warning">
+            <field name="name">Missing Transport Benefit Below Salary Threshold</field>
+            <field name="description">Salary below car threshold transport benefit required.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr.model_hr_version"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+reimbursement_limit = self.env['hr.rule.parameter']._get_parameter_from_code('max_sal_privatecar_reimb', raise_if_not_found=False)
+warning_records = self.env['hr.version']
+warning_details = defaultdict(list)
+if reimbursement_limit:
+    versions = self.env['hr.version'].search([
+        ('id', 'in', active_ids),
+        ('company_id', 'in', be_companies.ids),
+        ('contract_date_start', '!=', False),
+        ('active', '=', True),
+        ('l10n_be_joint_committee_id.egov3_code', '!=', '999'),
+        ('employee_type_id', '!=', self.env.ref('hr.contract_type_apprenticeship').id)
+    ])
+    for version in versions:
+        if version.wage_type != 'monthly':
+            continue
+        if version.contract_date_start &gt; date.today() and version.wage == 0:
+            continue
+        is_below_limit = (version.wage * 13.92) &lt; reimbursement_limit
+        no_transport_benefit = not any([
+            version.l10n_be_mobility_budget,
+            version.private_car_employee_kilometer,
+            version.transport_mode_car,
+            version.train_transport_employee_kilometer,
+            version.bus_transport_employee_kilometer,
+            version.tram_transport_employee_kilometer,
+            version.metro_transport_employee_kilometer,
+        ])
+        if is_below_limit and no_transport_benefit:
+            warning_records |= version
+            warning_details[version].append({
+                'message': _get_payroll_translation("Salary below %(limit)s%(currency)s threshold transport benefit required.", limit=reimbursement_limit, currency=version.company_id.currency_id.symbol),
+                'level': 'danger',
+            })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_dimona_periods_version_mismatch" model="hr.payroll.warning">
+            <field name="name">Dimona Periods Version Mismatch</field>
+            <field name="description">Dimona periods do not match employee versions.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr.model_hr_version"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+versions = self.env['hr.version'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', be_companies.ids),
+    ('contract_date_start', '!=', False),
+    ('active', '=', True),
+])
+warning_records = self.env['hr.version']
+warning_details = defaultdict(list)
+for employee, employee_versions in versions.grouped('employee_id').items():
+    message = employee._get_dimona_periods_version_mismatch_warning()
+    if message:
+        warning_records |= employee_versions
+        for version in employee_versions:
+            warning_details[version].append({
+                'message': message,
+                'level': 'warning',
+            })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_draft_payslips_by_departure" model="hr.payroll.warning">
+            <field name="name">Draft Payslips by Departure</field>
+            <field name="description">Draft payslips excluded.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', be_companies.ids),
+    ('struct_id', '!=', False),
+    ('struct_id.code', 'in', ('BEHOLN', 'BETERM')),
+    ('state', '=', 'draft'),
+    ('date_from', '!=', False),
+    ('date_to', '!=', False),
+    ('employee_id', '!=', False),
+])
+
+structures = self.env['hr.payroll.structure'].search(
+    domain=[('code', 'in', ['BETHIRTEEN', 'BEMONTHLY'])]
+)
+
+warning_records = self.env['hr.payslip']
+warning_details = defaultdict(list)
+if payslips:
+    employee_ids = payslips.employee_id.ids
+    years = {p.date_from.year for p in payslips}
+    year_draft_payslips = self.env['hr.payslip'].search([
+        ('employee_id', 'in', employee_ids),
+        ('date_to', '&gt;=', date(min(years), 1, 1)),
+        ('date_from', '&lt;=', date(max(years), 12, 31)),
+        ('state', '=', 'draft'),
+        ('struct_id', 'in', structures.ids),
+    ])
+    draft_employee_years = {
+        (p.employee_id.id, p.date_from.year)
+        for p in year_draft_payslips
+    }
+    for payslip in payslips:
+        if (payslip.employee_id.id, payslip.date_from.year) in draft_employee_years:
+            warning_records |= payslip
+            warning_details[payslip].append({
+                'message': _get_payroll_translation('Draft payslips excluded.'),
+                'level': 'warning',
+            })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_wijninckx_not_q4" model="hr.payroll.warning">
+            <field name="name">Wijninckx Cotisation Only in Q4</field>
+            <field name="description">Wijninckx contribution (code 867) applies only in Q4.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_code == 'BE')
+warning_records = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', be_companies.ids),
+    ('state', 'in', ['draft', 'validated']),
+    ('date_from', '!=', False),
+    ('employee_id', '!=', False),
+    ('line_ids', 'any', [('code', '=', 'ONSSEMPLOYER_867')])
+]).filtered(lambda p: p.date_from.month &lt; 10)
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_281_report" model="hr.payroll.warning">
+            <field name="name">Tax Forms 281</field>
+            <field name="description">Annual employee income summary.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">info</field>
+            <field name="warning_offset_days">59</field>
+            <field name="closing_on">end_of_year</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+company = self.env.company
+if company.country_id.code == 'BE' and company.first_payrun_date:
+    first_report_year = company.first_payrun_date.year
+    reports = self.env['l10n_be.281_xx'].search([
+        ('company_id', '=', company.id),
+        ('year', '>=', str(first_report_year)),
+    ])
+    current_year = date.today().year
+    for year in range(first_report_year, current_year):
+        reports_to_check = reports.filtered(lambda r: r.year == str(year))
+        if not reports_to_check or not any(report.state == 'done' for report in reports_to_check):
+            report_date = date(year, 1, 1)
+            period_payslips = self._check_payslips_for_report(company, report_date, report_date + relativedelta(years=1, days=-1))
+            if not period_payslips:
+                continue
+            warning_records = company
+            warning_count = 0
+            warning_title = _get_payroll_translation("Tax Forms 281, %(year)s", year=year)
+            warning_deadline = date(year, 12, 31) + relativedelta(days=self.warning_offset_days)
+            additional_context = {
+                'vals': {
+                    'year': str(year),
+                },
+                'model_name': 'l10n_be.281_xx',
+            }
+            if not reports_to_check:
+                warning_button = _get_payroll_translation("Start")
+            else:
+                warning_button = _get_payroll_translation("Continue")
+                additional_context['report_ids'] = reports_to_check.ids
+            break
+            </field>
+            <field name="button_action" ref="l10n_be_hr_payroll.l10n_be_belgian_report_action"/>
+        </record>
+
+        <record id="hr_payroll_warning_274_report" model="hr.payroll.warning">
+            <field name="name">Witholding taxes</field>
+            <field name="description">Form 274 salaries and tax deductions.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">info</field>
+            <field name="warning_offset_days">15</field>
+            <field name="closing_on">end_of_month</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+company = self.env.company
+if company.country_id.code == 'BE' and company.first_payrun_date:
+    first_report_month = company.first_payrun_date.month
+    first_report_year = company.first_payrun_date.year
+    reports = self.env['l10n_be.274_xx'].search([
+        ('company_id', '=', company.id),
+        ('year', '>=', first_report_year),
+    ])
+    first_report_date = date(first_report_year, first_report_month, 1)
+    last_report_date = date.today().replace(day=1) - relativedelta(months=1)
+    for dt in dateutil.rrule.rrule(dateutil.rrule.MONTHLY, dtstart=first_report_date, until=last_report_date):
+        month = dt.month
+        year = dt.year
+        reports_to_check = reports.filtered(lambda r: r.year == year and r.month == str(month))
+        if not reports_to_check or not any(report.state == 'done' for report in reports_to_check):
+            report_date = date(year, month, 1)
+            period_payslips = self._check_payslips_for_report(company, report_date, report_date + relativedelta(months=1, days=-1))
+            if not period_payslips:
+                continue
+            warning_records = company
+            warning_count = 0
+            warning_title = _get_payroll_translation("Withholding taxes: %(date)s %(year)s", date=report_date.strftime("%b").capitalize(), year=year)
+            warning_deadline = report_date + relativedelta(months=1, days=self.warning_offset_days - 1)
+            additional_context = {
+                'vals': {
+                    'month': str(month),
+                    'year': year,
+                },
+                'model_name': 'l10n_be.274_xx',
+            }
+            if not reports_to_check:
+                warning_button = _get_payroll_translation("Start")
+            else:
+                warning_button = _get_payroll_translation("Continue")
+                additional_context['report_ids'] = reports_to_check.ids
+            break
+            </field>
+            <field name="button_action" ref="l10n_be_hr_payroll.l10n_be_belgian_report_action"/>
+        </record>
+
+        <record id="hr_payroll_warning_273_xx_report" model="hr.payroll.warning">
+            <field name="name">Withholding taxes on Intellectual Property and Employee Participation</field>
+            <field name="description">273.XX employer tax forms.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">info</field>
+            <field name="warning_offset_days">15</field>
+            <field name="closing_on">end_of_month</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+company = self.env.company
+if company.country_id.code == 'BE' and company.first_payrun_date:
+    first_report_month = company.first_payrun_date.month
+    first_report_year = company.first_payrun_date.year
+    reports = self.env['l10n_be.273_xx'].search([
+        ('company_id', '=', company.id),
+        ('year', '>=', first_report_year),
+    ])
+    current_month = date.today().month
+    current_year = date.today().year
+    first_report_date = date(first_report_year, first_report_month, 1)
+    last_report_date = date.today().replace(day=1) - relativedelta(months=1)
+    for dt in dateutil.rrule.rrule(dateutil.rrule.MONTHLY, dtstart=first_report_date, until=last_report_date):
+        month = dt.month
+        year = dt.year
+        reports_to_check = reports.filtered(lambda r: r.year == year and r.month == str(month))
+        if not reports_to_check or not any(report.state == 'done' for report in reports_to_check):
+            report_date = date(year, month, 1)
+            mapping = self.env['l10n.be.281.mapping']
+            report_codes = (
+                mapping._get_codes_for_tag('273S', '273s_gross_income', year)
+                + mapping._get_codes_for_tag('273S', '273s_withholding_tax', year)
+                # Employee Participation isn't mapped yet, its codes stay hard-coded here.
+                + ['PROFITSHARINGHIGH', 'PROFITSHARINGLOW']
+            )
+            period_payslips = self._check_payslips_for_report(
+                company, report_date, report_date + relativedelta(months=1, days=-1),
+                domain=[
+                    ('line_ids.code', 'in', report_codes),
+                    '!', ('l10n_be_273_line_ids.sheet_id.state', 'in', ['ready', 'done']),
+                ],
+            )
+            if not period_payslips:
+                continue
+            warning_records = company
+            warning_count = 0
+            warning_title = _get_payroll_translation("Withholding taxes on Intellectual Property &amp; Employee Participation: %(date)s %(year)s", date=report_date.strftime("%b").capitalize(), year=year)
+            warning_deadline = report_date + relativedelta(months=1, days=self.warning_offset_days - 1)
+            additional_context = {
+                'vals': {
+                    'month': str(month),
+                    'year': year,
+                },
+                'model_name': 'l10n_be.273_xx',
+            }
+            if not reports_to_check:
+                warning_button = _get_payroll_translation("Start")
+            else:
+                warning_button = _get_payroll_translation("Continue")
+                additional_context['report_ids'] = reports_to_check.ids
+            break
+            </field>
+            <field name="button_action" ref="l10n_be_hr_payroll.l10n_be_belgian_report_action"/>
+        </record>
+
+        <record id="hr_payroll_warning_dmfa_report" model="hr.payroll.warning">
+            <field name="name">DMFA Submission</field>
+            <field name="description">Quarterly NSSO declaration.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">info</field>
+            <field name="warning_offset_days">30</field>
+            <field name="closing_on">end_of_quarter</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+company = self.env.company
+if company.country_id.code == 'BE' and company.first_payrun_date:
+    first_report_quarter = company.first_payrun_date.month // 3 + 1
+    first_report_year = company.first_payrun_date.year
+    reports = self.env['l10n_be.dmfa'].search([
+        ('company_id', '=', company.id),
+        ('year', '>=', str(first_report_year)),
+    ])
+    current_quarter = date.today().month // 3 + 1
+    current_year = date.today().year
+    for counter in range(first_report_year * 4 + first_report_quarter, current_year * 4 + current_quarter):
+        quarter = (counter - 1) % 4 + 1
+        year = (counter - 1) // 4
+        reports_to_check = reports.filtered(lambda r: r.year == str(year) and r.quarter == str(quarter))
+        if not reports_to_check or not any(report.state in ['done', 'paid'] for report in reports_to_check):
+            end_of_quarter = date(year, quarter * 3, 1) + relativedelta(months=1, days=-1)
+            warning_records = company
+            warning_count = 0
+            warning_title = _get_payroll_translation("DMFA Submission %(year)s Q%(quarter)s", year=year, quarter=quarter)
+            warning_deadline = end_of_quarter + relativedelta(days=self.warning_offset_days)
+            additional_context = {
+                'vals': {
+                    'quarter': str(quarter),
+                    'year': str(year),
+                    'declaration_method': 'batch' if company.onss_certificate_id else 'web'
+                },
+                'model_name': 'l10n_be.dmfa',
+                'has_certificate': bool(company.onss_certificate_id),
+            }
+            if not reports_to_check:
+                warning_button = _get_payroll_translation("Submit")
+            else:
+                warning_button = _get_payroll_translation("Continue")
+                additional_context['report_ids'] = reports_to_check.ids
+            break
+            </field>
+            <field name="button_action" ref="l10n_be_hr_payroll.l10n_be_belgian_report_action"/>
+        </record>
+
+        <record id="hr_payroll_warning_281_xx_report_not_up_to_date" model="hr.payroll.warning">
+            <field name="name">281.XX report is not up to date due to changes in payslips</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="button_name">Correct 281.XX Reports</field>
+            <field name="evaluation_code">
+declarations_need_update = self.env['l10n_be.281_xx'].search([
+    ('company_id', 'in', self.env.companies.filtered(lambda c: c.country_id.code == 'BE').ids),
+    ('is_correction_needed', '=', True),
+])
+
+if declarations_need_update:
+    warning_count = len(declarations_need_update)
+    warning_records = declarations_need_update
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_281_xx_unreported_payslips" model="hr.payroll.warning">
+            <field name="name">281.XX report is incomplete due to missing payslips</field>
+            <field name="description">Payslips missing from finalized 281.XX reports.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="button_name">Review Report</field>
+            <field name="evaluation_code">
+company = self.env.company
+if company.country_id.code == 'BE':
+    unreported_payslip_ids = self.env['hr.payslip'].search([
+        ('state', 'in', ['validated', 'paid']),
+        ('company_id', '=', company.id),
+        ('l10n_be_281_xx_ids', '=', False),
+    ])
+
+    if unreported_payslip_ids:
+        unreported_years = {str(payslip.date_from.year) for payslip in unreported_payslip_ids}
+        need_update_report_ids = self.env['l10n_be.281_xx'].search([
+            ('company_id', '=', company.id),
+            ('year', 'in', list(unreported_years)),
+            ('state', 'in', ['ready', 'done']),
+        ])
+        warning_records = need_update_report_ids
+        warning_count = len(need_update_report_ids)
+
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_273_xx_correction_needed" model="hr.payroll.warning">
+            <field name="name">273.XX report is not up to date due to changes in payslips</field>
+            <field name="description">Payslips modified after 273.XX generation.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="warning_offset_days">15</field>
+            <field name="closing_on">end_of_month</field>
+            <field name="button_name">Correct reports</field>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_273_xx"/>
+            <field name="warning_type">domain</field>
+            <field name="warning_domain">[('is_correction_needed', '=', True), ('state', 'in', ['ready', 'done'])]</field>
+        </record>
+
+        <record id="hr_payroll_warning_273_xx_unreported_last_year" model="hr.payroll.warning">
+            <field name="name">273.XX report for last year is incomplete due to missing payslips</field>
+            <field name="description">Last year's payslips missing from 273.XX reports.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="warning_offset_days">15</field>
+            <field name="closing_on">end_of_year</field>
+            <field name="button_name">Review Report</field>
+            <field name="evaluation_code">
+company = self.env.company
+if company.country_id.code == 'BE':
+    last_year = date.today().year - 1
+    mapping = self.env['l10n.be.281.mapping']
+    report_codes = (
+        mapping._get_codes_for_tag('273S', '273s_gross_income', last_year)
+        + mapping._get_codes_for_tag('273S', '273s_withholding_tax', last_year)
+        # Employee Participation isn't mapped yet, its codes stay hard-coded here.
+        + ['PROFITSHARINGHIGH', 'PROFITSHARINGLOW']
+    )
+    if self._check_payslips_for_report(
+        company, date(last_year, 1, 1), date(last_year, 12, 31),
+        domain=[
+            ('line_ids.code', 'in', report_codes),
+            '!', ('l10n_be_273_line_ids.sheet_id.state', 'in', ['ready', 'done']),
+        ],
+    ):
+        warning_records = company
+        warning_count = 0
+        december_273_xx_report = self.env['l10n_be.273_xx'].search([
+            ('company_id', '=', company.id),
+            ('year', '=', last_year),
+            ('month', '=', '12')
+        ], order='id desc', limit=1)
+
+        warning_action = {
+            'type': 'ir.actions.act_window',
+            'res_model': 'l10n_be.273_xx',
+            'views': [[False, 'form']],
+            'target': 'current',
+        }
+        if december_273_xx_report:
+            warning_action['res_id'] = december_273_xx_report.id
+        else:
+            additional_context.update({'default_year': last_year, 'default_month': '12'})
+            </field>
+        </record>
+
+        <record id="hr_payroll_dashboard_warning_dmfa_report_not_updated" model="hr.payroll.warning">
+            <field name="name">DMFA report is not up to date due to changes in payslips</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="button_name">Correct Report</field>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_dmfa"/>
+            <field name="warning_type">domain</field>
+            <field name="warning_domain">[('is_correction_needed', '=', True), ('declaration_type', '=', 'original')]</field>
+            <field name="visible_to">officer</field>
+        </record>
+
+        <record id="hr_payroll_warning_missing_employer_category" model="hr.payroll.warning">
+            <field name="name">Missing Employer Category</field>
+            <field name="description">Employer category required to import ONSS rates.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="evaluation_code">
+belgian_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', belgian_companies.ids),
+    ('payroll_config_id.l10n_be_employer_category_id', '=', False)])
+warning_records = self.env['hr.payslip']
+warning_details = defaultdict(list)
+for payslip in payslips:
+    warning_records |= payslip
+    warning_details[payslip].append({
+        'message': _get_payroll_translation("Employer category required to import ONSS rates."),
+        'level': 'danger',
+        'action_text': _get_payroll_translation("Set Employer Category"),
+        'action': {
+            'type': 'ir.actions.act_window',
+            'res_model': 'res.config.settings',
+            'view_mode': 'form',
+            'views': [[False, 'form']],
+            'target': 'current',
+            'context': {'module': 'hr_payroll'},
+        },
+    })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_missing_employer_category_dashboard" model="hr.payroll.warning">
+            <field name="name">Missing Employer Category</field>
+            <field name="description">Employer category required to import ONSS rates.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="button_name">Set Employer Category</field>
+            <field name="model_id" ref="hr_payroll.model_payroll_config_settings"/>
+            <field name="warning_type">domain</field>
+            <field name="warning_domain">[
+                ('l10n_be_employer_category_id', '=', False),
+            ]</field>
+        </record>
+
+        <record id="hr_payroll_warning_unexperienced_employees_flander_onss_reduction" model="hr.payroll.warning">
+            <field name="name">Uneligible Employees for ONSS Reduction in Flanders</field>
+            <field name="description">Ineligible for Flanders ONSS reduction.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_version"/>
+            <field name="warning_type">domain</field>
+            <field name="warning_domain">[
+                ('l10n_be_onss_reduction_unexperienced_employees_flander', '=', True),
+                ('l10n_be_working_region', '!=', 'fl'),
+            ]</field>
+        </record>
+
+
+        <record id="hr_payroll_warning_too_many_additional_hours_per_month" model="hr.payroll.warning">
+            <field name="name">Too many Additional Hours per month</field>
+            <field name="description">Max 12 additional hours/month pay excess at +50% or +100%.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_hr_payslip"/>
+            <field name="block_payslips">True</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+belgian_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+warning_payslips = self.env['hr.payslip'].search([
+                ('company_id', 'in', belgian_companies.ids),
+                ('state', 'in', ['draft', 'validated']),
+                ('l10n_be_sum_additional_hours', '&gt;', 12)
+          ])
+
+warning_details = defaultdict(list)
+for payslip in warning_payslips:
+        warning_details[payslip].append({
+            'message': _get_payroll_translation("Max 12 additional hours/month pay excess at +50% or +100%."),
+            'action_text': _get_payroll_translation("Edit"),
+            'action': {
+                'type': 'object',
+                'name': 'action_l10n_be_edit_time_off'
+            },
+            'level': 'warning',
+        })
+warning_records = warning_payslips
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_too_many_additional_hours_per_day" model="hr.payroll.warning">
+            <field name="name">Too many Additional Hours per day</field>
+            <field name="description">Max 9h/day total convert excess to Extra-hours.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_hr_payslip"/>
+            <field name="block_payslips">True</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+belgian_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+warning_payslips = self.env['hr.payslip'].search([
+                ('company_id', 'in', belgian_companies.ids),
+                ('state', 'in', ['draft', 'validated']),
+                ('l10n_be_working_hours_limit_per_day_exceeded', '=', True)
+          ])
+
+warning_details = defaultdict(list)
+for payslip in warning_payslips:
+        warning_details[payslip].append({
+            'message': _get_payroll_translation("Daily hours exceed 9h limit convert excess to Extra-hours."),
+            'action_text': _get_payroll_translation("Edit"),
+            'action': {
+                'type': 'object',
+                'name': 'action_l10n_be_edit_time_off',
+            },
+            'level': 'warning',
+        })
+warning_records = warning_payslips
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_too_many_additional_hours_per_week" model="hr.payroll.warning">
+            <field name="name">Too many Additional Hours per week</field>
+            <field name="description">Hours exceed reference schedule convert excess to Extra-hours.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_hr_payslip"/>
+            <field name="block_payslips">True</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+belgian_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+warning_payslips = self.env['hr.payslip'].search([
+                ('company_id', 'in', belgian_companies.ids),
+                ('state', 'in', ['draft', 'validated']),
+                ('l10n_be_working_hours_limit_per_week_exceeded', '=', True)
+          ])
+
+warning_details = defaultdict(list)
+for payslip in warning_payslips:
+        warning_details[payslip].append({
+            'message': _get_payroll_translation("Weekly hours exceed schedule limit convert excess to Extra-hours."),
+            'action_text': _get_payroll_translation("Edit"),
+            'action': {
+                'type': 'object',
+                'name': 'action_l10n_be_edit_time_off'
+            },
+            'level': 'warning',
+        })
+warning_records = warning_payslips
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_wrong_type_additional_hours" model="hr.payroll.warning">
+            <field name="name">Wrong type of Additional Hours</field>
+            <field name="description">Additional Hours on Sunday must be paid</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_hr_payslip"/>
+            <field name="block_payslips">True</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+belgian_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+warning_payslips = self.env['hr.payslip'].search([
+                ('company_id', 'in', belgian_companies.ids),
+                ('state', 'in', ['draft', 'validated']),
+                ('l10n_be_wrong_additional_hours_on_sundays_or_public_holidays', '=', True)
+        ])
+
+warning_details = defaultdict(list)
+for payslip in warning_payslips:
+        warning_details[payslip].append({
+            'message': _get_payroll_translation("Sunday additional hours must be paid."),
+            'action_text': _get_payroll_translation("Edit"),
+            'action': {
+                'type': 'object',
+                'name': 'action_l10n_be_edit_time_off'
+            },
+            'level': 'warning',
+        })
+warning_records = warning_payslips
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_without_certificate_too_long" model="hr.payroll.warning">
+            <field name="name">Wrong usage of option "Without certificate"</field>
+            <field name="description">Only one day of sick time off can be flagged without certificate</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_holidays.model_hr_leave"/>
+            <field name="block_payslips">True</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+belgian_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+warning_leaves = self.env['hr.leave'].search([
+    ('employee_company_id', 'in', belgian_companies.ids),
+    ('category_options_ids.code', '=', 'MISSING_CERTIFICATE'),
+    ('number_of_days', '&gt;', 1),
+])
+
+warning_details = defaultdict(list)
+for leave in warning_leaves:
+    warning_details[leave].append({
+        'message': _get_payroll_translation("Only one day of sick time off can be flagged without certificate"),
+        'action_text': _get_payroll_translation("Correct"),
+        'action': {
+            'type': 'object',
+            'name': 'action_l10n_be_correct_without_certificate'
+        },
+        'level': 'danger',
+    })
+warning_records = warning_leaves
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_without_certificate_yearly_limit" model="hr.payroll.warning">
+            <field name="name">Too many days without certificate</field>
+            <field name="description">An employee cannot be granted more than 2 days of sick time off without certificate per calendar year</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_holidays.model_hr_leave"/>
+            <field name="block_payslips">True</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+belgian_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+year_leaves = self.env['hr.leave'].search([
+    ('employee_company_id', 'in', belgian_companies.ids),
+    ('category_options_ids.code', '=', 'MISSING_CERTIFICATE'),
+    ('date_from', '&gt;=', date(date.today().year, 1, 1)),
+    ('date_to', '&lt;=', date(date.today().year, 12, 31)),
+])
+
+days_per_employee = defaultdict(float)
+for leave in year_leaves:
+    days_per_employee[leave.employee_id] += leave.number_of_days
+
+warning_details = defaultdict(list)
+warning_leaves = self.env['hr.leave']
+for leave in year_leaves:
+    if days_per_employee[leave.employee_id] &lt;= 2:
+        continue
+    warning_leaves |= leave
+    warning_details[leave].append({
+        'message': _get_payroll_translation(
+            "More than 2 days of sick time off without certificate have been taken this year (%(days)s days)",
+            days=days_per_employee[leave.employee_id],
+        ),
+        'level': 'danger',
+    })
+warning_records = warning_leaves
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_wrong_additional_hours_work_time" model="hr.payroll.warning">
+            <field name="name">Wrong Additional Hours during working time</field>
+            <field name="description">Cannot encode additional hours during regular working time.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_hr_payslip"/>
+            <field name="block_payslips">True</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+belgian_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+warning_payslips = self.env['hr.payslip'].search([
+                ('company_id', 'in', belgian_companies.ids),
+                ('state', 'in', ['draft', 'validated']),
+                ('l10n_be_additional_hours_during_working_time', '=', True)
+         ])
+
+warning_details = defaultdict(list)
+for payslip in warning_payslips:
+        warning_details[payslip].append({
+            'message': _get_payroll_translation('Cannot encode additional hours during regular working time.'),
+            'action_text': _get_payroll_translation("Edit"),
+            'action': {
+                'type': 'object',
+                'name': 'action_l10n_be_edit_time_off'
+            },
+            'level': 'warning',
+        })
+warning_records = warning_payslips
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_cp200_economic_unemployment_compensation" model="hr.payroll.warning">
+            <field name="name">CP200 unemployment compensation amount not set</field>
+            <field name="description">Temporary unemployment detected for CP200: compensation amount must be entered manually.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">domain</field>
+            <field name="warning_domain">[
+                ("state", "in", ["draft", "validated"]),
+                ("date_from", "!=", False),
+                ("employee_id", "!=", False),
+                ("l10n_be_joint_committee_id.egov3_code", "=", "200"),
+                (
+                    "worked_days_line_ids", "any",
+                    [("work_entry_type_id.l10n_be_economic_unemployment", "=", True)],
+                ),
+                ("line_ids", "!=", False),
+                ("line_ids", "not any", [("code", "=", "EUC_CP200")]),
+            ]</field>
+        </record>
+
+        <record id="hr_payroll_warning_employee_without_worker_code" model="hr.payroll.warning">
+            <field name="name">Employees without a worker code</field>
+            <field name="description">Subtype required for declarations and reports.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="button_name">Show Employees</field>
+            <field name="model_id" ref="hr_payroll.model_hr_employee"/>
+            <field name="warning_type">domain</field>
+            <field name="warning_domain">[
+                ('l10n_be_worker_code_id', '=', False),
+                ('l10n_be_joint_committee_id.egov3_code', '!=', '999')
+            ]</field>
+        </record>
+
+        <record id="hr_payroll_warning_missing_employer_class" model="hr.payroll.warning">
+            <field name="name">Missing Employer Class</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_type">python</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_dmfa"/>
+            <field name="evaluation_code">
+if records.company_id and not records.company_id.current_payroll_config_id.l10n_be_employer_category_id.dmfa_code:
+    warning_records = self.env['res.config.settings'].search([('company_id', '=', records.company_id.id)])
+    warning_details = {
+        'message': _get_payroll_translation("Missing employer class for company: %(name)s.", name=records.company_id.name),
+        'level': 'danger',
+        'action_text': _get_payroll_translation("See company settings"),
+        'action': {
+            'type': 'ir.actions.act_window',
+            'res_model': 'res.config.settings',
+            'view_mode': 'form',
+            'views': [[False, 'form']],
+            'target': 'current',
+            'context': {'module': 'hr_payroll'},
+        }
+    }
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_missing_l10n_be_company_number" model="hr.payroll.warning">
+            <field name="name">Missing ONSS company ID</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="warning_type">python</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_dmfa"/>
+            <field name="evaluation_code">
+if records.company_id and not records.company_id.current_payroll_config_id.l10n_be_company_number:
+    warning_records = self.env['res.config.settings'].search([('company_id', '=', records.company_id.id)])
+    warning_details = {
+        'message': _get_payroll_translation("Missing ONSS company ID for company: %(name)s.", name=records.company_id.name),
+        'level': 'danger',
+        'action_text': _get_payroll_translation("See company settings"),
+        'action': {
+            'type': 'ir.actions.act_window',
+            'res_model': 'res.config.settings',
+            'view_mode': 'form',
+            'views': [[False, 'form']],
+            'target': 'current',
+            'context': {'module': 'hr_payroll'},
+        }
+    }
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_invalid_niss_employees" model="hr.payroll.warning">
+            <field name="name">Employees with no NISS</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="warning_type">python</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_dmfa"/>
+            <field name="evaluation_code">
+employees = records.payslip_ids.employee_id
+missing_niss_employees = employees.filtered(lambda e: not e.niss or e.niss == '/')
+if missing_niss_employees:
+    warning_records = missing_niss_employees
+    warning_details = {
+        'message': _get_payroll_translation("Missing NISS for employees %(names)s", names=", ".join(missing_niss_employees.mapped("name"))),
+        'level': 'danger',
+        'action_text': _get_payroll_translation("See employees"),
+        'action': warning_records._get_records_action(),
+    }
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_invalid_work_address_dmfa" model="hr.payroll.warning">
+            <field name="name">Employees with invalid work addresses</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_dmfa"/>
+            <field name="button_name">Review</field>
+            <field name="evaluation_code">
+employees = records.payslip_ids.employee_id
+work_addresses = employees.mapped('address_id')
+location_units = self.env['hr.work.location'].search([('address_id', 'in', work_addresses.ids), ('location_type', '=', 'dmfa_unit')])
+invalid_addresses = work_addresses - location_units.mapped('address_id')
+invalid_employees = employees.filtered(lambda e: e.address_id in invalid_addresses)
+if invalid_addresses:
+    warning_records = invalid_addresses
+    action = self.env.ref("l10n_be_hr_payroll.l10n_be_hr_payroll_action_warning_view_partner_list")._get_action_dict()
+
+    action['domain'] = [('id', 'in', invalid_addresses.ids)]
+    warning_details = {
+        'message': _get_payroll_translation('Employees with work address missing ONSS code %(names)s', names=', '.join(invalid_employees.mapped('name'))),
+        'level': 'danger',
+        'action_text': _get_payroll_translation("See addresses"),
+        'action': action,
+    }
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_invalid_work_entry_types" model="hr.payroll.warning">
+            <field name="name">Time Types with missing DMFA code</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="warning_type">python</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_dmfa"/>
+            <field name="evaluation_code">
+payslips = records.payslip_ids
+work_entry_types = payslips.mapped('worked_days_line_ids.work_entry_type_id')
+invalid_types = work_entry_types.filtered(lambda t: not t.dmfa_code)
+if invalid_types:
+    warning_records = invalid_types
+    warning_details = {
+        'message': _get_payroll_translation("Time types missing DMFA code %(names)s", names=", ".join(invalid_types.mapped("name"))),
+        'level': 'danger',
+        'action_text': _get_payroll_translation("See time types"),
+        'action': warning_records._get_records_action(),
+    }
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_invalid_vehicles" model="hr.payroll.warning">
+            <field name="name">Invalid license plates</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="warning_type">python</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_dmfa"/>
+            <field name="evaluation_code">
+invalid_vehicles = records.vehicle_ids.filtered(lambda v: len(v.license_plate) > 10)
+if invalid_vehicles:
+    warning_records = invalid_vehicles
+    warning_details = {
+        'message': _get_payroll_translation("Invalid license plates %(names)s", names=", ".join(invalid_vehicles.mapped("license_plate"))),
+        'level': 'danger',
+        'action_text': _get_payroll_translation("See vehicles"),
+        'action': warning_records._get_records_action(),
+    }
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_quarter_incompatibility" model="hr.payroll.warning">
+            <field name="name">Quarter number of days incompatibility</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="warning_type">python</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_dmfa"/>
+            <field name="evaluation_code">
+if records.state not in ['done', 'paid']:
+    payslips_per_employee = (records.payslip_ids if records.id else self.env['hr.payslip']).grouped(lambda p: p.employee_id)
+    worked_days_per_employee = {p[0]: round((sum(p[1].mapped('worked_days_line_ids').filtered(lambda wd: wd.work_entry_type_id.dmfa_code != '-1' and wd.work_entry_type_id.code not in ['000.00', '147.00', '147.05', '147.07']).mapped('number_of_hours')) / 7.6) * 2) / 2 for p in payslips_per_employee.items()}
+    if records.quarter_start and records.quarter_end:
+        days_in_quarter = (records.quarter_end - records.quarter_start).days
+        invalid_employees = records.payslip_ids.employee_id.filtered(lambda e: worked_days_per_employee[e] > days_in_quarter)
+        if invalid_employees:
+            warning_records = invalid_employees
+            warning_details = {
+                'message': _get_payroll_translation("Employees exceeding quarterly occupation days %(names)s", names=", ".join(invalid_employees.mapped("name"))),
+                'level': 'warning',
+                'action_text': _get_payroll_translation("See employees"),
+                'action': warning_records._get_records_action(),
+            }
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_working_schedule_incompatibility" model="hr.payroll.warning">
+            <field name="name">Schedule number of days incompatibility</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="warning_type">python</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_dmfa"/>
+            <field name="evaluation_code">
+if records.state not in ['done', 'paid']:
+    payslips_per_employee = (records.payslip_ids if records.id else self.env['hr.payslip']).grouped(lambda p: p.employee_id)
+    worked_days_per_employee = {p[0]: round((sum(p[1].mapped('worked_days_line_ids').mapped('number_of_hours')) / 7.6) * 2) / 2 for p in payslips_per_employee.items()}
+    if records.quarter_start and records.quarter_end:
+        days_in_quarter_per_employee = {p[0]: sum(bool(attendance) for attendance in p[0].resource_calendar_id._get_attendances_by_date(records.quarter_start, records.quarter_end).values()) if p[0].resource_calendar_id else round(((p[0].hours_per_week * 13) / 7.6) * 2) / 2 for p in payslips_per_employee.items()}
+        invalid_employees = records.payslip_ids.employee_id.filtered(lambda e: worked_days_per_employee[e] != days_in_quarter_per_employee[e])
+        if invalid_employees:
+            warning_records = invalid_employees
+            warning_details = {
+                'message': _get_payroll_translation("Occupation days mismatch working schedule %(names)s", names=", ".join(invalid_employees.mapped("name"))),
+                'level': 'warning',
+                'action_text': _get_payroll_translation("See employees"),
+                'action': warning_records._get_records_action(),
+            }
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_more_workers_in_dmfa_than_dimona" model="hr.payroll.warning">
+            <field name="name">Workers in DMFA without a DIMONA</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="warning_type">python</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_dmfa"/>
+            <field name="evaluation_code">
+if records.state not in ['done', 'paid']:
+    employees = records.payslip_ids.employee_id
+    if records.quarter_start and records.quarter_end:
+        versions = employees._get_version_periods(records.quarter_start, records.quarter_end, 'l10n_be_dimona_next_action')
+        invalid_versions = self.env['hr.version']
+        for employee, periods in versions.items():
+            for period_start, period_end, has_dimona in periods:
+                if has_dimona != 'done':
+                    invalid_versions |= employee._get_versions_with_contract_overlap_with_period(period_start, period_end)
+        invalid_employees = invalid_versions.employee_id
+        if invalid_versions:
+            warning_records = invalid_employees
+            warning_details = {
+                'message': _get_payroll_translation("DMFA employees missing DIMONA %(names)s", names=", ".join(invalid_employees.mapped('name'))),
+                'level': 'warning',
+                'action_text': _get_payroll_translation("See employees"),
+                'action': warning_records._get_records_action(),
+            }
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_employee_with_exceeding_hourly_wage" model="hr.payroll.warning">
+            <field name="name">Exceeding Hourly Wage</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="button_name">Review Employees</field>
+            <field name="warning_type">domain</field>
+            <field name="model_id" ref="hr.model_hr_employee"/>
+            <field name="warning_domain">[('company_id.partner_id.country_code', '=', 'BE'), ('wage_type', '=', 'hourly'), ('hourly_wage', '&gt;=', 17)]</field>
+        </record>
+
+        <record id="hr_payroll_warning_hospital_insurance_contribution" model="hr.payroll.warning">
+            <field name="name">Hospital Insurance: Invalid Employee Contribution</field>
+            <field name="description">Employee contribution for hospitalization insurance exceeds the total insurance amount.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_version"/>
+            <field name="block_payslips">True</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+
+if be_companies:
+    versions = self.env['hr.version'].search([
+        ('company_id', 'in', be_companies.ids),
+        ('employee_id', '!=', False),
+        ('active', '=', True),
+        ('has_hospital_insurance', '=', True),
+    ])
+
+    warning_records = self.env['hr.version']
+    warning_details = defaultdict(list)
+
+    for version in versions:
+        if version.hospital_insurance_employee_contribution &gt; version.insurance_amount:
+            warning_records |= version
+            warning_details[version].append({
+                'message': _get_payroll_translation(
+                    "The employee contribution for hospitalization insurance cannot be higher than the total insurance amount."
+                ),
+                'level': 'warning',
+            })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_ambulatory_insurance_contribution" model="hr.payroll.warning">
+            <field name="name">Ambulatory Insurance: Invalid Employee Contribution</field>
+            <field name="description">Employee contribution for ambulatory insurance exceeds the total insurance amount.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_version"/>
+            <field name="block_payslips">True</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+
+if be_companies:
+    versions = self.env['hr.version'].search([
+        ('company_id', 'in', be_companies.ids),
+        ('employee_id', '!=', False),
+        ('active', '=', True),
+        ('l10n_be_has_ambulatory_insurance', '=', True),
+    ])
+
+    warning_records = self.env['hr.version']
+    warning_details = defaultdict(list)
+
+    for version in versions:
+        if version.l10n_be_ambulatory_insurance_employee_contribution &gt; version.l10n_be_ambulatory_insurance_amount:
+            warning_records |= version
+            warning_details[version].append({
+                'message': _get_payroll_translation(
+                    "The employee contribution for ambulatory insurance cannot be higher than the total insurance amount."
+                ),
+                'level': 'warning',
+            })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_missing_termination_dates" model="hr.payroll.warning">
+            <field name="name">Missing notice period start or departure date</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="warning_type">python</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_dmfa"/>
+            <field name="evaluation_code">
+if records.state not in ['done', 'paid']:
+    payslips = records.payslip_ids
+    occupation_data = payslips.mapped('employee_id').version_ids.sorted('date_start', reverse=True)._get_occupation_dates()
+    inactive_version_payslips = payslips.filtered(lambda p: not p.version_id.active)
+    active_version_payslips = payslips - inactive_version_payslips
+    considered_payslips = self.env['hr.payslip']
+    invalid_termination_payslips = self.env['hr.payslip']
+    for data in occupation_data:
+        occupation_contracts, date_from, date_to = data
+        payslips = active_version_payslips.filtered(lambda p: p not in considered_payslips and p.version_id in occupation_contracts)
+        for slip in inactive_version_payslips:
+            if slip not in considered_payslips and slip.date_from &lt; (date_to or quarter_end) and slip.date_to &gt; date_from:
+                payslips += slip
+        considered_payslips += payslips
+        termination_payslips = payslips.filtered(lambda p: p.struct_id.code == 'BETERM')
+        if termination_payslips:
+            employee = termination_payslips.employee_id
+            if not employee.l10n_be_notice_period_start or not employee.departure_date:
+                invalid_termination_payslips += termination_payslips
+
+    if invalid_termination_payslips:
+        warning_records = invalid_termination_payslips
+        warning_details = {
+            'message': _get_payroll_translation("Termination payslips missing notice period dates %(names)s", names=", ".join(invalid_termination_payslips.mapped('employee_id.name'))),
+            'level': 'danger',
+            'action_text': _get_payroll_translation("See payslips"),
+            'action': warning_records._get_records_action(),
+        }
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_missing_worker_code" model="hr.payroll.warning">
+            <field name="name">Missing DMFA worker code</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="warning_type">python</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_dmfa"/>
+            <field name="evaluation_code">
+if records.state not in ['done', 'paid']:
+    payslips = records.payslip_ids
+    invalid_employees = self.env['hr.employee']
+
+    for emp, emp_payslips in payslips.grouped('employee_id').items():
+        student_payslips = emp_payslips.filtered(lambda p: p.version_id.is_student())
+        emp_payslips = emp_payslips - student_payslips
+
+        worker_code = False
+        if student_payslips:
+            worker_code = student_payslips.version_id[0].l10n_be_worker_code_id.dmfa_code
+        else:
+            worker_code = emp_payslips.version_id[0].l10n_be_worker_code_id.dmfa_code
+
+        if not worker_code:
+            invalid_employees |= emp_payslips.employee_id
+
+    if invalid_employees:
+        warning_records = invalid_employees
+        warning_details = {
+            'message': _get_payroll_translation("Employees missing DMFA worker code %(names)s", names=", ".join(invalid_employees.mapped('name'))),
+            'level': 'danger',
+            'action_text': _get_payroll_translation("See employees"),
+            'action': warning_records._get_records_action(),
+        }
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_part_time_minimum" model="hr.payroll.warning">
+            <field name="name">Part-Time Minimum Working Duration</field>
+            <field name="description">Working schedule below 10% of full-time reference.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr.model_hr_version"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+warning_records = self.env['hr.version']
+warning_details = defaultdict(list)
+
+versions = self.env['hr.version'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', be_companies.ids),
+    ('employee_id', '!=', False),
+    ('active', '=', True),
+])
+
+for version in versions:
+    if version.l10n_be_dimona_category in ('stu', 'flx'):
+        continue
+
+    calendar = version.resource_calendar_id
+    if calendar._is_flexible():
+        continue
+
+    ref_calendar = version._get_reference_calendar()
+
+    if not ref_calendar or ref_calendar.hours_per_week &lt;= 0:
+        continue
+
+    rate = round(calendar.hours_per_week / ref_calendar.hours_per_week, 7)
+
+    if rate &lt; 0.10:
+        warning_records |= version
+        warning_details[version].append({
+            'message': _get_payroll_translation(
+                "The working schedule is shorter than 10% of the reference full-time calendar. "
+                "For a part-time contract, the legal minimum duration is 10%."
+            ),
+            'level': 'warning',
+        })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_non_matching_gender" model="hr.payroll.warning">
+            <field name="name">Employees with inconsistent gender</field>
+            <field name="description">
+For some employees, the gender indicated on the profile and the one indicated by the NISS code are not consistent.
+            </field>
+            <field name="warning_color_class">warning</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+def _do_sex_and_niss_mismatch(sex, niss):
+    extracted_sex = self.env['hr.employee']._l10n_be_parse_sex(niss)
+    return sex != extracted_sex if extracted_sex else False
+
+employees = self.env['hr.employee'].search([
+    ('company_id', 'in', self.env.companies.filtered(lambda c: c.country_id.code == 'BE').ids),
+    ('contract_date_start', '!=', False),
+    '|',
+        ('contract_date_end', '&gt;=', date.today()),
+        ('contract_date_end', '=', False),
+])
+warning_records = employees.filtered(lambda e: e.sex and e.niss and _do_sex_and_niss_mismatch(e.sex, e.niss))
+            </field>
+            <field name="button_name">See Employees</field>
+        </record>
+
+        <record id="hr_payroll_warning_missing_credit_time_period" model="hr.payroll.warning">
+            <field name="name">Missing credit time period</field>
+            <field name="description">
+Some employees in a payrun have reorganization measure without any credit-time related work entries
+            </field>
+            <field name="warning_color_class">warning</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+payslips = self.env['hr.payslip'].search([
+    ('company_id', 'in', self.env.companies.filtered(lambda c: c.country_id.code == 'BE').ids)
+])
+payslips_missing_credit = payslips.filtered(lambda p: p._l10n_be_has_mrt_without_valid_worked_days())
+if payslips_missing_credit:
+    warning_records = payslips_missing_credit.mapped('employee_id')
+            </field>
+            <field name="button_name">See Employees</field>
+        </record>
+
+        <record id="hr_payroll_warning_dmfa_reference_schedule" model="hr.payroll.warning">
+            <field name="name">Reference working schedule issue</field>
+            <field name="description">Occupation &lt; 100% despite matching reference schedule.</field>
+            <field name="warning_color_class">warning</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+employees = self.env['hr.employee'].search([
+    ('company_id', 'in', self.env.companies.filtered(lambda c: c.country_id.code == 'BE').ids),
+    ('reference_calendar_id', '!=', False),
+    ('resource_calendar_id', '!=', False)
+])
+warning_records = self.env['resource.calendar']
+for employee in employees:
+    if employee.resource_calendar_id.work_time_rate &lt; 1 and employee.resource_calendar_id.work_time_rate == employee.reference_calendar_id.work_time_rate:
+        warning_records |= employee.resource_calendar_id
+            </field>
+            <field name="button_name">See Schedules</field>
+        </record>
+
+        <record id="hr_payroll_warning_work_period" model="hr.payroll.warning">
+            <field name="name">Each work period should be at least 2h</field>
+            <field name="description">Schedules contain shifts under 2 hours.</field>
+            <field name="warning_color_class">warning</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+employees = self.env['hr.employee'].search([
+    ('company_id', 'in', self.env.companies.filtered(lambda c: c.country_id.code == 'BE').ids),
+    ('resource_calendar_id', '!=', False)
+])
+warning_records = employees.filtered(lambda e: e.resource_calendar_id._l10n_be_get_short_attendance_resource_calendar())
+employees -= warning_records
+warning_records |= employees._l10n_be_get_short_work_entries()
+            </field>
+            <field name="button_name">See Employees</field>
+        </record>
+        
+        <record id="hr_payroll_warning_invalid_establishment_unit_date" model="hr.payroll.warning">
+            <field name="name">Work location and employees mismatch</field>
+            <field name="description">
+                Some work locations have validity periods starting after the start dates of some employee's contracts.
+            </field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="block_payslips">True</field>
+            <field name="button_name">Review Establishment Units</field>
+            <field name="evaluation_code">
+warning_records = self.env['hr.work.location']
+belgian_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+employees = self.env['hr.employee'].search([('company_id', 'in', belgian_companies.ids)])
+
+for version in employees.version_ids:
+    work_location = version.sudo().work_location_id
+    if not work_location or work_location.company_id not in belgian_companies:
+        continue
+
+    if version.work_location_id.date_start and version.contract_date_start and version.contract_date_start &lt; version.work_location_id.date_start:
+        warning_records |= version.work_location_id
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_employee_transport_exclusivity" model="hr.payroll.warning">
+            <field name="name">Transport Exclusivity Warning</field>
+            <field name="description">Cannot combine car and bike commute reimbursements.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr.model_hr_version"/>
+            <field name="warning_type">domain</field>
+            <field name="warning_domain">[('private_car_employee_kilometer', '&gt;', 0), ('bike_transport_employee_kilometer', '&gt;', 0)]</field>
+        </record>
+
+        <record id="hr_payroll_warning_updated_cars_after_dmfa" model="hr.payroll.warning">
+            <field name="name">Company Car update after DMFA</field>
+            <field name="description">Company car updated for declared DMFA period.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="warning_type">python</field>
+            <field name="button_name">Review</field>
+            <field name="evaluation_code">
+belgian_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+dmfa_by_company = dict(self.env['l10n_be.dmfa']._read_group(
+    domain=[('company_id', 'in', belgian_companies.ids), ('state', 'not in', ['draft', 'ready'])],
+    groupby=['company_id'],
+    aggregates=['id:recordset']
+))
+warning_records = self.env['fleet.vehicle']
+for company in belgian_companies:
+    dmfa_declarations = dmfa_by_company.get(company, False)
+    if not dmfa_declarations:
+        continue
+    for _date, dmfa_declaration in dmfa_declarations.grouped('quarter_start').items():
+        declaration = dmfa_declaration[-1]  # Get the latest declaration for the quarter
+        cars = declaration.vehicle_ids
+        if not cars:
+            continue
+        warning_records |= cars.filtered(lambda c: c.l10n_be_dmfa_update_date and declaration.quarter_start &lt;= c.l10n_be_dmfa_update_date &lt;= declaration.quarter_end)
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_dimona_period_not_covered_by_payslip" model="hr.payroll.warning">
+            <field name="name">Dimona Period Not Covered by a Payslip</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="button_name">Review Employees</field>
+            <field name="evaluation_code">
+warning_records = self.env['hr.employee']
+belgian_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+
+payruns_by_company = dict(self.env['hr.payslip.run']._read_group(
+    domain=[
+        ('company_id', 'in', belgian_companies.ids),
+        ('state', '!=', '04_cancel'),
+    ],
+    groupby=['company_id'],
+    aggregates=['id:recordset'],
+))
+
+if payruns_by_company:
+    min_date_start = min(payrun.date_start for payruns in payruns_by_company.values() for payrun in payruns)
+    max_date_end = max(payrun.date_end for payruns in payruns_by_company.values() for payrun in payruns)
+
+    dimonas_by_employee = dict(self.env['l10n.be.dimona.declaration'].sudo()._read_group(
+        domain=[
+            ('company_id', 'in', belgian_companies.ids),
+            '|',
+                ('date_start', '&lt;=', max_date_end),
+                ('date_start', '=', False),
+            '|',
+                ('date_end', '&gt;=', min_date_start),
+                ('date_end', '=', False),
+        ],
+        groupby=['employee_id'],
+        aggregates=['id:recordset'],
+    ))
+
+    payslips_by_employee = dict(self.env['hr.payslip']._read_group(
+        domain=[
+            ('company_id', 'in', belgian_companies.ids),
+            ('state', '!=', 'cancel'),
+            '|',
+                ('date_from', '&lt;=', max_date_end),
+                ('date_from', '=', False),
+            '|',
+                ('date_to', '&gt;=', min_date_start),
+                ('date_to', '=', False),
+        ],
+        groupby=['employee_id'],
+        aggregates=['id:recordset'],
+    ))
+
+    for employee, employee_dimona_declarations in dimonas_by_employee.items():
+        employee_payslips = payslips_by_employee.get(
+            employee,
+            self.env['hr.payslip'],
+        )
+        company_payruns = payruns_by_company.get(
+            employee.company_id,
+            self.env['hr.payslip.run'],
+        )
+
+        for declaration in employee_dimona_declarations:
+            payrun_exists = any(
+                payrun.date_start &lt;= (declaration.date_start or declaration.date_end)
+                and payrun.date_end &gt;= (declaration.date_end or declaration.date_start)
+                and employee._get_version(declaration.date_start) not in payrun.version_ids
+                for payrun in company_payruns
+            )
+
+            payslip_exists = any(
+                payslip.date_from &lt;= (declaration.date_start or declaration.date_end)
+                and payslip.date_to &gt;= (declaration.date_end or declaration.date_start)
+                for payslip in employee_payslips
+            )
+
+            if payrun_exists and not payslip_exists:
+                warning_records |= employee
+                break
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_flexi_at_work_dashboard" model="hr.payroll.warning">
+            <field name="name">Missing Flexi@Work</field>
+            <field name="description">Missing Flexi@Work declarations (submit within 5 days of calculation).</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="closing_on">next_payslip</field>
+            <field name="button_name">Create Declarations</field>
+            <field name="warning_type">domain</field>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="warning_domain">[('l10n_be_needs_flxwage_declaration', '=', True), ('l10n_be_flexi_declaration_id', '=', False), ('state', 'in', ['validated', 'paid'])]</field>
+            <field name="display_on_dashboard" eval="True"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="button_action" ref="l10n_be_hr_payroll.action_flexi_missing_payslips"/>
+        </record>
+
+        <record id="l10n_be_hr_payroll_warning_unrecovered_net" model="hr.payroll.warning">
+            <field name="name">Unrecovered Net Amount Warning (December / Departure)</field>
+            <field name="description">Unrecovered net amounts on December or departure payslips.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', self.env.companies.ids),
+    ('state', '!=', 'cancel'),
+])
+
+warning_details = defaultdict(list)
+warning_records = self.env['hr.payslip']
+
+for payslip in payslips:
+    if not payslip.date_from or not payslip.employee_id:
+        continue
+
+    if payslip.company_id.country_id.code != 'BE':
+        continue
+
+    is_december = payslip.date_from.month == 12
+    departure_date = payslip.employee_id.departure_date
+    is_departure = bool(
+        departure_date and payslip.date_from &lt;= departure_date &lt;= payslip.date_to
+    )
+
+    if not (is_december or is_departure):
+        continue
+
+    net_to_recover_amount = payslip._get_line_values(['NET_TO_RECOVER'], compute_sum=True)['NET_TO_RECOVER']['sum']['total']
+
+    if net_to_recover_amount &gt; 0:
+        formatted_amount = f"{net_to_recover_amount:.2f}"
+
+        if is_december and is_departure:
+            message = _get_payroll_translation("December departure payslip has an unrecovered net amount of %(amount)s.", amount=formatted_amount)
+        elif is_december:
+            message = _get_payroll_translation("December payslip has an unrecovered net amount of %(amount)s.", amount=formatted_amount)
+        else:
+            message = _get_payroll_translation("Departure payslip has an unrecovered net amount of %(amount)s.", amount=formatted_amount)
+        
+        warning_details[payslip].append({
+            'message': message,
+            'level': 'warning',
+        })
+        warning_records |= payslip
+        </field>
+    </record>
+
+        <record id="hr_payroll_warning_incorrect_bank_accounts" model="hr.payroll.warning">
+            <field name="name">Incorrect Bank Accounts (Incorrect IBAN and/or BIC/Swift)</field>
+            <field name="description">Incorrect employee bank account configuration.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="button_name">Correct bank accounts</field>
+            <field name="evaluation_code">
+belgian_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+employees = self.env['hr.employee'].search([
+    ('company_id', 'in', belgian_companies.ids),
+    ('active', '=', True),
+    ('bank_account_ids', '!=', False),
+])
+incorrect_accounts = employees.bank_account_ids.filtered(
+    lambda acc: not acc._is_iban_valid(acc.account_number) and len(acc.bank_bic or '') &lt; 8
+)
+if incorrect_accounts:
+    warning_records = incorrect_accounts
+    warning_action = {
+        'type': 'ir.actions.act_window',
+        'res_model': 'res.partner.bank',
+        'views': [[False, 'list']],
+        'target': 'current',
+    }
+    additional_context.update({"group_by": ["partner_id"]})
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_less_than_18_employee" model="hr.payroll.warning">
+            <field name="name">Employees under 18 years old</field>
+            <field name="description">The employee is under the legal minimum working age (18 years old)</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr.model_hr_version"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+employee_type = self.env.ref('hr.contract_type_employee', raise_if_not_found=False)
+today = date.today()
+try:
+    threshold_date = today.replace(year=today.year - 18)
+except ValueError:
+    threshold_date = today.replace(year=today.year - 18, day=28)
+employee_versions_under_18 = self.env['hr.version'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', be_companies.ids),
+    ('employee_type_id', '=', employee_type.id if employee_type else False),
+    ('employee_id.birthday', '!=', False),
+    ('employee_id.birthday', '&gt;', threshold_date),
+])
+warning_records = self.env['hr.version']
+warning_details = defaultdict(list)
+if employee_versions_under_18:
+    warning_records |= employee_versions_under_18
+    for employee in employee_versions_under_18:
+        warning_details[employee].append({
+            'message': _get_payroll_translation("The employee is under the legal minimum working age (18 years old)"),
+            'level': 'danger',
+        })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_less_than_15_student" model="hr.payroll.warning">
+            <field name="name">Student under 15 years old</field>
+            <field name="description">The student is under the legal minimum working age (15 years old)</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr.model_hr_version"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+student_employee_type = self.env.ref('hr.contract_type_student', raise_if_not_found=False)
+today = date.today()
+try:
+    threshold_date = today.replace(year=today.year - 15)
+except ValueError:
+    threshold_date = today.replace(year=today.year - 15, day=28)
+student_versions_under_15 = self.env['hr.version'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', be_companies.ids),
+    ('employee_type_id', '=', student_employee_type.id if student_employee_type else False),
+    ('employee_id.birthday', '!=', False),
+    ('employee_id.birthday', '&gt;', threshold_date),
+])
+warning_records = self.env['hr.version']
+warning_details = defaultdict(list)
+if student_versions_under_15:
+    warning_records |= student_versions_under_15
+    for employee in student_versions_under_15:
+        warning_details[employee].append({
+            'message': _get_payroll_translation("The student is under the legal minimum working age (15 years old)"),
+            'level': 'danger',
+        })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_starterjob_older_than_21_yo" model="hr.payroll.warning">
+            <field name="name">Employee above 21 years old (starterjob)</field>
+            <field name="description">An employee with starterjob should be less than 21 years old and more than 18 years old.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="button_name">Show Employees</field>
+            <field name="warning_type">python</field>
+            <field name="display_on_dashboard" eval="True"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr_payroll.model_hr_employee"/>
+            <field name="warning_type">domain</field>
+            <field name="warning_domain">[
+                ('l10n_be_is_starterjob', '=', True),
+                '|',
+                    ('birthday', '=', False),
+                    '|',
+                        ('birthday', '&lt;=', 'today =31d -21y'),
+                        ('birthday', '&gt;=', 'today =31d -18y'),
+
+            ]</field>
+        </record>
+
+        <record id="hr_payroll_warning_wrong_onss_category_profit_sharing_bonus" model="hr.payroll.warning">
+            <field name="name">Wrong ONSS category for profit sharing bonus</field>
+            <field name="description"/>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="block_payslips" eval="True"/>
+            <field name="button_name">Cancel Payslips</field>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">domain</field>
+            <field name="warning_domain">[('state', '=', 'draft'), ('payroll_config_id.l10n_be_employer_category_id.dmfa_code', 'in', ('037', '039', '212')), ('struct_id.code', '=', 'BEPROFITSHARING')]</field>
+            <field name="button_action" ref="l10n_be_hr_payroll.cancel_draft_payslip_not_eligible_to_profit_sharing"/>
+        </record>
+
+        <record id="hr_payroll_warning_employee_less_one_year_profit_sharing_bonus" model="hr.payroll.warning">
+            <field name="name">Employee with less than one year of service aren't eligible for Profit Sharing Bonus</field>
+            <field name="description"/>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="block_payslips" eval="False"/>
+            <field name="button_name">Cancel Payslips</field>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="display_on_dashboard" eval="True"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+belgian_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+payslips = self.env['hr.payslip'].search([
+    ('company_id', 'in', belgian_companies.ids),
+    ('state', '=', 'draft'),
+    ('struct_id.code', '=', 'BEPROFITSHARING'),
+    ('employee_id.first_contract_date', '!=', False),
+])
+warning_records = payslips.filtered(lambda p: p.employee_id.first_contract_date &gt; p.date_from - relativedelta(years=1))
+            </field>
+            <field name="button_action" ref="l10n_be_hr_payroll.cancel_draft_payslip_employee_less_than_one_year_service_profit_sharing"/>
+        </record>
+
+        <record id="hr_payroll_warning_employee_mobility_budget_with_not_eco_friendly_car" model="hr.payroll.warning">
+            <field name="name">Employees with mobility budget and company car with CO2 > 0</field>
+            <field name="description">Employees with mobility budget can have only eco-friendly company vehicles</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">danger</field>
+            <field name="display_on_model" eval="True"/>
+            <field name="warning_type">domain</field>
+            <field name="button_name">Review Contracts</field>
+            <field name="model_id" ref="hr.model_hr_employee"/>
+            <field name="warning_domain">[('version_id.car_id', '!=', False), ('version_id.car_id.co2', '&gt;', 0.0), ('l10n_be_mobility_budget', '=', True)]</field>
+        </record>
+
+        <record id="hr_payroll_warning_employee_mobility_budget_more_than_max_parameter" model="hr.payroll.warning">
+            <field name="name">Mobility Budget amount is too high</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr.model_hr_version"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+max_mobility_budget = self.env['hr.rule.parameter']._get_parameter_from_code('mobility_budget_max', raise_if_not_found=False) or 17244
+versions = self.env['hr.version'].search([
+    ('id', 'in', active_ids),
+    ('active', '=', True),
+    ('company_id', 'in', be_companies.ids),
+    ('l10n_be_mobility_budget', '=', True),
+    ('l10n_be_mobility_budget_amount', '>', max_mobility_budget),
+])
+warning_records = versions
+warning_details = defaultdict(list)
+message = _get_payroll_translation("Mobility Budget amount exceeds the maximum allowed value (%(amount).2f €).") % {'amount': float(max_mobility_budget)}
+
+for version in versions:
+    warning_details[version].append({
+        'message': message,
+        'level': 'danger',
+    })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_employee_mobility_budget_less_than_min_parameter" model="hr.payroll.warning">
+            <field name="name">Mobility Budget amount is too low</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr.model_hr_version"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+min_mobility_budget = self.env['hr.rule.parameter']._get_parameter_from_code('mobility_budget_min', raise_if_not_found=False) or 3233
+versions = self.env['hr.version'].search([
+    ('id', 'in', active_ids),
+    ('active', '=', True),
+    ('company_id', 'in', be_companies.ids),
+    ('l10n_be_mobility_budget', '=', True),
+    ('l10n_be_mobility_budget_amount', '&lt;', min_mobility_budget),
+])
+warning_records = versions
+warning_details = defaultdict(list)
+message = _get_payroll_translation("Mobility Budget amount is below the minimum allowed value (%(amount).2f €).") % {'amount': float(min_mobility_budget)}
+
+for version in versions:
+    warning_details[version].append({
+        'message': message,
+        'level': 'danger',
+    })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_employee_mobility_budget_more_than_20_percents_wage" model="hr.payroll.warning">
+            <field name="name">Mobility Budget amount exceeds 20% of wage </field>
+            <field name="country_id" ref="base.be"/>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="hr.model_hr_version"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+versions = self.env['hr.version'].search([
+    ('id', 'in', active_ids),
+    ('active', '=', True),
+    ('company_id', 'in', be_companies.ids),
+    ('l10n_be_mobility_budget', '=', True),
+])
+warning_records = self.env['hr.version']
+warning_details = defaultdict(list)
+message = _get_payroll_translation("Mobility Budget amount exceeds 20%% of the yearly wage (%(amount).2f €).")
+for version in versions:
+    max_mb = version.wage * 13.92 / 5
+    if version.l10n_be_mobility_budget_amount > max_mb:
+        warning_records |= version
+        warning_details[version].append({
+            'message': message % {'amount': max_mb},
+            'level': 'danger',
+        })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_mobility_budget_balance_mismatch" model="hr.payroll.warning">
+            <field name="name">Negative mobility budget balance</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="block_payslips" eval="True"/>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+payslips = self.env['hr.payslip'].search([
+    ('company_id', 'in', be_companies.ids),
+    ('state', '=', 'draft'),
+    ('struct_id.code', '=', 'BEMONTHLY'),
+    ('date_from', '!=', False),
+    ('employee_id', '!=', False),
+])
+
+warning_records = self.env['hr.payslip']
+warning_details = defaultdict(list)
+line_values = payslips._get_line_values(['MOBILITY_REMAINING', 'MOBILITY_TO_PAY'])
+no_budget_message = _get_payroll_translation("Mobility expense payout (%(mobility_to_pay)s €) requires an active mobility budget.")
+negative_balance_message = _get_payroll_translation("The remaining mobility budget can't be negative (%(mobility_remaining)s €). Adjust Pillar 2 or Pillar 3 amounts to resolve the deficit.")
+
+for payslip in payslips:
+    mobility_remaining = line_values['MOBILITY_REMAINING'][payslip.id]['total']
+    mobility_to_pay = line_values['MOBILITY_TO_PAY'][payslip.id]['total']
+
+    if mobility_to_pay and not payslip.version_id.l10n_be_mobility_budget_amount:
+        warning_records |= payslip
+        warning_details[payslip].append({
+            'message': no_budget_message % {'mobility_to_pay': mobility_to_pay},
+            'level': 'danger',
+        })
+    elif mobility_remaining &lt; 0:
+        warning_records |= payslip
+        warning_details[payslip].append({
+            'message': negative_balance_message % {'mobility_remaining': mobility_remaining},
+            'level': 'danger',
+        })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_exploitation_unit_is_not_active" model="hr.payroll.warning">
+            <field name="name">DMFA Location Unit(s) Not Active</field>
+            <field name="description">Exploitation unit is not active on the pay period</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="display_on_dashboard" eval="True"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="button_name">Review Payslips</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+warning_records = self.env['hr.payslip']
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+domain = [
+    ('company_id', 'in', be_companies.ids),
+    ('state', 'in', ['draft', 'validated']),
+]
+payslips = self.env['hr.payslip'].search(domain)
+
+payslips_by_work_address = defaultdict(lambda: self.env['hr.payslip'])
+for payslip in payslips:
+    payslips_by_work_address[payslip.employee_id.address_id] |= payslip
+
+work_addresses = payslips.mapped('employee_id.address_id')
+dmfa_location_units = self.env['hr.work.location'].search([
+    ('address_id', 'in', work_addresses.ids),
+    ('location_type', '=', 'dmfa_unit'),
+])
+dmfa_location_units_by_work_address = defaultdict(lambda: self.env['hr.work.location'])
+for dmfa_location_unit in dmfa_location_units:
+    dmfa_location_units_by_work_address[dmfa_location_unit.address_id] |= dmfa_location_unit
+
+for work_address, address_payslips in payslips_by_work_address.items():
+    dmfa_location_unit = dmfa_location_units_by_work_address.get(work_address)
+    if not dmfa_location_unit:
+        continue
+    for payslip in address_payslips:
+        before_start = dmfa_location_unit.date_start and payslip.date_from &lt; dmfa_location_unit.date_start
+        after_end = dmfa_location_unit.date_end and payslip.date_to &gt; dmfa_location_unit.date_end
+        if before_start or after_end:
+            warning_records |= payslip
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_employer_cat_317" model="hr.payroll.warning">
+            <field name="name">Payslip(s) with remuneration code 2</field>
+            <field name="description">Employer category is 317, you can't have Remuneration Code 2</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">warning</field>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="display_on_dashboard" eval="True"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="button_name">Review Payslips</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+warning_records = self.env['hr.payslip']
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+domain = [
+    ('company_id', 'in', be_companies.ids),
+    ('state', 'in', ['draft', 'validated']),
+]
+payslips = self.env['hr.payslip'].search(domain)
+
+for payslip in payslips:
+    has_code_2 = any(
+        int(line.salary_rule_id.l10n_be_remuneration_code) == 2
+        for line in payslip.line_ids
+    )
+    if payslip.payroll_config_id.l10n_be_employer_category_id.dmfa_code == '317' and has_code_2:
+        warning_records |= payslip
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_employer_credit_time" model="hr.payroll.warning">
+            <field name="name">Payslip(s) with remuneration code 1</field>
+            <field name="description">Employer is 100% credit-time, you can't have Remuneration Code 1</field>
+            <field name="country_id" eval="False"/>
+            <field name="warning_color_class">warning</field>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="display_on_dashboard" eval="True"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="button_name">Review Payslips</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+warning_records = self.env['hr.payslip']
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+domain = [
+    ('company_id', 'in', be_companies.ids),
+    ('state', 'in', ['draft', 'validated']),
+]
+payslips = self.env['hr.payslip'].search(domain)
+
+carrer_break = self.env.ref(
+    'l10n_be_hr_payroll.l10n_be_reorganisation_measure_009_3',
+    raise_if_not_found=False,
+)
+for payslip in payslips:
+    has_code_1 = any(
+        int(line.salary_rule_id.l10n_be_remuneration_code) == 1
+        for line in payslip.line_ids
+    )
+    if has_code_1 and carrer_break in payslip.version_id.resource_calendar_id.l10n_be_reorganisation_measure_ids:
+        warning_records |= payslip
+            </field>
+        </record>
+
+
+        <record id="hr_payroll_warning_work_entry_type_change_be" model="hr.payroll.warning">
+            <field name="name">Work Entry Type Change Warning (Timeoff - BE)</field>
+            <field name="description">Work entry type change warning</field>
+            <field name="warning_color_class">warning</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="model_id" ref="hr_holidays.model_hr_leave"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+l10n_be_concerned_leaves = self.env['hr.leave'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', be_companies.ids),
+    ('employee_id', '!=', False),
+    ('date_from', '!=', False),
+    ('date_to', '!=', False),
+    '|',
+        ('work_entry_type_id.code', 'in', [
+            '013.00',    # Sick leave
+            '009.00',    # Work accident leave
+            '137.20',  # Temporary unemployment for employee and artists
+        ]),
+        ('work_entry_type_id.code', 'in', [
+            '137.00',  # Economic unemployment
+            '152.00',   # Temporary unemployment due to technical incident
+            '151.00',   # Temporary unemployment due to bad weather
+        ]),
+])
+l10n_be_concerned_leaves -= l10n_be_concerned_leaves.filtered(lambda l: l.work_entry_type_id.code in ('137.00', '152.00', '151.00') and not l.employee_id.version_id.is_worker())
+warning_records = self.env['hr.leave']
+warning_details = defaultdict(list)
+for leave in l10n_be_concerned_leaves:
+    if leave.work_entry_type_id.code == '013.00':
+        leave_split = leave._get_l10n_be_sick_leave_split()
+    elif leave.work_entry_type_id.code == '009.00':
+        leave_split = leave._get_l10n_be_work_accident_leave_split()
+    elif leave.work_entry_type_id.code in ('137.20', '151.00', '152.00', '137.00'):
+        leave_split = leave._get_l10n_be_economic_unemployment_split()
+    if len(leave_split) &gt; 1:
+        warning_records |= leave
+        lines = [
+            _get_payroll_translation(
+                "- %(code)s - %(name)s: %(nbr_days)s days",
+                code=work_entry_type.code,
+                name=work_entry_type.name,
+                nbr_days=nbr_days
+            )
+            for work_entry_type, nbr_days in leave_split
+        ]
+        warning_details[leave].append({
+            'message': _get_payroll_translation("This time off will be split into:\n%(lines)s", lines="\n".join(lines)),
+            'level': 'warning',
+        })
+    elif len(leave_split) == 1 and leave_split[0][0] != leave.work_entry_type_id:
+        work_entry_type = leave_split[0][0]
+        warning_records |= leave
+        warning_details[leave].append({
+            'message': _get_payroll_translation("This time off will be entirely replaced with %(code)s - %(name)s", code=work_entry_type.code, name=work_entry_type.name),
+            'level': 'warning',
+        })
+            </field>
+        </record>
+
+                <record id="hr_payroll_warning_work_entry_type_change" model="hr.payroll.warning">
+            <field name="name">Extra Legal Leave + Available Paid Timeoff</field>
+            <field name="description">You still have paid time off available that can be used instead of extra legal leave.</field>
+            <field name="warning_color_class">warning</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="model_id" ref="hr_holidays.model_hr_leave"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+be_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+leaves = self.env['hr.leave'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', be_companies.ids),
+    ('employee_id', '!=', False),
+    ('date_from', '!=', False),
+    ('date_to', '!=', False),
+    ('work_entry_type_id.code', 'in', ['011.00']),
+])
+paid_timeoff_work_entry_type = self.env['hr.work.entry.type'].search([('code', '=', '016.00'), ('country_id.code', '=', 'BE')], limit=1)
+
+warning_records = self.env['hr.leave']
+for leave in leaves:
+    existing_allocations = self.env['hr.work.entry.type'].with_context({'employee_id': leave.employee_id.id}).get_allocation_data_request(target_date=leave.date_from)
+    if any(allocation[3] == paid_timeoff_work_entry_type.id and allocation[1]['remaining_leaves'] for allocation in existing_allocations):
+        warning_records |= leave
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_nsso_immatriculation_date_not_set" model="hr.payroll.warning">
+            <field name="name">NSSO immatriculation date not set</field>
+            <field name="description">This date is needed to properly check first hires reduction</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="True"/>
+            <field name="display_on_model" eval="False"/>
+            <field name="button_name">Review Settings</field>
+            <field name="button_action" ref="hr_payroll.action_hr_payroll_configuration"/>
+            <field name="model_id" ref="base.model_res_company"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+company = self.env.company
+if company.country_id.code == 'BE' and not company.nsso_immatriculation_date:
+    warning_records = company
+    warning_count = 0
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_missing_salary_indexation_employees" model="hr.payroll.warning">
+            <field name="name">Missing Salary Indexation Employees</field>
+            <field name="description">Some employees are missing salary indexation for the current year.</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="True"/>
+            <field name="display_on_model" eval="False"/>
+            <field name="button_name">See Employees</field>
+            <field name="button_action" ref="l10n_be_hr_payroll_action_warning_missing_indexation_employee_list"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+belgian_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+indexation_date = date(date.today().year, 1, 1)
+rule_parameters = self.env['hr.rule.parameter']._get_parameter_from_code(
+    'l10n_be_legal_index', date=indexation_date, raise_if_not_found=False,
+)
+warning_records = self.env['hr.employee']
+if rule_parameters and belgian_companies:
+    versions = self.env['hr.version'].search([
+        ('company_id', 'in', belgian_companies.ids),
+        ('l10n_be_egov3_code', 'in', list(rule_parameters.keys())),
+        ('contract_date_start', '!=', False),
+        ('contract_date_start', '&lt;', indexation_date),
+        '|',
+            ('contract_date_end', '=', False),
+            ('contract_date_end', '&gt;=', indexation_date),
+    ])
+    employees = versions.employee_id
+    indexed_employees = employees.version_ids.filtered_domain([('date_version', '=', indexation_date)]).employee_id
+    warning_records = employees - indexed_employees
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_remaining_paid_time_off_to_postpone" model="hr.payroll.warning">
+            <field name="name">Days of Paid Time Off remaining</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">warning</field>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+december_payslips = records.filtered(lambda slip: slip.l10n_be_is_december)
+warning_records = self.env['hr.payslip']
+warning_details = defaultdict(list)
+
+if december_payslips:
+    employees = december_payslips.employee_id
+    reference_year = december_payslips[0].date_from.year
+    leaves_to_postpone_by_employee = self.env['hr.payroll.alloc.paid.leave']._get_paid_time_off_to_postpone_by_employee(
+        employees, reference_year
+    )
+
+    postponements = (
+        ('postpone_n1', 'PPTO1', [1, 0],
+        "%(days)s days of Paid time off remaining.\nThe employee was sick in december and couldn't take all paid time off. You can decide to postpone them for next year."),
+        ('postpone_n2', 'PPTO2', [0, 1],
+        "%(days)s days of Postponed off remaining.\nThe employee was sick during all this year and couldn't take the paid time off postponed from the previous year. You can decide to postpone them again to next year."),
+    )
+
+    for payslip in december_payslips:
+        employee = payslip.employee_id
+        leaves_to_postpone = leaves_to_postpone_by_employee[employee]
+
+        input_amounts = {'PPTO1': 0, 'PPTO2': 0}
+        for line in payslip.input_line_ids:
+            if line.code in input_amounts:
+                input_amounts[line.code] += line.amount
+
+        for postponement_type, input_code, action_ratio, message in postponements:
+            existing_amount = input_amounts[input_code]
+            remaining_days = max(0, leaves_to_postpone[postponement_type] - existing_amount)
+            if not remaining_days:
+                continue
+
+            warning_records |= payslip
+            warning_details[payslip].append({
+                'message': _get_payroll_translation(message, days=f"{remaining_days:g}"),
+                'level': 'warning',
+                'action_text': _get_payroll_translation("Postpone"),
+                'action': {
+                    'type': 'object',
+                    'name': 'action_postpone_paid_time_off',
+                    'args': json.dumps([remaining_days * ratio for ratio in action_ratio]),
+                },
+            })
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_paid_time_off_allocation" model="hr.payroll.warning">
+            <field name="name">Employees require paid time off allocation</field>
+            <field name="description">Without allocation they will not be able to take holiday in the Time Off application</field>
+            <field name="country_id" ref="base.be"/>
+            <field name="warning_color_class">info</field>
+            <field name="button_name">Review</field>
+            <field name="closing_on">end_of_year</field>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+belgian_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'BE')
+if belgian_companies:
+    reference_year = date.today().year
+    is_december_run_done = bool(self.env['hr.payslip.run'].search_count([
+        ('company_id', 'in', belgian_companies.ids),
+        ('date_start', '&lt;=', date(reference_year, 12, 31)),
+        ('date_end', '&gt;=', date(reference_year, 12, 1)),
+        ('state', 'in', ('02_close', '03_paid')),
+    ]))
+    if is_december_run_done:
+        wizard = self.env['hr.payroll.alloc.paid.leave'].new({ 'year': str(reference_year) })
+        warning_records = self.env['hr.employee']
+        for employee, data in wizard._get_allocation_data().items():
+            expected_allocation = data.get('expected_paid_time_off_to_allocate', 0)
+            already_allocated = data.get('already_allocated_paid_time_off', 0)
+            if float_compare(expected_allocation, already_allocated, precision_digits=2) != 0:
+                warning_records |= employee
+
+        if warning_records:
+            warning_title = _get_payroll_translation(
+                "Employees require paid time off allocation for %(year)s",
+                year=reference_year + 1
+            )
+            warning_action = self.env.ref('l10n_be_hr_payroll.allocating_paid_time_off_wizard_action')._get_action_dict()
+            warning_action['context'] = {'default_employee_ids': warning_records.ids}
+            </field>
+        </record>
+    </data>
+</odoo>
