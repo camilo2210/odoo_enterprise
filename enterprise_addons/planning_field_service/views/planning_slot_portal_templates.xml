@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="portal_my_home_menu_planning_field_service" name="Portal layout: planning field service menu entries" inherit_id="portal.portal_breadcrumbs">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="attributes">
+            <attribute name="t-if">not request.params.get('is_sign_report')</attribute>
+        </xpath>
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'field_service'" t-attf-class="breadcrumb-item #{'active ' if not intervention else ''}">
+                <a t-if="intervention" t-attf-href="/my/field-service?{{ keep_query() }}">Field Service</a>
+                <t t-else="">Field Service</t>
+            </li>
+            <li t-if="intervention and intervention_title" class="breadcrumb-item active">
+                <span t-out="intervention_title"/>
+            </li>
+        </xpath>
+    </template>
+
+    <template id="portal_my_field_service_report_list" name="Intervention reports">
+        <t t-call="portal.portal_layout" breadcrumbs_searchbar="True">
+            <t t-call="portal.portal_searchbar" breadcrumbs_searchbar="True" title.translate="Field Service"/>
+            <t t-if="not interventions">
+                <div class="alert alert-warning" role="alert">
+                    There are no intervention reports to review and sign.
+                </div>
+            </t>
+            <t t-if="interventions">
+                <t t-call="portal.portal_table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Technicians</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="interventions" t-as="intervention">
+                            <tr>
+                                <td class="text-start">
+                                    <a t-attf-href="#{default_url}/#{intervention.id}?access_token={{intervention.access_token}}">
+                                        <t t-out="format_datetime(intervention.start_datetime, dt_format='MMM d, YYYY')"/>
+                                    </a>
+                                </td>
+                                <td>
+                                    <t t-set="technicians" t-value="intervention.sudo().employee_ids"/>
+                                    <div t-if="technicians" class="flex-nowrap">
+                                        <img class="o_avatar rounded" t-attf-src="#{image_data_uri(technicians[:1].avatar_128)}" alt="Technician"/>
+                                        <span class="align-middle" t-att-title="'\n'.join(technicians.mapped('name'))">
+                                            <span t-field="technicians[:1].name"/><span t-if="len(technicians) &gt; 1" class="badge ms-1 rounded-pill bg-light"> +<span t-out="len(technicians) - 1"/></span>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span t-if="intervention.worksheet_signature">Signed</span>
+                                    <span t-else="">To Review</span>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="portal_my_field_service_report_form" name="Field Service Report" inherit_id="portal.portal_sidebar" primary="True">
+        <xpath expr="//t[@t-call='portal.portal_layout']" position="before">
+            <t t-if="not request.params.get('is_sign_report')" t-set="o_portal_fullwidth_alert" groups="planning.group_planning_user">
+                <t t-call="portal.portal_back_in_edit_mode" backend_url="'/odoo/action-planning.planning_action_my_calendar/%s' % (intervention.id)"/>
+            </t>
+        </xpath>
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <div class="row o_project_portal_sidebar">
+                <t t-set="entries">
+                    <div class="d-flex flex-wrap flex-column gap-4">
+                        <div id="intervention-buttons" class="d-flex flex-column gap-2">
+                            <a t-if="not intervention.worksheet_signature" role="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalaccept" href="#">
+                                <i class="oi" data-icon="check"/>
+                                Sign Report
+                            </a>
+                            <a t-if="request.params.get('is_sign_report')" type="button" t-attf-class="btn {{ 'btn-primary' if intervention.worksheet_signature else 'btn-light' }}" t-attf-href="/odoo/action-planning.planning_action_my_calendar/#{intervention.id}">
+                                <i class="oi me-1" data-icon="arrow_back"/>
+                                Back to Shift
+                            </a>
+                            <a t-if="not request.params.get('is_sign_report')" class="btn btn-light o_print_btn o_planning_field_service_print" t-att-href="intervention.get_portal_url(report_type='pdf')" href="#" title="Print" role="button" target="_blank">
+                                <i class="oi" data-icon="print"/>
+                                Print
+                            </a>
+                        </div>
+                        <div id="intervention-nav" class="d-flex align-items-center flex-grow-1 p-0" t-ignore="true" role="complementary">
+                            <ul class="nav flex-column">
+                                <t id="intervention-nav-equipment"/>
+                                <t id="intervention-nav-worksheet"/>
+                                <t id="intervention-nav-photo"/>
+                                <t id="intervention-nav-time-material"/>
+                                <t id="intervention-nav-ts"/>
+                                <li class="nav-item" id="nav-chat">
+                                    <a class="nav-link p-0" href="#intervention_chat">
+                                        History
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div id="intervention-links" t-if="intervention_link_section" class="d-flex align-items-center flex-grow-1 ps-0" t-ignore="true" role="complementary">
+                            <ul class="nav flex-column">
+                                <t t-foreach="intervention_link_section" t-as="intervention_link">
+                                    <li class="nav-item">
+                                        <a class="nav-link p-0" t-att-href="intervention_link['access_url']" t-att-target="intervention_link.get('target', '_self')">
+                                            <t t-out="intervention_link['title']"/>
+                                        </a>
+                                    </li>
+                                </t>
+                            </ul>
+                        </div>
+
+                        <t t-set="technicians" t-value="intervention.employee_ids"/>
+                        <div t-if="technicians or intervention.partner_id" class="d-flex flex-column gap-4 mt-3">
+                            <div t-if="technicians">
+                                <h6 class="flex-basis-100"><small class="text-muted">Technicians</small></h6>
+                                <t t-foreach="technicians" t-as="employee">
+                                    <t t-call="portal.portal_my_contact"
+                                        _contact_no_card="True"
+                                        _spacing_class="'mb-3' if len(intervention.employee_ids) > 1 else ''"
+                                        _contact_avatar="image_data_uri(employee.avatar_128)"
+                                        _contact_name="employee.name">
+                                        <div t-out="employee.work_contact_id" t-options='{"widget": "contact", "fields": ["phone", "email"]}'/>
+                                    </t>
+                                </t>
+                            </div>
+                            <div class="col-12 d-flex flex-column" t-if="intervention.partner_id">
+                                <h6><small class="text-muted">Customer</small></h6>
+                                <t t-if="intervention.partner_id">
+                                    <t t-call="portal.portal_my_contact"
+                                        _contact_no_card="True"
+                                        _contact_avatar="image_data_uri(intervention.partner_id.avatar_128)"
+                                        _contact_name="intervention.partner_id.display_name">
+                                        <div t-field="intervention.partner_id" t-options='{"widget": "contact", "fields": ["phone", "email", "address"]}'/>
+                                    </t>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+                <t t-call="portal.portal_record_sidebar"
+                    classes.f="col-lg-4 col-xxl-3 d-print-none"
+                    entries="entries"/>
+                <div id="intervention_content" class="o_portal_content col-12 col-lg-8 col-xxl-9">
+                    <div id="card">
+                        <div id="card_header" data-anchor="true">
+                            <div class="row justify-content-between mb-3">
+                                <div class="col-12 col-md-9">
+                                    <div class="d-flex gap-2">
+                                        <h2 class="my-0">
+                                            <span t-out="intervention_title"/>
+                                        </h2>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="card_body">
+                            <!-- overridden by the various planning_field_service_* bridge modules -->
+                            <div id="intervention_equipment" class="container" t-if="false"/>
+                            <div id="intervention_worksheet" class="container" t-if="false"/>
+                            <div id="intervention_photo" class="container" t-if="false"/>
+                            <div id="intervention_time_material" class="container" t-if="false"/>
+                            <div id="intervention_ts" class="container" t-if="false"/>
+                            <div
+                                name="worksheet_signature"
+                                t-if="intervention.worksheet_signature"
+                                t-attf-class="{{ 'col-12 col-lg-3' if report_type != 'html' else 'col-sm-7 col-md-4' }} ms-auto text-end"
+                                style="page-break-inside: avoid"
+                            >
+                                <h5>Signature</h5>
+                                <img t-att-src="image_data_uri(intervention.worksheet_signature)" style="max-height: 6rem; max-width: 100%; color:black;"/><br/>
+                                <span t-field="intervention.worksheet_signed_by"/>
+                            </div>
+                        </div>
+                    </div>
+                    <hr/>
+                    <div id="intervention_chat" data-anchor="true">
+                        <t t-call="portal.message_thread"></t>
+                    </div>
+                    <!-- modal relative to the sign action -->
+                    <div role="dialog" class="modal fade" id="modalaccept">
+                        <div class="modal-dialog" t-if="not intervention.worksheet_signature">
+                            <form id="accept" method="POST" t-att-data-task-id="intervention.id" t-att-data-token="intervention.access_token" class="js_accept_json modal-content js_website_submit_form">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <header class="modal-header">
+                                    <h4 class="modal-title">Sign Field Service Report</h4>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </header>
+                                <main class="modal-body" id="sign-dialog">
+                                    <t t-call="portal.signature_form"
+                                        call_url="intervention.get_portal_url(suffix='/sign')"
+                                        default_name="intervention.partner_id.name"
+                                        font_color.f="black"
+                                        send_label.translate="Sign Report"/>
+                                </main>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>

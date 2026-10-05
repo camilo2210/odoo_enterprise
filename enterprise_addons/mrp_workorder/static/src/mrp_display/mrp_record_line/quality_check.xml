@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="mrp_workorder.QualityCheck">
+        <li class="o_mrp_record_line list-group-item d-flex justify-content-between align-items-center gap-3 border-0 cursor-pointer"
+            t-on-click="this.onClick">
+            <span class="o_line_label text-wrap text-break"
+                  t-att-class="this.isComplete ? 'text-decoration-line-through opacity-25' : ''"
+                  t-out="this.label"/>
+            <div class="d-flex align-items-center gap-1 mb-auto">
+                <!-- TODO: separate unit and qty in showQty -->
+                <span t-if="this.showQty" t-out="this.showQty" class="o_line_value fw-bold text-end"/>
+                <button t-if="this.hasInstruction" t-on-click.stop="this.showWorksheet" class="o_btn_icon btn btn-outline-secondary">
+                    <i class="oi" data-icon="info" role="img"/>
+                </button>
+                <button class="o_btn_icon btn" t-att-class="{'p-0' : this.showImage}"
+                        t-attf-class="{{this.isActive ? this.activeClass : 'btn-outline-secondary'}}"
+                        t-att-barcode_trigger="this.isActive ? this.barcode : false"
+                        t-att-style="this.showImage ? `background: url(${this.imageUrl}) no-repeat center/contain;` : ''">
+                    <i t-if="!this.showImage" class="oi" t-att-class="this.iconClass" t-att-data-icon="this.icon"/>
+                </button>
+            </div>
+        </li>
+        <FileUploader t-if="this.props.record.data.test_type === 'picture'"
+                      acceptedFileExtensions="'image/*'"
+                      t-key="this.props.record.resId"
+                      onUploaded.bind="this.onFileUploaded">
+            <t t-set-slot="toggler"><span t-ref="this.fileUploaderToggleRef" class="d-none"/></t>
+        </FileUploader>
+    </t>
+</templates>

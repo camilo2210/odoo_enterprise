@@ -1,0 +1,42 @@
+<odoo>
+    <data>
+        <record id="ksa_saudi_employee_payroll_structure_latetime_amount" model="hr.salary.rule">
+            <field name="name">Latetime in hours</field>
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_sa_hr_payroll.l10n_sa_category_property_input')])]"/>
+            <field name="code">LATE_HOURS</field>
+            <field name="sequence">0</field>
+            <field name="condition_select">property_input</field>
+            <field name="amount_select">property_input</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="input_section" ref="hr_payroll.default_salary_rule_section"/>
+            <field name="input_usage_employee" eval="False"/>
+            <field name="input_default_value" eval="0.0"/>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="appears_on_payslip">never</field>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+
+        <record id="ksa_saudi_employee_payroll_structure_latetime_deduction" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+            <field name="name">Late Hours Deduction</field>
+            <field name="sequence">198</field>
+            <field name="code">LATE_DEDUCTION</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = (inputs['LATE_HOURS'].amount if 'LATE_HOURS' in inputs else 0.0)</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result_qty = (inputs['LATE_HOURS'].amount if 'LATE_HOURS' in inputs else 0.0)
+if version.wage_type == 'hourly':
+    result = -1 * version.hourly_wage
+base_amount = version.wage / total_number_of_days / version.resource_calendar_id.hours_per_day
+result = -1 * base_amount
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_sa_hr_payroll.ksa_saudi_employee_payroll_structure'),
+            ])]"/>
+            <field name="country_id" ref="base.sa"/>
+        </record>
+    </data>
+</odoo>

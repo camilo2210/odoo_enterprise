@@ -1,0 +1,14 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+{
+    'name': "CRM in marketing automation",
+    'summary': "CRM in marketing automation",
+    'category': "CRM in marketing automation",
+    'depends': [
+        'marketing_automation',
+        'crm'
+    ],
+    'auto_install': True,
+    'author': 'Odoo S.A.',
+    'license': 'OEEL-1',
+}

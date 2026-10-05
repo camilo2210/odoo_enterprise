@@ -1,0 +1,31 @@
+<?xml version ="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="planning_field_service.MapTimelineView" t-inherit="web_map.MapView">
+        <xpath expr="//t[@t-component='this.props.Renderer']" position="replace">
+            <t t-set-slot="default" t-slot-scope="layout">
+                <div class="d-flex flex-column overflow-hidden h-100" t-ref="this.resizeContainerRef">
+                    <div class="o_map_timeline_map_pane overflow-hidden position-relative" t-att-class="this.activeDateFilterFocusDate ? '' : 'h-100 mh-100'" t-ref="this.mapPaneRef">
+                        <t t-component="this.props.Renderer" t-props="this.rendererProps"/>
+                    </div>
+                    <t t-if="this.activeDateFilterFocusDate">
+                        <div class="o_map_timeline_resize w-100 h-0">
+                            <span class="position-absolute w-100" style="height: 10px; cursor: row-resize;"/>
+                        </div>
+                        <div class="o_map_timeline_gantt_pane d-flex overflow-hidden" t-ref="this.ganttContainerRef"/>
+                        <Portal target="this.ganttContainerRef">
+                            <MapTimelineGanttController t-props="this.ganttProps" contentRef="layout.contentRef"/>
+                        </Portal>
+                    </t>
+                </div>
+            </t>
+        </xpath>
+    </t>
+
+    <t t-name="planning_field_service.MapTimelineView.Buttons" t-inherit="web_map.MapView.Buttons">
+        <xpath expr="//button[hasclass('o_map_button_add')]" position="attributes">
+            <attribute name="t-on-click">() => this.createRecord()</attribute>
+        </xpath>
+    </t>
+
+</templates>

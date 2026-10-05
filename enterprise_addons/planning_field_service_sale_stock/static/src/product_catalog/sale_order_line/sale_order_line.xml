@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="planning_field_service_sale_stock.ProductCatalogSaleOrderLine" t-inherit="product.ProductCatalogOrderLine" t-inherit-mode="primary">
+        <!-- check if we could avoid replace here -->
+        <xpath expr="//input[@name='product_catalog_quantity_input']" position="replace">
+            <input t-if="!this.fsmProps.tracking or !this.env.intervention_id"
+                   class="form-control text-bg-view flex-grow-0 text-center"
+                   type="number"
+                   t-att-value="this.quantity"
+                   t-on-change="this.env.setQuantity"
+            />
+            <button t-else=""
+                    class="o_input form-control border text-center text-bg-light"
+                    t-on-click.stop="(ev) => this.env.increaseQuantity()"
+                    t-out="this.quantity"
+            >
+            </button>
+        </xpath>
+        <xpath expr="//div[hasclass('o_product_catalog_buttons')]" position="before">
+            <button t-if="this.fsmProps.tracking and this.props.quantity != 0 and this.env.intervention_id"
+                    class="btn align-self-end o_product_catalog_cancel_global_click"
+                    type="object" t-on-click="this.env.resetQuantity">
+                <i class="oi text-success" data-icon="format_list_bulleted" title="Lot/Serial number"></i>
+            </button>
+        </xpath>
+    </t>
+
+</templates>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="worksheet_template_properties_display" inherit_id="worksheet.worksheet_template_properties_display" primary="True">
+        <xpath expr="//h2" position="replace">
+            <h3>Worksheet</h3>
+        </xpath>
+    </template>
+
+    <template id="portal_my_field_service_report_form" inherit_id="planning_field_service.portal_my_field_service_report_form">
+        <xpath expr="//t[@id='intervention-nav-worksheet']" position="replace">
+            <li t-if="show_portal_worksheet" class="nav-item">
+                <a class="nav-link p-0" href="#intervention_worksheet">Worksheet</a>
+            </li>
+        </xpath>
+        <xpath expr="//t[@id='intervention-nav-photo']" position="replace">
+            <li class="nav-item" id="nav-header" t-if="intervention.photo_ids">
+                <a class="nav-link p-0" href="#intervention_photos">
+                    Photos
+                </a>
+            </li>
+        </xpath>
+        <xpath expr="//div[@id='intervention_worksheet']" position="attributes">
+            <attribute name="t-if">show_portal_worksheet</attribute>
+        </xpath>
+        <xpath expr="//div[@id='intervention_worksheet']" position="inside">
+            <t t-set="doc" t-value="intervention"/>
+            <t t-if="show_portal_worksheet" t-call="planning_field_service_worksheet.planning_slot_worksheet_properties_display" props_formatted="doc._get_props_formatted(readonly=True)"/>
+        </xpath>
+        <xpath expr="//div[@id='intervention_photo']" position="replace">
+            <div id="intervention_photos" class="row mt-3" t-if="intervention.photo_ids">
+                <div t-if="intervention.photo_ids" class="o_project_portal_attachments">
+                    <h3 class="mt-2 mb-2">Photos</h3>
+                    <hr class="mt-1 mb-2"/>
+                    <div class="row">
+                        <t t-foreach="intervention.photo_ids" t-as="attachment">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li class="oe_attachments">
+                                        <a t-attf-href="/web/content/#{attachment.id}?download=true&amp;access_token=#{attachment.access_token}"
+                                        target="_blank" data-no-post-process="" class="d-flex align-items-center rounded bg-light p-2">
+                                            <div class='oe_attachment_embedded o_image o_image_small me-2 me-lg-3'
+                                                t-att-title="attachment.name" t-att-data-mimetype="attachment.mimetype"
+                                                t-attf-data-src="/web/image/#{attachment.id}/50x40?access_token=#{attachment.access_token}">
+                                            </div>
+                                            <div class='oe_attachment_name text-truncate'><t t-out='attachment.name'/></div>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>

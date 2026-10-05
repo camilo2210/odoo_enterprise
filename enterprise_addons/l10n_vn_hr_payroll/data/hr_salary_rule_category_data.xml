@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Bases: carried by the paid time types and by every rule feeding them -->
+    <record id="VN_REMUNERATION_BASE" model="hr.salary.rule.category">
+        <field name="name">Remuneration Base</field>
+        <field name="code">VN_REMUNERATION_BASE</field>
+        <field name="country_id" ref="base.vn"/>
+        <field name="note">Basic category to compute the net salary: the paid time types and every amount paid to or withheld from the employee.</field>
+    </record>
+
+    <record id="VN_SI_BASE" model="hr.salary.rule.category">
+        <field name="name">Compulsory Insurance Base</field>
+        <field name="code">VN_SI_BASE</field>
+        <field name="country_id" ref="base.vn"/>
+        <field name="note">Monthly wage of the labour contract forming the compulsory insurance contribution wage: the paid time types, the wage allowances and the fixed supplements agreed in the contract (Decree 158/2025/ND-CP, Art. 7). The floor and the ceilings are applied by the contribution rules.</field>
+    </record>
+
+    <record id="VN_PIT_TAXABLE" model="hr.salary.rule.category">
+        <field name="name">PIT Taxable Income</field>
+        <field name="code">VN_PIT_TAXABLE</field>
+        <field name="country_id" ref="base.vn"/>
+        <field name="note">Employment income subject to personal income tax: the paid time types and the taxable rules. Partially exempt items (meal allowance, overtime before 2026, housing benefit...) only bring their taxable portion through dedicated rules.</field>
+    </record>
+
+    <record id="VN_PIT_DEDUCTION" model="hr.salary.rule.category">
+        <field name="name">PIT Deductions</field>
+        <field name="code">VN_PIT_DEDUCTION</field>
+        <field name="country_id" ref="base.vn"/>
+        <field name="note">Personal, dependant, voluntary pension and charitable deductions reducing the taxable income into the assessable income of resident employees.</field>
+    </record>
+
+    <record id="VN_OVERTIME" model="hr.salary.rule.category">
+        <field name="name">Overtime and Night Work</field>
+        <field name="code">VN_OVERTIME</field>
+        <field name="country_id" ref="base.vn"/>
+        <field name="note">Overtime and night work pay, exempt from personal income tax for residents (fully from the 2026 tax period, the premium only before).</field>
+    </record>
+
+    <record id="VN_INSURANCE_EMP" model="hr.salary.rule.category">
+        <field name="name">Compulsory Insurance (Employee)</field>
+        <field name="code">VN_INSURANCE_EMP</field>
+        <field name="country_id" ref="base.vn"/>
+        <field name="parent_id" ref="hr_payroll.DED"/>
+        <field name="note">Social, health and unemployment insurance contributions withheld from the employee, deducted from the taxable income.</field>
+    </record>
+
+    <!-- Premium Pays: options on the time entries deciding the overtime and night work rates -->
+    <record id="VN_PREMIUM_PAY_NIGHT" model="hr.salary.rule.category">
+        <field name="name">Night Work (22:00 - 06:00)</field>
+        <field name="code">VN_PREMIUM_PAY_NIGHT</field>
+        <field name="country_id" ref="base.vn"/>
+        <field name="is_premium_pay" eval="True"/>
+        <field name="optional_on_work_entry_type_ids" eval="[
+            (4, ref('hr_work_entry.vn_work_entry_type_attendance')),
+            (4, ref('hr_work_entry.vn_work_entry_type_overtime')),
+        ]"/>
+        <field name="note">Hours worked between 22:00 and 06:00 are paid an additional 30% of the hourly wage (Labour Code, Art. 98(2)). Overtime at night earns a further 20% (Art. 98(3)).</field>
+    </record>
+
+    <record id="VN_PREMIUM_PAY_WEEKLY_REST" model="hr.salary.rule.category">
+        <field name="name">Weekly Rest Day</field>
+        <field name="code">VN_PREMIUM_PAY_WEEKLY_REST</field>
+        <field name="country_id" ref="base.vn"/>
+        <field name="is_premium_pay" eval="True"/>
+        <field name="optional_on_work_entry_type_ids" eval="[(4, ref('hr_work_entry.vn_work_entry_type_overtime'))]"/>
+        <field name="note">Overtime on a weekly rest day is paid at least 200% of the hourly wage (Labour Code, Art. 98(1)(b)).</field>
+    </record>
+
+    <record id="VN_PREMIUM_PAY_PUBLIC_HOLIDAY" model="hr.salary.rule.category">
+        <field name="name">Public Holiday or Paid Leave Day</field>
+        <field name="code">VN_PREMIUM_PAY_PUBLIC_HOLIDAY</field>
+        <field name="country_id" ref="base.vn"/>
+        <field name="is_premium_pay" eval="True"/>
+        <field name="optional_on_work_entry_type_ids" eval="[(4, ref('hr_work_entry.vn_work_entry_type_overtime'))]"/>
+        <field name="note">Overtime on a public holiday or a paid leave day is paid at least 300% of the hourly wage, on top of the pay of the day itself (Labour Code, Art. 98(1)(c)).</field>
+    </record>
+</odoo>

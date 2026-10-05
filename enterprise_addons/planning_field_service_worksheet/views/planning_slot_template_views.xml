@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="planning_slot_template_view_form" model="ir.ui.view">
+        <field name="name">planning.slot.template.form</field>
+        <field name="model">planning.slot.template</field>
+        <field name="inherit_id" ref="planning.planning_slot_template_view_form"/>
+        <field name="priority" eval="20"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='role_id']" position="after">
+                <field
+                    name="worksheet_template_id"
+                    context="{'default_res_model': 'planning.slot'}"
+                    options="{'no_quick_create': True}"
+                    groups="planning.group_planning_manager"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_slot_template_view_tree" model="ir.ui.view">
+        <field name="name">planning.slot.template.list</field>
+        <field name="model">planning.slot.template</field>
+        <field name="inherit_id" ref="planning.planning_slot_template_view_tree"/>
+        <field name="priority" eval="20"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='company_id']" position="after">
+                <field
+                    name="worksheet_template_id"
+                    context="{'default_res_model': 'planning.slot'}"
+                    options="{'no_quick_create': True}"
+                    optional="show"
+                    groups="planning.group_planning_manager"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_slot_template_view_kanban" model="ir.ui.view">
+        <field name="name">planning.slot.template.view.kanban</field>
+        <field name="model">planning.slot.template</field>
+        <field name="inherit_id" ref="planning.planning_slot_template_view_kanban"/>
+        <field name="priority" eval="20"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='role']" position="after">
+                <div t-if="record.worksheet_template_id.raw_value" name="worksheet" title="Worksheet" groups="planning.group_planning_manager">
+                    <i class="oi px-1 mt-1" data-icon="build"/>
+                    <field name="worksheet_template_id"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_slot_template_view_search" model="ir.ui.view">
+        <field name="name">planning.slot.template.view.search</field>
+        <field name="model">planning.slot.template</field>
+        <field name="inherit_id" ref="planning.planning_slot_template_view_search"/>
+        <field name="priority" eval="20"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='role_id']" position="after">
+                <field name="worksheet_template_id" groups="planning.group_planning_manager"/>
+            </xpath>
+            <xpath expr="//filter[@name='group_by_role']" position="after">
+                <filter name="group_by_worksheet_template" string="Worksheet" context="{'group_by': 'worksheet_template_id'}" groups="planning.group_planning_manager"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

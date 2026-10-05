@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Shown instead of the invoice request form for an order already reported to DGI as an
+         e-Ticket: same recap as that screen, handing over the CFE rather than invoicing the sale
+         a second time. -->
+    <template id="ticket_cfe_screen">
+        <t t-call="portal.portal_layout" no_breadcrumbs="True">
+            <div class="row justify-content-md-center">
+                <div class="col-12 col-md-6 mt-4">
+                    <h2>Your fiscal document</h2>
+                    <hr class="mt-1 mb-0"/>
+                    <h4 class="mt-2" t-out="pos_order.pos_reference"/>
+                    <div>
+                        <strong>Amounting to:</strong>
+                        <t t-out="format_amount(env, pos_order.amount_total, pos_order.currency_id)"/>
+                    </div>
+                    <div t-if="pdf_url">
+                        <div class="mt-2">
+                            <strong t-out="pos_order.l10n_uy_edi_document_id.l10n_latam_document_type_id.display_name"/>
+                            <t t-out="pos_order.l10n_uy_edi_document_number"/>
+                        </div>
+                        <a class="btn btn-primary mt-4" t-att-href="pdf_url">
+                            <i class="oi oi-fw" data-icon="download"/>Download
+                        </a>
+                    </div>
+                    <div t-else="" class="alert alert-info mt-4" role="status">
+                        The printable version of this sale is not available yet.
+                        Please try again later or contact the shop.
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>

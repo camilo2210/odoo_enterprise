@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_picking_form_inherit_l10n_tr_nilvera_edispatch_quality" model="ir.ui.view">
+        <field name="name">view.picking.form.inherit.l10n.tr.nilvera.edispatch.quality</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="l10n_tr_nilvera_edispatch.view_picking_form_inherit_l10n_tr_nilvera_edispatch"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_l10n_tr_send_dispatch_response"
+                        type="object"
+                        class="btn-primary"
+                        string="Send Dispatch Response"
+                        invisible="not l10n_tr_nilvera_response_ready"/>
+            </xpath>
+            <xpath expr="//div[@name='nilvera_div']" position="after">
+                <label for="l10n_tr_nilvera_response_status"
+                       invisible="country_code != 'TR' or (picking_type_code == 'incoming' and l10n_tr_nilvera_response_status == 'not_sent') or (picking_type_code != 'incoming' and l10n_tr_nilvera_send_status != 'succeed')"/>
+                <div name="nilvera_response_div"
+                     class="o_row o_align_center"
+                     invisible="country_code != 'TR' or (picking_type_code == 'incoming' and l10n_tr_nilvera_response_status == 'not_sent') or (picking_type_code != 'incoming' and l10n_tr_nilvera_send_status != 'succeed')">
+                    <div class="d-flex align-items-center gap-2">
+                        <field name="l10n_tr_nilvera_response_status" class="w-auto"/>
+                        <button name="action_l10n_tr_nilvera_get_response_status"
+                                type="object"
+                                class="o_icon_button text-primary"
+                                invisible="l10n_tr_nilvera_response_status not in ['not_sent', 'sent', 'unknown', 'waiting', 'error']"
+                                title="Synchronize with Nilvera"
+                                icon="refresh"/>
+                    </div>
+                </div>
+            </xpath>
+            <xpath expr="//page[@name='l10n_tr_edispatch']//field[@name='l10n_tr_nilvera_edispatch_xml_id']" position="after">
+                <field name="l10n_tr_nilvera_response_serial"
+                       invisible="not l10n_tr_nilvera_response_serial"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+   <template id="eco_changes">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="eco">
+
+                <t t-if="report_type == 'pdf'">
+                    <t t-call="web.internal_layout">
+                        <t t-call="mrp_plm.eco_changes_page_content"/>
+                    </t>
+                </t>
+                <t t-else="">
+                    <t t-call="web.basic_layout">
+                        <t t-call="mrp_plm.eco_changes_page_content"/>
+                    </t>
+                </t>
+
+                <p t-if="not eco_last" style="page-break-before:always;"/>
+            </t>
+        </t>
+    </template>
+
+    <template id="eco_changes_page_content">
+        <div class="page o_eco_changes_report container-fluid">
+            <div class="my-4 ps-2">
+                <h1 class="fw-bold mt-0 mb-1 fs-5">
+                    ECO Changes Summary
+                </h1>
+                <h2 class="text-muted mb-0 fs-6">
+                    <span t-field="eco.name"/>
+                </h2>
+            </div>
+            <t t-set="ctx" t-value="eco_contexts[eco.id]"/>
+            <t t-call="mrp_plm.eco_changes_body"/>
+        </div>
+    </template>
+
+    <template id="eco_changes_body">
+        <t t-set="d_desc" t-value="ctx.get('display_description')"/>
+        <table class="table table-borderless">
+            <t t-if="eco.bom_change_ids_on_line">
+                <t t-call="mrp_plm.eco_changes_components"/>
+            </t>
+            <t t-if="eco.bom_change_ids_on_byproduct">
+                <t t-call="mrp_plm.eco_changes_byproducts"/>
+            </t>
+            <t t-if="eco.routing_change_ids">
+                <t t-call="mrp_plm.eco_changes_operations"/>
+            </t>
+
+            <tr class="border-bottom-0">
+                <t t-set="total_cost" t-value="eco.total_cost"/>
+                <t t-set="total_class" t-value="'text-success' if total_cost &lt; 0 else 'text-danger' if total_cost &gt; 0 else ''"/>
+                <td t-att-colspan="3 + (1 if d_desc else 0)"/>
+                <td class="text-end">
+                    <strong t-att-class="total_class">
+                        <t t-if="total_cost &gt; 0">+ <span t-out="total_cost" t-options="{'widget': 'monetary', 'display_currency': eco.currency_id}"/></t>
+                        <t t-elif="total_cost &lt; 0">- <span t-out="abs(total_cost)" t-options="{'widget': 'monetary', 'display_currency': eco.currency_id}"/></t>
+                        <t t-else=""><span t-out="total_cost" t-options="{'widget': 'monetary', 'display_currency': eco.currency_id}"/></t>
+                    </strong>
+                </td>
+            </tr>
+        </table>
+    </template>
+
+    <template id="eco_changes_components">
+        <tr class="border-bottom">
+            <th>Type</th>
+            <th>Components</th>
+            <th t-if="d_desc" class="text-center">Description</th>
+            <th class="text-end">Quantity</th>
+            <th class="text-end">BoM Cost</th>
+        </tr>
+        <tbody>
+            <t t-foreach="eco.bom_change_ids_on_line" t-as="line">
+                <t t-set="line_class" t-value="'text-danger' if line.change_type == 'remove' else 'text-success' if line.change_type == 'add' else 'text-info' if line.change_type == 'update' else ''"/>
+                <tr>
+                    <td class="text-capitalize" t-out="line.change_type"/>
+                    <td t-att-class="line_class">
+                        <a t-if="report_type == 'html'" t-att-class="line_class" target="_blank" t-attf-href="/web#id=#{line.product_id.id}&amp;view_type=form&amp;model=product.product" t-out="line.product_id.display_name"/>
+                        <t t-else="" t-out="line.product_id.display_name"/>
+                    </td>
+                    <td t-if="d_desc" class="text-center"><t t-out="line.description or ''"/></td>
+                    <td class="text-end">
+                        <t t-if="line.upd_product_qty">
+                            <span t-if="line.upd_product_qty &gt; 0">+</span><t t-out="'%g' % line.upd_product_qty"/>
+                            <t t-set="uom_display" t-value="('%s -&gt; %s' % (line.old_uom_id.name, line.new_uom_id.name)) if (line.old_uom_id and line.new_uom_id and line.old_uom_id != line.new_uom_id) else (line.new_uom_id.name if line.new_uom_id else (line.old_uom_id.name if line.old_uom_id else ''))"/>
+                            <t t-if="ctx.get('show_uom') and uom_display"> <t t-out="uom_display"/></t>
+                        </t>
+                    </td>
+                    <td class="text-end">
+                        <t t-if="line.cost_computed &gt; 0">+ <span t-out="line.cost_computed" t-options="{'widget': 'monetary', 'display_currency': eco.currency_id}"/></t>
+                        <t t-elif="line.cost_computed &lt; 0">- <span t-out="abs(line.cost_computed)" t-options="{'widget': 'monetary', 'display_currency': eco.currency_id}"/></t>
+                    </td>
+                </tr>
+            </t>
+        </tbody>
+    </template>
+
+    <template id="eco_changes_byproducts">
+        <tr class="border-bottom">
+            <th><t t-if="not eco.bom_change_ids_on_line">Type</t></th>
+            <th>By-Products</th>
+            <th t-if="d_desc" class="text-center"><t t-if="not eco.bom_change_ids_on_line">Description</t></th>
+            <th class="text-end"><t t-if="not eco.bom_change_ids_on_line">Quantity</t></th>
+            <th class="text-end"><t t-if="not eco.bom_change_ids_on_line">BoM Cost</t></th>
+        </tr>
+        <tbody>
+            <t t-foreach="eco.bom_change_ids_on_byproduct" t-as="line">
+                <t t-set="line_class" t-value="'text-danger' if line.change_type == 'remove' else 'text-success' if line.change_type == 'add' else 'text-info' if line.change_type == 'update' else ''"/>
+                <tr>
+                    <td class="text-capitalize" t-out="line.change_type"/>
+                    <td t-att-class="line_class">
+                        <a t-if="report_type == 'html'" t-att-class="line_class" target="_blank" t-attf-href="/web#id=#{line.product_id.id}&amp;view_type=form&amp;model=product.product" t-out="line.product_id.display_name"/>
+                        <t t-else="" t-out="line.product_id.display_name"/>
+                    </td>
+                    <td t-if="d_desc" class="text-center"><t t-out="line.description or ''"/></td>
+                    <td class="text-end">
+                        <t t-if="line.upd_product_qty">
+                            <span t-if="line.upd_product_qty &gt; 0">+</span><t t-out="'%g' % line.upd_product_qty"/>
+                            <t t-set="uom_display" t-value="('%s -&gt; %s' % (line.old_uom_id.name, line.new_uom_id.name)) if (line.old_uom_id and line.new_uom_id and line.old_uom_id != line.new_uom_id) else (line.new_uom_id.name if line.new_uom_id else (line.old_uom_id.name if line.old_uom_id else ''))"/>
+                            <t t-if="ctx.get('show_uom') and uom_display"> <t t-out="uom_display"/></t>
+                        </t>
+                    </td>
+                    <td class="text-end">
+                        <t t-if="line.cost_computed &gt; 0">+ <span t-out="line.cost_computed" t-options="{'widget': 'monetary', 'display_currency': eco.currency_id}"/></t>
+                        <t t-elif="line.cost_computed &lt; 0">- <span t-out="abs(line.cost_computed)" t-options="{'widget': 'monetary', 'display_currency': eco.currency_id}"/></t>
+                    </td>
+                </tr>
+            </t>
+        </tbody>
+    </template>
+
+    <template id="eco_changes_operations">
+        <tr class="border-bottom">
+            <th><t t-if="not eco.bom_change_ids">Type</t></th>
+            <th>Operations</th>
+            <th t-if="d_desc" class="text-center"><t t-if="not eco.bom_change_ids">Description</t></th>
+            <th class="text-end">Duration</th>
+            <th class="text-end"><t t-if="not eco.bom_change_ids">BoM Cost</t></th>
+        </tr>
+        <tbody>
+            <t t-foreach="eco.routing_change_ids" t-as="line">
+                <t t-set="line_class" t-value="'text-danger' if line.change_type == 'remove' else 'text-success' if line.change_type == 'add' else 'text-info' if line.change_type == 'update' else ''"/>
+                <tr>
+                    <td class="text-capitalize" t-if="line.change_type" t-out="line.change_type"/>
+                    <td t-if="not line.change_type"/>
+                    <td t-att-class="line_class">
+                        <a t-if="report_type == 'html'" t-att-class="line_class" target="_blank" t-attf-href="/web#id=#{line.operation_id.id}&amp;view_type=form&amp;model=mrp.routing.workcenter">
+                            <t t-out="line.operation_name"/> - <t t-out="line.workcenter_id.display_name"/>
+                        </a>
+                        <t t-else=""><t t-out="line.operation_name"/> - <t t-out="line.workcenter_id.display_name"/></t>
+                    </td>
+                    <td t-if="d_desc" class="text-center">
+                        <a t-if="report_type == 'html' and line.description_reference" target="_blank"
+                           t-attf-href="/web#id=#{line.description_reference.id}&amp;view_type=form&amp;model=#{line.description_reference._name}"
+                           t-out="line.description"/>
+                        <t t-else="" t-out="line.description"/>
+                    </td>
+                    <td class="text-end">
+                        <t t-if="line.upd_time_cycle_manual">
+                            <span t-if="line.change_type != 'add' and line.upd_time_cycle_manual &gt; 0">+</span><t t-out="'%g' % line.upd_time_cycle_manual"/> min
+                        </t>
+                    </td>
+                    <td class="text-end">
+                        <t t-if="line.cost_computed &gt; 0">+ <span t-out="line.cost_computed" t-options="{'widget': 'monetary', 'display_currency': eco.currency_id}"/></t>
+                        <t t-elif="line.cost_computed &lt; 0">- <span t-out="abs(line.cost_computed)" t-options="{'widget': 'monetary', 'display_currency': eco.currency_id}"/></t>
+                    </td>
+                </tr>
+            </t>
+        </tbody>
+    </template>
+</odoo>

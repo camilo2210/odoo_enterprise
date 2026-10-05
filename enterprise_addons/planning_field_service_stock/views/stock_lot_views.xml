@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_production_lot_form_inherit" model="ir.ui.view">
+        <field name="name">stock.production.lot.form.inherit</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_lot_open_transfers']" position="before">
+                <t groups="planning.group_field_service_allow_equipment">
+                    <button name="action_view_slots" groups="planning.group_planning_user" class="oe_stat_button"
+                        type="object" icon="checklist" invisible="not partner_ids or slots_count == 0">
+                        <div class="o_stat_info">
+                            <field name="slots_count" string="Shifts" widget="statinfo"/>
+                        </div>
+                    </button>
+                </t>
+            </xpath>
+            <xpath expr="//field[@name='partner_ids']" position="after">
+                <field name="delivery_date" invisible="not is_delivery_date_visible"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_production_lot_view_tree" model="ir.ui.view">
+        <field name="name">stock.production.lot.list.inherit.planning_field_service_stock</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_ids']" position="replace">
+                <field name="partner_ids"
+                    optional="show"
+                    widget="many2many_tags"
+                    string="Transfer to"
+                    groups="planning.group_field_service_allow_equipment"/>
+
+                <field name="partner_ids"
+                    optional="hide"
+                    widget="many2many_tags"
+                    string="Transfer to"
+                    groups="!planning.group_field_service_allow_equipment"/>
+            </xpath>
+            <xpath expr="//field[@name='create_date']" position="after">
+                <field name="delivery_date" invisible="not is_delivery_date_visible" optional="hide"
+                    groups="planning.group_field_service_allow_equipment"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_production_lot_view_kanban" model="ir.ui.view">
+        <field name="name">stock.production.lot.kanban.inherit.planning_field_service_stock</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_id']" position="after">
+                <div invisible="not is_delivery_date_visible">
+                    <label for="delivery_date">Delivery: </label>
+                    <field class="ms-2" name="delivery_date"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_production_lot_tree_equipment" model="ir.ui.view">
+        <field name="name">stock.lot.list.equipment</field>
+        <field name="model">stock.lot</field>
+        <field name="arch" type="xml">
+            <list string="Equipment">
+                <field name="product_id"/>
+                <field name="name"/>
+                <field name="ref" optional="hide"/>
+                <field name="create_date" optional="hide"/>
+                <field name="delivery_date" invisible="not is_delivery_date_visible" optional="show"/>
+                <field name="activity_ids" widget="list_activity" optional="hide"/>
+                <button name="action_view_slots" class="oe_link" type="object" string="View Shifts" invisible="slots_count &lt;= 1"/>
+            </list>
+        </field>
+    </record>
+</odoo>

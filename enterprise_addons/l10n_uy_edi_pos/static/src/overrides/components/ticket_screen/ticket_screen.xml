@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="point_of_sale.TicketScreen" t-inherit-mode="extension">
+        <xpath expr="//InvoiceButton" position="replace">
+            <t t-if="!this.pos.isUruguayanCompany()">$0</t>
+        </xpath>
+        <td name="info-column" position="before">
+            <t t-set="cfe_state" t-value="this.pos.isUruguayanCompany() ? this.l10nUyGetCfeState(order) : false"/>
+            <td t-if="cfe_state" class="align-middle text-end">
+                <div t-attf-class="badge rounded fs-6 text-bg-{{order.l10n_uy_edi_cfe_state === 'accepted' ? 'success' : order.l10n_uy_edi_cfe_state === 'received' ? 'info' : 'danger'}}"
+                     t-out="cfe_state"/>
+            </td>
+        </td>
+    </t>
+</templates>

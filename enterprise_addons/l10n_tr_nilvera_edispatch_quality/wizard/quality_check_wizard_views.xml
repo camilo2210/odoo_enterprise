@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="quality_check_wizard_view_form_inherit_l10n_tr_nilvera_edispatch_quality" model="ir.ui.view">
+        <field name="name">quality.check.wizard.view.form.inherit.l10n.tr.nilvera.edispatch.quality</field>
+        <field name="model">quality.check.wizard</field>
+        <field name="inherit_id" ref="quality_control.view_quality_check_wizard"/>
+        <field name="arch" type="xml">
+            <field name="additional_note" position="before">
+                <field name="l10n_tr_count_line_ids" invisible="test_type != 'unit_count'"
+                       readonly="quality_state != 'none'">
+                    <list editable="bottom" create="0" delete="0">
+                        <field name="response_line_id" column_invisible="True"/> <!-- Required on save -->
+                        <field name="product_id" readonly="1"/>
+                        <field name="product_uom_qty" readonly="1"/>
+                        <field name="uom_id" widget="many2one_uom" groups="uom.group_uom" readonly="1"/>
+                        <field name="received_qty"/>
+                        <field name="accepted_qty" readonly="1"/>
+                        <field name="rejected_qty"/>
+                        <field name="rejection_reason" required="rejected_qty &gt; 0"/>
+                        <field name="missing_qty"/>
+                        <field name="excess_qty"/>
+                    </list>
+                </field>
+            </field>
+            <xpath expr="//footer/button[@name='do_fail']" position="after">
+                <button name="do_pass" type="object" class="btn-success" string="Pass"
+                        invisible="quality_state != 'none' or test_type != 'unit_count'" data-hotkey="w"/>
+                <button name="do_fail" type="object" class="btn-danger" string="Fail"
+                        invisible="quality_state != 'none' or test_type != 'unit_count'" data-hotkey="k"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.planning</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="55"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Planning" string="Planning" name="planning" groups="planning.group_planning_manager">
+                    <block title="Planning" name="planning">
+                        <setting string="Shift Changes" help="Allow employees to request a replacement or remove themselves from shifts when they are unavailable">
+                            <span>Allow employees to:</span>
+                            <div class="mt4">
+                                <field name="planning_employee_unavailabilities" class="o_light_label" widget="radio" options="{'horizontal': true}" required="True"/>
+                            </div>
+                            <div invisible="planning_employee_unavailabilities == 'switch'">
+                                <br/>
+                                Employees can no longer remove themselves <field class="oe_inline col-4 col-lg-2 me-1 text-center" name="planning_self_unassign_days_before"/> days before the shift starts.
+                            </div>
+                        </setting>
+                        <setting name="planning_project_time_management" help="Plan resource allocation across projects and estimate deadlines more accurately">
+                            <field name="module_project_forecast" widget="upgrade_boolean"/>
+                        </setting>
+                        <setting groups="base.group_no_one" string="Recurring Shifts">
+                            <div class="content-group">
+                                <div class="mt16">
+                                    <label for="planning_generation_interval" class="o_light_label" string="Generate shifts"/>
+                                    <field name="planning_generation_interval" class="oe_inline col-4 col-lg-2 me-1 text-center"/>
+                                    <span>months ahead</span>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                    <block title="Operations" name="planning_operations">
+                        <setting name="planning_field_service" help="Schedule onsite interventions, invoice time and materials, and complete custom worksheets">
+                            <field name="module_planning_field_service" widget="upgrade_boolean"/>
+                        </setting>
+                        <setting id="planning_setting_stock_by_vehicle"/>
+                        <setting name="module_planning_field_service_worksheet" help="Complete worksheets using custom templates" invisible="not module_planning_field_service">
+                            <field name="module_planning_field_service_worksheet"/>
+                        </setting>
+                        <setting name="allow_customer_report_setting"
+                            help="Provide the customer with an intervention report, collect their signature, and email them a copy"
+                            invisible="not ((module_planning_field_service_sale_timesheet or module_planning_field_service_worksheet) and module_planning_field_service)">
+                            <field name="group_field_service_allow_customer_report"/>
+                        </setting>
+                        <setting name="allow_geolocation_setting" help="Track technicians' locations during work hours and record their locations at shift start and completion" invisible="not module_planning_field_service">
+                            <field name="group_field_service_allow_geolocation"/>
+                        </setting>
+                        <setting name="allow_equipment_setting" help="Track customer equipment and intervention history" invisible="not module_planning_field_service">
+                            <field name="group_field_service_allow_equipment" string="Equipment"/>
+                        </setting>
+                    </block>
+                    <block title="Sales &amp; Billing " name="planning_sales_and_billing" invisible="not module_planning_field_service">
+                        <setting name="planning_field_service_sale_timesheet" help="Invoice your time and materials to your customers">
+                            <field name="module_planning_field_service_sale_timesheet" widget="upgrade_boolean"/>
+                        </setting>
+                        <setting name="website_planning_field_service" company_dependent="1" help="Collect intervention requests via an online form">
+                            <field name="website_planning_field_service"/>
+                        </setting>
+                        <setting name="allow_material_setting" help="Track the materials used during interventions and bill them to the customer" invisible="not module_planning_field_service_sale_timesheet">
+                            <field name="group_field_service_allow_material" string="Products"/>
+                            <field name="group_field_service_hide_price" invisible="not group_field_service_allow_material or not group_field_service_allow_customer_report"/>
+                            <span invisible="not group_field_service_allow_material or not group_field_service_allow_customer_report" class="text-muted">Hide prices on customer report</span>
+                        </setting>
+                        <setting name="allow_quotations_setting" help="Create new quotations directly from interventions" invisible="not module_planning_field_service_sale_timesheet">
+                            <field name="group_field_service_allow_quotations" string="Quotations"/>
+                        </setting>
+                        <setting name="allow_travel_invoice" help="Invoice the travel time to the customer's location" invisible="not module_planning_field_service_sale_timesheet">
+                            <field name="field_service_travel_fees"/>
+                        </setting>
+                    </block>
+                    <block title="Analytics" name="planning_analytics" invisible="not module_planning_field_service">
+                        <setting name="planning_field_service_customer_ratings" help="Track customer satisfaction for interventions">
+                            <field name="group_field_service_allow_customer_ratings"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="pos_order_view_form" model="ir.ui.view">
+        <field name="name">pos.order.form.inherit.l10n_uy_edi_pos</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+        <field name="arch" type="xml">
+            <button name="action_pos_order_invoice" position="attributes">
+                <attribute name="invisible" add="l10n_uy_edi_is_enabled" separator=" or "/>
+            </button>
+            <xpath expr="//button[@name='refund']" position="after">
+                <button name="l10n_uy_edi_action_send_document"
+                        string="Send CFE"
+                        type="object"
+                        invisible="not l10n_uy_edi_enable_send"/>
+            </xpath>
+            <xpath expr="//header" position="after">
+                <div class="alert alert-warning" role="alert"
+                     invisible="not l10n_uy_edi_enable_send or not l10n_uy_edi_document_id">
+                    Warning: the CFE was not correctly sent to DGI.
+                    <field name="l10n_uy_edi_error" readonly="1" nolabel="1"
+                           invisible="not l10n_uy_edi_error"/>
+                </div>
+            </xpath>
+            <group name="order_customer_details" position="inside">
+                <field name="l10n_uy_edi_document_number"
+                       invisible="country_code != 'UY' or not l10n_uy_edi_document_number"
+                       readonly="1"/>
+                <label for="l10n_uy_edi_cfe_state" invisible="not l10n_uy_edi_document_id"/>
+                <div invisible="not l10n_uy_edi_document_id">
+                    <field name="l10n_uy_edi_cfe_state" class="oe_inline"/>
+                    <field name="l10n_uy_edi_document_id" readonly="1"/>
+                </div>
+            </group>
+        </field>
+    </record>
+
+    <record id="pos_order_view_tree" model="ir.ui.view">
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_order_tree"/>
+        <field name="arch" type="xml">
+            <field name="state" position="after">
+                <field name="l10n_uy_edi_cfe_state" widget="badge" optional="show"
+                       decoration-info="l10n_uy_edi_cfe_state == 'received'"
+                       decoration-success="l10n_uy_edi_cfe_state == 'accepted'"
+                       decoration-danger="l10n_uy_edi_cfe_state in ('error', 'rejected')"/>
+            </field>
+        </field>
+    </record>
+</odoo>

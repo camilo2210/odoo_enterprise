@@ -1,0 +1,757 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="planning_slot_view_search" model="ir.ui.view">
+        <field name="name">planning.slot.inherit.view.search</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_search_base"/>
+        <field name="mode">primary</field>
+        <field name="priority">18</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="before">
+                <field name="partner_city"/>
+                <field name="partner_id"/>
+            </xpath>
+            <xpath expr="//filter[@name='published_shifts']" position="attributes">
+                <attribute name="string">Scheduled</attribute>
+            </xpath>
+            <xpath expr="//filter[@name='published_shifts']" position="after">
+                <filter name="in_progress_filter" string="In Progress" domain="[('state', '=', '3_in_progress')]"/>
+                <filter name="completed_filter" string="Completed" domain="[('state', '=', '4_completed')]"/>
+            </xpath>
+            <filter name="group_by_start_datetime" position="before">
+                <filter name="group_by_city" string="City" context="{'group_by': 'partner_city'}"/>
+                <filter name="group_by_customer" string="Customer" context="{'group_by': 'partner_id'}"/>
+                <filter name="group_by_state" string="Status" context="{'group_by': 'state'}"/>
+                <filter name="group_by_priority" string="Priority" context="{'group_by': 'priority'}" groups="planning.group_planning_manager"/>
+            </filter>
+            <xpath expr="//filter[@name='status']" position="before">
+               <separator/>
+                <filter name="priority" string="Priority" groups="planning.group_planning_manager">
+                    <filter string="Urgent" domain="[('priority', '=', '3')]" name="urgent_priority"/>
+                    <filter string="High" domain="[('priority', '=', '2')]" name="high_priority"/>
+                    <filter string="Medium" domain="[('priority', '=', '1')]" name="medium_priority"/>
+                    <filter string="Low" domain="[('priority', '=', '0')]" name="low_priority"/>
+                </filter>
+               <separator/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_slot_view_search_activities" model="ir.ui.view">
+        <field name="name">planning.slot.inherit.view.search.activities</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group" position="before">
+                <separator invisible="1"/>
+                <filter invisible="1" string="My Activities" name="filter_activities_my"
+                    domain="[('activity_user_id', '=', uid)]"/>
+                <separator invisible="1"/>
+                <filter invisible="1" string="Late Activities" name="activities_overdue"
+                    domain="[('my_activity_date_deadline', '&lt;', 'today')]"
+                    help="Show all records whose next activity date is past"/>
+                <filter invisible="1" string="Today Activities" name="activities_today"
+                    domain="[('my_activity_date_deadline', '=', 'today')]"/>
+                <filter invisible="1" string="Future Activities" name="activities_upcoming_all"
+                    domain="[('my_activity_date_deadline', '&gt;', 'today')]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_view_form" model="ir.ui.view">
+        <field name="name">planning.slot.inherit.view.form</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_send']" position="after">
+                <button name="action_sign_in" string="Start" type="object" invisible="state != '2_published' or not partner_id" groups="planning.group_planning_manager"/>
+                <button name="action_complete" class="btn-primary" string="Complete" type="object" invisible="state != '3_in_progress' or not partner_id or not start_datetime or not end_datetime" groups="planning.group_planning_manager"/>
+                <button name="action_sign_report" type="object" string="Sign Report" class="btn-secondary" groups="planning.group_planning_manager" invisible="not show_sign_report or not partner_id"/>
+                <t groups="!planning.group_planning_manager">
+                    <button name="action_sign_in" string="Start" type="object" invisible="state != '2_published' or uid not in user_ids or not partner_id" groups="planning.group_planning_user"/>
+                    <button name="action_complete" class="btn-primary" string="Complete" type="object" invisible="state != '3_in_progress' or uid not in user_ids or not partner_id or not start_datetime or not end_datetime" groups="planning.group_planning_user"/>
+                      <button name="action_sign_report" type="object" string="Sign Report"
+                        class="btn-secondary"
+                        groups="planning.group_planning_user"
+                        invisible="not show_sign_report or uid not in user_ids or not partner_id"/>
+
+                </t>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button
+                    class="oe_stat_button"
+                    name="action_preview_worksheet"
+                    icon="public"
+                    type="object"
+                    groups="planning.group_planning_user"
+                    invisible="not show_customer_preview">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text text-wrap">Customer Preview</span>
+                    </div>
+                </button>
+            </xpath>
+            <button name="action_switch_shift" position="attributes">
+                <attribute name="invisible" add="state in ['3_in_progress', '4_completed']" separator="or"/>
+            </button>
+            <xpath expr="//div[@name='recurrence_alert']" position="attributes">
+                <attribute name="groups">planning.group_planning_manager</attribute>
+            </xpath>
+            <xpath expr="//label[@for='repeat_interval']" position="attributes">
+                <attribute name="groups">planning.group_planning_manager</attribute>
+            </xpath>
+            <xpath expr="//div[./field[@name='repeat_interval']]" position="attributes">
+                <attribute name="groups">planning.group_planning_manager</attribute>
+            </xpath>
+            <xpath expr="//t/field[@name='company_id']" position="attributes">
+                <attribute name="groups">planning.group_planning_manager</attribute>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_ratings" type="object" class="oe_stat_button" invisible="rating_count == 0" groups="planning.group_field_service_allow_customer_ratings">
+                    <i class="oi oi-fw o_button_icon text-success" data-icon="sentiment_satisfied" invisible="rating_avg &lt; 3.66" title="Happy"/>
+                    <i class="oi oi-fw o_button_icon text-warning" data-icon="sentiment_neutral" invisible="rating_avg &lt; 2.33 or rating_avg &gt;= 3.66" title="Neutral"/>
+                    <i class="oi oi-fw o_button_icon text-danger" data-icon="sentiment_sad" invisible="rating_avg &gt;= 2.33" title="Unhappy"/>
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value"><field name="rating_avg_text" nolabel="1"/></span>
+                        <span class="o_stat_text">Rating</span>
+                    </div>
+                </button>
+            </xpath>
+            <xpath expr="//field[@name='role_id']" position="attributes">
+                <attribute name="groups">planning.group_planning_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='role_id']" position="after">
+                <field name="priority" widget="priority" groups="planning.group_planning_manager"/>
+            </xpath>
+            <xpath expr="//field[@name='template_id']" position="attributes">
+                <attribute name="groups">planning.group_planning_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='resource_ids']" position="after">
+                <label for="partner_id"/>
+                <div class="d-flex align-items-start o_partner_itinerary_row">
+                    <field name="partner_id" readonly="not can_edit" context="{'show_address': 1, 'res_partner_search_mode': 'customer'}"/>
+                    <button name="action_open_map_navigation"
+                        type="object"
+                        class="oi btn btn-link p-0 o_shift_itinerary_btn mt-lg-1" data-icon="location_on"
+                        aria-label="Open Map"
+                        title="Navigate"
+                        invisible="not (partner_city and partner_country_id)"/>
+                </div>
+                <field name="partner_phone" widget="phone" readonly="not can_edit" invisible="not partner_id" groups="base.group_partner_manager"/>
+                <field name="partner_phone" widget="phone" invisible="not partner_id" readonly="1" groups="!base.group_partner_manager"/>
+            </xpath>
+            <xpath expr="//field[@name='allocated_hours']" position="after">
+                <span name="break_time_span" invisible="allocation_type != 'planning' or resource_ids and not employee_public_ids">
+                    + <field name="break_time" readonly="not can_edit" widget="float_time" class="oe_inline" options="{'show_seconds': false}"/> break
+                </span>
+            </xpath>
+            <xpath expr="//form" position="inside">
+                <chatter reload_on_follower="True"/>
+            </xpath>
+            <xpath expr="//field[@name='state']" position="attributes">
+                <attribute name="widget">field_service_slot_status_bar</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_view_form_in_gantt" model="ir.ui.view">
+        <field name="name">planning.slot.inherit.view.form.in.gantt</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_form_in_gantt"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="attributes">
+                <attribute name="widget">field_service_slot_status_bar</attribute>
+            </xpath>
+            <xpath expr="//footer/button[@special='save'][1]" position="attributes">
+                <attribute name="groups">planning.group_planning_user</attribute>
+            </xpath>
+            <xpath expr="//footer/button[@special='save'][2]" position="attributes">
+                <attribute name="groups">planning.group_planning_user</attribute>
+            </xpath>
+            <xpath expr="//footer/button[@name='action_send']" position="after">
+                <button name="action_sign_in" string="Start" type="object" invisible="state != '2_published' or not can_edit or not partner_id"/>
+                <button name="action_complete" class="btn-primary" string="Complete" type="object" invisible="state != '3_in_progress' or not can_edit or not partner_id or not start_datetime or not end_datetime"/>
+            </xpath>
+            <button name="action_switch_shift" position="attributes">
+                <attribute name="invisible" add="state in ['3_in_progress', '4_completed']" separator="or"/>
+            </button>
+        </field>
+    </record>
+
+    <record id="planning_slot_view_list" model="ir.ui.view">
+        <field name="name">planning.slot.inherit.view.list</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='role_id']" position="attributes">
+                <attribute name="groups">planning.group_planning_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='role_id']" position="after">
+                <field name="partner_id" readonly="not can_edit" optional="show"/>
+                <field name="partner_zip" optional="hide"/>
+                <field name="partner_city" optional="show"/>
+                <field name="partner_phone" widget="phone" readonly="not can_edit" optional="hide" invisible="not partner_id" groups="base.group_partner_manager"/>
+                <field name="partner_phone" widget="phone" optional="hide" invisible="not partner_id" readonly="1" groups="!base.group_partner_manager"/>
+            </xpath>
+            <xpath expr="//field[@name='partner_phone'][last()]" position="after">
+                <field name="priority" widget="priority" optional="hide" groups="planning.group_planning_manager"/>
+            </xpath>
+            <xpath expr="//field[@name='state']" position="attributes">
+                <attribute name="decoration-muted">state in ['1_draft', '3_in_progress']</attribute>
+                <attribute name="decoration-info">state == '2_published'</attribute>
+                <attribute name="decoration-success">state == '4_completed'</attribute>
+            </xpath>
+            <button name="action_switch_shift" position="attributes">
+                <attribute name="invisible" add="state in ['3_in_progress', '4_completed']" separator="or"/>
+            </button>
+        </field>
+    </record>
+
+    <record id="planning_slot_view_card" model="ir.ui.view">
+        <field name="name">planning.slot.card.inherit</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_card"/>
+        <field name="arch" type="xml">
+            <xpath expr="//main" position="attributes">
+                <attribute name="t-att-class">['4_completed'].includes(record.state.raw_value) ? 'opacity-50' : ''</attribute>
+            </xpath>
+            <xpath expr="//div[@name='role']" position="before">
+                <field name="state" invisible="1"/>
+                <field name="user_ids" invisible="1"/>
+                <div t-if="record.partner_id.raw_value" class="d-flex gap-1" name="customer" title="Customer">
+                    <i class="oi oi-fw oi-filled px-1 mt-1" data-icon="person"/>
+                    <field name="partner_id" class="min-w-0" widget="many2one" context="{'show_address': 1, 'res_partner_search_mode': 'customer'}" options="{'no_open': True}"/>
+                </div>
+                <div t-if="record.partner_id.raw_value and record.partner_phone.raw_value" class="d-flex gap-1" name="customer_phone" title="Phone">
+                    <i class="oi oi-fw oi-filled px-1 mt-1" data-icon="phone"/>
+                    <field name="partner_phone" widget="phone"/>
+                </div>
+            </xpath>
+            <xpath expr="//div[@name='role']" position="attributes">
+                <attribute name="groups">planning.group_planning_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='allocated_hours']" position="after">
+                <div class="d-inline-flex ps-1" invisible="not break_time">+<field name="break_time" class="px-1" widget="float_time" options="{'show_seconds': false}"/> break</div>
+            </xpath>
+            <xpath expr="//footer" position="attributes">
+                <attribute name="class" remove="pt-0" add="pt-2" separator=" "/>
+            </xpath>
+            <xpath expr="//footer/div" position="before">
+                <field name="priority" widget="priority" class="d-flex ms-1" groups="planning.group_planning_manager"/>
+                <widget name="planning_slot_kanban_button"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_view_calendar" model="ir.ui.view">
+        <field name="name">planning.slot.inherit.view.calendar</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_calendar"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//calendar" position="attributes">
+                <attribute name="multi_create_view"></attribute>
+            </xpath>
+            <xpath expr="//field[@name='resource_ids']" position="attributes">
+                <attribute name="filters">0</attribute>
+                <attribute name="write_model"></attribute>
+                <attribute name="write_field"></attribute>
+                <attribute name="filter_field"></attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_slot_view_calendar" model="ir.ui.view">
+        <field name="name">planning.slot.calendar</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_my_calendar"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//calendar" position="attributes">
+                <attribute name="multi_create_view"></attribute>
+                <attribute name="event_open_popup">False</attribute>
+                <attribute name="form_view_id">False</attribute>
+            </xpath>
+            <xpath expr="//field[@name='resource_ids']" position="replace"/>
+        </field>
+    </record>
+
+    <record id="planning_view_gantt" model="ir.ui.view">
+        <field name="name">planning.slot.gantt</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_gantt"/>
+        <field name="arch" type="xml">
+            <xpath expr="//gantt" position="attributes">
+                <attribute name="multi_create_view"></attribute>
+                <attribute name="total_row">False</attribute>
+                <attribute name="buffer_start">travel_time_in</attribute>
+                <attribute name="buffer_stop">travel_time_out</attribute>
+                <attribute name="precision">{'day': 'hour:quarter', 'week': 'day:full', 'month': 'day:full', 'year': 'day:full'}</attribute>
+            </xpath>
+            <xpath expr="//gantt" position="inside">
+                <field name="can_edit"/>
+                <field name="user_ids"/>
+                <field name="partner_city" invisible="1"/>  <!-- Needed for the map navigation button -->
+                <field name="partner_country_id" invisible="1"/>  <!-- Needed for the map navigation button -->
+                <field name="partner_id" invisible="1"/>  <!-- Needed for the start button -->
+            </xpath>
+        </field>
+    </record>
+
+
+    <record id="planning_slot_view_map" model="ir.ui.view">
+        <field name="name">planning.slot.view.map</field>
+        <field name="model">planning.slot</field>
+        <field name="arch" type="xml">
+            <map res_partner="partner_id" default_order="sequence, start_datetime" js_class="planning_field_service_map">
+                <field name="partner_id" string="Customer"/>
+                <field name="resource_ids" string="Resources"/>
+                <field name="role_id" string="Role"/>
+                <field name="start_datetime" string="Date"/>
+                <field name="can_edit"/>  <!-- Needed for the popover's footer buttons -->
+                <field name="state"/>  <!-- Needed for the popover's footer buttons -->
+                <field name="user_ids"/>  <!-- Needed for the start button -->
+                <field name="repeat"/>  <!-- Needed for the delete button -->
+                <field name="partner_city"/>  <!-- Needed for the map navigation button -->
+                <field name="partner_country_id"/>  <!-- Needed for the map navigation button -->
+                <popover card_id="%(planning.planning_view_card_inherit)d"/>
+            </map>
+        </field>
+    </record>
+
+    <record id="planning_slot_view_map_with_routing" model="ir.ui.view">
+        <field name="name">planning.slot.view.map.with.routing</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning_slot_view_map"/>
+        <field name="mode">primary</field>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <xpath expr="//map" position="attributes">
+                <attribute name="routing">ordered</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_view_pivot" model="ir.ui.view">
+        <field name="name">planning.slot.pivot</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_pivot"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='allocated_percentage']" position="after">
+                <field name="break_time" type="measure" widget="float_time" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_view_graph" model="ir.ui.view">
+        <field name="name">planning.slot.graph</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_graph"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='allocated_percentage']" position="after">
+                <field name="break_time" type="measure" widget="float_time" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="open_shifts_pivot_view" model="ir.ui.view">
+        <field name="name">open.shifts.pivot.view</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.open_shifts_pivot_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='allocated_percentage']" position="after">
+                <field name="break_time" type="measure" widget="float_time" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_slot_view_activity" model="ir.ui.view">
+        <field name="name">planning.slot.activity</field>
+        <field name="model">planning.slot</field>
+        <field name="arch" type="xml">
+            <activity string="Interventions">
+                <templates>
+                    <div t-name="activity-box" class="justify-content-between gap-2">
+                        <div class="flex-shrink-1">
+                            <field name="display_name" class="d-flex"/>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 flex-grow-1">
+                            <field name="resource_ids" widget="many2many_avatar_resource" class="o_many2many_avatar_user_no_wrap"/>
+                        </div>
+                    </div>
+                </templates>
+            </activity>
+        </field>
+    </record>
+
+    <record id="planning_slot_view_live_map" model="ir.ui.view">
+        <field name="name">planning.slot.view.live.map</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning_slot_view_map_with_routing"/>
+        <field name="mode">primary</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <xpath expr="//map" position="attributes">
+                <attribute name="js_class">planning_field_service_live_map</attribute>
+                <attribute name="default_order">start_datetime</attribute>
+            </xpath>
+            <field name="start_datetime" position="after">
+                <field name="end_datetime" string="End Date"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="planning_action_my_calendar_view_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="5"/>
+        <field name="view_mode">map</field>
+        <field name="act_window_id" ref="planning.planning_action_my_calendar"/>
+    </record>
+
+    <record id="planning_action_my_calendar_view_activity" model="ir.actions.act_window.view">
+        <field name="sequence" eval="100"/>
+        <field name="view_mode">activity</field>
+        <field name="act_window_id" ref="planning.planning_action_my_calendar"/>
+    </record>
+
+    <record id="planning_action_schedule_by_resource_view_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="5"/>
+        <field name="view_mode">map</field>
+        <field name="act_window_id" ref="planning.planning_action_schedule_by_resource"/>
+    </record>
+
+    <record id="planning_action_schedule_by_resource_view_activity" model="ir.actions.act_window.view">
+        <field name="sequence" eval="100"/>
+        <field name="view_mode">activity</field>
+        <field name="act_window_id" ref="planning.planning_action_schedule_by_resource"/>
+    </record>
+
+    <record id="planning_action_schedule_by_role_view_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="5"/>
+        <field name="view_mode">map</field>
+        <field name="act_window_id" ref="planning.planning_action_schedule_by_role"/>
+    </record>
+
+    <record id="planning_action_schedule_by_role_view_activity" model="ir.actions.act_window.view">
+        <field name="sequence" eval="100"/>
+        <field name="view_mode">activity</field>
+        <field name="act_window_id" ref="planning.planning_action_schedule_by_role"/>
+    </record>
+
+    <record id="planning_field_service_action_my_map" model="ir.actions.act_window">
+        <field name="name">My Map</field>
+        <field name="res_model">planning.slot</field>
+        <field name="path">my-planning-map</field>
+        <field name="view_mode">map,calendar,gantt,list,form,kanban</field>
+        <field name="mobile_view_mode">map</field>
+        <field name="domain">[('partner_id', '!=', False)]</field>
+        <field name="context">{
+            'search_default_my_shifts': 1,
+            'my_planning_action': 1,
+            'planning_expand_resource': 1,
+            'planning_expand_role': 1,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No shifts found. Let's create one!
+            </p><p>
+                Find here your planning. Assign yourself open shifts that match your roles, or indicate your unavailability.
+            </p>
+        </field>
+    </record>
+
+    <record id="planning_field_service_action_my_map_view_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="10"/>
+        <field name="view_mode">map</field>
+        <field name="act_window_id" ref="planning_field_service_action_my_map"/>
+    </record>
+
+    <record id="planning_field_service_action_my_map_view_calendar" model="ir.actions.act_window.view">
+        <field name="sequence" eval="10"/>
+        <field name="view_mode">calendar</field>
+        <field name="view_id" ref="planning.planning_view_my_calendar"/>
+        <field name="act_window_id" ref="planning_field_service_action_my_map"/>
+    </record>
+
+    <record id="planning_field_service_action_my_map_view_gantt" model="ir.actions.act_window.view">
+        <field name="sequence" eval="20"/>
+        <field name="view_mode">gantt</field>
+        <field name="act_window_id" ref="planning_field_service_action_my_map"/>
+    </record>
+
+    <record id="planning_field_service_action_my_map_view_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="30"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="planning.planning_view_tree"/>
+        <field name="act_window_id" ref="planning_field_service_action_my_map"/>
+    </record>
+
+    <record id="planning_field_service_action_my_map_view_kanban" model="ir.actions.act_window.view">
+        <field name="sequence" eval="40"/>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="planning.planning_view_kanban"/>
+        <field name="act_window_id" ref="planning_field_service_action_my_map"/>
+    </record>
+
+    <record id="planning_field_service_action_my_map_view_activity" model="ir.actions.act_window.view">
+        <field name="sequence" eval="100"/>
+        <field name="view_mode">activity</field>
+        <field name="act_window_id" ref="planning_field_service_action_my_map"/>
+    </record>
+
+    <record id="planning_action_schedule_by_resource_view_pivot_inherit_planning" model="ir.ui.view">
+        <field name="name">planning.action.schedule.resource.view.pivot.inherit.planning</field>
+        <field name="inherit_id" ref="planning.planning_action_schedule_by_resource_view_pivot_inherit"/>
+        <field name="model">planning.slot</field>
+        <field name="arch" type="xml">
+            <xpath expr="//pivot" position="inside">
+                <field name="rating_last_value" string="Rating (1-5)"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_action_schedule_by_resource_view_graph_inherit_planning" model="ir.ui.view">
+        <field name="name">planning.action.schedule.resource.view.graph.inherit.planning</field>
+        <field name="inherit_id" ref="planning.planning_action_schedule_by_resource_view_graph_inherit"/>
+        <field name="model">planning.slot</field>
+        <field name="arch" type="xml">
+            <xpath expr="//graph" position="inside">
+                <field name="rating_last_value" string="Rating (1-5)"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_field_service_action_by_resource" model="ir.actions.act_window">
+        <field name="name">Maps</field>
+        <field name="res_model">planning.slot</field>
+        <field name="path">planning-map-by-resource</field>
+        <field name="view_mode">map,gantt,calendar,list,form,kanban,pivot,graph</field>
+        <field name="mobile_view_mode">calendar</field>
+        <field name="domain">[('partner_id', '!=', False)]</field>
+        <field name="context">{'planning_expand_resource': 1, 'planning_expand_role': 1, 'search_default_group_by_resource': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No shifts found. Let's create one!
+            </p>
+            <p>
+                Schedule your human and material resources across roles, projects and sales orders.
+            </p>
+        </field>
+    </record>
+
+    <record id="planning_field_service_action_by_resource_view_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">map</field>
+        <field name="view_id" ref="planning_slot_view_map_with_routing"/>
+        <field name="act_window_id" ref="planning_field_service_action_by_resource"/>
+    </record>
+
+    <record id="planning_field_service_action_by_resource_view_gantt" model="ir.actions.act_window.view">
+        <field name="sequence" eval="10"/>
+        <field name="view_mode">gantt</field>
+        <field name="view_id" ref="planning.planning_view_gantt"/>
+        <field name="act_window_id" ref="planning_field_service_action_by_resource"/>
+    </record>
+
+    <record id="planning_field_service_action_by_resource_view_calendar" model="ir.actions.act_window.view">
+        <field name="sequence" eval="20"/>
+        <field name="view_mode">calendar</field>
+        <field name="act_window_id" ref="planning_field_service_action_by_resource"/>
+    </record>
+
+    <record id="planning_field_service_action_by_resource_view_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="30"/>
+        <field name="view_mode">list</field>
+        <field name="act_window_id" ref="planning_field_service_action_by_resource"/>
+    </record>
+
+    <record id="planning_field_service_action_by_resource_view_kanban" model="ir.actions.act_window.view">
+        <field name="sequence" eval="40"/>
+        <field name="view_mode">kanban</field>
+        <field name="act_window_id" ref="planning_field_service_action_by_resource"/>
+    </record>
+
+    <record id="planning_field_service_action_by_resource_view_pivot" model="ir.actions.act_window.view">
+        <field name="sequence" eval="50"/>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="planning_field_service.planning_action_schedule_by_resource_view_pivot_inherit_planning"/>
+        <field name="act_window_id" ref="planning_field_service_action_by_resource"/>
+    </record>
+
+    <record id="planning_field_service_action_by_resource_view_graph" model="ir.actions.act_window.view">
+        <field name="sequence" eval="60"/>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="planning_field_service.planning_action_schedule_by_resource_view_graph_inherit_planning"/>
+        <field name="act_window_id" ref="planning_field_service_action_by_resource"/>
+    </record>
+
+    <record id="planning_field_service_action_by_resource_view_activity" model="ir.actions.act_window.view">
+        <field name="sequence" eval="100"/>
+        <field name="view_mode">activity</field>
+        <field name="act_window_id" ref="planning_field_service_action_by_resource"/>
+    </record>
+
+    <record id="action_intervention_send_mail" model="ir.actions.act_window">
+        <field name="name">Send Email</field>
+        <field name="res_model">mail.compose.message</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_composition_mode': 'mass_mail'}</field>
+        <field name="binding_model_id" ref="planning.model_planning_slot"/>
+        <field name="binding_view_types">list,kanban</field>
+    </record>
+
+    <record id="action_intervention_send_report" model="ir.actions.server">
+        <field name="name">Send Report</field>
+        <field name="model_id" ref="planning.model_planning_slot"/>
+        <field name="binding_model_id" ref="planning.model_planning_slot"/>
+        <field name="binding_view_types">form,list,kanban</field>
+        <field name="group_ids" eval="[Command.link(ref('planning.group_field_service_allow_customer_report'))]"/>
+        <field name="state">code</field>
+        <field name="code">action = records.action_send_report()</field>
+    </record>
+
+    <record id="mail_followers_edit_action_from_planning_slot" model="ir.actions.act_window">
+        <field name="name">Add/Remove Followers</field>
+        <field name="res_model">mail.followers.edit</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_res_model': 'planning.slot', 'default_res_ids': active_ids}</field>
+        <field name="binding_model_id" ref="planning.model_planning_slot"/>
+        <field name="binding_view_types">list,kanban</field>
+    </record>
+
+    <record id="planning_view_gantt_inherit_planning_field_service" model="ir.ui.view">
+        <field name="name">planning.slot.gantt.inherit.planning.field.service</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_gantt"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//gantt" position="attributes">
+                <attribute name="scales">day</attribute>
+                <attribute name="default_scale">day</attribute>
+                <attribute name="default_range">day</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_view_calendar_inherit_planning_field_service" model="ir.ui.view">
+        <field name="name">planning.slot.calendar.inherit.planning.field.service</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_calendar"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//calendar" position="attributes">
+                <attribute name="scales">day</attribute>
+                <attribute name="mode">day</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_field_service_action_live_map" model="ir.actions.act_window">
+        <field name="name">Live Map</field>
+        <field name="res_model">planning.slot</field>
+        <field name="path">planning-live-map</field>
+        <field name="view_mode">map,gantt,calendar,list,form,kanban,pivot,graph</field>
+        <field name="mobile_view_mode">map</field>
+        <field name="domain">[('partner_id', '!=', False), ('end_datetime', '&gt;', 'today'), ('start_datetime', '&lt;', 'today +1d')]</field>
+        <field name="context">{'planning_expand_resource': 1, 'planning_expand_role': 1, 'search_default_group_by_resource': 1, 'search_default_employees': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No shifts found. Let's create one!
+            </p>
+            <p>
+                Track technicians’ locations and shifts in progress. Privacy first: Location is recorded only after sign-in and with your permission.
+            </p>
+        </field>
+    </record>
+
+    <record id="planning_field_service_action_live_map_view_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">map</field>
+        <field name="view_id" ref="planning_slot_view_live_map"/>
+        <field name="act_window_id" ref="planning_field_service_action_live_map"/>
+    </record>
+
+    <record id="planning_field_service_action_live_map_view_gantt" model="ir.actions.act_window.view">
+        <field name="sequence" eval="10"/>
+        <field name="view_mode">gantt</field>
+        <field name="view_id" ref="planning_view_gantt_inherit_planning_field_service"/>
+        <field name="act_window_id" ref="planning_field_service_action_live_map"/>
+    </record>
+
+    <record id="planning_field_service_action_live_map_view_calendar" model="ir.actions.act_window.view">
+        <field name="sequence" eval="20"/>
+        <field name="view_mode">calendar</field>
+        <field name="view_id" ref="planning_view_calendar_inherit_planning_field_service"/>
+        <field name="act_window_id" ref="planning_field_service_action_live_map"/>
+    </record>
+
+    <record id="planning_field_service_action_live_map_view_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="30"/>
+        <field name="view_mode">list</field>
+        <field name="act_window_id" ref="planning_field_service_action_live_map"/>
+    </record>
+
+    <record id="planning_field_service_action_live_map_view_kanban" model="ir.actions.act_window.view">
+        <field name="sequence" eval="40"/>
+        <field name="view_mode">kanban</field>
+        <field name="act_window_id" ref="planning_field_service_action_live_map"/>
+    </record>
+
+    <record id="planning_field_service_action_live_map_view_pivot" model="ir.actions.act_window.view">
+        <field name="sequence" eval="50"/>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="planning.planning_action_schedule_by_resource_view_pivot_inherit"/>
+        <field name="act_window_id" ref="planning_field_service_action_live_map"/>
+    </record>
+
+    <record id="planning_field_service_action_live_map_view_graph" model="ir.actions.act_window.view">
+        <field name="sequence" eval="60"/>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="planning.planning_action_schedule_by_resource_view_graph_inherit"/>
+        <field name="act_window_id" ref="planning_field_service_action_live_map"/>
+    </record>
+
+    <record id="planning_field_service_action_live_map_view_activity" model="ir.actions.act_window.view">
+        <field name="sequence" eval="100"/>
+        <field name="view_mode">activity</field>
+        <field name="act_window_id" ref="planning_field_service_action_live_map"/>
+    </record>
+
+    <record id="planning_field_service_map_timeline_view" model="ir.ui.view">
+        <field name="name">planning.slot.view.map.timeline</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning_slot_view_map_with_routing"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//map" position="attributes">
+                <attribute name="js_class">planning_field_service_map_timeline</attribute>
+                <attribute name="default_group_by">resource_ids</attribute>
+                <attribute name="default_order">sequence, start_datetime, id</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_field_service_action_map_timeline" model="ir.actions.act_window">
+        <field name="name">Timeline</field>
+        <field name="res_model">planning.slot</field>
+        <field name="path">planning-map-timeline</field>
+        <field name="view_mode">map,form</field>
+        <field name="context">{'planning_expand_resource': 1, 'planning_expand_role': 1, 'search_default_start_datetime': 'today', 'search_default_employees': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No shifts found. Let's create one!
+            </p>
+            <p>
+                Schedule your human and material resources across roles, projects and sales orders.
+            </p>
+        </field>
+    </record>
+
+    <record id="planning_field_service_action_map_timeline_view_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">map</field>
+        <field name="view_id" ref="planning_field_service_map_timeline_view"/>
+        <field name="act_window_id" ref="planning_field_service_action_map_timeline"/>
+    </record>
+
+</odoo>

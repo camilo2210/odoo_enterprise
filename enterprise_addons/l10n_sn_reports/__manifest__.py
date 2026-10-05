@@ -1,0 +1,18 @@
+{
+    'name': 'Sénégal - Accounting Reports',
+    'description': """
+Accounting reports for Sénégal
+============================================
+- Corporate tax report
+    """,
+    'depends': [
+        'account_reports',
+        'l10n_sn',
+    ],
+    'data': [
+        'data/account_return_data.xml',
+    ],
+    'auto_install': True,
+    'author': 'Odoo S.A.',
+    'license': 'OEEL-1',
+}

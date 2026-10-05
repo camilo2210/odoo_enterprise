@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="planning_slot_view_form" model="ir.ui.view">
+        <field name="name">planning.slot.view.form</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@role='alert']" position="attributes">
+                <attribute name="invisible">overlap_slot_count == 0 and not request_to_switch and (not leave_warning or not employee_public_ids)</attribute>
+            </xpath>
+            <xpath expr="//field[@name='conflicting_slot_ids']" position="before">
+                <p class="align-middle mb-0" invisible="not leave_warning or not employee_public_ids">
+                    <field name="leave_warning" nolabel="1"/>
+                </p>
+            </xpath>
+            <xpath expr="//field[@name='previous_template_id']" position="before">
+                <div role="alert" class="alert alert-warning text-center" invisible="1" groups="planning.group_planning_manager">
+                    <span class="align-middle mb-0">
+                        <field name="leave_warning" nolabel="1"/>
+                    </span>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_view_card_inherit_planning_holidays" model="ir.ui.view">
+        <field name="name">planning.slot.card</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_card_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//span[@t-if='record.overlap_slot_count.raw_value']" position="after">
+                <field name="leave_warning" invisible="1" class="text-danger mb-2"/>
+                <span t-if="record.leave_warning.raw_value" class="badge rounded-pill bg-primary text-white ms-1" t-att-title="record.leave_warning.value">
+                    Time off
+                </span>
+           </xpath>
+        </field>
+    </record>
+
+    <record id="planning_slot_view_gantt" model="ir.ui.view">
+        <field name="name">planning.slot.view.gantt</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_gantt"/>
+        <field name="arch" type="xml">
+            <xpath expr="//gantt" position="attributes">
+                <attribute name="decoration-danger">overlap_slot_count > 0 or leave_warning</attribute>
+            </xpath>
+            <xpath expr="//gantt" position="inside">
+                <field name="leave_warning"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

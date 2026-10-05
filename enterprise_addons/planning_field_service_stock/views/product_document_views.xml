@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_document_view_kanban" model="ir.ui.view">
+        <field name="name">product.document.view.kanban</field>
+        <field name="model">product.document</field>
+        <field name="inherit_id" ref="product.product_document_kanban"/>
+        <field name="mode">primary</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//main" position="replace">
+                <main class="ms-2 p-2" t-attf-class="#{previewable ? 'o_kanban_previewer' : ''}">
+                    <field name="name" class="fw-bolder fs-5 text-truncate"/>
+                    <field name="url" t-if="record.type.raw_value == 'url'" widget="url"/>
+                    <field name="res_name" class="mt-2 text-decoration-underline fst-italic"/>
+                </main>
+            </xpath>
+            <xpath expr="//a[@type='open']" position="replace"/>
+            <xpath expr="//a[@type='delete']" position="replace"/>
+            <xpath expr="//field[@name='sequence']" position="replace"/>
+        </field>
+    </record>
+
+    <record id="planning_slot_action_documents" model="ir.actions.act_window">
+        <field name="name">Documents</field>
+        <field name="res_model">product.document</field>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="product_document_view_kanban"/>
+        <field name="context">{'create': False, 'hide_upload_button': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Upload files to your product
+            </p>
+            <p>
+                Share documentation about the equipment installed at the customer's location.
+            </p>
+        </field>
+    </record>
+</odoo>

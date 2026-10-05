@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="hr_payroll_warning_missing_mandatory_fields" model="hr.payroll.warning">
+            <field name="name">Missing Mandatory Fields</field>
+            <field name="description">Missing mandatory field SA</field>
+            <field name="country_id" ref="base.sa"/>
+            <field name="warning_color_class">danger</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_sa_hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+sa_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'SA')
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', sa_companies.ids),
+    ('net_wage', '&gt;', 0),
+])
+warning_records = self.env['hr.payslip']
+warning_details = defaultdict(list)
+for payslip in payslips:
+    errors = payslip._issue_sa_missing_mandatory_fields()
+    if errors:
+        warning_records |= payslip
+        warning_details[payslip] = errors
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_sa_bank_warnings" model="hr.payroll.warning">
+            <field name="name">SA Bank Warnings</field>
+            <field name="description">SA bank warnings</field>
+            <field name="country_id" ref="base.sa"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_sa_hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+sa_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'SA')
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', sa_companies.ids),
+    ('state', '!=', 'paid'),
+    ('net_wage', '&gt;', 0),
+])
+warning_records = self.env['hr.payslip']
+warning_details = defaultdict(list)
+for payslip in payslips:
+    warnings = payslip._issue_sa_bank_warnings()
+    if warnings:
+        warning_records |= payslip
+        warning_details[payslip] = warnings
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_sa_gosi_warning" model="hr.payroll.warning">
+            <field name="name">SA GOSI Warning</field>
+            <field name="description">SA GOSI warnings</field>
+            <field name="country_id" ref="base.sa"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_sa_hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+sa_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'SA')
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', sa_companies.ids),
+    ('state', '!=', 'validated'),
+    ('net_wage', '&gt;', 0),
+])
+
+warning_records = self.env['hr.payslip']
+warning_details = defaultdict(list)
+for payslip in payslips:
+    warnings = payslip._issue_sa_gosi_warning()
+    if warnings:
+        warning_records |= payslip
+        warning_details[payslip] = warnings
+            </field>
+        </record>
+    </data>
+</odoo>

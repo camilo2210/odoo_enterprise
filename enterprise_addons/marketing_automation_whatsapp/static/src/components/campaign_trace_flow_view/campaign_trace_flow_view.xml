@@ -1,0 +1,34 @@
+<templates>
+    <t t-name="marketing_automation_whatsapp.CampaignTraceFlowView" t-inherit="marketing_automation.CampaignTraceFlowView" t-inherit-mode="extension">
+        <xpath expr="//t[@t-elif=&quot;activity.activity_type === &apos;mail&apos;&quot;]" position="after">
+            <t t-elif="activity.activity_type === 'whatsapp'">
+                <t t-set="position" t-value="this.getActivityPositionOnScreen(activity)"/>
+                <t t-set="trace" t-value="this.getMarketingActivityTrace(activity)"/>
+                <!-- "WhatsApp" node: -->
+                <div t-on-pointerdown="(e) => this.addPointerListenerOnMarketingActivity(activity, e)"
+                    t-att-style="this.getCSSTransform(position.x, position.y)"
+                    t-att-class="{
+                        'o-editor-node d-flex flex-column align-self-center flex-shrink-0 bg-view rounded border overflow-hidden': true,
+                        'border-warning': ['scheduled', 'waiting'].includes(trace?.state),
+                        'border-success': trace?.state === 'processed',
+                        'border-danger': ['canceled', 'error'].includes(trace?.state),
+                    }">
+                    <div class="d-flex flex-row align-items-center p-2">
+                        <i class="o_ma_step_icon o_ma_step_communicate oi p-2 rounded" data-icon="oi_whatsapp" aria-hidden="true"/>
+                        <div class="d-flex flex-column min-w-0 ps-2">
+                            <span class="fw-bold text-truncate" t-out="activity.name" t-att-title="activity.name"/>
+                            <t t-if="trace">
+                                <t t-call="marketing_automation.CampaignTraceStatus"/>
+                                <div t-if="trace?.state === 'scheduled'" class="d-flex mt-2">
+                                    <button class="btn btn-primary me-1" t-on-pointerdown="(e) => this.addPointerListenerOnExecuteStepBtn(trace, e)">Run</button>
+                                    <button class="btn btn-secondary" t-on-pointerdown="(e) => this.addPointerListenerOnCancelStepBtn(trace, e)">Cancel</button>
+                                </div>
+                            </t>
+                            <span t-else="" t-out="activity.whatsapp_template_id.display_name" class="small text-break"/>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+    </t>
+</templates>

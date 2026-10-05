@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_currency_rate_form" model="ir.ui.view">
+        <field name="name">res.currency.rate.form.inherit.l10n_tr_currency_live_rate</field>
+        <field name="model">res.currency.rate</field>
+        <field name="inherit_id" ref="base.view_currency_rate_form"/>
+        <field name="arch" type="xml">
+            <field name="inverse_company_rate" position="after">
+                <field name="l10n_tr_company_buy_rate" digits="[12,12]" invisible="not currency_id.l10n_tr_show_buy_rate"/>
+                <field name="l10n_tr_inverse_company_buy_rate" digits="[12,12]" invisible="not currency_id.l10n_tr_show_buy_rate"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_currency_form" model="ir.ui.view">
+        <field name="name">res.currency.form.inherit.l10n_tr_currency_live_rate</field>
+        <field name="model">res.currency</field>
+        <field name="inherit_id" ref="base.view_currency_form"/>
+        <field name="arch" type="xml">
+            <field name="rate_ids" position="before">
+                <field name="l10n_tr_show_buy_rate" invisible="1"/> <!-- Used only to gate other fields' visibility below. -->
+            </field>
+            <xpath expr="//field[@name='rate_ids']/list/field[@name='inverse_company_rate']" position="after">
+                <field name="l10n_tr_company_buy_rate" digits="[12,12]" column_invisible="not parent.l10n_tr_show_buy_rate"/>
+                <field name="l10n_tr_inverse_company_buy_rate" digits="[12,12]" column_invisible="not parent.l10n_tr_show_buy_rate"/>
+                <field name="l10n_tr_buy_rate" digits="[12,12]" optional="hide" column_invisible="not parent.l10n_tr_show_buy_rate"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

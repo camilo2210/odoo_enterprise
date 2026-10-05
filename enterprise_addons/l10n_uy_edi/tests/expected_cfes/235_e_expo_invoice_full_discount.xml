@@ -1,0 +1,62 @@
+<CFE xmlns="http://cfe.dgi.gub.uy" version="1.0">
+  <eFact_Exp>
+    <Encabezado>
+      <IdDoc>
+        <TipoCFE>121</TipoCFE>
+        <FchEmis>2024-06-15</FchEmis>
+        <FmaPago>1</FmaPago>
+        <FchVenc>2024-06-15</FchVenc>
+        <ClauVenta>FOB</ClauVenta>
+        <ModVenta>1</ModVenta>
+        <ViaTransp>1</ViaTransp>
+      </IdDoc>
+      <Emisor>
+        <RUCEmisor>215521750017</RUCEmisor>
+        <RznSoc>(UY) Uruguay Company (Unit Tests)</RznSoc>
+        <CdgDGISucur>1</CdgDGISucur>
+        <DomFiscal>Calle Falsa 254</DomFiscal>
+        <Ciudad>Montevideo</Ciudad>
+        <Departamento>Montevideo</Departamento>
+      </Emisor>
+      <Receptor>
+        <TipoDocRecep>7</TipoDocRecep>
+        <CodPaisRecep>US</CodPaisRecep>
+        <DocRecepExt>17-2038053</DocRecepExt>
+        <RznSocRecep>Foreign Inc</RznSocRecep>
+        <DirRecep>7841 Red Road</DirRecep>
+        <CiudadRecep>San Francisco</CiudadRecep>
+        <DeptoRecep>California</DeptoRecep>
+        <PaisRecep>United States</PaisRecep>
+        <CompraID>*DEMO</CompraID>
+      </Receptor>
+      <Totales>
+        <TpoMoneda>UYU</TpoMoneda>
+        <MntExpoyAsim>0.00</MntExpoyAsim>
+        <MntTotal>0.00</MntTotal>
+        <CantLinDet>1</CantLinDet>
+        <MntPagar>0.00</MntPagar>
+      </Totales>
+    </Encabezado>
+    <Detalle>
+      <Item>
+        <NroLinDet>1</NroLinDet>
+        <IndFact>10</IndFact>
+        <NomItem>[product UY] Customizable Desk (VAT 10)</NomItem>
+        <Cantidad>1.000</Cantidad>
+        <UniMed>Unit</UniMed>
+        <PrecioUnitario>100.000000</PrecioUnitario>
+        <MontoItem>100.00</MontoItem>
+      </Item>
+    </Detalle>
+    <DscRcgGlobal>
+      <DRG_Item>
+        <NroLinDR>1</NroLinDR>
+        <TpoMovDR>D</TpoMovDR>
+        <TpoDR>1</TpoDR>
+        <GlosaDR>Full Discount</GlosaDR>
+        <ValorDR>100.00</ValorDR>
+        <IndFactDR>10</IndFactDR>
+      </DRG_Item>
+    </DscRcgGlobal>
+  </eFact_Exp>
+</CFE>

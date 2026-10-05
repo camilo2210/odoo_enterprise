@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="planning_field_service.MapTimelineMapRenderer.PinListContainer" t-inherit="web_map.MapRenderer.PinListContainer">
+        <xpath expr="//div[hasclass('o-map-renderer--pin-list-group-header')]" position="attributes">
+            <attribute name="t-on-mouseenter">() => renderer.onPinListHeaderHover(groupId, true)</attribute>
+            <attribute name="t-on-mouseleave">() => renderer.onPinListHeaderHover(groupId, false)</attribute>
+        </xpath>
+    </t>
+
+    <t t-name="planning_field_service.marker" t-inherit="web_map.marker">
+        <xpath expr="//t[@t-call]" position="replace">
+            <div class="o_map_marker_pin">
+                <t t-call="web_map.pinSVG"/>
+            </div>
+            <div class="o_map_marker_stop_numbering_pin">
+                <t t-call="planning_field_service.pinSVG"/>
+            </div>
+        </xpath>
+    </t>
+
+    <t t-name="planning_field_service.pinSVG" t-inherit="web_map.pinSVG">
+        <xpath expr="//t[@t-set='radius']" position="attributes">
+            <attribute name="t-value">9</attribute>
+        </xpath>
+        <xpath expr="//t[@t-set='numberFontSize']" position="attributes">
+            <attribute name="t-value">(this.number >= 100) ? 9 : ((this.number >= 10) ? 12 : 14)</attribute>
+        </xpath>
+        <xpath expr="//svg/t" position="attributes">
+            <attribute name="t-if">true</attribute>
+        </xpath>
+        <xpath expr="//text[hasclass('o-map-renderer-number')]/t" position="attributes">
+            <attribute name="t-out">this.number</attribute>
+        </xpath>
+    </t>
+
+</templates>

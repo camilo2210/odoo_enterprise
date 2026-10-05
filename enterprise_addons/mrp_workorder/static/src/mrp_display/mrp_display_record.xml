@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="mrp_workorder.MrpDisplayRecord">
+        <div class="o_mrp_display_record card rounded"
+             t-att-class="this.cssClass">
+            <div class="card-header border-bottom-0 d-flex flex-column gap-1 p-2 rounded-top" t-att-class="this.props.record.resModel === 'mrp.workorder' ? 'cursor-pointer' : ''"
+                 t-on-click="this.onClickHeader" t-att-barcode_trigger="this.props.barcodeTarget ? 'PAUS' : false">
+                <div class="o_mrp_display_record_title o_record_name card-title d-flex justify-content-between mb-0">
+                    <div class="d-flex jusify-content-around align-items-center h-auto gap-2 o_record_name_box">
+                        <span class="text-wrap text-break align-middle font-monospace o_mrp_display_name" t-out="this.props.record.resModel === 'mrp.workorder' ? this.record.production_id.display_name: this.record.display_name"/>
+                        <PriorityField t-if="this.props.production.data.priority === '1'" name="'priority'" record="this.props.production" readonly="true"/>
+                    </div>
+                    <div class="ms-auto o_mrp_display_record_assigned_users d-flex flex-wrap position-relative z-1">
+                        <div t-if="this.props.record.resModel === 'mrp.workorder' and this.props.groups.timer and this.props.record.data.duration" class="o_mrp_timer o_tabular_nums align-content-center rounded px-2 fw-bolder">
+                            <MrpTimerField name="'duration'" record="this.props.record" readonly="true"/>
+                        </div>
+
+                        <div t-if="this.showAssignedEmployees">
+                            <t t-foreach="this.record.employee_assigned_ids.resIds" t-as="employee_id" t-key="employee_id">
+                                <img t-attf-src="/web/image/hr.employee.public/{{employee_id}}/avatar_128"
+                                     class="o_avatar border border-2 rounded-circle"
+                                     t-att-class="{'ms-n2': !employee_id_first}"
+                                     t-attf-style="position: relative; z-index: -{{employee_id_index}}"/>
+                            </t>
+                        </div>
+                        <t t-if="!this.props.record.data.employee_ids.records.length">
+                            <span t-if="this.props.record.resModel === 'mrp.workorder'"
+                                  class="o_mrp_display_record_start_btn btn btn-outline-primary text-uppercase fw-bold lh-1 ms-auto"
+                                  t-att-class="{'opacity-0': this.disabled}">start</span>
+                            <span t-else="" class="badge rounded-pill p-2 lh-1 text-nowrap"
+                                  t-att-class="{
+                                      'border border-info text-info': this.record.state === 'confirmed',
+                                      'border border-warning text-warning': this.record.state === 'progress',
+                                      'border border-danger text-danger': this.record.state === 'to_close'
+                                  }">
+                                <SelectionField name="'state'" record="this.props.record" readonly="true"/>
+                            </span>
+                        </t>
+                    </div>
+                    <div t-if="this.props.record.data.employee_ids.records.length" class="d-flex gap-1 flex-wrap justify-content-end cursor-default" t-on-click="(ev) => ev.stopPropagation()">
+                        <div class="d-flex flex-wrap justify-content-end positon-relative z-1">
+                            <t t-foreach="this.props.record.data.employee_ids.resIds" t-as="employee" t-key="employee">
+                                <img t-attf-src="/web/image/hr.employee.public/{{employee}}/avatar_128" class="o_avatar border border-2 rounded-circle" t-att-class="{'ms-n2': !employee_first}" t-attf-style="position: relative; z-index: -{{employee_index}}"/>
+                            </t>
+                        </div>
+                        <span t-if="this.props.record.resModel === 'mrp.workorder'"
+                              class="o_mrp_display_record_start_btn btn btn-secondary text-uppercase fw-bold lh-1 ms-auto"
+                              t-on-click="this.stopWorking">pause</span>
+                    </div>
+                </div>
+                <div class="o_mrp_display_record_title o_record_name card-title d-flex justify-content-between align-items-start mb-0 h-auto">
+                    <h5 class="o_finished_product mb-0" t-out="this.record.product_id.display_name"/>
+                    <div class="o_quantity align-top">
+                        <h5 class="text-nowrap fw-bolder mb-0"
+                            t-att-class="{'text-danger': this.quantityProducing > this.quantityToProduce}">
+                            <t t-out="this.quantityToDisplay"/>
+                        </h5>
+                    </div>
+                </div>
+                <span t-if="this.record.name != this.record.display_name" class="o_mrp_operation_name text-truncate fw-normal text-muted" t-out="this.record.name"/>
+                <span class="o_finished_product mt-auto mb-0"><t t-out="this.record.product_description_variants"/></span>
+                <div t-if="this.logNote" t-ref="this.noteRef"
+                class="o_mrp_record_line d-flex justify-content-between border rounded p-2 bg-100 cursor-pointer"
+                t-on-click="(ev) => this.editLogNote(ev)">
+                     <div class="o_mrp_record_line_note flex-column flex-grow-1 overflow-auto">
+                        <t t-out="this.logNote"/>
+                    </div>
+                    <i class="oi ms-1 lh-base" data-icon="edit_square" role="img"/>
+                </div>
+            </div>
+            <ul t-if="this.workorders.length" class="list-group list-group-flush border-bottom-0 border-top">
+                <t t-foreach="this.workorders" t-as="workorder" t-key="workorder.data.id">
+                    <MrpWorkorder t-if="workorder.data.state !== 'cancel'" t-props="this.subRecordProps(workorder)"/>
+                </t>
+            </ul>
+            <ul t-if="this.moves.length || this.checks.length || this.byProducts.length" class="list-group list-group-flush border-0 py-1 border-top">
+                <t t-foreach="this.moves" t-as="move" t-key="move.data.id">
+                    <StockMove t-props="this.subRecordProps(move)"/>
+                </t>
+                <t t-foreach="this.checks" t-as="check" t-key="check.data.id">
+                    <StockMove t-if="['register_consumed_materials', 'register_byproducts'].includes(check.data.test_type)" t-props="this.subRecordProps(check)"/>
+                    <QualityCheck t-else="" t-props="this.subRecordProps(check)"/>
+                </t>
+                <!-- Display a line to register each byproduct who isn't linked to a workorder.
+                Only displayed in the production card. -->
+                <t t-foreach="this.byProducts" t-as="byproductMove" t-key="byproductMove.id">
+                    <StockMove t-props="this.subRecordProps(byproductMove)"/>
+                </t>
+            </ul>
+            <div class="card-footer d-flex justify-content-between align-items-center border-top-0 rounded-bottom p-2 bg-view"
+                t-att-class="{'opacity-0': this.disabled}">
+                <t t-if="this.props.record.resModel === 'mrp.production'" t-call="mrp_workorder.MrpDisplayProductionFooter"/>
+                <t t-if="this.props.record.resModel === 'mrp.workorder'" t-call="mrp_workorder.MrpDisplayWorkorderFooter"/>
+                <button t-if="!this.state.underValidation" class="o_btn_icon btn btn-secondary ms-auto" t-on-click="this.onClickOpenMenu">
+                    <i class="oi" data-icon="more_vert" role="img"/>
+                </button>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="mrp_workorder.MrpDisplayProductionFooter">
+        <t t-if="this.props.record.data.state === 'to_close' and (!['serial', 'lot'].includes(this.trackingMode) or this.props.record.data.lot_producing_ids)" t-set="_btn_type" t-value="'btn-primary'"/>
+        <t t-else="" t-set="_btn_type" t-value="'btn-secondary'"/>
+        <button t-if="this.displayDoneButton" t-attf-class="btn #{_btn_type}"
+                t-on-click="this.validate" t-att-barcode_trigger="this.props.barcodeTarget ? 'CLMO' : false">
+            <t>Produce</t>
+        </button>
+    </t>
+    <t t-name="mrp_workorder.MrpDisplayWorkorderFooter">
+        <t t-set="_close_production" t-value="this.props.production.data.picking_type_auto_close &amp;&amp; this.props.record.data.is_last_unfinished_wo"/>
+        <t t-if="(_close_production &amp;&amp; ['serial', 'lot'].includes(this.trackingMode) &amp;&amp; !this.props.production.data.lot_producing_ids) || !this.active" t-set="_btn_type" t-value="'btn-secondary'"/>
+        <t t-else="" t-set="_btn_type" t-value="'btn-primary'"/>
+        <button t-if="this.displayDoneButton" t-attf-class="btn #{_btn_type}"
+                t-on-click="this.validate" t-att-barcode_trigger="this.props.barcodeTarget ? (_close_production ? 'CLMO' : 'CLWO') : false">
+            <t t-if="_close_production">Produce</t>
+            <t t-else="">Mark as Done</t>
+        </button>
+    </t>
+</templates>

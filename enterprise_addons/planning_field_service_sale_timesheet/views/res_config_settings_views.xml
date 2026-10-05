@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.planning_field_service</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="planning.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//setting[@name='allow_geolocation_setting']" position="before">
+                <setting id="planning_setting_mapbox" string="Mapbox"
+                         help="Connect Mapbox to get routes and travel times, calculate distance-based travel fees, and improve automatic shift planning"
+                         invisible="not module_planning_field_service">
+                    <div class="content-group">
+                        <div class="text-start" style="position:relative;">
+                            <label for="map_box_token" string="Token" class="mr8"/>
+                            <field name="map_box_token"/>
+                        </div>
+                        <div class="mt8">
+                            <a class="fw-bold" href="https://account.mapbox.com/auth/signup/" target="_blank">
+                                <i class="oi" data-icon="east"/> Sign up for Mapbox to get a free token
+                            </a>
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+            <xpath expr="//setting[@name='allow_travel_invoice']" position="inside">
+                <div invisible="not field_service_travel_fees" class="content-group">
+                    <div class="mt16">
+                        <field name="field_service_travel_fees_mode" class="o_light_label" widget="radio" options="{'horizontal': true}"/>
+                    </div>
+                    <div class="mt16">
+                        <label for="travel_time_invoicing_product_id" class="pe-2" string="Product"/>
+                        <field name="travel_time_invoicing_product_id"
+                                required="field_service_travel_fees"
+                                context="{
+                                    'default_type': 'service',
+                                    'default_list_price': 1.0,
+                                    'default_service_policy': 'delivered_manual',
+                                    'default_purchase_ok': False,
+                                    'default_sale_ok': True,
+                                }"/>
+                    </div>
+                </div>
+            </xpath>
+            <xpath expr="//setting[@name='planning_field_service_sale_timesheet']" position="attributes">
+                <attribute name="help">Invoice your time and materials to your customers. Select a project to invoice time via timesheets.</attribute>
+            </xpath>
+            <xpath expr="//setting[@name='planning_field_service_sale_timesheet']" position="inside">
+                <span invisible="not module_planning_field_service_sale_timesheet or module_project_forecast">
+                    <label for="planning_project_id" class="pe-2" string="Project"/>
+                    <field name="planning_project_id" context="{'default_allow_billable': True, 'default_allow_timesheets': True}"/>
+                </span>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="res_config_settings_view_form_inherit_web_enterprise" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.web.enterprise</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="web_enterprise.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='map_box_token']" position="attributes">
+                <attribute name="required">field_service_travel_fees and field_service_travel_fees_mode == 'distance'</attribute>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

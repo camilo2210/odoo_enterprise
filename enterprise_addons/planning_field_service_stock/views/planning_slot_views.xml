@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="planning_view_form" model="ir.ui.view">
+        <field name="name">planning.slot.inherit.view.form</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_form"/>
+        <field name="priority">30</field>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_stat_button" name="action_open_documents" type="object"
+                    icon="article"
+                    groups="planning.group_field_service_allow_equipment"
+                    invisible="not (can_edit and partner_id and product_document_count)">
+                    <field name="product_document_count" string="Documents" widget="statinfo"/>
+                </button>
+            </xpath>
+            <xpath expr="//notebook/page[@name='internal_note']" position="after">
+                <page name="equipment_page" string="Equipment" invisible="not (can_edit and partner_id)" groups="planning.group_field_service_allow_equipment">
+                    <field name="lot_ids" mode="list,kanban" readonly="not is_planning_admin"
+                        context="{ 'search_default_partner_ids': partner_name,
+                            'list_view_ref': 'planning_field_service_stock.view_production_lot_tree_equipment',
+                            'default_partner_ids': [partner_id]
+                        }">
+                        <kanban class="o_kanban_mobile" create="false">
+                            <templates>
+                                <t t-name="card" class="flex-row justify-content-between">
+                                    <div class="d-flex flex-column">
+                                        <field name="product_id" class="fw-bolder fs-5"/>
+                                        <field name="delivery_date" invisible="not is_delivery_date_visible" class="small"/>
+                                        <field name="name" class="small"/>
+                                    </div>
+                                    <button name="action_view_slots" class="oe_link" type="object" string="View Shifts" invisible="slots_count &lt;= 1"/>
+                                </t>
+                            </templates>
+                        </kanban>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

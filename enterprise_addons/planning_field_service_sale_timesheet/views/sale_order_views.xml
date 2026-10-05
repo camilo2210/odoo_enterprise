@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_order_form_inherit_sale_project" model="ir.ui.view">
+        <field name="name">sale.order.form.sale.project</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_line']//list" position="inside">
+                <field string="Related Intervention" name="planning_slot_id" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sale_order_view_form_inherit_planning_field_service_sale_timesheet" model="ir.ui.view">
+        <field name="name">sale.order.form.planning.field.service.sale.timesheet</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale_planning.view_order_form_inherit_sale_planning"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_view_planning']/div[hasclass('o_field_widget')]" position="replace">
+                <div class="o_stat_info">
+                    <span class="o_stat_text">To Plan</span>
+                </div>
+            </xpath>
+            <xpath expr="//button[@name='%(planning.planning_action_schedule_by_resource)d']/div[hasclass('o_field_widget')]" position="replace">
+                <div class="o_stat_info">
+                    <span class="o_stat_text d-flex align-items-baseline gap-1">
+                        <field name="intervention_count" widget="statinfo" nolabel="1" class="oe_inline"/>
+                        <span>Shifts</span>
+                    </span>
+                    <span class="o_stat_text d-flex align-items-baseline gap-1">
+                        <field name="completed_intervention_count" widget="statinfo" nolabel="1" class="oe_inline"/>
+                        <span>Done</span>
+                    </span>
+                </div>
+            </xpath>
+            <xpath expr="//button[@name='%(planning.planning_action_schedule_by_resource)d']" position="attributes">
+                <attribute name="groups">planning.group_planning_user</attribute>
+                <attribute name="invisible">intervention_count &lt;= 0</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

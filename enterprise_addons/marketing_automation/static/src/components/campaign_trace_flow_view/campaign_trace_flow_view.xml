@@ -1,0 +1,503 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<template>
+    <t t-name="marketing_automation.CampaignTraceFlowView">
+        <div t-ref="this.editor"
+            t-attf-style="visibility: {{ this.state.ready ? 'visible' : 'hidden' }}; background-size: {{ 20 * this.state.scale }}px {{ 20 * this.state.scale }}px; background-position: {{ this.state.origin.x }}px {{ this.state.origin.y }}px; cursor: {{ this.state.dragging ? 'grabbing;' : 'grab' }}"
+            class="editor flex-grow-1 overflow-hidden position-relative bg-100">
+            <t t-set="error" t-value="['canceled', 'error'].includes(this.props.record.data.state)"/>
+            <!-- Add the links: -->
+            <t t-foreach="this.record.campaign_id.marketing_activity_ids" t-as="activity" t-key="activity_index">
+                <t t-set="trace" t-value="this.getMarketingActivityTrace(activity)"/>
+                <t t-if="this.hasVisibleNode(activity)">
+                    <!-- Order: "Trigger" > "Delay" > "Activity" -->
+                    <!-- Add a link between the trigger node (i.e: "wait for value" or "mail interaction") and the next node (i.e: "delay" or "activity"): -->
+                    <t t-if="this.hasTriggerNode(activity) and (this.hasDelayNode(activity) or !['split', 'structure'].includes(activity.activity_type))">
+                        <t t-set="a" t-value="this.getActivityTriggerPositionOnScreen(activity)"/>
+                        <t t-set="b" t-value="this.hasDelayNode(activity)
+                            ? this.getActivityDelayPositionOnScreen(activity)
+                            : this.getActivityPositionOnScreen(activity)"/>
+                        <svg xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                t-attf-d="M {{a.x}} {{a.y}} C {{a.x + (b.x - a.x) / 2}} {{a.y}}, {{a.x + (b.x - a.x) / 2}} {{b.y}}, {{b.x}} {{b.y}}"
+                                t-attf-stroke-width="calc({{ this.state.scale }} * var(--border-width))"
+                                t-att-stroke="trace
+                                    ? (trace.state === 'processed'
+                                        ? 'rgb(var(--success-rgb))'
+                                        : (['scheduled', 'waiting'].includes(trace?.state)
+                                            ? 'rgb(var(--warning-rgb))'
+                                            : 'rgb(var(--danger-rgb))'))
+                                    : !error ? 'var(--border-color)' : 'rgb(var(--danger-rgb))'"
+                                fill="transparent" />
+                        </svg>
+                    </t>
+                    <!-- Add a link between the delay node and the activity node: -->
+                    <t t-if="this.hasDelayNode(activity) and this.hasActivityNode(activity)">
+                        <t t-set="trace" t-value="this.getMarketingActivityTrace(activity)"/>
+                        <t t-set="a" t-value="this.getActivityDelayPositionOnScreen(activity)"/>
+                        <t t-set="b" t-value="this.getActivityPositionOnScreen(activity)"/>
+                        <svg xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                t-attf-d="M {{a.x}} {{a.y}} C {{a.x + (b.x - a.x) / 2}} {{a.y}}, {{a.x + (b.x - a.x) / 2}} {{b.y}}, {{b.x}} {{b.y}}"
+                                t-attf-stroke-width="calc({{ this.state.scale }} * var(--border-width))"
+                                t-att-stroke="trace
+                                    ? (trace.state === 'processed'
+                                        ? 'rgb(var(--success-rgb))'
+                                        : (['scheduled', 'waiting'].includes(trace?.state) and !error
+                                            ? 'rgb(var(--warning-rgb))'
+                                            : 'rgb(var(--danger-rgb))'))
+                                    : !error ? 'var(--border-color)' : 'rgb(var(--danger-rgb))'"
+                                fill="transparent" />
+                        </svg>
+                    </t>
+                    <!-- Add a link between the first visible node and its parent -->
+                    <t t-set="parent" t-value="this.getParentMarketingActivity(activity)"/>
+                    <t t-set="a" t-value="parent
+                        ? this.getPositionOfLastVisibleNodeOnScreen(parent)
+                        : (activity.trigger_type === 'collect_reply'
+                            ? this.getReplyTriggerPositionOnScreen(this.record.campaign_id)
+                            : this.getTriggerPositionOnScreen(this.record.campaign_id))"/>
+                    <t t-set="b" t-value="this.getPositionOfFirstVisibleNodeOnScreen(activity)"/>
+                    <svg xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            t-attf-d="M {{a.x}} {{a.y}} C {{a.x + (b.x - a.x) / 2}} {{a.y}}, {{a.x + (b.x - a.x) / 2}} {{b.y}}, {{b.x}} {{b.y}}"
+                            t-attf-stroke-width="calc({{ this.state.scale }} * var(--border-width))"
+                            t-att-stroke="trace
+                                ? (trace.state === 'processed'
+                                    ? 'rgb(var(--success-rgb))'
+                                    : (['scheduled', 'waiting'].includes(trace?.state) and !error
+                                        ? 'rgb(var(--warning-rgb))'
+                                        : 'rgb(var(--danger-rgb))'))
+                                : !error ? 'var(--border-color)' : 'rgb(var(--danger-rgb))'"
+                            fill="transparent" />
+                    </svg>
+                    <!-- Add annotation for the split node: -->
+                    <t t-if="parent and parent.activity_type === 'split'">
+                        <t t-set="c" t-value="this.getBezierPoint(a, b, 2 / 5)"/>
+                        <t t-set="d" t-value="this.getBezierPoint(a, b, 3 / 5)"/>
+                        <div t-att-style="this.getCSSTransform(c.x, c.y)"
+                            t-att-class="{
+                                'o-editor-annotation bg-view rounded border px-2 py-1': true,
+                                'border-warning': ['scheduled', 'waiting'].includes(trace?.state),
+                                'border-success': trace?.state === 'processed',
+                                'border-danger': ['canceled', 'error'].includes(trace?.state) or (!trace and error),
+                            }">
+                            <t t-if="activity.is_split_no">No</t>
+                            <t t-else="">Yes</t>
+                        </div>
+                    </t>
+                </t>
+            </t>
+
+            <!-- Render the END flag for the nodes: -->
+            <t t-foreach="this.record.campaign_id.marketing_activity_ids" t-as="activity" t-key="activity_index">
+                <t t-if="activity.child_ids.length === 0 and activity.activity_type !== 'split'">
+                    <t t-set="trace" t-value="this.getMarketingActivityTrace(activity)"/>
+                    <t t-set="a" t-value="this.getPositionOfLastVisibleNodeOnScreen(activity)"/>
+                    <t t-set="b" t-value="this.getActivityFlagPositionOnScreen(activity)"/>
+                    <!-- Render the link: -->
+                    <svg xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            t-attf-d="M {{a.x}} {{a.y}} C {{a.x + (b.x - a.x) / 2}} {{a.y}}, {{a.x + (b.x - a.x) / 2}} {{b.y}}, {{b.x}} {{b.y}}"
+                            t-attf-stroke-width="calc({{ this.state.scale }} * var(--border-width))"
+                            t-att-stroke="trace
+                                ? (trace.state === 'processed'
+                                    ? 'rgb(var(--success-rgb))'
+                                    : (['scheduled', 'waiting'].includes(trace?.state) and !error
+                                        ? 'var(--border-color)'
+                                        : 'rgb(var(--danger-rgb))'))
+                                : !error ? 'var(--border-color)' : 'rgb(var(--danger-rgb))'"
+                            fill="transparent" />
+                    </svg>
+                    <!-- Render the flag: -->
+                    <div t-att-style="this.getCSSTransform(b.x, b.y)"
+                        t-att-class="{
+                            'o-editor-flag align-self-center px-3 py-2 border badge rounded bg-200': true,
+                            'border-success': trace?.state === 'processed',
+                            'border-danger': ['canceled', 'error'].includes(trace?.state) or error,
+                        }">END</div>
+                </t>
+            </t>
+
+            <!-- Render the missing "yes/no" branches: -->
+            <t t-foreach="this.record.campaign_id.marketing_activity_ids" t-as="activity" t-key="activity_index">
+                <t t-if="activity.activity_type === 'action'">
+                    <t t-set="position" t-value="this.getActivityPositionOnScreen(activity)"/>
+                    <t t-set="trace" t-value="this.getMarketingActivityTrace(activity)"/>
+                    <div t-att-style="this.getCSSTransform(position.x, position.y)"
+                        t-att-class="{
+                            'o-editor-node d-flex flex-column align-self-center flex-shrink-0 bg-view rounded border overflow-hidden': true,
+                            'border-warning': ['scheduled', 'waiting'].includes(trace?.state),
+                            'border-success': trace?.state === 'processed',
+                            'border-danger': ['canceled', 'error'].includes(trace?.state),
+                        }">
+                        <!-- "Update record" node: -->
+                        <t t-if="activity.server_action_state === 'object_write'">
+                            <div class="d-flex flex-row align-items-center p-2">
+                                <i class="o_ma_step_icon o_ma_step_action oi p-2 rounded" data-icon="edit" aria-hidden="true"/>
+                                <div class="d-flex flex-column ps-2">
+                                    <span class="fw-bold">Update Record</span>
+                                    <t t-if="trace">
+                                        <t t-call="marketing_automation.CampaignTraceStatus"/>
+                                        <div t-if="trace?.state === 'scheduled'" class="d-flex mt-2">
+                                            <button class="btn btn-primary me-1" t-on-pointerdown="(e) => this.addPointerListenerOnExecuteStepBtn(trace, e)">Run</button>
+                                            <button class="btn btn-secondary" t-on-pointerdown="(e) => this.addPointerListenerOnCancelStepBtn(trace, e)">Cancel</button>
+                                        </div>
+                                    </t>
+                                    <span t-else="" t-out="activity.description" class="small text-break"/>
+                                </div>
+                            </div>
+                        </t>
+                        <!-- "Next activity" node: -->
+                        <t t-elif="activity.server_action_state === 'next_activity'">
+                            <div class="d-flex flex-row align-items-center p-2">
+                                <i class="o_ma_step_icon o_ma_step_action oi p-2 rounded" data-icon="verified" aria-hidden="true"/>
+                                <div class="d-flex flex-column ps-2">
+                                    <span class="fw-bold">Create an Activity</span>
+                                    <t t-if="trace">
+                                        <t t-call="marketing_automation.CampaignTraceStatus"/>
+                                        <div t-if="trace?.state === 'scheduled'" class="d-flex mt-2">
+                                            <button class="btn btn-primary me-1" t-on-pointerdown="(e) => this.addPointerListenerOnExecuteStepBtn(trace, e)">Run</button>
+                                            <button class="btn btn-secondary" t-on-pointerdown="(e) => this.addPointerListenerOnCancelStepBtn(trace, e)">Cancel</button>
+                                        </div>
+                                    </t>
+                                    <span t-else="" class="small text-break" t-out="activity.description"/>
+                                </div>
+                            </div>
+                        </t>
+                        <!-- "Action" node: -->
+                        <t t-else="">
+                            <div class="d-flex flex-row align-items-center p-2">
+                                <i class="o_ma_step_icon o_ma_step_action oi p-2 rounded" data-icon="settings" aria-hidden="true"/>
+                                <div class="d-flex flex-column min-w-0 ps-2">
+                                    <span class="fw-bold text-truncate" t-out="activity.name" t-att-title="activity.name"/>
+                                    <t t-if="trace">
+                                        <t t-call="marketing_automation.CampaignTraceStatus"/>
+                                        <div t-if="trace?.state === 'scheduled'" class="d-flex mt-2">
+                                            <button class="btn btn-primary me-1" t-on-pointerdown="(e) => this.addPointerListenerOnExecuteStepBtn(trace, e)">Run</button>
+                                            <button class="btn btn-secondary" t-on-pointerdown="(e) => this.addPointerListenerOnCancelStepBtn(trace, e)">Cancel</button>
+                                        </div>
+                                    </t>
+                                    <span t-else="" t-out="activity.description" class="small text-break"/>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+                <t t-if="activity.activity_type === 'split'">
+                    <t t-set="trace" t-value="this.getMarketingActivityTrace(activity)"/>
+                    <t t-set="children" t-value="this.getChildrenMarketingActivity(activity)"/>
+                    <!-- Add a branch for the missing "yes": -->
+                    <t t-if="children.every(child => child.is_split_no)">
+                        <t t-set="a" t-value="this.getActivityPositionOnScreen(activity)"/>
+                        <t t-set="b" t-value="this.getYesBranchPositionOnScreen(activity)"/>
+                        <t t-set="c" t-value="this.getBezierPoint(a, b, 2 / 5)"/>
+                        <t t-set="d" t-value="this.getBezierPoint(a, b, 3 / 5)"/>
+                        <t t-set="isMissingYesFlagReached" t-value="trace?.state === 'processed' and children.every(child => !this.getMarketingActivityTrace(child))"/>
+                        <!-- Render the link: -->
+                        <svg xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                t-attf-d="M {{a.x}} {{a.y}} C {{a.x + (b.x - a.x) / 2}} {{a.y}}, {{a.x + (b.x - a.x) / 2}} {{b.y}}, {{b.x}} {{b.y}}"
+                                t-attf-stroke-width="calc({{ this.state.scale }} * var(--border-width))"
+                                t-att-stroke="isMissingYesFlagReached
+                                    ? 'rgb(var(--success-rgb))'
+                                    : 'var(--border-color)'"
+                                fill="transparent" />
+                        </svg>
+                        <!-- Render the "yes" label: -->
+                        <div t-att-style="this.getCSSTransform(c.x, c.y)"
+                            t-att-class="{
+                                'o-editor-annotation bg-view rounded border px-2 py-1': true,
+                                'border-success': isMissingYesFlagReached,
+                            }">Yes</div>
+                        <!-- Render the flag: -->
+                        <div t-att-style="this.getCSSTransform(b.x, b.y)"
+                            t-att-class="{
+                                'o-editor-flag align-self-center px-3 py-2 border badge rounded bg-200': true,
+                                'border-success': isMissingYesFlagReached,
+                            }">END</div>
+                    </t>
+                    <!-- Add a branch for the missing "no": -->
+                    <t t-if="children.every(child => !child.is_split_no)">
+                        <t t-set="a" t-value="this.getActivityPositionOnScreen(activity)"/>
+                        <t t-set="b" t-value="this.getNoBranchPositionOnScreen(activity)"/>
+                        <t t-set="c" t-value="this.getBezierPoint(a, b, 2 / 5)"/>
+                        <t t-set="d" t-value="this.getBezierPoint(a, b, 3 / 5)"/>
+                        <t t-set="isMissingNoFlagReached" t-value="trace?.state === 'processed' and children.every(child => !this.getMarketingActivityTrace(child))"/>
+                        <!-- Render the link: -->
+                        <svg xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                t-attf-d="M {{a.x}} {{a.y}} C {{a.x + (b.x - a.x) / 2}} {{a.y}}, {{a.x + (b.x - a.x) / 2}} {{b.y}}, {{b.x}} {{b.y}}"
+                                t-attf-stroke-width="calc({{ this.state.scale }} * var(--border-width))"
+                                t-att-stroke="isMissingNoFlagReached
+                                    ? 'rgb(var(--success-rgb))'
+                                    : 'var(--border-color)'"
+                                fill="transparent" />
+                        </svg>
+                        <!-- Render the "no" label: -->
+                        <div t-att-style="this.getCSSTransform(c.x, c.y)"
+                            t-att-class="{
+                                'o-editor-annotation bg-view rounded border px-2 py-1': true,
+                                'border-success': isMissingNoFlagReached,
+                            }">No</div>
+                        <!-- Render the flag: -->
+                        <div t-att-style="this.getCSSTransform(b.x, b.y)"
+                            t-att-class="{
+                                'o-editor-flag align-self-center px-3 py-2 border badge rounded bg-200': true,
+                                'border-success': isMissingNoFlagReached,
+                            }">END</div>
+                    </t>
+                </t>
+            </t>
+
+            <!-- Render the main trigger node: -->
+            <t t-set="position" t-value="this.getTriggerPositionOnScreen(this.record.campaign_id)"/>
+            <div class="o-editor-node d-flex flex-column align-self-center flex-shrink-0 bg-view rounded border border-success"
+                t-att-style="this.getCSSTransform(position.x, position.y)">
+                <div class="d-flex flex-row align-items-center p-2">
+                    <i class="o_ma_step_icon oi p-2 rounded" data-icon="flash_on" aria-hidden="true"/>
+                    <div class="d-flex flex-column ps-2">
+                        <span class="fw-bold">Campaign Start</span>
+                        <span class="border border-success text-success rounded px-2 py-1">
+                            <i class="oi me-1" data-icon="check" aria-hidden="true"/><t t-out="this.formatDate(this.record?.create_date)"/>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Render the reply trigger node: -->
+            <t t-set="a" t-value="this.getTriggerPositionOnScreen(this.record.campaign_id)"/>
+            <t t-set="b" t-value="this.getReplyTriggerPositionOnScreen(this.record.campaign_id)"/>
+            <t t-if="this.hasActivityForReplyTrigger()">
+                <!-- Render the link: -->
+                <svg xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        t-attf-d="M {{a.x}} {{a.y}} C {{a.x + (b.x - a.x) / 2}} {{a.y}}, {{a.x + (b.x - a.x) / 2}} {{b.y}}, {{b.x}} {{b.y}}"
+                        t-attf-stroke-width="calc({{ this.state.scale }} * var(--border-width))"
+                        stroke="var(--border-color)"
+                        fill="transparent" />
+                </svg>
+                <!-- Render the node: -->
+                <div class="o-editor-node d-flex flex-column align-self-center flex-shrink-0 bg-view rounded border overflow-hidden"
+                    t-att-style="this.getCSSTransform(b.x, b.y)">
+                    <div class="d-flex flex-column px-3 py-2">
+                        <span class="fw-bold">Global Reply Path</span>
+                        <span class="text-break w-100 small">Switch to this branch on replies</span>
+                    </div>
+                </div>
+            </t>
+
+            <!-- Render the activity nodes: -->
+            <t t-foreach="this.record.campaign_id.marketing_activity_ids" t-as="activity" t-key="activity_index">
+                <t t-set="trace" t-value="this.getMarketingActivityTrace(activity)"/>
+                <t t-if="['log_note', 'subscribe_to_list'].includes(activity.activity_type)">
+                    <t t-set="position" t-value="this.getActivityPositionOnScreen(activity)"/>
+                    <t t-set="trace" t-value="this.getMarketingActivityTrace(activity)"/>
+                    <div t-on-pointerdown="(e) => this.addPointerListenerOnMarketingActivity(activity, e)"
+                        t-att-style="this.getCSSTransform(position.x, position.y)"
+                        t-att-class="{
+                            'o-editor-node d-flex flex-column align-self-center flex-shrink-0 bg-view rounded border overflow-hidden': true,
+                            'border-warning': ['scheduled', 'waiting'].includes(trace?.state),
+                            'border-success': trace?.state === 'processed',
+                            'border-danger': ['canceled', 'error'].includes(trace?.state),
+                        }">
+                        <!-- "Log note" node: -->
+                        <t t-if="activity.activity_type === 'log_note'">
+                            <div class="d-flex flex-row align-items-center p-2">
+                                <i class="o_ma_step_icon oi p-2 rounded" data-icon="edit_square" aria-hidden="true"/>
+                                <div class="d-flex flex-column ps-2">
+                                    <span class="fw-bold">Log Note</span>
+                                    <t t-if="trace">
+                                        <t t-call="marketing_automation.CampaignTraceStatus"/>
+                                        <div t-if="trace?.state === 'scheduled'" class="d-flex mt-2">
+                                            <button class="btn btn-primary me-1" t-on-pointerdown="(e) => this.addPointerListenerOnExecuteStepBtn(trace, e)">Run</button>
+                                            <button class="btn btn-secondary" t-on-pointerdown="(e) => this.addPointerListenerOnCancelStepBtn(trace, e)">Cancel</button>
+                                        </div>
+                                    </t>
+                                    <span t-else="" t-out="activity.description" class="small text-break"/>
+                                </div>
+                            </div>
+                        </t>
+                        <!-- "Update subscription" node: -->
+                        <t t-elif="activity.activity_type === 'subscribe_to_list'">
+                            <div class="d-flex flex-row align-items-center p-2">
+                                <i class="o_ma_step_icon o_ma_step_action oi p-2 rounded" data-icon="contact_mail" aria-hidden="true"/>
+                                <div class="d-flex flex-column ps-2">
+                                    <span class="fw-bold">Update Subscription</span>
+                                    <t t-if="trace">
+                                        <t t-call="marketing_automation.CampaignTraceStatus"/>
+                                        <div t-if="trace?.state === 'scheduled'" class="d-flex mt-2">
+                                            <button class="btn btn-primary me-1" t-on-pointerdown="(e) => this.addPointerListenerOnExecuteStepBtn(trace, e)">Run</button>
+                                            <button class="btn btn-secondary" t-on-pointerdown="(e) => this.addPointerListenerOnCancelStepBtn(trace, e)">Cancel</button>
+                                        </div>
+                                    </t>
+                                    <span t-else="" t-out="activity.description" class="small text-break"/>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+                <!-- "Email" node: -->
+                <t t-elif="activity.activity_type === 'mail'">
+                    <t t-set="position" t-value="this.getActivityPositionOnScreen(activity)"/>
+                    <t t-set="trace" t-value="this.getMarketingActivityTrace(activity)"/>
+                    <div t-on-pointerdown="(e) => this.addPointerListenerOnMarketingActivity(activity, e)"
+                        t-att-style="this.getCSSTransform(position.x, position.y)"
+                        t-att-class="{
+                            'o-editor-node d-flex flex-column align-self-center flex-shrink-0 bg-view rounded border overflow-hidden': true,
+                            'border-warning': ['scheduled', 'waiting'].includes(trace?.state),
+                            'border-success': trace?.state === 'processed',
+                            'border-danger': ['canceled', 'error'].includes(trace?.state),
+                        }">
+                        <div class="d-flex flex-row align-items-center p-2">
+                            <i class="o_ma_step_icon o_ma_step_communicate oi p-2 rounded" data-icon="email" aria-hidden="true"/>
+                            <div class="d-flex flex-column min-w-0 ps-2">
+                                <span class="fw-bold text-truncate" t-out="activity.name" t-att-title="activity.name"/>
+                                <t t-if="trace">
+                                    <t t-call="marketing_automation.CampaignTraceStatus"/>
+                                    <div t-if="trace?.state === 'scheduled'" class="d-flex mt-2">
+                                        <button class="btn btn-primary me-1" t-on-pointerdown="(e) => this.addPointerListenerOnExecuteStepBtn(trace, e)">Run</button>
+                                        <button class="btn btn-secondary" t-on-pointerdown="(e) => this.addPointerListenerOnCancelStepBtn(trace, e)">Cancel</button>
+                                    </div>
+                                </t>
+                                <span t-else="" t-out="activity.mass_mailing_id.display_name" class="small"/>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+                <!-- "Split" node: -->
+                <t t-elif="activity.activity_type === 'split'">
+                    <t t-set="position" t-value="this.getActivityPositionOnScreen(activity)"/>
+                    <t t-set="trace" t-value="this.getMarketingActivityTrace(activity)"/>
+                    <div t-on-pointerdown="(e) => this.addPointerListenerOnMarketingActivity(activity, e)"
+                        t-att-style="this.getCSSTransform(position.x, position.y)"
+                        t-att-class="{
+                            'o-editor-node d-flex flex-column align-self-center flex-shrink-0 bg-view rounded border overflow-hidden': true,
+                            'border-warning': ['scheduled', 'waiting'].includes(trace?.state),
+                            'border-success': trace?.state === 'processed',
+                            'border-danger': ['canceled', 'error'].includes(trace?.state),
+                        }">
+                        <div class="d-flex flex-row align-items-center p-2">
+                            <i class="o_ma_step_icon oi p-2 rounded" data-icon="signpost" aria-hidden="true"/>
+                            <div class="d-flex flex-column ps-2">
+                                <span class="fw-bold">If/Else Split</span>
+                                <t t-if="trace">
+                                    <t t-call="marketing_automation.CampaignTraceStatus"/>
+                                    <div t-if="trace?.state === 'scheduled'" class="d-flex mt-2">
+                                        <button class="btn btn-primary me-1" t-on-pointerdown="(e) => this.addPointerListenerOnExecuteStepBtn(trace, e)">Run</button>
+                                        <button class="btn btn-secondary" t-on-pointerdown="(e) => this.addPointerListenerOnCancelStepBtn(trace, e)">Cancel</button>
+                                    </div>
+                                </t>
+                                <span t-elif="!['begin', 'activity', 'wait_value', 'collect_reply'].includes(activity.trigger_type)" class="small text-break">
+                                    <t t-out="this.getActivityTriggerDescription(activity)"/>
+                                </span>
+                            </div>
+                        </div>
+                        <div t-if="!trace and ['begin', 'activity', 'wait_value', 'collect_reply'].includes(activity.trigger_type)" class="p-2 pt-0">
+                            <DomainSelector domain="this.getDomainDisplay(activity)" resModel="this.record.campaign_id.model_name" readonly="true"/>
+                        </div>
+                    </div>
+                </t>
+                <!-- Fake "Activity trigger" node: -->
+                <t t-if="this.hasTriggerNode(activity)">
+                    <t t-set="position" t-value="this.getActivityTriggerPositionOnScreen(activity)"/>
+                    <t t-set="trace" t-value="this.getMarketingActivityTrace(activity)"/>
+                    <div t-on-pointerdown="(e) => this.addPointerListenerOnMarketingActivity(activity, e)"
+                        t-att-style="this.getCSSTransform(position.x, position.y)"
+                        t-att-class="{
+                            'o-editor-node d-flex flex-column align-self-center flex-shrink-0 bg-view rounded border overflow-hidden': true,
+                            'border-warning': ['scheduled', 'waiting'].includes(trace?.state),
+                            'border-success': trace?.state === 'processed',
+                            'border-danger': ['canceled', 'error'].includes(trace?.state),
+                        }">
+                        <div class="d-flex flex-row align-items-center p-2">
+                            <i class="o_ma_step_icon oi p-2 rounded" data-icon="pause_circle" aria-hidden="true"/>
+                            <div class="d-flex flex-column ps-2">
+                                <span class="fw-bold">Condition Delay</span>
+                                <t t-if="trace">
+                                    <t t-call="marketing_automation.CampaignTraceStatus"/>
+                                    <div t-if="activity.activity_type === 'structure' and trace?.state === 'scheduled'" class="d-flex mt-2">
+                                        <button class="btn btn-primary me-1" t-on-pointerdown="(e) => this.addPointerListenerOnExecuteStepBtn(trace, e)">Run</button>
+                                        <button class="btn btn-secondary" t-on-pointerdown="(e) => this.addPointerListenerOnCancelStepBtn(trace, e)">Cancel</button>
+                                    </div>
+                                </t>
+                                <t t-elif="activity.triggering_activity_id">
+                                    <span class="small" t-out="this.getActivityTriggerDescription(activity)"/>
+                                </t>
+                                <t t-else="">
+                                    <span class="small">Wait until</span>
+                                </t>
+                            </div>
+                        </div>
+                        <div t-if="!trace and !activity.triggering_activity_id" class="p-2 pt-0">
+                            <DomainSelector domain="this.getDomainDisplay(activity)" resModel="this.record.campaign_id.model_name" readonly="true"/>
+                        </div>
+                    </div>
+                </t>
+                <!-- Fake "Delay" node: -->
+                <t t-if="this.hasDelayNode(activity)">
+                    <t t-set="position" t-value="this.getActivityDelayPositionOnScreen(activity)"/>
+                    <t t-set="trace" t-value="this.getMarketingActivityTrace(activity)"/>
+                    <div t-on-pointerdown="(e) => this.addPointerListenerOnMarketingActivity(activity, e)"
+                        t-att-style="this.getCSSTransform(position.x, position.y)"
+                        t-att-class="{
+                            'o-editor-node d-flex flex-column align-self-center flex-shrink-0 bg-view rounded border overflow-hidden': true,
+                            'border-warning': ['scheduled', 'waiting'].includes(trace?.state),
+                            'border-success': trace?.state === 'processed',
+                            'border-danger': ['canceled', 'error'].includes(trace?.state),
+                        }">
+                        <div class="d-flex flex-row align-items-center p-2">
+                            <i class="o_ma_step_icon oi p-2 rounded" data-icon="hourglass_empty" aria-hidden="true"/>
+                            <div class="d-flex flex-column ps-2">
+                                <span class="fw-bold">Delay</span>
+                                <t t-if="trace">
+                                    <t t-call="marketing_automation.CampaignTraceStatus"/>
+                                    <div t-if="activity.activity_type === 'structure' and trace?.state === 'scheduled'" class="d-flex mt-2">
+                                        <button class="btn btn-primary me-1" t-on-pointerdown="(e) => this.addPointerListenerOnExecuteStepBtn(trace, e)">Run</button>
+                                        <button class="btn btn-secondary" t-on-pointerdown="(e) => this.addPointerListenerOnCancelStepBtn(trace, e)">Cancel</button>
+                                    </div>
+                                </t>
+                                <span t-else="" class="small">
+                                    Wait for <t t-out="activity.interval_number"/> <t t-out="activity.interval_type"/>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+
+            <!-- Controls: -->
+            <div class="o-editor-controls d-flex align-items-center p-3 gap-3">
+                <div class="d-flex gap-1 p-1 bg-view border rounded-3 shadow-sm" role="group" aria-label="Zoom">
+                    <button class="btn btn-light" t-on-click="this.zoomOut" title="Zoom Out">
+                        <i class="oi" data-icon="remove" aria-hidden="true"/>
+                    </button>
+                    <button type="button" class="o-editor-zoomlevel btn btn-light px-0" data-tooltip="Reset Zoom" t-on-click="() => this.zoom(1)">
+                        <span class="visually-hidden">Reset Zoom</span>
+                        <t t-out="Math.round(100 * this.state.scale)"/>%
+                    </button>
+                    <button class="btn btn-light" t-on-click="this.zoomIn" title="Zoom In">
+                        <i class="oi" data-icon="add" aria-hidden="true"/>
+                    </button>
+                    <button class="btn btn-light" t-on-click="this.fitGraphToView" title="Fit Graph to View">
+                        <i class="oi" data-icon="fullscreen" aria-hidden="true"/>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="marketing_automation.CampaignTraceStatus">
+        <span t-if="trace?.state === 'processed'" class="border border-success text-success rounded px-2 py-1" title="Processed">
+            <i class="oi me-1" data-icon="check" aria-hidden="true"/><t t-out="this.formatDate(trace?.schedule_date)"/>
+        </span>
+        <span t-elif="trace?.state === 'scheduled' and trace?.schedule_date" class="border border-warning text-warning rounded px-2 py-1" title="Scheduled">
+            <i class="oi me-1" data-icon="calendar_clock" aria-hidden="true"/><t t-out="this.formatDate(trace?.schedule_date)"/>
+        </span>
+        <span t-elif="trace?.state === 'scheduled'" class="border border-warning text-warning rounded px-2 py-1" title="Waiting">
+            <i class="oi me-1" data-icon="calendar_clock" aria-hidden="true"/>Waiting interaction
+        </span>
+        <span t-elif="['canceled', 'error'].includes(trace?.state)" class="border border-danger text-danger rounded px-2 py-1" title="Canceled">
+            <i class="oi me-1" data-icon="warning" aria-hidden="true"/><t t-out="this.formatDate(trace?.schedule_date)"/>
+        </span>
+    </t>
+</template>

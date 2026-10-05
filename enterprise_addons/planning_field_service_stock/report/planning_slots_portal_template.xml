@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="worksheet_equipment">
+        <table class="table table-sm table-borderless o_main_table">
+            <thead>
+                <tr>
+                    <th class="text-start">Name</th>
+                    <th class="text-end">Lot/Serial Number</th>
+                </tr>
+            </thead>
+            <tbody>
+                <t t-set="lot_line" t-value="0"/>
+                <t t-foreach="intervention.lot_ids" t-as="lot">
+                    <tr t-att-style="'background-color: #F1F1F1;' if lot_line % 2 == 0 else ''">
+                        <td>
+                            <span t-field="lot.product_id.name"/>
+                        </td>
+                        <td class="text-end">
+                            <span t-field="lot.name"/>
+                        </td>
+                    </tr>
+                    <t t-set="lot_line" t-value="lot_line +1"/>
+                </t>
+            </tbody>
+        </table>
+
+    </template>
+    <template id="portal_my_field_service_report_form" inherit_id="planning_field_service.portal_my_field_service_report_form">
+        <xpath expr="//t[@id='intervention-nav-equipment']" position="replace">
+            <li class="nav-item" t-if="show_portal_equipment and intervention.lot_ids">
+                <a class="nav-link p-0" href="#equipment">
+                    Equipment
+                </a>
+            </li>
+        </xpath>
+        <xpath expr="//div[@id='intervention_content']//div[@id='intervention_equipment']" position="before">
+            <div class="container" t-if="show_portal_equipment and intervention.lot_ids">
+                <hr class="mt-4 mb-4"/>
+                <h3 id="equipment" class="mt-2 mb-2" data-anchor="true">Equipment</h3>
+                <t t-call="planning_field_service_stock.worksheet_equipment"/>
+            </div>
+        </xpath>
+    </template>
+</odoo>

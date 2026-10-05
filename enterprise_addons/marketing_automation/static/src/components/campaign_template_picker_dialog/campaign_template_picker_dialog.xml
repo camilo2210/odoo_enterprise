@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="marketing_automation.CampaignTemplatePickerDialog">
+        <Dialog size="'lg'" title.translate="Create a Marketing Automation Campaign" bodyClass="'o_ma_campaign_template_picker_dialog p-0 h-100'">
+            <div class="d-sm-flex">
+                <div class="d-flex flex-grow-1 min-w-0 flex-wrap p-2">
+                    <t t-foreach="this.notebookPages" t-as="page" t-key="page_index">
+                        <CampaignTemplatePickerSheet t-props="page.props" title="page.title"/>
+                    </t>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <button t-on-click="this.onLoadTemplate" class="btn btn-primary o_ma_campaign_picker_create" data-hotkey="c">Use this Template</button>
+                <button t-on-click="this.props.close" class="btn btn-secondary o_ma_campaign_picker_discard" data-hotkey="x">Discard</button>
+            </t>
+        </Dialog>
+    </t>
+
+    <t t-name="marketing_automation.CampaignTemplatePickerDialogSheet">
+        <div t-foreach="this.props.templates" t-as="template" t-key="template" class="col-12 col-lg-4 p-1">
+            <button
+                class="o_ma_campaign_picker_card card flex-row flex-lg-column w-100 h-100 gap-4 gap-lg-3 p-3 rounded"
+                t-att-class="{'o_ma_campaign_picker_active': this.props.activeTemplate.name === template}"
+                t-on-click="() => this.props.setActive(template)"
+                t-attf-aria-label="Select {{template_value.title}}"
+                >
+                <div class="card-body text-start p-0">
+                    <h3 class="card-title" t-out="template_value.title"/>
+                    <p class="card-text text-muted" t-out="template_value.description"/>
+                    <div class="border badge rounded-pill bg-200" t-out="this.props.title"/>
+                </div>
+            </button>
+        </div>
+    </t>
+</templates>

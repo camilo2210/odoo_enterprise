@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <record id="l10n_sa_disciplinary_action_view_form" model="ir.ui.view">
+        <field name="name">l10n.sa.disciplinary.action.view.form</field>
+        <field name="model">l10n.sa.disciplinary.action</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button string="Approve" name="action_approve" class="btn btn-primary"
+                            type="object" invisible="state != 'draft'"/>
+                    <button string="Set to Draft" name="action_set_to_draft"
+                            type="object" invisible="state == 'draft' or payslip_id"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,approved"/>
+                </header>
+                <sheet>
+                    <div name="title" class="o_title" invisible="1">
+                        <field name="display_name" invisible="not employee_id"/>
+                    </div>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_payslip"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="payments"
+                            invisible="not payslip_id"
+                            string="Related Payslip"/>
+                    </div>
+                    <div class="alert alert-info" role="alert"
+                         invisible="action_type != 'deduction' or state == 'draft' or payslip_id">
+                        A disciplinary deduction will be applied to the next payslip
+                    </div>
+                    <widget name="web_ribbon" title="Paid" bg_color="text-bg-success" invisible="not payslip_id or payslip_state != 'paid'"/>
+                    <group>
+                        <group>
+                            <field name="employee_id" widget="many2one_avatar_employee" readonly="state == 'approved'"/>
+                            <field name="action_type" readonly="state == 'approved'"/>
+                        </group>
+                        <group>
+                            <field name="date" readonly="state == 'approved'"/>
+                        </group>
+                    </group>
+                    <div invisible="action_type != 'deduction'">
+                        <group colspan="2">
+                            <group>
+                                <field name="amount_based_on" readonly="state == 'approved'" required="action_type == 'deduction'"/>
+                                <field name="daily_wage_based_on"
+                                readonly="state == 'approved'"
+                                required="action_type == 'deduction' and amount_based_on == 'daily_wage_percentage'"
+                                invisible="amount_based_on != 'daily_wage_percentage'"/>
+                            </group>
+                            <group invisible="amount_based_on not in ['daily_wage_percentage', 'monthly_wage_percentage']">
+                                <label for="amount_base_basic" string="Amount Base" class="fw-bold"/>
+                                <div class="d-flex">
+                                    <div class="d-flex flex-column align-items-center me-3">
+                                        <field name="amount_base_basic" class="w-auto" 
+                                        widget="boolean_toggle" 
+                                        nolabel="1" readonly="state == 'approved'"/>
+                                        <small class="text-muted">Basic</small>
+                                    </div>
+                                    <div class="d-flex flex-column align-items-center me-3">
+                                        <field name="amount_base_housing" class="w-auto" 
+                                        widget="boolean_toggle" 
+                                        nolabel="1" readonly="state == 'approved'"/>
+                                        <small class="text-muted">Housing</small>
+                                    </div>
+                                    <div class="d-flex flex-column align-items-center me-3">
+                                        <field name="amount_base_transportation" class="w-auto" 
+                                        widget="boolean_toggle" 
+                                        nolabel="1" readonly="state == 'approved'"/>
+                                        <small class="text-muted">Transportation</small>
+                                    </div>
+                                    <div class="d-flex flex-column align-items-center">
+                                        <field name="amount_base_other" class="w-auto" 
+                                        widget="boolean_toggle" 
+                                        nolabel="1" readonly="state == 'approved'"/>
+                                        <small class="text-muted">Other</small>
+                                    </div>
+                                </div>
+                                <field name="percentage"
+                                readonly="state == 'approved'"
+                                widget="percentage" options="{'currency_field': 'currency_id'}" class="oe_inline"
+                                required="action_type == 'deduction' and amount_based_on in ['daily_wage_percentage', 'monthly_wage_percentage']"
+                                invisible="amount_based_on not in ['daily_wage_percentage', 'monthly_wage_percentage']"/>
+                            </group>
+                            <group invisible="amount_based_on != 'custom_amount'">
+                                <field name="amount" widget="monetary"  options="{'currency_field': 'currency_id'}"
+                                readonly="state == 'approved'" class="oe_inline"
+                                required="action_type == 'deduction' and amount_based_on == 'custom_amount'"/>
+                            </group>
+                        </group>
+                    </div>
+                </sheet>
+                <chatter reload_on_post="True"/>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_sa_disciplinary_action_view_list" model="ir.ui.view">
+        <field name="name">l10n.sa.disciplinary.action.view.list</field>
+        <field name="model">l10n.sa.disciplinary.action</field>
+        <field name="arch" type="xml">
+            <list default_group_by="employee_id" edit="false">
+                <field name="employee_id"/>
+                <field name="date"/>
+                <field name="action_type" string="Action"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_sa_disciplinary_action_view_search" model="ir.ui.view">
+        <field name="name">l10n.sa.disciplinary.action.view.search</field>
+        <field name="model">l10n.sa.disciplinary.action</field>
+        <field name="arch" type="xml">
+            <search string="Disciplinary Actions">
+                <field name="employee_id"/>
+                <field name="state"/>
+                <field name="date"/>
+                <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_approved" string="Approved" domain="[('state', '=', 'approved')]"/>
+                <separator/>
+                <filter string="Date" name="filter_date" date="date"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_sa_disciplinary_action_action" model="ir.actions.act_window">
+        <field name="name">Disciplinary Actions</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">l10n.sa.disciplinary.action</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_l10n_sa_hr_payroll_disciplinary_action"
+        name="Disciplinary Actions"
+        action="l10n_sa_disciplinary_action_action"
+        parent="hr_payroll.menu_hr_payroll_employees"
+        groups="hr_payroll.group_hr_payroll_manager,hr_payroll.group_hr_payroll_user"
+        sequence="31"/>
+</odoo>

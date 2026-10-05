@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="maintenance_request_view_gantt" model="ir.ui.view">
+        <field name="name">maintenance_enterprise.request.view.gantt.equipment</field>
+        <field name="model">maintenance.request</field>
+        <field name="arch" type="xml">
+            <gantt
+                create="1" plan="0"
+                string="Maintenance Requests"
+                date_stop="schedule_end"
+                date_start="schedule_date"
+                color="equipment_id"
+                default_scale="month"
+                total_row="1"
+                precision="{'day': 'hour:full', 'week': 'day:full', 'month': 'day:full', 'year': 'day:full'}"
+            >
+                <field name="schedule_date"/>
+                <field name="equipment_id"/>
+                <popover card_id="%(maintenance.hr_equipment_request_view_card)d"/>
+            </gantt>
+        </field>
+    </record>
+
+    <record id="maintenance_request_action_view_gantt_equipment" model="ir.actions.act_window">
+        <field name="name">Maintenance Planning</field>
+        <field name="res_model">maintenance.request</field>
+        <!-- <field name="domain"> CHECK uninstall hook in mrp_maintenance before adding domain </field> -->
+        <field name="path">maintenance-requests-planning-by-equipment</field>
+        <field name="view_mode">gantt,form,kanban,list,pivot,graph,calendar,activity</field>
+        <field name="view_id" ref="maintenance_enterprise.maintenance_request_view_gantt"/>
+        <field name="context">{
+            'search_default_todo': True,
+            'search_default_groupby_equipment_id': True,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Start by adding a new equipment to use equipment planning
+            </p>
+        </field>
+    </record>
+
+    <record id="maintenance_request_view_search_inherit_enterprise" model="ir.ui.view">
+        <field name="name">maintenance.request.view.search.inherit.enterprise</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_request_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group" position="inside">
+                <filter name="groupby_equipment_id" string="Equipment" context="{'group_by': 'equipment_id'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <menuitem
+        id="maintenance_request_menu_planning_by_equipment"
+        name="Planning by Equipment"
+        parent="maintenance.menu_m_request"
+        action="maintenance_request_action_view_gantt_equipment"
+        groups="maintenance.group_equipment_manager,base.group_user"
+        sequence="2"/>
+</odoo>
