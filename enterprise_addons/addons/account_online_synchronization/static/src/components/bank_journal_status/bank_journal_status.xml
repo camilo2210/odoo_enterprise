@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <t t-name="account_online_synchronization.BankJournalStatus">
+        <div t-if="this.hasOnlineAccount" t-att-class="this.cssClasses">
+             
+            <div t-if="this.isFetchingSucceed">
+                <a t-if="this.nbFetchedTransactions > 0" href="#" t-on-click.prevent.stop="this.openAsyncAction">
+                    <t t-out="this.nbFetchedTransactions"/> transactions fetched
+                </a>
+                <span t-else="">0 transaction fetched</span>
+            </div>
+            
+            <div t-elif="this.isFetchingFailed and this.errorType === 'redirect_warning'">
+                <a class="text-danger" href="#" t-on-click.prevent.stop="this.openAsyncAction">
+                    <i class="oi" data-icon="warning"/> See error
+                </a>
+            </div>
+            
+            <div t-elif="this.isFetching" t-on-mouseenter="this.onMouseEnterFetching" t-on-mouseleave="this.onMouseLeaveFetching">
+                <a t-if="this.state.isFetchingHovered" class="oe_inline oe_kanban_action" href="#" t-on-click.prevent="this.refreshFetching">
+                    Refresh
+                </a>
+                <span t-else="">
+                    Fetching... <i class="oi oi-spin" data-icon="autorenew"/>
+                </span>
+            </div>
+
+            <div t-else="">
+                <a href="#" t-on-click.prevent.stop="this.fetchTransactions" class="oe_inline">
+                    Fetch Transactions
+                </a>
+            </div>
+
+            <div t-if="this.shouldShowExpirationInfo" t-on-mouseenter="this.onMouseEnterConsent" t-on-mouseleave="this.onMouseLeaveConsent">
+                <span t-if="!this.state.isConsentHovered">
+                    <i class="oi" data-icon="warning" t-if="this.isExpiringCritical"/>
+                    Connected until <t t-out="this.formattedExpirationDate"/>
+                </span>
+                <a t-else="" class="oe_inline oe_kanban_action" href="#" t-on-click.prevent="this.extendConnection">
+                    Extend Connection
+                </a>
+            </div>
+        </div>
+    </t>
+</templates>

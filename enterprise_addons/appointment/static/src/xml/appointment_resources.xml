@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template>
+    <t t-name="appointment.resources_list">
+        <h6 t-if="scheduleBasedOn === 'resources'">Resource</h6>
+        <h6 t-else="">With</h6>
+        <div class="grid gap-1">
+            <button t-foreach="availableEntities"
+                t-as="availableEntity" t-key="availableEntity['id']"
+                t-att-data-entity-id="availableEntity['id']"
+                t-att-data-resource-capacity="scheduleBasedOn === 'resources' ? availableEntity['capacity'] : 0"
+                t-attf-class="o_appointment_btn o_appointment_entity_card btn g-col-12 g-col-sm-6 g-col-xl-4 border mb-1 text-break {{showAvatars ? 'd-flex align-items-center text-start' : ''}} {{availableEntities.length === 1 ? 'disabled active' : ''}}"
+            >
+                <t t-if="showAvatars">
+                    <img t-if="scheduleBasedOn === 'users'"
+                        t-attf-src="/appointment/#{appointmentTypeId}/avatar?user_id=#{availableEntity.id}"
+                        class="o_avatar rounded-1 me-3"/>
+                    <img t-else=""
+                        t-attf-src="/appointment/#{appointmentTypeId}/resource_avatar?resource_id=#{availableEntity.id}"
+                        class="o_avatar rounded-1 me-3"/>
+                </t>
+                <span t-out="availableEntity['name']"/>
+            </button>
+        </div>
+    </t>
+
+    <t t-name="appointment.entity_dropdown_button_card">
+        <t t-if="!entityId &amp;&amp; !useAnyEntity">-</t>
+        <t t-else="">
+            <t t-if="showAvatars &amp;&amp; entityId">
+                <img t-if="scheduleBasedOn === 'users'" class="o_avatar rounded-1 me-2"
+                    t-attf-src="/appointment/#{appointmentTypeId}/avatar?user_id=#{entityId}"/>
+                <img t-else="" class="o_avatar rounded-1 me-2"
+                    t-attf-src="/appointment/#{appointmentTypeId}/resource_avatar?resource_id=#{entityId}"/>
+            </t>
+            <t t-else="">
+                <img t-if="scheduleBasedOn === 'users'" class="o_avatar rounded-1 me-2"
+                    src="/appointment/static/src/img/guy.svg"/>
+                <img t-else="" class="o_avatar rounded-1 me-2"
+                    src="/appointment/static/src/img/clock.svg"/>
+            </t>
+            <span t-if="entityName" class="text-truncate" t-att-title="entityName" t-out="entityName"/>
+            <span t-else="" class="text-truncate" title="No Preference">No Preference</span>
+        </t>
+    </t>
+</template>

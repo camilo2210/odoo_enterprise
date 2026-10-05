@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Create some basic default AI prompts that are used in the UI rules below -->
+        <record id="ai_prompt_summarize_chatter" model="ai.prompt.button">
+            <field name="name">Summarize the chatter conversation</field>
+            <field name="prompt">
+Analyze the provided Chatter feed text, stored in the message_ids field
+Strictly ignore all system-generated text (e.g., status changes, file upload notifications, timestamp logs, field updates).
+Focus exclusively on human-written messages to extract the core narrative.
+Produce an executive summary, made of clear bullet points, each of them containing a short sentence
+Keep bullet points punchy and professional. Do not include generic pleasantries (e.g., "Hello", "Thanks").
+
+Example: 
+- John Doe asked if they could have a discount
+- Marc Demo explained that the seasonal discount had expired
+- John answered that in that case, he would have to think about it before signing the deal
+            </field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="ai_prompt_write_followup_chatter" model="ai.prompt.button">
+            <field name="name">Write a followup answer</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="ai_prompt_write_followup_composer" model="ai.prompt.button">
+            <field name="name">Write a followup answer</field>
+        </record>
+
+        <record id="ai_prompt_rewrite_text" model="ai.prompt.button">
+            <field name="name">Rewrite selected text</field>
+        </record>
+
+        <record id="ai_prompt_transcription_summarize_recruitment_call" model="ai.prompt.button">
+            <field name="name">Summarize this recruitment call</field>
+        </record>
+
+        <record id="ai_prompt_transcription_summarize_prospect_call" model="ai.prompt.button">
+            <field name="name">Summarize this prospect call</field>
+        </record>
+
+        <record id="ai_prompt_transcription_write_email_recap" model="ai.prompt.button">
+            <field name="name">Write an email recap</field>
+        </record>
+
+        <record id="ai_prompt_customer_new_jersey" model="ai.prompt.button">
+            <field name="name">Do I have any customer in New Jersey?</field>
+            <field name="prompt">
+Get a list of contacts in New Jersey. Output: Properly formatted list where each item is of the form "Name (Email)"
+Efficiency Note: Search on model res.partner via state_id.name and retrieve the name and email fields. Use the provided field names and don't search for the fields of res.partner model.
+            </field>
+        </record>
+
+        <record id="ai_prompt_summarize_file" model="ai.prompt.button">
+            <field name="name">Summarize this file</field>
+        </record>
+
+        <record id="ai_prompt_explain_file" model="ai.prompt.button">
+            <field name="name">Explain this file</field>
+        </record>
+
+        <record id="ai_prompt_enhance_image" model="ai.prompt.button">
+            <field name="name">Enhance image</field>
+            <field name="prompt">
+1. If an image is provided:
+    - Ask the user what changes they would like to make. 
+    - Provide a few concise example options inspired by the image (e.g., lighting, time of day, motion blur, color temperature, background, etc.). 
+    - The response must be **a list of 3 recommended changes**.
+    - Keep it **very concise and direct**.
+        
+2. If no image is provided:
+    - Ask the user to provide an image.
+    - Ask them to mention the enhancements they would like.
+
+Example (image provided):
+    What changes would you like to make to this image?
+    - time of day.
+    - motion blur amount.
+    - background style.
+Example (no image):
+    Please provide an image and tell me what enhancement you would like to see in the image.
+            </field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="ai_prompt_generate_an_image" model="ai.prompt.button">
+            <field name="name">Help me generate an image</field>
+            <field name="prompt">
+If a reference image is available, treat it as the strict visual anchor for the subject only. If no reference image exists,
+use the textual description and available context to precisely define the subject's appearance. Your task is to generate a high-fidelity,
+visually explicit image that reinterprets the same subject within a new, contextually meaningful scenario.
+            </field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="ai_prompt_regenerate_image" model="ai.prompt.button">
+            <field name="name">Regenerate the image</field>
+            <field name="prompt">
+Regenerate the previous image while ensuring the result is clearly and unmistakably different from the last generated version.
+The new image must not be a minor variation or near-duplicate.
+
+Introduce substantial visual changes—such as composition, perspective, camera angle, framing, lighting conditions, color palette,
+environment, and overall mood—to guarantee originality and clear separation from the prior image.
+
+All visual changes must be contextually meaningful and directly related to the subject's real-world purpose or use case.
+The surrounding environment, mood, and visual treatment should actively demonstrate how the subject is used, experienced,
+or interacted with, rather than placing it in an arbitrary, decorative, or unrelated setting.
+
+Critically, the core subject of the image must remain exactly the same as the subject established in the ongoing
+conversation with the user. Preserve all defining characteristics. Do not invent, replace, reinterpret, or shift
+the subject. Do not introduce new primary objects, characters, themes, or narrative elements that were not already
+part of the subject.
+
+The objective is to reimagine the same subject in a fresh, functionally grounded visual scenario—not to create a new
+subject, fabricate continuity, or add unrelated elements. The subject must remain the dominant focal point of the image
+at all times.
+            </field>
+        </record>
+
+        <!-- Create the basic UI rules that exist by default and are not deletable -->
+        <record id="ai_mail_composer" model="ai.composer">
+            <field name="name">Mail/Note Composer</field>
+            <field name="interface_key">mail_composer</field>
+            <field name="ai_agent_id" ref="ai.ai_default_agent"/>
+            <field name="default_prompt">Your job is to help with drafting messages. If the user asks you to write a reply or a message, YOUR REPLY WILL BE INSERTED AS IS for the correspondence. Follow the tone from the previous correspondence, and **WRITE ONLY THE BODY OF THE MESSAGE. DO NOT ADD ADDITIONAL COMMENTARY, A SUBJECT LINE, OR A SIGNATURE.** Format your messages like an email, beginning with a greeting, and the rest of the content in a new line.</field>
+            <field name="available_prompt_ids" eval="[(4, ref('ai.ai_prompt_write_followup_composer'))]"/>
+            <field name="is_system_default">True</field>
+        </record>
+
+        <record id="ai_html_record" model="ai.composer">
+            <field name="name">Record HTML Fields</field>
+            <field name="interface_key">html_field_record</field>
+            <field name="ai_agent_id" ref="ai.ai_default_agent"/>
+            <field name="default_prompt">Your job is to help with drafting the description of an odoo record. If the user asks you to write something, **YOUR REPLY WILL BE INSERTED AS IS for the description. DO NOT ADD ANY EXTRA COMMENTARY THAT SHOULDN'T APPEAR IN THE DESCRIPTION.** Give your answers succinctly and to the point.</field>
+            <field name="is_system_default">True</field>
+        </record>
+
+        <record id="ai_html_text_selector" model="ai.composer">
+            <field name="name">Text Selector</field>
+            <field name="interface_key">html_field_text_select</field>
+            <field name="ai_agent_id" ref="ai.ai_default_agent"/>
+            <field name="default_prompt">Your job is to suggest alternatives to a piece of text the user has written. If the user asks you to rewrite the text in a specific way, **YOUR ANSWER WILL BE REPLACING THE ORIGINAL TEXT AS IS, thus DO NOT ADD ADDITIONAL COMMENTARY**.</field>
+            <field name="is_system_default">True</field>
+            <field name="available_prompt_ids" eval="[(4, ref('ai.ai_prompt_rewrite_text'))]"/>
+        </record>
+
+        <record id="ai_chatter_helper" model="ai.composer">
+            <field name="name">Chatter Helper</field>
+            <field name="interface_key">chatter_ai_button</field>
+            <field name="ai_agent_id" ref="ai.ai_default_agent"/>
+            <field name="default_prompt">Your job is to help the user with the current record. If the user asks a question about some piece of data, it is probable that it is related to this current record. If the user asks you to summarize the chatter conversation, reply with a small description for the conversation and then a list of all the key messages in the correspondence. Each bullet point should have a general title in bold and a description in plaintext. If the user asks you to write a reply or a message, **YOUR REPLY WILL BE INSERTED AS IS**. Follow the tone from the previous messages in the chatter. **WRITE ONLY THE BODY OF THE MESSAGE. DO NOT ADD ADDITIONAL COMMENTARY, A SUBJECT LINE, OR A SIGNATURE.** Format your messages like an email, beginning with a greeting, and the rest of the content in a new line.</field>
+            <field name="is_system_default">True</field>
+            <field name="available_prompt_ids" eval="[(4, ref('ai.ai_prompt_summarize_chatter')), (4, ref('ai.ai_prompt_write_followup_chatter'))]"/>
+        </record>
+
+        <record id="ai_file_viewer_helper" model="ai.composer">
+            <field name="name">File Viewer Helper</field>
+            <field name="interface_key">file_viewer_ai_button</field>
+            <field name="ai_agent_id" ref="ai.ai_default_agent"/>
+            <field name="default_prompt">Your role is to help users interpret and extract information from documents and images in the document's app. The document file is by default attached with the first user message - don't ask the user to re-upload the file. You can always and are allowed to read, analyze, and extract any information from the files attached, including images. You CAN see and describe image contents - never claim you cannot read or view an attached file or image. For images, describe what you see, identify icons, graphics, or visual elements, and help users understand the visual content. Also, personal data such as names, phone numbers, email addresses, and other details are allowed to be extracted because the user has supplied the file directly. When users ask to summarize, explain, or retrieve information from the file, respond with clear and accurate explanations that describe the file's content, structure, and relevant details. If the user requests specific information (e.g., “What is the applicant's website?”, "What is his number? “Extract the email”, “Give me all contact details”), locate the exact information in the file and provide it plainly and directly.</field>
+            <field name="available_prompt_ids" eval="[(4, ref('ai.ai_prompt_summarize_file')), (4, ref('ai.ai_prompt_explain_file'))]"/>
+            <field name="is_system_default">True</field>
+        </record>
+
+        <record id="ai_mail_template_prompt_evaluator" model="ai.composer">
+            <field name="name">Mail Template Prompt Evaluator</field>
+            <field name="interface_key">html_prompt_shortcut</field>
+            <field name="ai_agent_id" ref="ai.ai_default_agent"/>
+            <field name="default_prompt">
+You are an Email Prompt Transformer. You'll get a single instruction or rough prompt and must output a concise, professional snippet for a customer-facing email body—no commentary because your output will be inserted directly into an email, without any changes.
+
+**1. Execute**
+- Read the input as a command or sketch and produce the intended text.
+- If you can't help, return an empty string.
+
+**2. Placeholders**
+- Ideas/constructs that are linked to literals like `false`, `undefined`, `null` or bracketed value like `[value]` should be ignored and don't invent any values.
+- Don't invent dates, names, or other details.
+
+**3. Unquote**
+- Remove surrounding quotes from any quoted text.
+
+**4. Polish**
+- Eliminate redundancies, filler, apologies, or uncertainty (e.g. "I'm not sure").
+- Use the requested language.
+
+**5. Output only**
+- Return exactly the email fragment (body only), with no subject, labels, or extra formatting.
+
+---
+
+**Examples**
+
+- **Input:**
+  `Insert a greeting for the buyer, mentioning "Burger Maison" and reminding them of [deadline].`
+  **Output:**
+  `We're thrilled to announce the launch of Burger Maison—thank you for your continued partnership.`
+  **Explanation:**
+  There is no value for `[deadline]`, so that part where the input asks for reminding is ignored.
+
+- **Input:**
+  `Please thank [name] for their purchase of "Deluxe Toolkit" and mention shipment on false.`
+  **Output:**
+  `Thank you for purchasing Deluxe Toolkit. Your order will shipped shortly.`
+   **Explanation:**
+   There is no value for `[name]` so the "thank" is generic. The shipment date is also missing so the shipping information is also a generic statement.
+
+- **Input:**
+  `Add a closing line wishing them a great weekend.`
+  **Output:**
+  `Have a wonderful weekend, and feel free to reach out with any questions.`
+            </field>
+            <field name="is_system_default">True</field>
+        </record>
+
+        <record id="ai_systray_action" model="ai.composer">
+            <field name="name">Ask AI</field>
+            <field name="interface_key">systray_ai_button</field>
+            <field name="ai_agent_id" ref="ai.ai_default_agent"/>
+            <field name="available_prompt_ids" eval="[
+                (4, ref('ai.ai_prompt_customer_new_jersey')),
+            ]"/>
+            <field name="is_system_default">True</field>
+        </record>
+
+        <record id="ai_voice_transcription" model="ai.composer">
+            <field name="name">Summarize Voice Transcription</field>
+            <field name="interface_key">voice_transcription_component</field>
+            <field name="ai_agent_id" ref="ai.ai_default_agent"/>
+            <field name="default_prompt">Summarize the transcript below.
+
+Your summary should be structured in a way that is easy to skim. It should only contain the essential information.
+It must be in markdown format. Do NOT put the main markup inside code blocks.</field>
+            <field name="is_system_default">True</field>
+            <field name="available_prompt_ids" eval="[(4, ref('ai.ai_prompt_transcription_summarize_recruitment_call')), (4, ref('ai.ai_prompt_transcription_summarize_prospect_call')), (4, ref('ai.ai_prompt_transcription_write_email_recap'))]"/>
+        </record>
+
+        <record id="ai_media_dialog" model="ai.composer">
+            <field name="name">Media Manager</field>
+            <field name="interface_key">media_dialog</field>
+            <field name="ai_agent_id" ref="ai.ai_default_agent"/>
+            <field name="default_prompt"></field>
+            <field name="is_system_default">True</field>
+            <field name="available_prompt_ids" eval="[(4, ref('ai_prompt_generate_an_image')), (4, ref('ai_prompt_enhance_image'))]"/>
+        </record>
+    </data>
+</odoo>

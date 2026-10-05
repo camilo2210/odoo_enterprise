@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<templates>
+    <t t-name="account_reports.account_return_check_kanban_renderer">
+        <div class="kanban_checks_view d-flex h-100 overflow-hidden" t-ref="this.rootRef">
+            <div class="kanban_return_and_checks_cards o_kanban_renderer position-relative flex-grow-1 overflow-x-hidden">
+                <div class="kanban_return_card position-lg-sticky top-0 z-2 bg-view" t-if="this.record()">
+                    <AccountReturnKanbanRecord
+                        archInfo="this.returnArchInfo"
+                        record="this.record()"
+                        openAction="this.returnArchInfo.openAction"
+                        canOpenRecords="this.returnArchInfo.canOpenRecords"
+                    />
+                </div>
+                <div id="account_return_check_cards" class="kanban_checks_cards pt-2 pb-4 mx-2 w-xxl-75 mx-xxl-auto" t-ref="this.checkCardsRef">
+                    <t t-if="this.groups">
+                        <t t-foreach="this.groups" t-as="group" t-key="group.key">
+                            <t t-if="group.count > 0">
+
+                                <span class="h5 d-block mt-4 mb-3 fw-bold fs-4">
+                                    <t t-out="group.displayName"/>
+                                </span>
+                                <t t-call="account_reports.return_check_list" list="group.list"/>
+                            </t>
+                        </t>
+                    </t>
+                    <t t-else="" t-call="account_reports.return_check_list" list="this.props.list"/>
+                </div>
+            </div>
+
+            <div class="o_account_return_chatter o-mail-ChatterContainer h-100 w-100 o-aside d-none d-lg-flex flex-column overflow-y-scroll">
+                <Chatter
+                    threadId="this.currentReturnId"
+                    threadModel="'account.return'"
+                    saveRecord="this.props.list.model.load.bind(this.props.list.model)"
+                    isAttachmentBoxVisibleInitially="this.props.list.context.open_attachments_in_chatter"
+                />
+            </div>
+        </div>
+    </t>
+
+    <t t-name="account_reports.return_check_list">
+        <t t-foreach="list.records" t-as="record" t-key="record.id">
+            <KanbanRecord
+                record="record"
+                archInfo="this.props.archInfo"
+                Compiler="this.props.Compiler"
+                openRecord.bind="this.openRecord"
+                canOpenRecords="record.data.action"
+            />
+        </t>
+    </t>
+</templates>

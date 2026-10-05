@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="account_accountant.BankRecKanbanRenderer" t-inherit="web.KanbanRenderer" t-inherit-mode="primary">
+        <xpath expr="//div[@t-ref='this.rootRef']" position="attributes">
+            <attribute name="class" add="o_bank_reconciliation_kanban_renderer" separator=" "/>
+        </xpath>
+        <xpath expr="//div[@t-ref='this.rootRef']" position="attributes">
+            <attribute name="t-attf-class" add="{{ this.bankReconciliation.chatterState.visible and !this.ui.isSmall ? 'o_bank_reconciliation_kanban_renderer_mobile' : ''}}" separator=" "/>
+        </xpath>
+        <xpath expr="//t[@t-as='groupOrRecord']" position="before">
+            <BankRecStatementSummary
+                t-if="this.numberOfStatementLines > 1"
+                label="this.totalJournalLabel"
+                amount="this.globalState.totalJournalAmount"
+                action="() => this.actionOpenBankGL()"
+                journalId="this.globalState.journalId"
+                journalIsInvalid="this.globalState.totalIsInvalid"
+            />
+            <BankRecQuickCreate
+                t-if="this.props.quickCreateState.isOpen"
+                resModel="this.globalState.resModel"
+                context="this.quickCreateContext"
+                quickCreateState="this.props.quickCreateState"
+                onValidate="(record, mode) => this.validateQuickCreate(record, mode)"
+            />
+        </xpath>
+
+        <xpath expr="//t[@t-else='']/KanbanRecord" position="replace">
+            <BankRecStatementLine
+                archInfo="this.props.archInfo"
+                Compiler="this.props.Compiler"
+                canResequence="!this.isProcessing(groupOrRecord.record.id) and this.canResequenceRecords"
+                forceGlobalClick="this.props.forceGlobalClick"
+                groupByField="this.props.list.groupByField"
+                getSelection.bind="this.getSelection"
+                toggleSelection.bind="this.toggleSelection"
+                deleteRecord="this.props.deleteRecord"
+                archiveRecord="(record, active) => this.archiveRecord(record, active)"
+                openRecord="this.props.openRecord"
+                readonly="this.props.readonly"
+                record="groupOrRecord.record"
+                selectionAvailable="false"
+            />
+        </xpath>
+        <xpath expr="//t[@t-else='']/BankRecStatementLine" position="before">
+            <t t-set="recordData" t-value="this.statementGroups?.[groupOrRecord.record.data.id]"/>
+            <t t-if="recordData">
+                <BankRecStatementSummary
+                    record="recordData"
+                    label="recordData.name"
+                    amount="recordData.balance"
+                    action="() => this.actionOpenStatement(recordData.statementId)"
+                    actionReview="() => this.actionReviewStatement(recordData.statementId)"
+                    isValid="recordData.isValid"
+                    problemDescription="recordData.problemDescription"
+                    isReviewFilterActive="this.isReviewFilterActive"
+                />
+            </t>
+        </xpath>
+
+        <xpath expr="//div[hasclass('o_kanban_renderer')]" position="after">
+            <div t-if="this.bankReconciliation.chatterState.visible and !this.ui.isSmall"
+                 class="o_bank_rec_widget_chatter_container o-mail-ChatterContainer o-aside d-flex flex-column border-start"
+            >
+                <Chatter
+                    record="this.bankReconciliation.statementLine"
+                    threadId="this.bankReconciliation.statementLineId"
+                    threadModel="'account.bank.statement.line'"
+                    isChatterAside="!this.ui.isSmall"
+                    hasParentReloadOnActivityChanged="true"
+                    hasParentReloadOnAttachmentsChanged="true"
+                    hasParentReloadOnMessagePosted="true"
+                    isAttachmentBoxVisibleInitially="true"
+                />
+            </div>
+        </xpath>
+    </t>
+</templates>

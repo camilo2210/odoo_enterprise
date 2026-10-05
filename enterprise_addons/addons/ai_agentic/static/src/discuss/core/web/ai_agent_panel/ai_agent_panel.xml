@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="ai_agentic.AiAgentPanelHeader">
+        <div class="o_ai_agent_panel_header d-flex align-items-center gap-2 py-1">
+            <div class="flex-shrink-0">
+                <ImageField name="'image_128'" record="data.record" width="64" height="64" imgClass="'rounded'"/>
+            </div>
+            <div class="d-flex flex-column overflow-hidden flex-grow-1 min-w-0 gap-1">
+                <div class="fw-bold fs-4 lh-sm min-w-0 px-1">
+                    <CharField name="'name'" record="data.record" placeholder.translate="Agent Name"/>
+                </div>
+                <div class="text-muted lh-sm min-w-0 o_ai_agent_panel_subtitle px-1">
+                    <CharField name="'subtitle'" record="data.record" placeholder.translate="Agent Subtitle"/>
+                </div>
+            </div>
+            <Dropdown t-if="this.props.showAgentActions" position="'bottom-end'">
+                <button class="btn btn-light o-no-caret px-1 align-self-start flex-shrink-0" title.translate="Agent Actions">
+                    <i class="oi oi-lg" data-icon="more_vert"/>
+                </button>
+                <t t-set-slot="content">
+                    <DropdownItem t-if="data.record.data.active" onSelected="() => this.archiveAgent(data.record)">
+                        <i class="oi me-1" role="img" data-icon="archive"/>Archive
+                    </DropdownItem>
+                    <DropdownItem t-else="" onSelected="() => this.unarchiveAgent(data.record)">
+                        <i class="oi me-1" role="img" data-icon="unarchive"/>Unarchive
+                    </DropdownItem>
+                    <DropdownItem
+                        t-if="!data.record.data.is_system_agent"
+                        class="'text-danger'"
+                        onSelected="() => this.deleteAgent(data.record)"
+                    >
+                        <i class="oi me-1" role="img" data-icon="delete"/>Delete
+                    </DropdownItem>
+                </t>
+            </Dropdown>
+        </div>
+    </t>
+
+    <t t-name="ai_agentic.AiAgentPanel">
+        <Record
+            t-if="this.agent?.id and this.agentFields"
+            t-key="this.agent.id"
+            fields="this.agentFields"
+            activeFields="this.agentActiveFields"
+            resModel="this.resModel"
+            resId="this.agent.id"
+            mode="'edit'"
+            hooks="this.recordHooks"
+            t-slot-scope="data"
+        >
+            <div class="o_ai_agent_panel d-flex flex-column h-100 overflow-x-hidden overflow-y-auto o-scrollbar-thin bg-inherit rounded-4">
+                <div class="ps-3 pe-2">
+                    <t t-call="ai_agentic.AiAgentPanelHeader"/>
+                </div>
+                <div class="o_ai_agent_panel_tabs d-flex flex-column flex-grow-1 min-h-0 overflow-hidden">
+                    <div class="o_ai_agent_panel_tablist d-flex gap-4 flex-shrink-0 flex-nowrap overflow-x-auto o-scrollbar-thin border-bottom px-3">
+                        <t t-foreach="this.tabs" t-as="tab" t-key="tab.id">
+                            <button
+                                role="tab"
+                                tabindex="0"
+                                t-att-class="{ 'o_ai_agent_panel_tab_active': this.isActiveTab(tab.id) }"
+                                class="o_ai_agent_panel_tab flex-shrink-0 text-nowrap"
+                                t-on-click="() => this.setActiveTab(tab.id)"
+                            >
+                                <t t-out="tab.label"/>
+                            </button>
+                        </t>
+                    </div>
+                    <div class="o_ai_agent_panel_tabpanels flex-grow-1 overflow-x-hidden overflow-y-auto o-scrollbar-thin min-h-0 px-3 pt-2">
+                        <div t-if="this.isActiveTab('instructions')" role="tabpanel" class="h-100 pb-2">
+                            <AiAgentSystemPromptEditor
+                                record="data.record"
+                                placeholder.translate="Define your agent's operating framework:&#10;- Which role should it take?&#10;- What can it do?&#10;- How should it work?"
+                            />
+                        </div>
+                        <div t-if="this.isActiveTab('skills')" role="tabpanel" class="d-flex flex-column w-100 pb-2">
+                            <AiAgentPanelNativeSkills
+                                record="data.record"
+                                name="'skill_ids'"
+                                domain="[['is_native_skill', '=', true]]"
+                            />
+                            <Field t-foreach="['custom_skill_ids', 'allowed_agent_ids']" t-as="fieldName" t-key="fieldName"
+                                id="fieldName"
+                                name="fieldName"
+                                record="data.record"
+                                fieldInfo="this.fieldNodes[fieldName]"
+                                class="'d-block w-100 min-w-0 mb-3'"
+                            />
+                        </div>
+                        <div t-if="this.isActiveTab('knowledge')" role="tabpanel" class="d-flex flex-column w-100 pb-2">
+                            <Field
+                                name="'sources_ids'"
+                                record="data.record"
+                                fieldInfo="this.fieldNodes.sources_ids"
+                                class="'d-block w-100 min-w-0'"
+                            />
+                        </div>
+                        <div t-if="this.isActiveTab('triggers')" role="tabpanel" class="d-flex flex-column w-100 pb-2">
+                            <Field
+                                name="'automation_ids'"
+                                record="data.record"
+                                fieldInfo="this.fieldNodes.automation_ids"
+                                class="'d-block w-100 min-w-0'"
+                                context="{'active_test': False}"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Record>
+    </t>
+</templates>

@@ -1,0 +1,18 @@
+id,name,model_id,group_id/id,operation,domain
+project_public_members_rule,Project: employees: team members only for private projects,project.project,helpdesk.group_helpdesk_user,r,"['|',
+                                        ('privacy_visibility', 'in', ['employees', 'portal']),
+                                        ('allowed_internal_user_ids', 'in', user.id)
+                                    ]"
+task_visibility_rule,Project/Task: employees: follow required for follower-only projects,project.task,helpdesk.group_helpdesk_user,r,"[
+            '|',
+                ('project_id', 'access', 'read'),
+                '|',
+                    ('message_partner_ids', 'in', [user.partner_id.id]),
+                    # to subscribe check access to the record, follower is not enough at creation
+                    ('user_ids', 'in', user.id)
+        ]"
+access_analytic_account_heldpdesk_user,analytic.account.helpdesk.user,account.analytic.account,helpdesk.group_helpdesk_user,ru,
+access_analytic_plan_heldpdesk_user,analytic.plan.helpdesk.user,account.analytic.plan,helpdesk.group_helpdesk_user,r,
+timesheet_line_rule_helpdesk_user_read,account.analytic.line.helpdesk.user.read,account.analytic.line,helpdesk.group_helpdesk_user,r,
+timesheet_line_rule_helpdesk_user,account.analytic.line.helpdesk.user,account.analytic.line,helpdesk.group_helpdesk_user,cud,"[('user_id', '=', user.id), ('helpdesk_ticket_id', '!=', False)]"
+timesheet_line_rule_helpdesk_manager,account.analytic.line.timesheet.manager,account.analytic.line,helpdesk.group_helpdesk_manager,cud,"[('helpdesk_ticket_id', '!=', False)]"

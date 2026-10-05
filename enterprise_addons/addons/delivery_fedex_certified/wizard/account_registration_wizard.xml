@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- EULA View -->
+        <record id="view_fedex_account_registration_eula_form" model="ir.ui.view">
+            <field name="name">FedEx Account Registration - EULA</field>
+            <field name="model">fedex.certified.account.registration.wizard</field>
+            <field name="arch" type="xml">
+                <form>
+                    <widget name="fedex_brand_header"/>
+                    <field name="is_eula_scrolled" widget="fedex_eula_pdf"/>
+                    <group class="o_fedex_eula_checkbox">
+                        <field name="eula_read" required="state == 'eula'" readonly="not is_eula_scrolled"/>
+                        <field name="eula_accepted" colspan="2" required="state == 'eula'" readonly="not is_eula_scrolled"/>
+                    </group>
+                    <footer>
+                        <button name="action_accept_eula" type="object" string="Accept and Continue" class="btn-primary" invisible="eula_read and eula_accepted" disabled="disabled"/>
+                        <button name="action_accept_eula" type="object" string="Accept and Continue" class="btn-primary" invisible="not eula_read or not eula_accepted"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Address Validation View -->
+        <record id="view_fedex_account_registration_address_form" model="ir.ui.view">
+            <field name="name">FedEx Account Registration - Shipper Information</field>
+            <field name="model">fedex.certified.account.registration.wizard</field>
+            <field name="arch" type="xml">
+                <form string="FedEx Account Registration - Shipper Information">
+                    <widget name="fedex_brand_header"/>
+                    <div class="alert alert-warning" invisible="not warning_message" role="alert">
+                        <field name="warning_message"/>
+                        <button name="action_open_account_form" type="object" string="Open existing FedEx Account" invisible="not fedex_account_id"/>
+                    </div>
+                    <div class="alert alert-danger" invisible="not error_message" role="alert">
+                        <field name="error_message"/>
+                        <button name="action_open_account_form" type="object" string="Open FedEx Account" invisible="not fedex_account_id"/>
+                    </div>
+                    <group>
+                        <field name="account_number"/>
+                        <field name="customer_name"/>
+                        <field name="street_line_1"/>
+                        <field name="street_line_2"/>
+                        <field name="city"/>
+                        <field name="state_or_province_code"/>
+                        <field name="postal_code"/>
+                        <field name="country_id"/>
+                        <field name="residential_address"/>
+                    </group>
+                    <footer>
+                        <button name="action_validate_address" type="object" string="Validate Address" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Validation Options View -->
+        <record id="view_fedex_account_registration_validation_options_form" model="ir.ui.view">
+            <field name="name">FedEx Account Registration - Validation Options</field>
+            <field name="model">fedex.certified.account.registration.wizard</field>
+            <field name="arch" type="xml">
+                <form string="FedEx Account Registration - Validation Options">
+                    <widget name="fedex_brand_header"/>
+                    <div class="alert alert-danger" invisible="not error_message" role="alert">
+                        <field name="error_message"/>
+                    </div>
+                    <p>Choose how you would like to confirm your identity:</p>
+                    <group>
+                        <field name="validation_options" required="state == 'options'"/>
+                    </group>
+                    <footer>
+                        <button name="action_choose_validation_factor" type="object" string="Continue" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Invoice Validation View -->
+        <record id="view_fedex_account_registration_invoice_form" model="ir.ui.view">
+            <field name="name">FedEx Account Registration - Invoice Validation</field>
+            <field name="model">fedex.certified.account.registration.wizard</field>
+            <field name="arch" type="xml">
+                <form string="FedEx Account Registration - Invoice Validation">
+                    <widget name="fedex_brand_header"/>
+                    <div class="alert alert-danger" invisible="not error_message" role="alert">
+                        <field name="error_message"/>
+                    </div>
+                    <group>
+                        <field name="invoice_number"/>
+                        <field name="invoice_date" widget="iso_date_field"/>
+                        <field name="invoice_amount"/>
+                        <field name="currency_id"/>
+                    </group>
+                    <footer>
+                        <button name="action_validate_invoice" type="object" string="Validate Invoice" class="btn-primary"/>
+                        <button name="action_back_to_options" type="object" string="Back" class="btn-secondary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- PIN Generation View -->
+        <record id="view_fedex_account_registration_pin_generation_form" model="ir.ui.view">
+            <field name="name">FedEx Account Registration - PIN Generation</field>
+            <field name="model">fedex.certified.account.registration.wizard</field>
+            <field name="arch" type="xml">
+                <form string="FedEx Account Registration - PIN Generation">
+                    <widget name="fedex_brand_header"/>
+                    <div class="alert alert-danger" invisible="not error_message" role="alert">
+                        <field name="error_message"/>
+                    </div>
+                    <p>Choose how you would like to receive your secure code:</p>
+                    <group>
+                        <field name="pin_options"/>
+                    </group>
+                    <footer>
+                        <button name="action_choose_pin_generation" type="object" string="Send Code" class="btn-primary"/>
+                        <button name="action_back_to_options" type="object" string="Back" class="btn-secondary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- PIN Validation View -->
+        <record id="view_fedex_account_registration_pin_validation_form" model="ir.ui.view">
+            <field name="name">FedEx Account Registration - PIN Validation</field>
+            <field name="model">fedex.certified.account.registration.wizard</field>
+            <field name="arch" type="xml">
+                <form string="FedEx Account Registration - PIN Validation">
+                    <widget name="fedex_brand_header"/>
+                    <div class="alert alert-danger" invisible="not error_message" role="alert">
+                        <field name="error_message"/>
+                    </div>
+                    <p>Please enter the 6-digit secure code you received:</p>
+                    <group>
+                        <field name="secure_code_pin"/>
+                    </group>
+                    <footer>
+                        <button name="action_validate_pin" type="object" string="Validate Code" class="btn-primary"/>
+                        <button name="action_back_to_options" type="object" string="Back" class="btn-secondary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Success View -->
+        <record id="view_fedex_account_registration_success_form" model="ir.ui.view">
+            <field name="name">FedEx Account Registration - Success</field>
+            <field name="model">fedex.certified.account.registration.wizard</field>
+            <field name="arch" type="xml">
+                <form string="FedEx Account Registration - Success">
+                    <widget name="fedex_brand_header"/>
+                    <div class="alert alert-success" role="status">
+                        <h3>Registration Successful!</h3>
+                        <p>Your FedEx account has been successfully registered and is ready to use.</p>
+                        <div groups="base.group_multi_company">
+                            <hr/>
+                            <p>Note : This account is currently available for all companies.
+                            <br/>Please proceed to further configuration on the FedEx Account Form if you wish to change this.</p>
+                            <button name="action_open_account_form" type="object" string="Open FedEx Account Form" invisible="not fedex_account_id"/>
+                        </div>
+                    </div>
+                    <footer>
+                        <button string="Close" class="btn-primary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Error View -->
+        <record id="view_fedex_account_registration_error_form" model="ir.ui.view">
+            <field name="name">FedEx Account Registration - Error</field>
+            <field name="model">fedex.certified.account.registration.wizard</field>
+            <field name="arch" type="xml">
+                <form string="FedEx Account Registration - Error">
+                    <widget name="fedex_brand_header"/>
+                    <div class="alert alert-danger" role="status">
+                        <h3>Registration Failed</h3>
+                        <p><field name="error_message"/></p>
+                    </div>
+                    <footer>
+                        <button string="Close" class="btn-primary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

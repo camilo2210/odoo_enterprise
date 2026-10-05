@@ -1,0 +1,81 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+{
+    'name': 'AI',
+    'category': 'Hidden',
+    'summary': """Base module for AI features""",
+    'description': """AI-related features are accessible with limited configurability.""",
+    'depends': ['mail', 'iap'],
+    'data': [
+        'data/ir_config_parameter_data.xml',
+        'data/ir_actions_server_data.xml',
+        'data/iap_service_data.xml',
+        'data/ai_skill_data.xml',
+        'views/ir_actions_server_views.xml',
+        'views/mail_scheduled_message_views.xml',
+        'views/mail_template_views.xml',
+        'views/templates.xml',
+        'data/ir_cron.xml',
+        'data/ai_agent_data.xml',
+        'data/ai_composer_data.xml',
+        'wizard/mail_compose_message_views.xml',
+        'security/ir.access.csv',
+    ],
+    'demo': [
+        'data/ai_agent_demo.xml',
+        'data/call_debrief_ai_demo.xml',
+    ],
+    'assets': {
+        'web.assets_backend': [
+            ('after', 'web/static/src/views/form/form_controller.js', 'ai/static/src/web/form_controller_patch.js'),
+            'ai/static/src/**/*',
+            ('remove', 'ai/static/src/core/web/lazy/**'),
+            ('remove', 'ai/static/src/core/audio/pcm16_audio_worklet.js'),
+            ('remove', 'ai/static/src/**/*.dark.scss'),
+            'web/static/lib/prismjs/prism.js',
+            'web/static/lib/prismjs/themes/default.css',
+        ],
+        'web.assets_web_dark': [
+            'web/static/lib/prismjs/themes/okaida.css',
+            'ai/static/src/**/*.dark.scss',
+        ],
+        'web.assets_backend_lazy': [
+            'ai/static/src/core/web/lazy/**',
+        ],
+        'mail.assets_public': [
+            'ai/static/src/discuss/ai_user_input_request*',
+            'ai/static/src/discuss/message_model_patch.js',
+            "ai/static/src/core/common/**/*",
+            'ai/static/src/discuss/core/common/**/*',
+            'ai/static/src/utils/**/*',
+        ],
+        'portal.assets_chatter_helpers': [
+            'ai/static/src/discuss/ai_user_input_request*',
+            'ai/static/src/discuss/message_model_patch.js',
+            "ai/static/src/core/common/**/*",
+            'ai/static/src/discuss/core/common/**/*',
+            'ai/static/src/utils/**/*',
+        ],
+        'im_livechat.assets_embed_core': [
+            'ai/static/src/discuss/ai_user_input_request*',
+            'ai/static/src/discuss/message_model_patch.js',
+            "ai/static/src/core/common/**/*",
+            'ai/static/src/discuss/core/common/**/*',
+            'ai/static/src/discuss/composer_patch.xml',
+            'ai/static/src/utils/**/*',
+        ],
+        'web.assets_unit_tests': [
+            'ai/static/tests/**/*',
+            ('remove', 'ai/static/tests/tours/**/*'),
+        ],
+        'web.assets_tests': [
+            'ai/static/tests/tours/**/*',
+        ],
+        'website.website_builder_assets': [
+            'ai/static/src/utils/ai_channel_data_registry.js',
+        ],
+    },
+    'pre_init_hook': "_pre_init_ai",
+    'author': 'Odoo S.A.',
+    'license': 'OEEL-1',
+    'iap_paid_service': True,
+}

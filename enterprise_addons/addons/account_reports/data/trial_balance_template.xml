@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="audit_pdf_export_main" inherit_id="account_reports.pdf_export_main" primary="True">
+
+        <xpath expr="//ol[hasclass('o_annotation')]" position="replace">
+            <!-- Remove annotations from the bottom notes since they will appear in the last comment column-->
+            <t t-if="show_last_annotations"/>
+            <t t-else="">$0</t>
+
+            <t t-if="options.get('working_file_export_checks')">
+
+                <div class="o_audit_section o_content">
+                    <div class="o_audit_header">Audit Checks List</div>
+
+                    <t t-foreach="options.get('working_file_export_checks')" t-as="group">
+                        <div class="o_audit_cycle_title">
+                            <t t-out="group['cycle_name']"/>
+                        </div>
+
+                        <t t-foreach="group['checks']" t-as="item">
+                            <div class="o_audit_card">
+                                <div class="o_audit_badge_wrap">
+                                    <span t-attf-class="o_status_badge o_status_badge_#{item['badge_state']}">
+                                        <t t-out="item['badge_label']"/>
+                                    </span>
+                                </div>
+
+                                <div class="o_audit_content">
+                                    <div class="o_audit_name"><t t-out="item['name']"/></div>
+                                    <div class="o_audit_msg"><t t-out="item['message']"/></div>
+                                </div>
+                                <div class="o_audit_clear"></div>
+
+                                <t t-if="item.get('notes')">
+                                    <div class="o_audit_notes">
+                                        <strong>Notes: </strong> <span t-out="item['notes']"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                    </t>
+                </div>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="audit_pdf_export_main_table_header" inherit_id="account_reports.pdf_export_main_table_header" primary="True">
+        <xpath expr="//thead[@id='table_header']" position="before">
+             <colgroup t-if="not show_last_annotations">
+                 <col class="table_column largest_column"/>
+                 <col class="table_column" t-att-span="len(options['columns'])"/>
+             </colgroup>
+        </xpath>
+    </template>
+
+    <template id="audit_pdf_export_main_table_body" inherit_id="account_reports.pdf_export_main_table_body" primary="True">
+        <xpath expr="//tr[@id='pdf_export_main_table_body_spacing_row']" position="inside">
+            <td t-if="show_last_annotations"/>
+        </xpath>
+
+        <xpath expr="//tr[@name='pdf_export_main_table_body_lines_tr']/td[1]" position="replace">
+            <td t-att-colspan="1" class="o_line_name_level">
+                 <span t-out="line.name" class="o_line_name"/>
+                <t t-if="line.annotations and not show_last_annotations">
+                    <t t-foreach="annotations" t-as="annotation">
+                        <t t-if="annotation.get('number') and annotation['number'] in (line.annotations or [])">
+                            <sup t-out="annotation['number']"/>
+                        </t>
+                    </t>
+                </t>
+            </td>
+        </xpath>
+
+        <xpath expr="//tr[@name='pdf_export_main_table_body_lines_tr']" position="inside">
+            <td t-if="show_last_annotations" class="o_cell_td o_last_comment_column">
+                <t t-set="o_classes" t-value="'o_last_comment' + ('' if line.custom and line.custom.get('last_comment') else ' o_muted')"/>
+                <span t-att-class="o_classes" t-out="line.custom and line.custom.get('last_comment')"/>
+            </td>
+        </xpath>
+    </template>
+</odoo>

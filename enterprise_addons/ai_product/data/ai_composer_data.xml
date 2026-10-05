@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="ai_prompt_generate_product_image_media_manager" model="ai.prompt.button">
+            <field name="name">Help me generate an image</field>
+            <field name="prompt" type="html">
+<div>
+    Generate an image for this product:
+    <ol>
+        <li>product_name: <span data-ai-field="name">name</span></li>
+        <li>product_image: <span data-ai-field="image_1024">image_1024</span></li>
+        <li>product_description: <span data-ai-field="description">description</span></li>
+        <li>product_description_sale: <span data-ai-field="description_sale">description_sale</span></li>
+        <li>product_type: <span data-ai-field="type">type</span></li>
+    </ol>
+</div>
+            </field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="ai_prompt_enhance_product_image_media_manager" model="ai.prompt.button">
+            <field name="name">Enhance image</field>
+            <field name="prompt" type="html">
+<div>
+1. If an image is provided (<span data-ai-field="image_1024">image_1024</span>):
+    - Ask the user what changes they would like to make. 
+    - Provide a few concise example options inspired by the image (e.g., lighting, time of day, motion blur, color temperature, background, etc.). 
+    - The response must be **a list of 3 recommended changes**.
+    - Keep it **very concise and direct**.
+        
+2. If no image is provided:
+    - Ask the user to provide an image.
+    - Ask them to mention the enhancements they would like.
+
+Example (image provided):
+    What changes would you like to make to this image?
+    - time of day.
+    - motion blur amount.
+    - background style.
+Example (no image):
+    Please provide an image and tell me what enhancement you would like to see in the image.
+</div>
+            </field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="ai_media_dialog_product_template" model="ai.composer">
+            <field name="name">Product Media Manager</field>
+            <field name="interface_key">media_dialog</field>
+            <field name="focused_model_id" ref="product.model_product_template"/>
+            <field name="ai_agent_id" ref="ai.ai_default_agent"/>
+            <field name="is_system_default">True</field>
+            <field name="available_prompt_ids" eval="[(4, ref('ai_prompt_generate_product_image_media_manager')), (4, ref('ai_prompt_enhance_product_image_media_manager'))]"/>
+        </record>
+
+        <record id="ai_prompt_generate_product_image_chatter" model="ai.prompt.button">
+            <field name="name">Help me generate an image</field>
+            <field name="prompt" type="html">
+<div>
+    Generate an image for this product:
+    <ol>
+        <li>product_name: <span data-ai-field="name">name</span></li>
+        <li>product_image: <span data-ai-field="image_1024">image_1024</span></li>
+        <li>product_description: <span data-ai-field="description">description</span></li>
+        <li>product_description_sale: <span data-ai-field="description_sale">description_sale</span></li>
+        <li>product_type: <span data-ai-field="type">type</span></li>
+    </ol>
+</div>
+            </field>
+            <field name="sequence">15</field>
+        </record>
+
+        <record id="ai_prompt_enhance_product_image_chatter" model="ai.prompt.button">
+            <field name="name">Enhance image</field>
+            <field name="prompt" type="html">
+<div>
+1. If an image is provided (<span data-ai-field="image_1024">image_1024</span>):
+    - Ask the user what changes they would like to make. 
+    - Provide a few concise example options inspired by the image (e.g., lighting, time of day, motion blur, color temperature, background, etc.). 
+    - The response must be **a list of 3 recommended changes**.
+    - Keep it **very concise and direct**.
+        
+2. If no image is provided:
+    - Ask the user to provide an image.
+    - Ask them to mention the enhancements they would like.
+
+Example (image provided):
+    What changes would you like to make to this image?
+    - time of day.
+    - motion blur amount.
+    - background style.
+Example (no image):
+    Please provide an image and tell me what enhancement you would like to see in the image.
+</div>
+            </field>
+
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="ai_prompt_write_product_description" model="ai.prompt.button">
+            <field name="name">Write a product description</field>
+            <field name="prompt" type="html">
+<div>
+    <h1># Product Description Generator</h1>
+    <p>You are an expert product copywriter tasked with creating compelling, accurate product descriptions.</p>
+
+    <h2>## Input Information:</h2>
+    <ul>
+        <li>**Product Name**: <span data-ai-field="name">name</span></li>
+        <li>**Product Image** (if available): <span data-ai-field="image_1024">image_1024</span></li>
+        <li>**Existing Description** (if available): <span data-ai-field="description">description</span></li>
+        <li>**Existing Description Sale** (if available): <span data-ai-field="description_sale">description_sale</span></li>
+        <li>**Product Type/Category**: <span data-ai-field="type">type</span></li>
+    </ul>
+
+    <h2>## Your Task:</h2>
+    <ol>
+        <li><strong>Accurately describes the product</strong> based on what you can see in the image and the provided information</li>
+        <li><strong>Highlights key features and benefits</strong> that would matter to potential customers</li>
+        <li><strong>Uses engaging, persuasive language</strong> appropriate for the product type</li>
+        <li><strong>Maintains a professional yet accessible tone</strong></li>
+        <li><strong>Includes relevant details</strong> such as:
+            <ul>
+                <li>Physical characteristics (size, color, material, design)</li>
+                <li>Functional benefits and use cases</li>
+                <li>Quality indicators</li>
+                <li>Target audience or ideal usage scenarios</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h2>## Guidelines:</h2>
+    <ul>
+        <li>Length: 1 paragraph (approximately 50 words)</li>
+        <li>If an old description exists, improve upon it by adding detail, clarity, or more compelling language</li>
+        <li>Avoid making claims that cannot be verified from the image or provided information</li>
+        <li>Use sensory and descriptive language where appropriate</li>
+        <li>Focus on customer benefits, not just features</li>
+        <li>Ensure the description is scannable with good flow</li>
+    </ul>
+
+    <h2>## Output Format:</h2>
+    <p>Provide only the product description text, ready to use on an e-commerce platform or marketing materials.</p>
+
+    <h2>## Execution</h2>
+    <p>Use the generated description to update the <span data-ai-field="description_sale">description_sale</span> field of the record of the current product unless stated otherwise by the user.</p>
+</div>
+            </field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="ai_product_template_chatter_helper" model="ai.composer">
+            <field name="name">Product Chatter Helper</field>
+            <field name="interface_key">chatter_ai_button</field>
+            <field name="ai_agent_id" ref="ai.ai_default_agent"/>
+            <field name="is_system_default">True</field>
+            <field name="focused_model_id" ref="product.model_product_template"/>
+            <field name="available_prompt_ids" eval="[
+                (4, ref('ai_product.ai_prompt_generate_product_image_chatter')),
+                (4, ref('ai_product.ai_prompt_enhance_product_image_chatter')),
+                (4, ref('ai_product.ai_prompt_write_product_description')),
+            ]"/>
+        </record>
+
+        <record id="ai_prompt_generate_product_variant_image_media_manager" model="ai.prompt.button">
+            <field name="name">Help me generate an image</field>
+            <field name="prompt" type="html">
+<div>
+    Generate an image for this product:
+    <ol>
+        <li>product_name: <span data-ai-field="name">name</span></li>
+        <li>product_image: <span data-ai-field="image_1024">image_1024</span></li>
+        <li>product_description: <span data-ai-field="description">description</span></li>
+        <li>product_description_sale: <span data-ai-field="description_sale">description_sale</span></li>
+        <li>product_type: <span data-ai-field="type">type</span></li>
+        <li>
+            Variant Attributes (if any):
+            <ul>
+                <li>Attributes: <span data-ai-field="product_template_variant_value_ids.attribute_id.name">product_template_variant_value_ids &gt; attribute_id &gt; name</span></li>
+                <li>Attributes Values: <span data-ai-field="product_template_variant_value_ids.product_attribute_value_id.name">product_template_variant_value_ids &gt; product_attribute_value_id &gt; name</span></li>
+            </ul>
+        </li>
+    </ol>
+</div>
+            </field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="ai_prompt_enhance_product_variant_image_media_manager" model="ai.prompt.button">
+            <field name="name">Enhance image</field>
+            <field name="prompt" type="html">
+<div>
+1. If an image is provided (<span data-ai-field="image_1024">image_1024</span>):
+    - Ask the user what changes they would like to make. 
+    - Provide a few concise example options inspired by the image (e.g., lighting, time of day, motion blur, color temperature, background, etc.). 
+    - The response must be **a list of 3 recommended changes**.
+    - Keep it **very concise and direct**.
+        
+2. If no image is provided:
+    - Ask the user to provide an image.
+    - Ask them to mention the enhancements they would like.
+
+Example (image provided):
+    What changes would you like to make to this image?
+    - time of day.
+    - motion blur amount.
+    - background style.
+Example (no image):
+    Please provide an image and tell me what enhancement you would like to see in the image.
+</div>
+            </field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="ai_media_dialog_product_product" model="ai.composer">
+            <field name="name">Product Variant Media Manager</field>
+            <field name="interface_key">media_dialog</field>
+            <field name="focused_model_id" ref="product.model_product_product"/>
+            <field name="ai_agent_id" ref="ai.ai_default_agent"/>
+            <field name="is_system_default">True</field>
+            <field name="available_prompt_ids" eval="[(4, ref('ai_prompt_generate_product_variant_image_media_manager')), (4, ref('ai_prompt_enhance_product_variant_image_media_manager'))]"/>
+        </record>
+
+
+        <record id="ai_prompt_generate_product_variant_image_chatter" model="ai.prompt.button">
+            <field name="name">Help me generate an image</field>
+            <field name="prompt" type="html">
+<div>
+    Generate an image for this product:
+    <ol>
+        <li>product_name: <span data-ai-field="name">name</span></li>
+        <li>product_image: <span data-ai-field="image_1024">image_1024</span></li>
+        <li>product_description: <span data-ai-field="description">description</span></li>
+        <li>product_description_sale: <span data-ai-field="description_sale">description_sale</span></li>
+        <li>product_type: <span data-ai-field="type">type</span></li>
+        <li>
+            Variant Attributes (if any):
+            <ul>
+                <li>Attributes: <span data-ai-field="product_template_variant_value_ids.attribute_id.name">product_template_variant_value_ids &gt; attribute_id &gt; name</span></li>
+                <li>Attributes Values: <span data-ai-field="product_template_variant_value_ids.product_attribute_value_id.name">product_template_variant_value_ids &gt; product_attribute_value_id &gt; name</span></li>
+            </ul>
+        </li>
+    </ol>
+</div>
+            </field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="ai_prompt_enhance_product_variant_image_chatter" model="ai.prompt.button">
+            <field name="name">Enhance image</field>
+            <field name="prompt" type="html">
+<div>
+1. If an image is provided (<span data-ai-field="image_1024">image_1024</span>):
+    - Ask the user what changes they would like to make. 
+    - Provide a few concise example options inspired by the image (e.g., lighting, time of day, motion blur, color temperature, background, etc.). 
+    - The response must be **a list of 3 recommended changes**.
+    - Keep it **very concise and direct**.
+        
+2. If no image is provided:
+    - Ask the user to provide an image.
+    - Ask them to mention the enhancements they would like.
+
+Example (image provided):
+    What changes would you like to make to this image?
+    - time of day.
+    - motion blur amount.
+    - background style.
+Example (no image):
+    Please provide an image and tell me what enhancement you would like to see in the image.
+</div>
+            </field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="ai_prompt_write_product_variant_description" model="ai.prompt.button">
+            <field name="name">Write a product variant description</field>
+            <field name="prompt" type="html">
+<div>
+    <h1># Product Description Generator</h1>
+    <p>You are an expert product copywriter tasked with creating compelling, accurate product descriptions.</p>
+
+    <h2>## Input Information:</h2>
+    <ul>
+        <li>**Product Name**: <span data-ai-field="name">name</span></li>
+        <li>**Product Image** (if any): <span data-ai-field="image_1024">image_1024</span></li>
+        <li>**Existing Description** (if any): <span data-ai-field="description">description</span></li>
+        <li>**Existing Description Sale** (if any): <span data-ai-field="description_sale">description_sale</span></li>
+        <li>**Product Type/Category**: <span data-ai-field="type">type</span></li>
+    </ul>
+
+    <h2>## Variant Attributes (if any):</h2>
+    <ul>
+        <li>Attributes: <span data-ai-field="product_template_variant_value_ids.attribute_id.name">product_template_variant_value_ids &gt; attribute_id &gt; name</span></li>
+        <li>Attributes Values: <span data-ai-field="product_template_variant_value_ids.product_attribute_value_id.name">product_template_variant_value_ids &gt; product_attribute_value_id &gt; name</span></li>
+    </ul>
+
+    <h2>## Your Task:</h2>
+    <ol>
+        <li><strong>Accurately describes the product</strong> based on what you can see in the image and the provided information</li>
+        <li><strong>Highlights key features and benefits</strong> that would matter to potential customers</li>
+        <li><strong>Uses engaging, persuasive language</strong> appropriate for the product type</li>
+        <li><strong>Maintains a professional yet accessible tone</strong></li>
+        <li><strong>Includes relevant details</strong> such as:
+            <ul>
+                <li>Physical characteristics (size, color, material, design)</li>
+                <li>Functional benefits and use cases</li>
+                <li>Quality indicators</li>
+                <li>Target audience or ideal usage scenarios</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h2>## Guidelines:</h2>
+    <ul>
+        <li>Length: 2-4 paragraphs (approximately 100-200 words)</li>
+        <li>If an old description exists, improve upon it by adding detail, clarity, or more compelling language</li>
+        <li>Avoid making claims that cannot be verified from the image or provided information</li>
+        <li>Use sensory and descriptive language where appropriate</li>
+        <li>Focus on customer benefits, not just features</li>
+        <li>Ensure the description is scannable with good flow</li>
+    </ul>
+
+    <h2>## Output Format:</h2>
+    <p>Provide only the product description text, ready to use on an e-commerce platform or marketing materials.</p>
+
+    <h2>## Execution</h2>
+    <p>Use the generated description to update the <span data-ai-field="description_sale">description_sale</span> field of the record of the current product unless stated otherwise by the user.</p>
+</div>
+            </field>
+            <field name="sequence">15</field>
+        </record>
+
+        <record id="ai_product_variant_chatter_helper" model="ai.composer">
+            <field name="name">Product Variant Chatter Helper</field>
+            <field name="interface_key">chatter_ai_button</field>
+            <field name="ai_agent_id" ref="ai.ai_default_agent"/>
+            <field name="is_system_default">True</field>
+            <field name="focused_model_id" ref="product.model_product_product"/>
+            <field name="available_prompt_ids" eval="[
+                (4, ref('ai_product.ai_prompt_generate_product_variant_image_chatter')),
+                (4, ref('ai_product.ai_prompt_enhance_product_variant_image_chatter')),
+                (4, ref('ai_product.ai_prompt_write_product_variant_description')),
+            ]"/>
+        </record>
+    </data>
+</odoo>

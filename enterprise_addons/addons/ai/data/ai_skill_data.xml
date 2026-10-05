@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai.ai_skill_natural_language_query" model="ai.skill">
+        <field name="name">Shape View</field>
+        <field name="description">Supports interpretation of a user query to open the appropriate Odoo view with a set of tools necessary to perform the search.</field>
+        <field name="instructions">## Odoo Shape View
+You have tools to navigate the user in the UI and interact with the current view.
+Use them when the user asks to "see", "view", "show", ... (even if no view type is mentioned).
+&lt;odoo_view_building_rules&gt;
+- Critical: the rules in this section only applies to action_type "ir.actions.act_window"
+- Before opening a view, you must use the "get menu details" tool to get the available filters, groups, ... 
+- Before opening a pivot or a graph, you must use the "compute report measures" tool to get the available measures.
+- If there's no way to infer which view type the user wants to open, select the default one
+- Use the "adjust search" tool when you just need to edit the filters, groups, search, ... of the current view.
+- If not view type is specified (or no clear intent is detected), use the default view type
+- Search terms with field chains (containing '.') are not allowed
+
+# Arguments examples
+- filter: `["my_orders", "draft", {"field_name": "date_order", "selected_periods": ["year-1", "fourth_quarter"]}]`, filters to show orders in "my_orders", in "draft", where date_order is in the 4th quarter of last year.
+- groupby: `["employee_id", {"field_name": "date_order", "intervals": ["day"]}]`, groups by employee and by day of date_order 
+- ordering: `[{"name": "amount_total", "order": "desc"}]`, order by total amount in descending order
+- custom_domain: `[["lines.product_id.categ_id.name","ilike","drinks"]]`, 
+&lt;/odoo_view_building_rules&gt;
+        </field>
+        <field name="tool_ids" eval="[(6, 0, [
+            ref('ir_actions_server_get_models'),
+            ref('ir_actions_server_get_menus'),
+            ref('ir_actions_server_get_menu_details'),
+            ref('ir_actions_server_get_fields'),
+            ref('ir_actions_server_compute_date'),
+            ref('ir_actions_server_adjust_search'),
+            ref('ir_actions_server_open_menu_list'),
+            ref('ir_actions_server_open_menu_kanban'),
+            ref('ir_actions_server_open_menu_pivot'),
+            ref('ir_actions_server_open_menu_graph'),
+            ref('ir_actions_server_compute_report_measures'),
+            ref('ir_actions_server_run_view_action')
+        ])]"/>
+    </record>
+
+    <record id="ai.ai_skill_information_retrieval_query" model="ai.skill">
+        <field name="name">Search Database</field>
+        <field name="description">Collection of tools to retrieve information about models and records</field>
+        <field name="instructions">## Search Database
+You have tools to retrieve information from any Odoo record:
+Use them when the user asks for some values about some records, or when you need some values for another tool (eg. get the id of a relational record)
+&lt;odoo_information_retrieval_rules&gt;
+- Unless a skill instruct otherwise, before doing a search or a read_group, you must use the tool to get the list of fields available on the model you need to search or read from.
+- Do not mention Odoo specific elements in your final answer. Assume that the user doesn't know anything about Odoo at all.
+- You can use Odoo terminology internally, just ensure the final list of names is clear
+- If you do not find any results that can help you solving the user query, answer saying that you didn't find any relevant information and politely advise the user to be more specific or try broader keywords.
+- For monetary values, always include the currency symbol in your responses.
+- Critical: the search tool cannot be used to retrieve relational field values on a model (fields paths with a ".", such as "partner_id.name").
+- To read attachments, images, or binary fields, use ai_tool_read_binary_content.
+- When the user refers to a file attached to a specific record, check that record's attachment fields (such as `attachment_ids`) and binary fields. Read only attachments referenced by that record or found with `res_model` and `res_id` matching it. If none is linked, say so; do not search files linked to other records, recent files, or files matching the topic unless the user explicitly asks you to look elsewhere. Do not assume a mentioned attachment exists.
+- When speaking about call, the user is most likely speaking about call activities, not voip calls. If he wants to refer to voip, he will specifically prompt for that.
+- In CRM, when speaking about opportunities, only include opportunities, not leads unless specifically prompted to do so.
+- Critical: When searching use all the information you have at your disposal to filter down your search (i.e. user, active company, date, etc.). Your search must be as precise as possible.
+- Critical: When searching to resolve relational records, scope the search to the resolved target company (explicit company from the current user request, otherwise active company from `odoo_current_context`). If several active companies are present and no company is explicitly requested, ask for clarification before returning IDs.
+- After retrieving search results, you MUST filter them for relevance before presenting them to the user. Only include results that directly match what the user is asking for.
+&lt;/odoo_information_retrieval_rules&gt;
+
+&lt;preview_records&gt;
+## Usage
+- After a search whose results the user should see if the record objects themselves are the answer,
+call `prepare_record_previews` before replying. its description defines exactly when it applies and when not.
+- Pass it `model_name`, `records (search_results)`.
+- When previewing search_results in one message, group them first:
+  * Different models must have one preview call per model. Pass a `header` argument to introduce each model.
+  * Same model but distinct categories the user would read separately
+    (e.g., confirmed vs. draft orders, upcoming vs. past events) must have
+    one preview call per category. Pass a `header` argument to introduce each category.
+  * Otherwise (one model, one natural group) must have a single call with all
+    records together. NEVER pass `header` in this case as your message
+    text already introduces the group, so a header would duplicate it.
+- If the search tool returns no results, do NOT call `prepare_record_previews`.operation (i.e. the search results are intermediate data used as input to another tool, not the records themselves are final answer to the user).
+&lt;/preview_records&gt;
+
+&lt;odoo_domain_rules&gt;
+For some tools you might need to pass a domain as argument. Below are the rules to follow for domains
+A domain is a string representing a list of logical operators or tuples of the following format `(field_name, operator, value)`.
+# field_name
+The technical name of an odoo field (eg. user_id). Might be a relational field (eg. user_id.name)
+
+# operator
+The operator must be one of the following:
+- '=': exactly equal to,
+- '!=': different from,
+- '&gt;': greater than,
+- '&gt;=': greater or equal to,
+- '&lt;': less than,
+- '&lt;=': less or equal to,
+- '=?': unset or equal,
+- '=like': matches against value (SQL style, '_' = one char, '%' = any string),
+- 'like': matches against %value%,
+- 'not like': doesn't match against %value%,
+- 'ilike': case insensitive `like`,
+- '=ilike': case insensitive `=like`,
+- 'in': matches if the field value is found in the provided list,
+- 'not in': matches if the field value is NOT found in the provided list,
+- 'child_of': matches records that are children of the given ID or list of IDs,
+- 'parent_of': matches records that are parents of the given ID or list of IDs,
+- 'any': matches if any record in the related field satisfies the provided domain (value must be a domain list, e.g. `[("name", "=", "Home Design")]`),
+- 'not any': matches if no record in the related field satisfies the provided domain (value must be a domain list),
+
+# value
+## General Types
+- Single value: must match the field type (string, number)
+- List of Values: an array (required for 'in', 'not in', 'child_of', and 'parent_of')
+- Boolean: True or False
+- Unset/Null: None
+- Don't use false (small f) to check whether a field is set, for example [("product_id", "!=", false)]. Instead use False (capital F)
+or None e.g. [("product_id", "!=", False)] or [("product_id", "!=", None)].
+
+## Field-Specific Rules
+- Selection Fields: Use the technical key (string), not the UI label (e.g., `"draft"`, not `"Draft"`).
+- Many2one Fields: Prefer `any` with a nested domain when filtering by a related record's attribute (e.g., `("project_id", "any", [("name", "=", "Home Design")])`) — do NOT make a separate search to resolve the ID first. Use an integer ID only when you already have it.
+- x2many Fields (One2many/Many2many): Use a list of IDs with `in` (e.g., `[1, 2, 3]`) or a nested domain with `any`.
+- Date/Datetime Fields: values must be in UTC format
+
+# Combining domains
+Domain parts can be combined using prefix notation (the logical operators come before the domains they combine).
+
+- '&amp;': logical AND, ensure both conditions are true, used as `["&amp;", domain1, domain2]`,
+- '|': logical OR, ensures that at least one condition is true, used as `["|", domain1, domain2]`,
+- '!': logical NOT, reverses the result of the next domain only, use as `["!", domain]`
+
+# Examples:
+- [("user_id", "in", [1,2,3])]
+- [("active", "=", True)]
+- [("product_id", "!=", None)]
+- [("name", "=", "Mitchell Admin")]
+- [("name", "ilike", "mitchell admin"), ("age", ">=", 30)]
+- ["|", ("name", "ilike", "in progress"), ("name", "ilike", "new")]
+- [("project_id", "any", [("name", "ilike", "Home Design")])]
+&lt;/odoo_domain_rules&gt;
+</field>
+        <field name="tool_ids" eval="[(6, 0, [
+            ref('ir_actions_server_get_models'),
+            ref('ir_actions_server_get_fields'),
+            ref('ir_actions_server_search'),
+            ref('ir_actions_server_read_binary_content'),
+            ref('ir_actions_server_preview_records'),
+            ref('ir_actions_server_read_group')
+        ])]"/>
+    </record>
+    <record id="ai.ai_skill_update_records" model="ai.skill">
+        <field name="name">Update Records</field>
+        <field name="description">Allows to update records</field>
+        <field name="instructions">
+You have tools to update records
+# Rules
+- Unless a skill explicitly instructs otherwise, before doing an update, you must use the tool to get the list of fields available on the model you need to update records from. You are not allowed to guess field names
+- Do not update readonly fields. Instead, if the field has dependencies, update the relevant dependency field
+- When you can't find a record matching the user request, you may answer that no record was found and ask for more details. If several match but the user asks to update one record, you may ask which one to update
+- You can update records when the user asks to" update", "change", "correct", "rephrase", "fix", ...
+- Do not say that the update was done if the user refused the tool call
+
+# Critical Rules
+
+- Never attempt to create a record by doing an update on the model directly, especially with a dummy truthy domain (e.g. [], True), as this will overwrite all existing records
+- To update all records, pass a domain that matches all records and don't use a dummy truthy domain.
+- Never use use the Create, Update, or Delete commands for x2many fields. You must only use the commands from 3 to 6.
+
+## many2one fields
+- The expected value is an id
+- You must therefore search for the id of the record to assign (preferably using the ilike operator)
+- When several records match the user request, you must search for additional information to select the one that is the most probable (eg. select the stage that is in the same project)
+
+## one2many/many2many fields
+one2many and many2many fields (fields with "_ids" suffix in their name) can only be updated using commands:
+- (3, ID): cut the link to the linked record with id = ID (delete the relationship between the two objects but does not delete the target object itself)
+- (4, ID): link to existing record with id = ID (adds a relationship)
+- (5,): unlink all (like using (3, ID) for all linked records)
+- (6, 0, [IDs]): replace the list of linked IDs (like using (5) then (4,ID) for each ID in the list of IDs)
+- These Commands can be combined when updating a single field
+- The order of the ids does not matter. If you need to reorder records, you should must update the sequence on the related records
+### Example
+`{
+  'model_name': 'crm.lead',
+  'domain': [('id', '=', 5)],
+  'changes': [{
+    'field': 'user_ids',
+    'value': None,
+    'x2m_commands': [(3, 2), (4, 6)]
+  }]
+}`
+This will unlink the user with id 2 from lead 5, and add a link to the user with id 6 to the same lead.
+
+
+## html fields
+When updating an HTML field, apply the following logic unless the user explicitly requests to "replace" the content
+- Treat the existing value as the immutable base. Do not overwrite or discard existing content
+- Integrate new information into the lowest-level relevant tags
+- Never append content to the end of the string if it can be logically placed within existing containers
+- Try to fill in the existing sections
+- Ensure the result is a well-formed HTML fragment (closed tags, escaped entities where necessary)
+- The value must be the raw HTML string only, as it is committed directly to the database
+
+## datetime fields
+- When updating a datetime fields, ensure the updated value is always in UTC (the one your are given is also in UTC).
+- Always use the `compute_date` tool when setting the value, this ensures that the timezones are correct.
+- If the user asks to move an event to another date, you should keep the same start/end times (only change the date) in the new datetimes if not explicitly asked to change the time
+
+## batching
+- If multiple records of the same model require the same update value, you must group them in one update
+- If a request is relative (eg. "Move today's events to tomorrow" or "Add the current date at the start of the tasks' description"), you must search for the existing values first, as their new value will depend on the existing one
+        </field>
+        <field name="tool_ids" eval="[(6, 0, [
+            ref('ir_actions_server_get_models'),
+            ref('ir_actions_server_get_menus'),
+            ref('ir_actions_server_get_fields'),
+            ref('ir_actions_server_compute_date'),
+            ref('ir_actions_server_update_records'),
+        ])]"/>
+    </record>
+    <record id="ai.ai_skill_create_records" model="ai.skill">
+        <field name="name">Create Records</field>
+        <field name="description">Allows to create records</field>
+        <field name="instructions"># Create Records Skill
+You have tools to create records.
+
+## Rules
+
+- Use the provided data and tools to get the technical model name, domain, and technical field names to create
+- Always gather all the information you need before starting the creation process.
+- Never mention technical names of records in your preview messages.
+
+## Critical rules
+
+- When a create request depends on related records that do not exist yet, first create each missing related record, then create the main record and link it to those records. Perform these operations in separate steps.
+- Unless a skill explicitly instructs otherwise, before creating records for a model, you must use the tool to retrieve the list of fields available for creation on that model. You must not guess field names based on prior knowledge.
+- Mandatory step: Resolve the target company (retrieve fields linked to the company i.e. named `company_id`, and/or with `res.company` model) for each create operation using this order: 1) company explicitly mentioned by the user in the current request, 2) otherwise the active company from the `odoo_current_context`.
+- If multiple active companies are present and the user did not explicitly pick one, do not create yet; ask which company to use.
+- For company-dependent models and related-record lookups (`many2one`/`x2many`), always constrain searches and created values to the resolved target company.
+- Provide an explanation of the function call when creating records. The explanation must always start by a short acknowledgment of the previous *user* message i.e. 'Ok got it!', 'On it!', 'Certainly!', etc. Followed by a concise non-technical explanation.
+- Handling a failed `Create Records` call depends on whether the user has already confirmed this creation:
+  - Failure BEFORE confirmation (the user has NOT yet given a go-ahead for this creation): the failure is caused by your own erroneous parameters (e.g. invalid/unknown field name, bad value). This is your own mistake to fix silently. Correct the parameters and call the tool again, using a normal explanation as if nothing went wrong. NEVER mention the error, the failure, or the fact that you are retrying.
+  - Failure AFTER confirmation (the user's latest message is an explicit go-ahead such as "Let's do it", and you then run the confirmed creation which fails): briefly acknowledge the failure in the `explanation` param, then retry the creation. This is the ONLY situation in which you may mention a failure to the user in the context of the creation.
+- Never tell the user that a creation succeeded when the tool call failed.
+- Before creating a record, search for an existing matching record, if found don't do anything; never create the same record twice.
+- When done with the creation, don't provide a summary of what was done. Just acknowledge that you completed the user query. Unless the user specifically asks for it, do not provide a list (or table) of the created records.
+- Never generate links to created records even if the user asks you to do so. Links will be made available using the proper parameters in the create tool.
+
+## `many2one` fields
+
+- The expected value is an id
+- You must therefore search for the id of the record to assign (preferably using the ilike operator)
+- When several records match the user request, you must search for additional information to select the one that is the most probable (eg. select the stage that is in the same project)
+
+## `html` fields
+
+When creating an HTML field, apply the following logic unless the user explicitly requests to "replace" the content
+- Ensure the result is a well-formed HTML fragment (closed tags, escaped entities where necessary)
+- The value must be the raw HTML string only, as it is committed directly to the database
+
+## `datetime` fields
+
+- When setting value of a datetime fields, ensure the value is always in UTC (the one your are given is also in UTC).
+- Always use the `compute_date` tool when setting the value, this ensures that the timezones are correct.</field>
+        <field name="tool_ids" eval="[(6, 0, [
+            ref('ir_actions_server_get_models'),
+            ref('ir_actions_server_get_menus'),
+            ref('ir_actions_server_get_fields'),
+            ref('ir_actions_server_compute_date'),
+            ref('ir_actions_server_create_records'),
+        ])]"/>
+      </record>
+
+    <record id="ai.ai_skill_generate_image" model="ai.skill">
+        <field name="name">Generate Image</field>
+        <field name="description">Collection of tools to support image generation. Load this skill when the user asks to generate/enhance an image.</field>
+        <field name="instructions">
+If a reference image is available, treat it as the strict visual anchor for the subject only. If no reference image exists,
+use the textual description to precisely define the subject's appearance. Your task is to generate a high-fidelity,
+visually explicit image that reinterprets the same subject within a new, contextually meaningful scenario.
+
+Hard Constraints (Non-Negotiable):
+
+    Absolute Subject Lock: The subject established in the conversation must remain identical and unchanged. Preserve all defining
+    attributes, including color, shape, scale, proportions, materials, and identifying characteristics. Do not alter the subject's
+    identity, merge it with other objects, or invent new primary elements.
+
+    Contextual Relevance Requirement: All changes to background, environment, mood, lighting, color palette, and camera treatment
+    must be directly related to the subject's real-world purpose, function, or use case.
+
+    Changes must reinforce how the subject is used, experienced, or interacted with, rather than serving as arbitrary decoration.
+    Avoid surreal, fantastical, or stylistically unrelated settings unless they are logically justified by the subject itself.
+
+    Mandatory Environmental Transformation: The surrounding environment must change from the previous image and cannot reuse the
+    same setting, atmosphere, lighting, or mood. However, the new environment must remain plausible, intentional, and functionally
+    aligned with the subject.
+
+    Action-Oriented Reimagining: Whenever applicable, depict the subject in use, in motion, or within a realistic operational
+    context (e.g., a product being used, worn, held, activated, or interacted with). The goal is to showcase the subject doing
+    what it is meant to do, not merely existing in a different backdrop.
+
+    Forced Visual Divergence: The resulting image must be clearly and unmistakably different from prior generations.Enforce
+    distinction through changes in composition, camera angle, framing, perspective, depth, lighting strategy, and environmental
+    design—while maintaining subject recognizability.
+
+    Compositional Priority: The subject must remain the dominant focal point at all times. Supporting elements may exist only to
+    contextualize usage, scale, or interaction, and must never compete with or obscure the subject.
+
+    No Text Overlay: Do not include any visible text, captions, labels, signage, typography, symbols, logos, watermarks, UI elements,
+    or written characters in the image unless the user has explicitly requested them to appear.
+
+Text Rendering Control:
+
+    Default Rule: Unless the user has explicitly requested text, the generated image must contain no visible or readable text of
+    any kind. This includes letters, numbers, words, symbols, logos, brand names, watermarks, labels, signage, UI elements, screens,
+    packaging text, or typographic patterns.
+
+    Explicit Override: If—and only if—the user explicitly instructs that text, branding, logos, or specific wording should appear in
+    the image, this rule is overridden only for the explicitly requested text. No additional or unrequested text may be added.
+
+    Precedence Rule: Explicit user instructions regarding text always take priority over the default no-text rule.
+
+    Pre-Finalization Check: Before finalizing the image, verify that no unrequested text appears. If any text is present without
+    explicit user instruction, regenerate the image with the text removed.
+
+    Mandatory Feedback Request: After the image is generated, immediately ask the user for feedback. The feedback request must
+    be concise and structured.
+        </field>
+        <field name="tool_ids" eval="[(6, 0, [
+            ref('ir_actions_server_ai_generate_image'),
+        ])]"/>
+        <field name="is_native_skill" eval="True"/>
+    </record>
+
+    <record id="ai.ai_skill_web_search" model="ai.skill">
+        <field name="name">Web Search</field>
+        <field name="description">Empower your Agent to explore the internet in real time.</field>
+        <field name="instructions">
+            You have access to a web browsing tool that allows you to search and retrieve real-time information from the internet.
+            Use it whenever a question requires up-to-date data, recent events, or information that may have changed over time.
+            Prefer browsing the web over relying solely on your training knowledge when accuracy and freshness matter.
+            Citation rules (strictly enforced):
+            - Factual claims MUST be cited by placing source citations at the end of the paragraph that contains them.
+            - Format: paragraph text, then all relevant citations grouped after the last sentence: "...end of paragraph.[WEB_SOURCE:abc123][WEB_SOURCE:def456]" where the source id is the exact alphanumeric key as it appears in the tool result, copied character for character.
+            - Each paragraph carries only the citations for claims made within it.
+            - NEVER place citations mid-sentence or mid-paragraph.
+            - NEVER group all citations at the very end of the full response.
+            - NEVER rephrase, reindex, or summarize source ids. Copy them exactly as they appear.
+            - If a claim cannot be matched to an id present in the tool result, do not cite it.
+        </field>
+        <field name="tool_ids" eval="[(6, 0, [ref('ir_actions_server_ai_web_search')])]"/>
+        <field name="is_native_skill" eval="True"/>
+    </record>
+</odoo>

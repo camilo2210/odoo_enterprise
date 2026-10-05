@@ -1,0 +1,587 @@
+.account_report {
+    .o_account_report_scroll_container {
+        margin-inline: 0 !important;
+        padding-bottom: 40px;
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Control panel
+    //------------------------------------------------------------------------------------------------------------------
+    .o_control_panel_main_buttons {
+        .dropdown-item {
+            padding: 0;
+            .btn-link {
+                width: 100%;
+                text-align: left;
+                padding: 3px 20px;
+                border-radius: 0;
+            }
+        }
+    }
+
+    .o_control_panel_breadcrumbs {
+        min-width: fit-content;
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Sections
+    //------------------------------------------------------------------------------------------------------------------
+    .section_selector {
+        display: flex;
+        gap: 4px;
+        margin: 16px 16px 8px 16px;
+        justify-content: center;
+    }
+
+    .btn-outline-primary,
+    .btn-outline-primary:hover {
+        background-color: transparent !important;
+        color: var(--primary) !important;
+        border-color: var(--primary) !important;
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Alert
+    //------------------------------------------------------------------------------------------------------------------
+    .alert {
+        margin-bottom: 0;
+        border-radius: 0;
+
+        a:hover { cursor:pointer }
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    // No content
+    //------------------------------------------------------------------------------------------------------------------
+    .o_view_nocontent { z-index: -1 }
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Table
+    //------------------------------------------------------------------------------------------------------------------
+    .table {
+        background-color: $o-view-background-color;
+        border-collapse: separate; //!\\ Allows to add padding to the table
+        border-spacing: 0; //!\\ Removes default spacing between cells due to 'border-collapse: separate'
+        font-size: 0.8rem;
+        margin: 24px 24px;
+        padding: 24px;
+        width: auto;
+        min-width: 800px;
+        border: 1px solid $o-gray-300;
+        border-radius: 0.25rem;
+        overflow-anchor: none; /* Prevents scroll jump with the virtual lines */
+
+        --row-action-color: #{ $o-gray-300 }; // color take below at button section
+        --row-action-opacity: 0;
+        --row-muted-color: #{ var(--AccountReport-muted-data-color, $o-gray-300) };
+
+        td, th { //!\\ Override of bootstrap selector `> :not(caption) > * > *`
+            padding: 0.25rem 0.75rem !important;
+        }
+        .line_cell > a.cursor-pointer {
+            color: inherit;
+        }
+
+        > thead {
+            > tr:first-child > th {
+                color: var(--AccountReport-muted-data-color, $o-gray-300);
+
+                > .companies_header {
+                    display: inline-block;
+                    max-width: min-content;
+                    min-width: -moz-available;          /* WebKit-based browsers will ignore this. */
+                    min-width: -webkit-fill-available;  /* Mozilla-based browsers will ignore this. */
+                }
+            }
+            > tr:not(:first-child) > th:not(:first-child) {
+                text-align: center;
+                vertical-align: middle;
+            }
+            > tr:not(:last-child) > th:not(:first-child) { border: 1px solid $o-gray-300 }
+            tr {
+                white-space: nowrap;
+
+                .numeric-header {
+                    padding-right: calc(20px + 0.75rem) !important;
+                }
+            }
+        }
+
+        > tbody {
+            tr { // style applied in recursive tables
+                // 1.7rem = 1.5 [line-height] * 0.8rem [font-size] + 0.25 * 2 [padding top/bottom]
+                // 5 px = 1px [border bottom] + 4px [additional pixels to be make sure all lines kinda match]
+                height: calc(0.8rem * var(--body-line-height) + 0.5rem + 5px);
+            }
+
+            > tr {
+                &.unfolded { font-weight: bold }
+                > td {
+                    border-bottom: 1px solid var(--AccountReport-fine-line-separator-color, $o-gray-200);
+
+                    .clickable { color: $o-enterprise-action-color }
+                    &.muted, .muted { color: var(--row-muted-color) }
+                    .btn_annotation {
+                        color: $o-gray-400;
+
+                        &.o_account_report_chatter_selected {
+                            color: $o-enterprise-action-color !important;
+                        }
+
+                        &.o_account_report_chatter_selected,
+                        &.o_account_report_chatter_annotated {
+                            opacity: 1;
+                        }
+
+                        .o_web_client.o_touch_device & {
+                            opacity: 1;
+                        }
+                    }
+                }
+
+                &.total { font-weight: bold }
+                &.o_bold_tr { font-weight: bold }
+
+                &.unfolded {
+                    --row-action-opacity: 1;
+
+                    > td { border-bottom: 1px solid $o-gray-300 }
+                }
+
+
+                .btn_action, .btn_more, .btn_edit, .btn_dropdown, .btn_foldable, .btn_ellipsis,
+                .btn_annotation_go, .btn_debug {
+                    color: var(--row-action-color);
+                }
+
+                .btn_action, .btn_more, .btn_annotation {
+                    opacity: var(--row-action-opacity);
+                }
+
+                &:hover {
+                    --row-action-opacity: 1;
+                    --row-action-color: #{ $o-enterprise-action-color };
+                    --row-muted-color: #{ $o-gray-800 };
+
+                    > td.auditable { color: $o-enterprise-action-color !important; }
+                }
+
+                &.o_fake_line {
+                    max-height: 0 !important;
+                    height: 0 !important;
+
+                    > td {
+                        padding: 0 !important;
+                        border: 0 !important;
+                        height: 0 !important;
+                        line-height: 0 !important;
+                    }
+                }
+
+                &.o_hidden {
+                    content-visibility: hidden;
+                }
+            }
+        }
+
+        @media print {
+            border: 0;
+            padding: 0;
+        }
+    }
+
+    table.striped {
+        //!\\ Changes the background of every even column starting with the 3rd one
+        > thead > tr:nth-child(n+3) > th:nth-child(2n+3) {
+            background: $o-gray-100;
+        }
+
+        > tbody > tr {
+            > td.line_cell_odd {
+                background: $o-gray-100;
+            }
+
+            &.line_level_0 > td.line_cell_odd {
+                background: $o-gray-300;
+            }
+        }
+    }
+
+    thead.sticky {
+        background-color: $o-view-background-color;
+        position: sticky;
+        top: 0;
+        z-index: 999;
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Line
+    //------------------------------------------------------------------------------------------------------------------
+    .line_name {
+        vertical-align: middle;
+        white-space: nowrap;
+        sup { top: auto }
+
+        &.draft { color: $o-info; }
+        &.unfoldable:hover { cursor: pointer }
+    }
+
+    .line_cell {
+        vertical-align: middle;
+        white-space: nowrap;
+
+        &.date { text-align: center; }
+        &.numeric {
+            text-align: end;
+            padding-right: calc(20px + 0.75rem) !important;
+
+            &.editable-cell {
+                padding-right: 0.75rem !important;
+            }
+        }
+    }
+
+    .editable-cell {
+        text-align: end;
+        cursor: default;
+
+        .o_external_reference .o_input {
+            border: none;
+            text-align: right;
+        }
+
+        [data-icon='edit'] {
+            width: 20px;
+        }
+
+        input {
+            width: unset;
+            max-width: 200px;
+            color: $o-enterprise-action-color;
+            border: none;
+            display: inline;
+            cursor: pointer;
+
+            &:focus {
+                color: $o-enterprise-action-color;
+            }
+
+            &.focused {
+                color:$o-main-text-color;
+            }
+        }
+
+        &:hover {
+            cursor: pointer;
+        }
+
+        &:focus-within {
+            border-bottom-color: $o-enterprise-action-color !important;
+
+            input {
+                color: $o-black;
+            }
+        }
+    }
+
+    .line_level_0 {
+        color: $o-gray-700;
+        font-weight: bold;
+
+        > td {
+            border-bottom: 0 !important;
+            background-color: $o-gray-300;
+        }
+        .muted { color: $o-gray-400 !important }
+        .btn_debug { color: $o-gray-400 }
+    }
+
+    .line_level_1 > td:nth-child(1) {
+        padding-left: calc(20px + 0.75rem) !important;
+        &.unfoldable { padding-left: 0.75rem !important }
+    }
+
+    @for $i from 2 through 16 {
+        .line_level_#{$i} {
+            $indentation: ($i - 1) * 8px;
+
+            > td:nth-child(1) {
+                color: $o-gray-700;
+                padding-left: calc(#{ $indentation } + 20px + 0.75rem) !important;
+                &.unfoldable { padding-left: calc(#{ $indentation } + 0.75rem) !important }
+            }
+        }
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Link
+    //------------------------------------------------------------------------------------------------------------------
+    .link { color: $o-enterprise-action-color }
+
+    //------------------------------------------------------------------------------------------------------------------
+    // buttons
+    //------------------------------------------------------------------------------------------------------------------
+    .btn_debug, .btn_dropdown, .btn_foldable, .btn_sortable, .btn_ellipsis, .btn_more,
+    .btn_annotation, .btn_annotation_go, .btn_annotation_delete, .btn_action, .btn_edit {
+        border: none;
+        color: $o-gray-300;
+        font-size: inherit;
+        font-weight: normal;
+        padding: 0 !important;
+        text-align: center;
+        width: 20px;
+        white-space: nowrap;
+
+        &:hover {
+            color: $o-enterprise-action-color !important;
+            cursor: pointer;
+        }
+    }
+
+    .btn_sortable > [data-icon="north"], .btn_sortable > [data-icon="south"] { color: $o-enterprise-action-color }
+    .btn_foldable { color: $o-gray-500 }
+    .btn_ellipsis > i { vertical-align: bottom }
+    .btn_more { opacity: 1 }
+    .btn_annotation_go { color: $o-gray-600 }
+    .btn_annotation_delete {
+        margin-left: 4px;
+        vertical-align: baseline;
+    }
+    .btn_action {
+        opacity: 0;
+        background-color: $o-view-background-color;
+        color: $o-gray-600;
+        width: auto;
+        padding: 0 0.25rem !important;
+        margin: 0 0.25rem;
+        border: 1px solid $o-gray-300;
+        border-radius: 0.25rem;
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Dropdown
+    //------------------------------------------------------------------------------------------------------------------
+    .dropdown { display: inline }
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Chatter
+    //------------------------------------------------------------------------------------------------------------------
+    .o_account_report_chatter {
+        border-left: 1px solid var(--border-color);
+        // using Min instead of min to trick scss since it doesn't like the usage of additions and var.
+        max-width: Min(calc(#{$o-mail-Chatter-minWidth} + 20px + var(--Chatter-asideExtraWidth)), 100%);
+        transition: max-width 0.2s ease-in-out;
+
+        .o-mail-Chatter-topbar {
+            padding-top: 0.25rem;
+        }
+
+        &.o_account_report_chatter_hidden {
+            max-width: 0;
+            transition: max-width 0.2s ease-in-out;
+            height: 0 !important;
+
+            .o-mail-Chatter-top, .o-mail-Chatter-content{
+                --Chatter-default-padding-x: 0;
+                --ChatterAsideForm-padding-left: 0;
+            }
+        }
+    }
+}
+
+.is_rendering tbody > tr[data-id="line"] > td * { //!\\ Prevents flash on animation when scrolling due to the virtual grids
+    animation: none !important;
+    transition: none !important;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// Dialogs
+//----------------------------------------------------------------------------------------------------------------------
+.account_report_annotation_dialog {
+    textarea {
+        border: 1px solid $o-gray-300;
+        border-radius: 0.25rem;
+        height: 120px;
+        padding: .5rem;
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// Popovers
+//----------------------------------------------------------------------------------------------------------------------
+.account_report_popover_edit {
+    padding: .5rem 1rem;
+    box-sizing: content-box;
+
+    .edit_popover_boolean label { padding: 0 12px 0 4px }
+
+    .edit_popover_string {
+        width: 260px;
+        padding: 8px;
+        border-color: $o-gray-200;
+    }
+
+    .btn {
+        color: $o-white;
+        background-color: $o-enterprise-action-color;
+    }
+}
+
+.account_report_popover_ellipsis {
+    > p {
+        float: left;
+        margin: 1rem;
+        width: 360px;
+    }
+}
+
+.account_report_btn_clone {
+    margin: 1rem 1rem 0 0;
+    border: none;
+    color: $o-gray-300;
+    font-size: inherit;
+    font-weight: normal;
+    padding: 0;
+    text-align: center;
+    width: 20px;
+
+    &:hover {
+        color: $o-enterprise-action-color !important;
+        cursor: pointer;
+    }
+}
+
+.account_report_popover_debug {
+    width: 350px;
+    overflow-x: auto;
+
+    > .line_debug {
+        display: flex;
+        flex-direction: row;
+        padding: .25rem 1rem;
+
+        &:first-child { padding-top: 1rem }
+        &:last-child { padding-bottom: 1rem }
+
+        > span:first-child {
+            color: $o-gray-600;
+            max-width: 25%; //!\\ Not the same as 'width' because of 'display: flex'
+            min-width: 25%; //!\\ Not the same as 'width' because of 'display: flex'
+            white-space: nowrap;
+            margin-right: 10px;
+        }
+        > span:last-child {
+            color: $o-gray-800;
+            max-width: 75%; //!\\ Not the same as 'width' because of 'display: flex'
+            min-width: 75%; //!\\ Not the same as 'width' because of 'display: flex'
+        }
+    }
+
+    > .totals_separator { margin: .25rem 1rem }
+    > .engine_separator { margin: 1rem }
+}
+
+.carryover_popover {
+    margin: 12px;
+    width: 300px;
+}
+
+.o_web_client:has(.annotation_popover) {
+
+    .popover:has(.annotation_tooltip) { visibility: hidden; }
+
+    .popover:has(.annotation_popover) {
+        max-height: 45%;
+        max-width: 60%;
+        white-space: pre-wrap;
+        overflow-y: auto;
+
+        .annotation_popover {
+            overflow: scroll;
+
+            .annotation_popover_line th{
+                background-color: $o-white;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+        }
+
+        .annotation_popover_line:nth-child(2n+2) { background: $o-gray-200; }
+
+        .annotation_popover_line {
+            .o_datetime_input {
+                border: none;
+            }
+        }
+
+        tr, th, td:not(:has(.btn_annotation_update)):not(:has(.btn_annotation_delete)) {
+            padding: .5rem 1rem .5rem .5rem;
+            vertical-align: top;
+        }
+
+        .annotation_popover_editable_cell {
+            background-color: transparent;
+            border: 0;
+            box-shadow: none;
+            color: $o-gray-700;
+            resize: none;
+            width: 85px;
+            outline: none;
+        }
+    }
+}
+
+label:focus-within input { border: 0; }
+
+.popover:has(.annotation_tooltip) {
+
+    > .tooltip-inner {
+        padding: 0;
+        color: $o-white;
+        background-color: $o-white;
+
+        > .annotation_tooltip {
+            color: $o-gray-700;
+            background-color: $o-white;
+            white-space: pre-wrap;
+
+            > .annotation_tooltip_line:nth-child(2n+2) { background: $o-gray-200; }
+
+            tr, th, td {
+                padding: .25rem .5rem .25rem .25rem;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                vertical-align: top;
+            }
+        }
+
+        + .popover-arrow {
+            &.top-0::after { border-right-color: $o-white; }
+            &.bottom-0::after { border-left-color: $o-white; }
+            &.start-0::after { border-bottom-color: $o-white; }
+            &.end-0::after { border-top-color: $o-white; }
+        }
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// Chatter
+//----------------------------------------------------------------------------------------------------------------------
+.o_account_report_mobile_chatter {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 999;
+    height: 60vh;
+    background-color: $o-view-background-color;
+    transform: translateY(0);
+    transition: transform 0.2s ease-in-out;
+    overflow: scroll;
+
+    &.o_account_report_mobile_chatter_hidden {
+        transform: translateY(100%);
+    }
+}

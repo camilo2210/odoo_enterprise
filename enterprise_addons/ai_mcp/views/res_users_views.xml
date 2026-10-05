@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <record id="view_users_form_mcp" model="ir.ui.view">
+        <field name="name">res.users.form.inherit.mcp</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='api_keys']//span[hasclass('text-muted')]" position="replace">
+                <span class="text-muted">
+                    Connect via RPC or MCP
+                </span>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_users_form_simple_modif_mcp" model="ir.ui.view">
+        <field name="name">res.users.preferences.form.inherit.mcp</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form_simple_modif"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='api_keys']//span[hasclass('text-muted')]" position="replace">
+                <span class="text-muted">
+                    Connect via RPC or MCP
+                </span>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="form_res_users_key_show_mcp" model="ir.ui.view">
+        <field name="name">API Key: show MCP</field>
+        <field name="model">res.users.apikeys.show</field>
+        <field name="inherit_id" ref="base.form_res_users_key_show"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='rpc_key_card']" position="attributes">
+                <attribute name="invisible">scope == 'mcp'</attribute>
+            </xpath>
+
+            <xpath expr="//div[@id='rpc_key_card']" position="after">
+                <div id="mcp_key_card" class="card" invisible="scope != 'mcp'">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <strong>To connect via MCP, add these details to your AI Assistant's settings:</strong>
+                    </div>
+                    <div class="card-body">
+                        <code>
+                            <p class="mb-1">
+                                <strong>Server URL: </strong>
+                                <field name="base_url" readonly="1" class="mb-0"/>/mcp
+                            </p>
+                            <p class="mb-1">
+                                <strong>Server Name: </strong>
+                                <span>&lt;Pick a name&gt;</span>
+                            </p>
+                            <p class="mb-1">
+                                <strong>Header: </strong>
+                                <span>Authorization: Bearer <field name="key" readonly="1" class="mb-0"/></span>
+                            </p>
+                        </code>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

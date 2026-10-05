@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="discuss_channel_view_kanban_ai_agent" model="ir.ui.view">
+        <field name="name">discuss.channel.kanban.inherit.ai_livechat</field>
+        <field name="model">discuss.channel</field>
+        <field name="inherit_id" ref="im_livechat.discuss_channel_view_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='livechat_agent_partner_ids']" position="after">
+                <field
+                    t-if="!record.livechat_agent_partner_ids.raw_value.length"
+                    name="ai_agent_partner_id"
+                    widget="many2one_avatar_user"
+                    class="ms-auto me-1"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="discuss_channel_view_search_ai_agent" model="ir.ui.view">
+        <field name="name">discuss.channel.search.inherit.ai_livechat</field>
+        <field name="model">discuss.channel</field>
+        <field name="inherit_id" ref="im_livechat.discuss_channel_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search/group[last()]" position="after">
+                <group>
+                    <filter name="handled_by_ai" string="Handled by AI" domain="[('ai_session_ids', '!=', False), ('livechat_agent_partner_ids', '=', False)]"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

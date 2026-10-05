@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<template id="appointment_info" inherit_id="appointment.appointment_meeting_details">
+    <xpath expr="//div[hasclass('o_appointment_details_location')]" position="before">
+        <div t-if="appointment_type.product_id" class="d-flex gap-2">
+            <t t-set="isDetailsManageCapacity" t-value="appointment_type.manage_capacity and isDetails"/>
+            <i class="oi oi-stack rounded-1 text-muted text-center" data-icon="credit_card" role="img"/>
+            <div class="mt-1">
+                <span class="o_appointment_details_price">
+                    <t t-out="appointment_type.product_lst_price * asked_capacity if isDetailsManageCapacity else appointment_type.product_lst_price"
+                        t-options="{'widget': 'monetary', 'display_currency': appointment_type.product_currency_id}"/>
+                </span>
+                <span t-if="appointment_type.manage_capacity and not isDetails" class="small text-muted">per seat</span>
+            </div>
+        </div>
+    </xpath>
+</template>
+
+<template id="appointment_list_item" inherit_id="appointment.appointment_list_item">
+    <xpath expr="//div[hasclass('o_appointment_card_location')]" position="after">
+        <div t-if="appointment.has_payment_step and appointment.product_id" class="text-muted">
+            <i class="oi oi-fw lh-base" data-icon="credit_card" role="presentation"/>
+            <strong t-out="appointment.product_lst_price"
+                t-options="{'widget': 'monetary', 'display_currency': appointment.product_currency_id}"/>
+        </div>
+    </xpath>
+</template>
+
+</odoo>

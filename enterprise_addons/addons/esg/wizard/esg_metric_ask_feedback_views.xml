@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="esg_metric_ask_feedback_view_form" model="ir.ui.view">
+            <field name="name">egs.metric.ask.feedback.view.form</field>
+            <field name="model">esg.metric.ask.feedback</field>
+            <field name="arch" type="xml">
+                <form string="Ask Review">
+                    <sheet>
+                        <group>
+                            <field name="deadline" options="{'min_date': 'today'}"/>
+                            <field name="partner_ids"
+                                options="{'no_quick_create': 1}"
+                                widget="many2many_tags_email"
+                                placeholder="Add stakeholders..."
+                                context="{'show_email': True, 'form_view_ref': 'base.view_partner_simple_form'}"
+                                domain="['|', ('company_id', 'in', allowed_company_ids), ('company_id', '=', False)]"/>
+                            <field name="subject" placeholder="Subject..."/>
+                        </group>
+                        <div>
+                            <field name="body" class="oe-bordered-editor" widget="html_mail" placeholder="Optional message"/>
+                        </div>
+                    </sheet>
+
+                    <footer>
+                        <button string="Send" name="action_send" type="object" class="btn-primary" data-hotkey="q"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="esg_metric_ask_feedback_action" model="ir.actions.act_window">
+            <field name="name">Stakeholder Review</field>
+            <field name="res_model">esg.metric.ask.feedback</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="esg_metric_ask_feedback_view_form"/>
+            <field name="target">new</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ai.UserInputRequest">
+        <div t-if="this.props.request" t-ref="this.rootRef" class="o_ai_user_input_request mt-1 p-2" t-on-keydown="this.onChoicesKeydown" role="group" t-att-aria-labelledby="'ai-input-' + this.props.request.resumeToken">
+            <div t-att-id="'ai-input-' + this.props.request.resumeToken">
+                <div t-if="this.props.request.ai_session_id.parent_session_id" class="fw-bold mb-1" t-out="this.props.thread.channel.aiRootSession.agent_id.name"/>
+                <div class="text-break" t-out="this.props.request.body"/>
+            </div>
+            <t t-set="multiSelect" t-value="this.props.request.multiSelect"/>
+
+            <ul t-ref="this.choicesListRef" class="list-unstyled p-0 m-0">
+                <li t-foreach="this.rows" t-as="row" t-key="row_index">
+                    <button
+                        class="o_ai_option btn btn-sm btn-secondary rounded-2 w-100 mt-2 d-flex align-items-center gap-2 text-start"
+                        t-att-disabled="this.state.isSubmitting or (row.type === 'option' and this.areChoicesDisabled)"
+                        t-on-click="() => this.onRowSelect(row)"
+                        t-on-pointerdown="() => this.activateRow(row_index)"
+                        t-on-focus="() => this.state.activeIndex = row_index"
+                    >
+                        <!-- Left indicator: checkbox (multi-select) or numbered/pencil badge (single-select) -->
+                        <input
+                            t-if="multiSelect"
+                            type="checkbox"
+                            class="flex-shrink-0 mx-2 pe-none"
+                            tabindex="-1"
+                            t-att-checked="this.isRowSelected(row)"
+                        />
+                        <span t-else="" class="badge rounded-2 bg-200 text-900 fw-normal p-1 flex-shrink-0 d-flex align-items-center justify-content-center lh-1">
+                            <t t-if="row.type === 'option'" t-out="row_index + 1"/>
+                            <i t-else="" class="oi oi-filled" data-icon="edit"/>
+                        </span>
+
+                        <!--Row content-->
+                        <span t-if="row.type === 'option'" class="flex-grow-1 text-break p-1" t-out="row.data.label"/>
+                        <t t-else="">
+                            <input
+                                type="text"
+                                class="flex-grow-1 min-w-0 border-0 bg-transparent shadow-none p-1"
+                                placeholder="Something else"
+                                t-model.proxy="this.state.freeTextValue"
+                                t-on-focus="() => this.state.activeIndex = this.rows.length - 1"
+                            />
+                            <i
+                                t-if="!multiSelect and this.isFreeTextSelected"
+                                class="oi flex-shrink-0 px-1" data-icon="send"
+                                t-on-click.stop="this.submitFreeText"
+                            />
+                        </t>
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Footer: skip action, and multi-select confirmation. -->
+            <div t-if="this.showSkip or multiSelect" class="d-flex align-items-center justify-content-end gap-2 mt-2 w-100">
+                <button
+                    t-if="this.showSkip"
+                    class="btn btn-sm btn-link text-muted p-0"
+                    t-on-click="this.skip"
+                >Skip</button>
+                <button
+                    t-if="multiSelect"
+                    class="btn btn-sm btn-secondary rounded-2"
+                    t-att-disabled="this.state.isSubmitting or this.selectedCount === 0"
+                    t-on-click="this.confirmMultiSelect"
+                >Confirm</button>
+            </div>
+        </div>
+    </t>
+</templates>

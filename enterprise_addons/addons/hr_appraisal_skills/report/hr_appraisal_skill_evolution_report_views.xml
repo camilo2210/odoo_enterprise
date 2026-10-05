@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_appraisal_skill_evolution_report_view_list" model="ir.ui.view">
+        <field name="model">hr.appraisal.skill.evolution.report</field>
+        <field name="arch" type="xml">
+            <list string="Skill Evolution">
+                <field name="date"/>
+                <field name="employee_id"/>
+                <field name="skill_type_id"/>
+                <field name="skill_id"/>
+                <field name="level_progress_average" width="150px"/>
+                <field name="level_progress_count" width="150px"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="hr_appraisal_skill_evolution_report_view_graph" model="ir.ui.view">
+        <field name="name">hr.appraisal.skill.evolution.report.view.graph</field>
+        <field name="model">hr.appraisal.skill.evolution.report</field>
+        <field name="arch" type="xml">
+            <graph string="Skill Evolution" type="line" stacked="0" sample="0">
+                <field name="level_progress_average" type="measure"/>
+                <field name="level_progress_count"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="hr_appraisal_skill_evolution_report_view_pivot" model="ir.ui.view">
+        <field name="name">hr.appraisal.skill.evolution.report.view.pivot</field>
+        <field name="model">hr.appraisal.skill.evolution.report</field>
+        <field name="arch" type="xml">
+            <pivot string="Skill Evolution" sample="1">
+                <field name="date" interval="month"/>
+                <field name="employee_id"/>
+                <field name="skill_type_id"/>
+                <field name="skill_id"/>
+                <field name="level_progress_average"/>
+                <field name="level_progress_count"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="hr_appraisal_skill_evolution_report_view_search" model="ir.ui.view">
+        <field name="model">hr.appraisal.skill.evolution.report</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="skill_id"/>
+                <field name="skill_type_id"/>
+                <filter string="Department" name="department" context="{'group_by':'department_id'}"/>
+                <filter string="Employee" name="employee_id" context="{'group_by':'employee_id'}"/>
+                <filter string="Skill Type" name="skill_type" context="{'group_by':'skill_type_id'}"/>
+                <filter string="Skill" name="skill" context="{'group_by':'skill_id'}"/>
+                <filter string="Date" name="date" context="{'group_by':'date'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="hr_appraisal_skill_evolution_report_action" model="ir.actions.act_window">
+        <field name="name">Skills Evolution</field>
+        <field name="res_model">hr.appraisal.skill.evolution.report</field>
+        <field name="view_mode">list,graph,pivot</field>
+        <field name="domain">[('company_id', 'in', allowed_company_ids)]</field>
+        <field name="context">{'fill_temporal': 0, 'search_default_date': 1,  'search_default_skill_type': 2, 'search_default_skill': 3}</field>
+        <field name="help" type="html">
+           <p class="o_view_nocontent_smiling_face">
+            Skills Evolution
+          </p><p>
+            View the evolution of employee's skill between the two latest appraisals
+          </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_skills_evolution"
+        name="Skills Evolution"
+        action="hr_appraisal_skill_evolution_report_action"
+        parent="hr_appraisal.menu_hr_appraisal_report"
+        sequence="4"/>
+</odoo>

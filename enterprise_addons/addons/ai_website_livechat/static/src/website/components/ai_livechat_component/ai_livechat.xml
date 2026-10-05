@@ -1,0 +1,79 @@
+<templates id="template" xml:space="preserve">
+    <t t-name="ai_website_livechat.AILivechatComponent">
+        <div class="flex-grow-1" t-ref="this.messagesDivRef" t-if="this.messages().length">
+            <div t-foreach="this.messages()" t-as="message" t-key="message_index"
+                class="py-1 overflow-x-auto o_ai_livechat_message_with_copy_button"
+                t-att-class="{
+                    'mt-2': message_index,
+                    'mt-0': !message_index,
+                    'justify-content-end d-flex': message.author === 'user'
+                }"
+            >
+                <div class="rounded text-break py-2 o_ai_livechat_message_content"
+                    t-att-class="{'px-3 bg-200': message.author === 'user'}"
+                >
+                    <t t-out="message.text"/>
+                    <AIRecordsPreview
+                        t-if="this.hasRecordPreviews(message)"
+                        message="message"
+                    />
+                </div>
+                <div class="o_show_on_message_hover" t-if="message.author === 'assistant'">
+                    <button class="btn p-0 border-0" t-on-click="() => this.copyAnswer(message_index)">
+                        <i class="oi oi-fw text-muted" data-icon="content_copy"></i>
+                    </button>
+                </div>
+            </div>
+            <div t-if="this.assistantThinking()" class="d-flex align mb-3">
+                <img src="/web/static/img/spin.svg" alt="Loading..." class="me-2"
+                    style="filter:invert(1); opacity: 0.5; width: 30px; height: 30px;"/>
+                <p class="m-0 text-muted align-self-center">
+                    <em t-if="this.thinkingText" t-out="thinkingText"/>
+                    <em t-else="">Thinking</em>
+                </p>
+            </div>
+        </div>
+        <div class="d-flex m-0 gap-2 gap-xl-4" t-att-class="{'o_ai_livechat_form_container_sticky position-sticky': this.messages().length}">
+            <div class="flex-column flex-grow-1">
+                <div class="mb-1" t-att-class="{'d-none': !this.messages().length,}">
+                    <button t-if="this.livechatAvailable" class="btn btn-primary small rounded-2 py-1 px-3 me-3" t-att-disabled="this.assistantThinking()" t-on-click="this.askHuman">Ask a Human</button>
+                    <a t-elif="this.fallbackButtonActive" class="btn btn-primary small rounded-2 py-1 px-3 me-3" t-att-disabled="this.assistantThinking()" t-att-href="this.props.fallbackButtonURL">
+                        <t t-out="this.props.fallbackButtonText"/>
+                    </a>
+                    <button class="btn btn-dark small rounded-2 py-1 px-3 me-3" t-att-disabled="this.assistantThinking()" t-on-click="this.closeConversation">Close</button>
+                </div>
+                <div class="ai_website_livechat_form form-control d-flex align-items-center w-100 py-0 ps-lg-3 ps-xl-4 pe-lg-2">
+                    <textarea type="text" t-ref="this.promptInputRef"
+                        name="promptInput" t-on-keydown="this.onTextareaKeydown"
+                        class="flex-grow-1 overflow-hidden form-control-plaintext border-0 shadow-none"
+                        t-att-disabled="this.assistantThinking()"
+                        rows="1"
+                        style="resize:none;"
+                        t-att-placeholder="this.props.promptPlaceholder"
+                        autocomplete="off"
+                        t-model="this.prompt" required="required">
+                    </textarea>
+                    <div class="align-self-baseline py-2">
+                        <t t-set="isEmpty" t-value="this.prompt().trim() === ''"/>
+                        <button
+                            class="ai_website_livechat_form_button btn btn-sm border-0"
+                            t-att-class="{'disabled': isEmpty}"
+                            t-att-disabled="isEmpty"
+                            t-on-click="this.submitPrompt"
+                            title="Submit"
+                        >
+                            <i class="oi oi-fw oi-lg oi-filled fs-5" data-icon="send" style="scale: .75;" role="presentation"/>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div t-if="this.livechatAvailable || this.fallbackButtonActive" class="flex-grow-0 d-flex gap-2 gap-xl-4 align-items-center text-nowrap" t-att-class="{'d-none': this.messages().length}">
+                <span class="text-muted">or</span>
+                <button t-if="this.livechatAvailable" class="btn btn-primary w-lg-100 ask-human" t-on-click="this.askHuman">Ask a Human</button>
+                <a t-elif="this.fallbackButtonActive" class="btn btn-primary w-lg-100 fallback-btn" role="button" t-att-href="this.props.fallbackButtonURL">
+                    <t t-out="this.props.fallbackButtonText"/>
+                </a>
+            </div>
+        </div>
+    </t>
+</templates>

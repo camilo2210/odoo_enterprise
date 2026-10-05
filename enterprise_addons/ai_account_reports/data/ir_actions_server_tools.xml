@@ -1,0 +1,589 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_actions_server_accounting_report_list" model="ir.actions.server">
+        <field name="name">AI Tool: List Accounting Reports</field>
+        <field name="ai_tool_name">accounting_report_list</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="model_id" ref="ai.model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Finding accessible accounting reports</field>
+        <field name="ai_tool_description"><![CDATA[
+Lists accessible report entry points from account_report client actions.
+Use action_report_id to describe an entry; report.report_id identifies its
+native default selection. Returns report names, default variant/section IDs,
+filter_date_range and pagination. An empty list means no matching entries.
+        ]]></field>
+        <field name="code">ai['result'] = record._ai_tool_accounting_report_list(offset=offset, limit=limit)</field>
+        <field name="ai_tool_schema"><![CDATA[
+{
+    "type": "object",
+    "properties": {
+        "offset": {"type": "integer", "minimum": 0},
+        "limit": {"type": "integer", "minimum": 1, "description": "Page size from 1 to 200; defaults to 60."}
+    },
+    "required": []
+}
+        ]]></field>
+    </record>
+
+    <record id="ir_actions_server_accounting_report_describe" model="ir.actions.server">
+        <field name="name">AI Tool: Describe Accounting Report</field>
+        <field name="ai_tool_name">accounting_report_describe</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="model_id" ref="ai.model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Inspecting the accounting report</field>
+        <field name="ai_tool_description"><![CDATA[
+Builds reusable configuration from action_report_id returned by
+accounting_report_list, using the companies currently selected in Odoo.
+A matching current browser report supplies its native options and source
+action; otherwise native defaults apply.
+
+Returns report_config, currencies, available_option_overrides, a paginated
+line_catalog and report_config_ref. report_config contains action_report_id
+and options. options.companies lists the companies included by native reporting,
+which may be fewer than the current selection.
+Its options retain native settings and choices, including report_id and
+columns. report_config.options.columns contains all native column definitions
+in order; expression_label can repeat across groups. Match report_id to
+available_variants or sections for the selected report name. Currency details
+are listed separately by ID.
+Returned options are a subset of the saved settings. aging_based_on is
+base_on_invoice_date for invoice dates or base_on_maturity_date for due dates.
+
+Use native names in option_overrides. journals and account_type accept
+{id, selected} objects. In resolved native options, no selected entries means
+all listed entries apply. Use accounting_report_select to change identity or
+options. If the user changes the company selection, describe the report again
+to obtain a new reference.
+        ]]></field>
+        <field name="code">ai['result'] = record._ai_tool_accounting_report_describe(tool_context=ai, action_report_id=action_report_id, option_overrides=option_overrides, offset=offset, limit=limit)</field>
+        <field name="ai_tool_schema"><![CDATA[
+{
+    "type": "object",
+    "properties": {
+        "action_report_id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "action_report_id returned by accounting_report_list. This identifies the report referenced by the client action; do not substitute report_config.options.report_id or a variant/section ID."
+        },
+        "option_overrides": {
+            "type": "object",
+            "description": "Optional intentional changes keyed by option name. Apart from date, use only names in available_option_overrides. These are native Odoo option names. Omit defaults; false and empty lists are intentional values.",
+            "properties": {
+                "date": {
+                    "type": "object",
+                    "description": "Named periods and single-date reports use date_to only; a custom range also needs date_from.",
+                    "properties": {
+                        "period_type": {"type": "string", "enum": ["today", "month", "quarter", "year", "custom"]},
+                        "date_from": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+                        "date_to": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"}
+                    },
+                    "required": ["period_type", "date_to"]
+                },
+                "comparison": {
+                    "type": "object",
+                    "description": "Use only fields belonging to the selected comparison form.",
+                    "properties": {
+                        "filter": {"type": "string", "enum": ["no_comparison", "previous_period", "same_last_year", "custom"]},
+                        "number_period": {"type": "integer", "minimum": 1},
+                        "date_from": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+                        "date_to": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"}
+                    },
+                    "required": ["filter"]
+                },
+                "journals": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {"id": {"type": "integer"}, "selected": {"type": "boolean"}},
+                        "required": ["id", "selected"]
+                    }
+                },
+                "analytic_accounts_groupby": {"type": "array", "items": {"type": "integer"}},
+                "partner_ids": {"type": "array", "items": {"type": "integer"}},
+                "partner_categories": {"type": "array", "items": {"type": "integer"}},
+                "account_type": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "string", "enum": ["trade_receivable", "non_trade_receivable", "trade_payable", "non_trade_payable"]},
+                            "selected": {"type": "boolean"}
+                        },
+                        "required": ["id", "selected"]
+                    }
+                },
+                "all_entries": {"type": "boolean"},
+                "unreconciled": {"type": "boolean"},
+                "hierarchy": {"type": "boolean"},
+                "tax_unit": {"type": "integer", "minimum": 1},
+                "selected_horizontal_group_id": {"type": "integer", "minimum": 1}
+            },
+            "required": []
+        },
+        "offset": {"type": "integer", "minimum": 0},
+        "limit": {"type": "integer", "minimum": 1, "description": "Page size from 1 to 200; defaults to 60."}
+    },
+    "required": ["action_report_id"]
+}
+        ]]></field>
+    </record>
+
+    <record id="ir_actions_server_accounting_report_select" model="ir.actions.server">
+        <field name="name">AI Tool: Select Accounting Report Identity</field>
+        <field name="ai_tool_name">accounting_report_select</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="model_id" ref="ai.model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Selecting the accounting report</field>
+        <field name="ai_tool_description"><![CDATA[
+Selects a variant or section from an exact report_config_ref.
+Use choice={kind: "variant", id: ...} with an ID from
+report_config.options.available_variants, or kind: "section" with an ID from
+report_config.options.sections. These lists belong to the supplied
+configuration. A report can serve different roles in different lists; use the
+matching kind. Returns the same description as describe.
+Optional option_overrides uses native option names and selection objects.
+Checks reference ownership, selected companies and report access.
+        ]]></field>
+        <field name="code">ai['result'] = record._ai_tool_accounting_report_select(tool_context=ai, report_config_ref=report_config_ref, choice=choice, option_overrides=option_overrides, offset=offset, limit=limit)</field>
+        <field name="ai_tool_schema"><![CDATA[
+{
+    "type": "object",
+    "properties": {
+        "report_config_ref": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{24}$",
+            "description": "Required exact configuration returned by the describe or select result that exposed this choice. It binds the current user, source action, top-level report entry, selected companies, native options, and selected identity. A stale or mismatched configuration fails closed."
+        },
+        "choice": {
+            "type": "object",
+            "description": "Use kind variant with an ID from report_config.options.available_variants, or kind section with an ID from report_config.options.sections in the supplied configuration.",
+            "properties": {
+                "kind": {"type": "string", "enum": ["variant", "section"]},
+                "id": {"type": "integer", "minimum": 1}
+            },
+            "required": ["kind", "id"]
+        },
+        "option_overrides": {
+            "type": "object",
+            "description": "Optional intentional changes keyed by option name. Apart from date, use only names in available_option_overrides. These are native Odoo option names. Omit defaults; false and empty lists are intentional values.",
+            "properties": {
+                "date": {
+                    "type": "object",
+                    "description": "Named periods and single-date reports use date_to only; a custom range also needs date_from.",
+                    "properties": {
+                        "period_type": {"type": "string", "enum": ["today", "month", "quarter", "year", "custom"]},
+                        "date_from": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+                        "date_to": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"}
+                    },
+                    "required": ["period_type", "date_to"]
+                },
+                "comparison": {
+                    "type": "object",
+                    "description": "Use only fields belonging to the selected comparison form.",
+                    "properties": {
+                        "filter": {"type": "string", "enum": ["no_comparison", "previous_period", "same_last_year", "custom"]},
+                        "number_period": {"type": "integer", "minimum": 1},
+                        "date_from": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+                        "date_to": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"}
+                    },
+                    "required": ["filter"]
+                },
+                "journals": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {"id": {"type": "integer"}, "selected": {"type": "boolean"}},
+                        "required": ["id", "selected"]
+                    }
+                },
+                "analytic_accounts_groupby": {"type": "array", "items": {"type": "integer"}},
+                "partner_ids": {"type": "array", "items": {"type": "integer"}},
+                "partner_categories": {"type": "array", "items": {"type": "integer"}},
+                "account_type": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "string", "enum": ["trade_receivable", "non_trade_receivable", "trade_payable", "non_trade_payable"]},
+                            "selected": {"type": "boolean"}
+                        },
+                        "required": ["id", "selected"]
+                    }
+                },
+                "all_entries": {"type": "boolean"},
+                "unreconciled": {"type": "boolean"},
+                "hierarchy": {"type": "boolean"},
+                "tax_unit": {"type": "integer", "minimum": 1},
+                "selected_horizontal_group_id": {"type": "integer", "minimum": 1}
+            },
+            "required": []
+        },
+        "offset": {"type": "integer", "minimum": 0},
+        "limit": {"type": "integer", "minimum": 1, "description": "Page size from 1 to 200; defaults to 60."}
+    },
+    "required": ["report_config_ref", "choice"]
+}
+        ]]></field>
+    </record>
+
+    <record id="ir_actions_server_accounting_report_get_values" model="ir.actions.server">
+        <field name="name">AI Tool: Get Accounting Report Values</field>
+        <field name="ai_tool_name">accounting_report_get_values</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="model_id" ref="ai.model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Computing selected accounting figures</field>
+        <field name="ai_tool_description"><![CDATA[
+Computes native report values from report_config_ref returned by describe or
+select. Returns report_config, currencies, column_groups, paginated lines,
+native warnings and the same report_config_ref.
+An empty warnings object means the report returned no warnings. It does not
+establish that the accounts are correct, reconciled or compliant. Consider any
+line-level warning_text as well.
+report_config.options.columns keeps all native column definitions. Provide at
+least one expression_label in columns. These labels select row cells across all
+periods and groups without changing the config. Pagination limits rows,
+regardless of the number of columns.
+Each line contains native columns: expression_label, column_group_index,
+no_format (raw value) and name (formatted value). column_group_index indexes
+column_groups; forced_options.date identifies that group's period when present,
+otherwise use report_config.options.date. A configured date range does not mean
+every value is activity within that range: General Ledger account debit and
+credit totals include opening amounts. line_ref permits expansion.
+row_type distinguishes data, totals and load_more summaries. Lines retain
+native warning_text when present.
+        ]]></field>
+        <field name="code">ai['result'] = record._ai_tool_accounting_report_get_values(tool_context=ai, report_config_ref=report_config_ref, columns=columns, line_codes=line_codes, offset=offset, limit=limit)</field>
+        <field name="ai_tool_schema"><![CDATA[
+{
+    "type": "object",
+    "properties": {
+        "report_config_ref": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{24}$",
+            "description": "Required exact configuration returned by accounting_report_describe or accounting_report_select. It already binds the catalog report entry, selected identity, configuration, current user, and selected companies. Do not substitute null or a configuration built for different companies."
+        },
+        "columns": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Required nonempty list of expression labels from report_config.options.columns returned by accounting_report_describe or accounting_report_select. Each label selects all matching columns across all periods and groups. To read every column, provide every expression label."
+        },
+        "line_codes": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Stable static line codes returned by describing that exact identity. If nonempty, reuse that describe result's report_config_ref; identity selectors are not accepted by this tool. Omit for normal rendered-row order."
+        },
+        "offset": {"type": "integer", "minimum": 0},
+        "limit": {"type": "integer", "minimum": 1, "description": "Page size from 1 to 200; defaults to 60."}
+    },
+    "required": ["report_config_ref", "columns"]
+}
+        ]]></field>
+    </record>
+
+    <record id="ir_actions_server_accounting_report_expand_line" model="ir.actions.server">
+        <field name="name">AI Tool: Expand Accounting Report Line</field>
+        <field name="ai_tool_name">accounting_report_expand_line</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="model_id" ref="ai.model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Drilling into the accounting report</field>
+        <field name="ai_tool_description"><![CDATA[
+Expands a line_ref issued by get_values or expand_line using its exact saved
+configuration and column selection. Returns the same report_config, currencies,
+lines, column_groups and pagination as get_values. Follow returned line_ref
+values for deeper detail. A load_more reference reloads its parent branch and
+may repeat earlier lines; do not double-count them.
+Rows represent report lines, not necessarily accounting records. Initial Balance
+is an opening summary. Row names are display descriptions; do not infer
+dimensions absent from the returned data. Lines retain native warning_text
+when present.
+        ]]></field>
+        <field name="code">ai['result'] = record._ai_tool_accounting_report_expand_line(tool_context=ai, line_ref=line_ref, offset=offset, limit=limit)</field>
+        <field name="ai_tool_schema"><![CDATA[
+{
+    "type": "object",
+    "properties": {
+        "line_ref": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{24}$",
+            "description": "Required exact opaque reference returned by a dynamic or load-more row. It binds the saved report configuration, selected column labels, and current user."
+        },
+        "offset": {"type": "integer", "minimum": 0},
+        "limit": {"type": "integer", "minimum": 1, "description": "Page size from 1 to 200; defaults to 60."}
+    },
+    "required": ["line_ref"]
+}
+        ]]></field>
+    </record>
+
+    <record id="ir_actions_server_accounting_report_open" model="ir.actions.server">
+        <field name="name">AI Tool: Open Accounting Report</field>
+        <field name="ai_tool_name">accounting_report_open</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="model_id" ref="ai.model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Opening the supporting accounting report</field>
+        <field name="ai_tool_description"><![CDATA[
+Opens the exact saved report_config_ref using its source action and full
+native options. Returns opened, report_config, currencies and the reference.
+If that exact configuration is already displayed, opened is false and reason
+explains why. Otherwise a client action opens it. Call this tool alone and wait
+for its result before answering.
+        ]]></field>
+        <field name="code">ai['result'] = record._ai_tool_accounting_report_open(tool_context=ai, report_config_ref=report_config_ref)</field>
+        <field name="ai_tool_schema"><![CDATA[
+{
+    "type": "object",
+    "properties": {
+        "report_config_ref": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{24}$",
+            "description": "Required exact configuration returned by the get-values call supporting the answer. It already binds the catalog report entry, selected identity, configuration, current user, and selected companies; do not substitute null or add overrides."
+        }
+    },
+    "required": ["report_config_ref"]
+}
+        ]]></field>
+    </record>
+
+    <record id="ir_actions_server_accounting_audit_set_working_file" model="ir.actions.server">
+        <field name="name">AI Tool: Set Working Audit File</field>
+        <field name="ai_tool_name">accounting_audit_set_working_file</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="model_id" ref="ai.model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Setting Working Audit File</field>
+        <field name="ai_tool_description"><![CDATA[
+Set the working audit file for this session's context-dependent accounting
+fields, or pass null to clear it. Select the assigned file before querying audit
+fields with search/read-group. Wait for the setter result before issuing those
+queries. Clear it before unrelated work or select the new file when the
+assignment changes. Parent and child sessions keep separate working-file
+selections. The file's companies and main company must match Odoo's company
+selector.
+
+Returns the active file, company and period, or audit_context=null when cleared.
+This does not add company/date domains to ordinary searches, select report
+options or modify the working file's findings.
+        ]]></field>
+        <field name="code">ai['result'] = record._ai_tool_accounting_audit_set_working_file(tool_context=ai, audit_id=audit_id)</field>
+        <field name="ai_tool_schema"><![CDATA[
+{
+    "type": "object",
+    "properties": {
+        "audit_id": {
+            "anyOf": [
+                {"type": "integer", "minimum": 1},
+                {"type": "null"}
+            ],
+            "description": "Working audit-file ID, or null to clear this session's selection."
+        }
+    },
+    "required": ["audit_id"]
+}
+        ]]></field>
+    </record>
+    <record id="ir_actions_server_accounting_audit_create" model="ir.actions.server">
+        <field name="name">AI Tool: Create Audit Working File</field>
+        <field name="ai_tool_name">accounting_audit_create</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="model_id" ref="ai.model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Create Audit Working File</field>
+        <field name="ai_tool_description"><![CDATA[
+Create a native audit working file for the currently selected company and
+exact dates, using the native local audit type and configured cycles. Select
+one company in Odoo before calling this tool. Requires confirmation. For branch
+structures, ask the user to create the file manually in the Accounting
+application and provide its ID. Returns the file scope, URL and native check
+progress.
+        ]]></field>
+        <field name="code">ai['result'] = record._ai_tool_accounting_audit_create(tool_context=ai, date_from=date_from, date_to=date_to)</field>
+        <field name="ai_tool_schema"><![CDATA[
+{
+    "type": "object",
+    "properties": {
+        "date_from": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "date_to": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        }
+    },
+    "required": [
+        "date_from",
+        "date_to"
+    ]
+}
+        ]]></field>
+    </record>
+    <record id="ir_actions_server_accounting_audit_get_checks" model="ir.actions.server">
+        <field name="name">AI Tool: Read Audit Checks</field>
+        <field name="ai_tool_name">accounting_audit_get_checks</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="model_id" ref="ai.model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Read Audit Checks</field>
+        <field name="ai_tool_description"><![CDATA[
+Read the native working file, complete check instructions and notes, company and
+dates, live cycle progress, and paginated checks. Pass cycle to read the
+assigned cycle, or omit it to discover all cycles. File checks require manual
+evidence. Native record count is only a capped hint; it is not a complete
+evidence count. Progress summarizes native statuses and refresh flags, not a
+record of agent investigations.
+        ]]></field>
+        <field name="code">ai['result'] = record._ai_tool_accounting_audit_get_checks(audit_id=audit_id, cycle=cycle, offset=offset, limit=limit)</field>
+        <field name="ai_tool_schema"><![CDATA[
+{
+    "type": "object",
+    "properties": {
+        "audit_id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Native audit working-file ID."
+        },
+        "cycle": {
+            "type": "string",
+            "description": "Copy the native cycle code from accounting_audit_get_checks."
+        },
+        "offset": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Page size from 1 to 200; defaults to 60."
+        }
+    },
+    "required": [
+        "audit_id"
+    ]
+}
+        ]]></field>
+    </record>
+    <record id="ir_actions_server_accounting_audit_get_check_action_detail" model="ir.actions.server">
+        <field name="name">AI Tool: Get Audit Check Action Detail</field>
+        <field name="ai_tool_name">accounting_audit_get_check_action_detail</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="model_id" ref="ai.model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Inspecting the audit check action</field>
+        <field name="ai_tool_description"><![CDATA[
+Return a check's native action in action_detail as an investigation hint, with
+search and main view XML for record actions. Interpret its domain, active search
+defaults and search-panel selections using the XML, including filter grouping.
+Group-by defaults suggest grouping rather than record restrictions. Choose
+fields and explicit domains for search/read-group, or use accounting-report
+tools for report actions. Native report IDs and options remain in the action.
+
+No records or report_config_ref are returned. Action context is metadata for
+interpreting the action; it does not configure subsequent tools.
+If no action is available, investigate from the check instructions and attached
+documents. Other executable actions are returned without being run.
+        ]]></field>
+        <field name="code">ai['result'] = record._ai_tool_accounting_audit_get_check_action_detail(audit_id=audit_id, check_code=check_code)</field>
+        <field name="ai_tool_schema"><![CDATA[
+{
+    "type": "object",
+    "properties": {
+        "audit_id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Native audit working-file ID."
+        },
+        "check_code": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "audit_id",
+        "check_code"
+    ]
+}
+        ]]></field>
+    </record>
+    <record id="ir_actions_server_accounting_audit_update_checks" model="ir.actions.server">
+        <field name="name">AI Tool: Save Audit Cycle Findings</field>
+        <field name="ai_tool_name">accounting_audit_update_checks</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="model_id" ref="ai.model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Save Audit Cycle Findings</field>
+        <field name="ai_tool_description"><![CDATA[
+Preview and save a validated batch of findings for one assigned cycle, under
+native access and review rules. Only non-file checks may be updated. Use
+reviewed for supported clearance, anomaly for evidenced exceptions, and todo for
+incomplete or blocked checks. Never formally completes or supervises the
+working file. Requires confirmation. After saving, returns the updated check
+codes, native check progress and working-file URL.
+
+For each saved audit note, write a short, plain-language conclusion, normally
+two or three sentences. State what is established, what is wrong, or what
+remains unresolved. Include only the decisive facts or amounts and any
+necessary next action.
+
+Do not repeat the check description, company, period or procedures unless
+needed to understand the conclusion. Avoid headings such as Scope, Procedures
+and Evidence. Preserve limitations that change what can be concluded. Use
+neutral language without mentioning agents.
+        ]]></field>
+        <field name="code">ai['result'] = record._ai_tool_accounting_audit_update_checks(tool_context=ai, audit_id=audit_id, cycle=cycle, updates=updates)</field>
+        <field name="ai_tool_schema"><![CDATA[
+{
+    "type": "object",
+    "properties": {
+        "audit_id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Native audit working-file ID."
+        },
+        "cycle": {
+            "type": "string",
+            "description": "Copy the native cycle code from accounting_audit_get_checks."
+        },
+        "updates": {
+            "type": "array",
+            "description": "Between 1 and 100 findings for distinct non-file checks in this cycle.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "check_code": {
+                        "type": "string"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "description": "Plain text, without Markdown or HTML."
+                    },
+                    "result": {
+                        "type": "string",
+                        "enum": [
+                            "todo",
+                            "reviewed",
+                            "anomaly"
+                        ]
+                    }
+                },
+                "required": [
+                    "check_code",
+                    "notes",
+                    "result"
+                ]
+            }
+        }
+    },
+    "required": [
+        "audit_id",
+        "cycle",
+        "updates"
+    ]
+}
+        ]]></field>
+    </record>
+</odoo>

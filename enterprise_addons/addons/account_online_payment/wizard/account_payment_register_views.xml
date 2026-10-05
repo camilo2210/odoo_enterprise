@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_payment_register_form_online_payment" model="ir.ui.view">
+        <field name="name">account.payment.register.form.online.payment</field>
+        <field name="model">account.payment.register</field>
+        <field name="inherit_id" ref="account.view_account_payment_register_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@invisible='not qr_code']" position="attributes">
+                <attribute name="invisible">could_initiate_payment and (not qr_code or is_payment_activated)</attribute>
+            </xpath>
+
+            <xpath expr="//footer" position="replace">
+                <footer invisible="not could_initiate_payment">
+                    <button string="Pay now" name="action_create_payments" type="object" class="oe_highlight" data-hotkey="q" invisible="is_payment_blocked"/>
+                    <button string="Sign Later" name="action_sign_later" type="object" class="btn btn-secondary" data-hotkey="s"/>
+                    <button class="btn btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+
+                <footer invisible="could_initiate_payment">
+                    <button string="Create Payments" name="action_create_payments" type="object" class="oe_highlight" data-hotkey="q" invisible="total_payments_amount == 1"/>
+                    <button string="Create Payment" name="action_create_payments" type="object" class="oe_highlight" data-hotkey="q" invisible="total_payments_amount != 1"/>
+                    <button class="btn btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </xpath>
+        </field>
+    </record>
+</odoo>

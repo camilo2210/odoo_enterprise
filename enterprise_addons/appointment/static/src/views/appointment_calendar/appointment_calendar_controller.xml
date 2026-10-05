@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="appointment.CalendarController" t-inherit="calendar.AttendeeCalendarController" t-inherit-mode="extension">
+        <xpath expr="//button[hasclass('o-calendar-button-new')]" position="after">
+            <button t-if="this.showAddClosingDayBtn" type="button"
+                class="btn btn-secondary" t-on-click="this.onAddClosingDay">
+                Add Closing Day
+            </button>
+        </xpath>
+        <xpath expr="//ViewScaleSelector" position="attributes">
+            <attribute name="t-if" separator="and" add="this.env.calendarState.mode === 'default'"/>
+        </xpath>
+        <!--use actions to display in the hamburger menu in mobile mode to take up less space vs a dropdown in the sidepanel on desktop-->
+        <xpath expr="//button[hasclass('o-calendar-button-new')]" position="after">
+            <t t-if="this.uiService.isSmall and this.userCanCreateAppointmentTypes and this.env.calendarState.mode === 'default' and !this.originalDefaultAppointmentTypeId">
+                <div class="o_appointment_scheduling_box d-flex align-items-center justify-content-center gap-2 order-last">
+                    <div class="btn-group w-100 w-sm-auto mx-2 mx-sm-0 px-0">
+                        <button class="btn btn-secondary" t-on-click="this.onClickSearchCreateAnytimeAppointment">My availabilities</button>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+        <xpath expr="//div[hasclass('o_calendar_header')]" position="inside">
+            <div t-if="!this.uiService.isSmall and this.userCanCreateAppointmentTypes and this.env.calendarState.mode === 'default' and !this.originalDefaultAppointmentTypeId"
+                class="o_appointment_scheduling_box position-fixed position-md-static start-0
+                bottom-0 d-flex align-items-center justify-content-center gap-2 order-last order-lg-0">
+                <div class="btn-group w-100 w-sm-auto mx-2 mx-sm-0 px-0">
+                    <Dropdown>
+                        <button class="btn btn-primary o-dropdown-caret">
+                            Share
+                        </button>
+                        <t t-set-slot="content">
+                            <DropdownItem onSelected.bind="this.onClickSearchCreateAnytimeAppointment">
+                                <span>My availabilities</span>
+                            </DropdownItem>
+                            <DropdownItem onSelected.bind="this.onClickCreateFlexibleAppointment">
+                                <span>One-time link</span>
+                            </DropdownItem>
+                            <DropdownItem onSelected.bind="() => this.openAppointmentEditSlotsForm()">
+                                <span>New Appointment</span>
+                            </DropdownItem>
+                        </t>
+                    </Dropdown>
+                </div>
+            </div>
+        </xpath>
+    </t>
+</templates>

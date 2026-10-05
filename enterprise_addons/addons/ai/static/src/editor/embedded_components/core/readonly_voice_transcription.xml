@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="ai.ReadonlyVoiceTranscription">
+        <details class="transcript-block border mb-2" t-att-open="this.state.isOpened">
+            <summary class="d-flex bg-100 px-2 py-1 fw-bold gap-2 flex-sm-row flex-column align-items-sm-center flex-wrap" t-on-click="() => this.state.isOpened = !this.state.isOpened" t-att-class="{'py-2': !this.state.isOpened}">
+                <t t-if="this.state.isOpened">
+                    <t t-if="!this.isMobileOS">
+                        <div class="d-flex align-items-center">
+                            <i class="oi flex-0 me-2" data-icon="arrow_drop_down" />
+                            <ul class="nav gap-1" role="tablist">
+                                <li t-if="this.state.hasSummary || this.state.status === 'summarizing'">
+                                    <button
+                                        class="btn flex-grow-1 flex-sm-grow-0 w-100 w-sm-auto"
+                                        t-att-class="{'btn-secondary active': this.state.currentTab === 'summary'}"
+                                        t-on-click.stop="() => this.setCurrentTab('summary')">
+                                        <img src="/ai/static/description/icon.png" class="ai-icon-sm me-1 w-1"/>
+                                        Summary
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="btn flex-sm-grow-0 w-100 w-sm-auto"
+                                        t-att-class="{'btn-secondary active': this.state.currentTab === 'notes'}"
+                                        t-on-click.stop="() => this.setCurrentTab('notes')">
+                                        <i class="oi me-1" data-icon="menu"/>
+                                        Notes
+                                    </button>
+                                </li>
+                                <li>
+                                    <button
+                                        class="btn flex-sm-grow-0 w-100 w-sm-auto"
+                                        t-att-class="{'btn-secondary active': this.state.currentTab === 'transcript'}"
+                                        t-on-click.stop="() => this.setCurrentTab('transcript')"
+                                        >
+                                        <i class="oi me-1" data-icon="mic"/>
+                                        Transcript
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <Dropdown>
+                            <button class="btn btn-secondary o-dropdown-caret px-2 px-sm-3">
+                                <t t-if="this.state.currentTab === 'summary'">
+                                    <img src="/ai/static/description/icon.png" class="ai-icon-sm me-1"/> Summary
+                                </t>
+                                <t t-elif="this.state.currentTab === 'notes'">
+                                    <i class="oi me-1" data-icon="menu"/>Notes
+                                </t>
+                                <t t-else="">
+                                    <i class="oi me-1" data-icon="mic"/>Transcript
+                                </t>
+                            </button>
+                            <t t-set-slot="content">
+                                <DropdownItem class="`btn btn-link ${this.state.currentTab === 'summary' ? 'active' : ''}`" onSelected="(ev) => this.setCurrentTab('summary')">
+                                    <img src="/ai/static/description/icon.png" class="ai-icon-sm me-1"/>Summary
+                                </DropdownItem>
+                                <DropdownItem class="`btn btn-link ${this.state.currentTab === 'notes' ? 'active' : ''}`" onSelected="(ev) => this.setCurrentTab('notes')">
+                                    <i class="oi me-1" data-icon="menu"/>Notes
+                                </DropdownItem>
+                                <DropdownItem class="`btn btn-link ${this.state.currentTab === 'transcript' ? 'active' : ''}`" onSelected="(ev) => this.setCurrentTab('transcript')">
+                                    <i class="oi me-1" data-icon="mic"/>Transcript
+                                </DropdownItem>
+                            </t>
+                        </Dropdown>
+                    </t>
+                </t>
+                <t t-else="">
+                    <div class="d-flex align-items-center">
+                        <i class="oi flex-0 me-1" data-icon="arrow_right"/>
+                        Voice Recording <span t-out="this.state.firstRecordingDate" class="ms-2 fw-normal text-muted"/>
+                    </div>
+                </t>
+            </summary>
+            <div id="summary-content" class="detail-content overflow-auto"  t-att-class="{'d-none': this.state.currentTab !== 'summary'}" t-ref="this.descendantRefs.summaryContent"/>
+            <div id="notes-content" class="detail-content overflow-auto" t-att-class="{'d-none': this.state.currentTab !== 'notes'}" t-ref="this.descendantRefs.notesContent"/>
+            <div id="transcript-content" class="detail-content overflow-auto" t-att-class="{'d-none': this.state.currentTab !== 'transcript'}" t-ref="this.descendantRefs.transcriptContent"/>
+        </details>
+    </t>
+</templates>

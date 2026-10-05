@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="appointment_form" name="Website Appointment: Your Data">
+        <t t-set="no_breadcrumbs" t-value="True"/>
+        <t t-set="o_portal_fullwidth_alert" groups="appointment.group_appointment_manager">
+            <t t-call="appointment.appointment_edit_in_backend"/>
+        </t>
+        <t t-call="portal.portal_layout" o_portal_fullwidth_alert="o_portal_fullwidth_alert">
+            <div id="wrap" class="d-flex">
+                <div class="container-lg h-100">
+                    <div t-attf-class="row g-0 #{'my-4' if website else ''}">
+                        <div class="col-12 col-md-8 pe-md-5">
+                            <div class="oe_structure o_appointment">
+                                <!-- This small summary is only displayed on mobile. This appears on top to give quick access to most information. -->
+                                <div class="small mb-4 d-sm-none">
+                                    <div t-if="appointment_type.manage_capacity or appointment_type.location_id" class="d-flex gap-2 mb-2">
+                                        <i t-attf-class="oi flex-shrink-0 {{'' if appointment_type.manage_capacity else ''}} oi-stack text-muted text-center fs-6" role="img" t-attf-data-icon="{{'group' if appointment_type.manage_capacity else 'location_on'}}"/>
+                                        <div t-attf-class="{{'' if appointment_type.manage_capacity else 'align-self-center'}}">
+                                            <div t-if="appointment_type.manage_capacity" class="fw-semibold">
+                                                Party of <span t-out="asked_capacity" class="me-1"/>
+                                            </div>
+                                            <div t-if="appointment_type.location_id"
+                                                t-attf-class="d-flex flex-wrap {{'text-muted' if appointment_type.manage_capacity else ''}}">
+                                                <span t-field="appointment_type.location_id" t-options="{'widget': 'contact', 'fields': ['name']}"/>
+                                                <span t-if="appointment_type.location_id.city">
+                                                    <span class="mx-1">-</span><t t-out="appointment_type.location_id.city"/>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <i class="oi oi-stack oi-filled flex-shrink-0 text-muted text-center fs-6" data-icon="calendar_today" role="img"/>
+                                        <div>
+                                            <p class="mb-0">
+                                                <span class="fw-semibold" t-out="datetime_object" t-options='{"widget": "datetime", "tz_name": "UTC", "format": "medium", "date_only": True}'/>
+                                                <span t-if="not appointment_type.hide_duration" class="text-muted">
+                                                    (<i class="oi oi-fw" data-icon="schedule"/>
+                                                    <t t-out="duration" t-options="{'widget': 'duration', 'unit': 'day' if allday else 'hour', 'round': 'minute'}"/>)
+                                                </span>
+                                            </p>
+                                            <div t-if="not allday" class="text-muted">
+                                                <span t-out="datetime_object" t-options='{"widget": "datetime", "tz_name": "UTC", "time_only": True, "hide_seconds": True}'/>
+                                                <span t-if="not appointment_type.hide_timezone"> - <t t-out="request.session.get('timezone')"/></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-sm-flex mb-3">
+                                    <h1 class="h4 mb-3 mb-sm-0">
+                                        Your details
+                                    </h1>
+                                    <div t-if="env.user._is_public()" class="d-flex align-items-center mb-3 mb-sm-0 ms-auto">
+                                        <span class="me-1">Already have an account?</span>
+                                        <a class="btn btn-primary btn-sm" role="button" t-att-href="login_with_redirect_url">Sign in</a>
+                                    </div>
+                                </div>
+                                <div class="oe_structure"/>
+                                <div class="oe_structure o_appointment_attendee_form">
+                                    <div class="d-flex row justify-content-between">
+                                        <form class="appointment_submit_form grid gap-3"
+                                            t-attf-action="/appointment/#{appointment_type.id}/submit?#{keep_query('*')}"
+                                            method="POST">
+                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                            <input type="hidden" name="datetime_str" t-att-value="datetime_str"/>
+                                            <input type="hidden" name="duration_str" t-att-value="duration_str"/>
+                                            <input type="hidden" name="available_resource_ids" t-att-value="available_resource_ids"/>
+                                            <input type="hidden" name="asked_capacity" t-att-value="asked_capacity"/>
+                                            <div class="g-col-12">
+                                                <label class="form-label" for="name">Full name*</label>
+                                                <input type="char" class="form-control" name="name" required="1"
+                                                    t-att-value="'name' in partner_data and partner_data['name']"
+                                                    placeholder="e.g. John Smith"/>
+                                            </div>
+                                            <div class="g-col-12 g-col-lg-6">
+                                                <label class="form-label" for="email">Email*</label>
+                                                <input type="email" class="form-control" name="email" required="1"
+                                                    t-att-value="'email' in partner_data and partner_data['email']"
+                                                    placeholder="e.g. john.smith@example.com"/>
+                                            </div>
+                                            <t t-foreach="appointment_type.question_ids" t-as="question">
+                                                <div t-if="question.question_type != 'text'" t-attf-class="g-col-12 {{(question.question_type == 'phone' or question.question_type == 'select') and 'g-col-lg-6'}}">
+                                                    <label class="form-label" t-attf-for="question_#{question.id}" t-out="' '.join([question.name, '*' if question.question_required else ''])"/>
+                                                    <t t-if="question.question_type == 'phone'">
+                                                        <t t-set="isMainPhoneQuestion" t-value="question == main_phone_question"/>
+                                                        <input type="phone" class="form-control"
+                                                            t-attf-name="question_#{question.id}"
+                                                            t-att-value="partner_data['phone'] if isMainPhoneQuestion and 'phone' in partner_data else ''"
+                                                            t-att-required="question.question_required or None"
+                                                            t-att-placeholder="question.placeholder"
+                                                            t-att-data-is-main-phone-question="isMainPhoneQuestion"/>
+                                                    </t>
+                                                    <input t-if="question.question_type == 'char'" type="char" class="form-control"
+                                                        t-attf-name="question_#{question.id}"
+                                                        t-att-required="question.question_required or None"
+                                                        t-att-placeholder="question.placeholder"/>
+                                                    <select t-if="question.question_type == 'select'" t-attf-name="question_#{question.id}" class="form-select"
+                                                        t-att-required="question.question_required or None"
+                                                        t-att-placeholder="question.placeholder">
+                                                        <t t-foreach="question.answer_ids or []" t-as="answer">
+                                                            <option t-att-value="answer.id"><t t-out="answer.name"/></option>
+                                                        </t>
+                                                    </select>
+                                                    <t t-if="question.question_type == 'radio'">
+                                                        <div class="grid gap-2">
+                                                            <div class="checkbox form-check g-col-12 g-col-md-6 g-col-lg-4" t-foreach="question.answer_ids or []" t-as="answer">
+                                                                <label>
+                                                                    <input type="radio" t-attf-name="question_#{question.id}"
+                                                                        t-att-required="question.question_required or None"
+                                                                        t-att-value="answer.id" class="form-check-input"/><t t-out="answer.name"/>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </t>
+                                                    <t t-if="question.question_type == 'checkbox'">
+                                                        <div t-attf-class="checkbox-group #{question.question_required and 'required' or ''} grid gap-2">
+                                                            <div class="checkbox form-check g-col-12 g-col-md-6 g-col-lg-4" t-foreach="question.answer_ids or []" t-as="answer">
+                                                                <label>
+                                                                    <input type="checkbox" t-attf-name="question_#{question.id}_answer_#{answer.id}"
+                                                                        t-att-value="answer.name" class="form-check-input"/><t t-out="answer.name"/>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </t>
+                                                    <div t-if="not is_html_empty(question.extra_comment)" class="form-text" t-field="question.extra_comment"/>
+                                                </div>
+                                                <div class="g-col-12" t-if="question.question_type == 'text'">
+                                                    <label t-attf-for="question_#{question.id}" class="fw-normal mb-1" t-out="' '.join([question.name, '*' if question.question_required else ''])"/>
+                                                    <div t-if="not is_html_empty(question.extra_comment)" class="mb-3">
+                                                        <div class="form-text" t-field="question.extra_comment"/>
+                                                    </div>
+                                                    <textarea class="form-control mt-1" rows="6"
+                                                        t-att-required="question.question_required or None"
+                                                        t-attf-name="question_#{question.id}"
+                                                        t-att-placeholder="question.placeholder"/>
+                                                </div>
+                                            </t>
+                                            <t t-if="appointment_type.allow_guests">
+                                                <div class="o_appointment_add_guests g-col-12">
+                                                    <div class="gap-2 align-items-center">
+                                                        <label class="form-label">Guests</label>
+                                                        <div class="w-100">
+                                                            <button type="button" class="o_appointment_input_guest_add btn btn-primary btn-sm"><i class="oi me-1" data-icon="add"/>Add</button>
+                                                        </div>
+                                                    </div>
+                                                    <textarea type="email" id="o_appointment_input_guest_emails" class="o_appointment_add_guests_textarea form-control s_website_form_input d-none" name="guest_emails_str" placeholder="e.g. john.doe@email.com &#13;&#10;e.g. jane.doe@example.com&#13;&#10;..." rows="5"/>
+                                                    <div class="invalid-feedback">
+                                                        <i class="oi me-1" data-icon="warning"/>
+                                                        <span class="o_appointment_error_text"/>
+                                                    </div>
+                                                </div>
+                                            </t>
+                                            <div class="o_not_editable g-col-12 text-start">
+                                                <button type="button" class="o_appointment_form_confirm_btn btn btn-primary w-100 mb-3 w-sm-auto">Confirm Appointment</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="oe_structure"/>
+                            </div>
+                        </div>
+                        <t t-call="appointment.appointment_details_column" isDetails="True">
+                            <!-- Used to check if we are on "Details" step -->
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

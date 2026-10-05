@@ -1,0 +1,14 @@
+# -*- coding: utf-8 -*-
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+from . import account
+from . import account_asset
+from . import account_asset_group
+from . import account_asset_variant
+from . import account_asset_ledger_variant
+from . import account_assets_report
+from . import account_chart_template
+from . import account_move
+from . import res_company
+from . import account_return
+from . import account_depreciation_model

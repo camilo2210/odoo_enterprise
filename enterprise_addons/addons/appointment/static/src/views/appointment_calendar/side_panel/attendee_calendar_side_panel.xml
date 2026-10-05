@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="appointment.AttendeeCalendarSidePanel" t-inherit="calendar.AttendeeCalendarSidePanel" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o_calendar_sidepanel_content')]" position="inside">
+            <div class="o_calendar_filter d-flex flex-column gap-1 mt-3">
+                <t t-if="this.editingAppointmentValues">
+                    <span class="d-flex align-items-center">
+                        <span class="o_cw_filter_label fw-bolder text-truncate flex-grow-1">Time Slots</span>
+                    </span>
+                    <div class="d-flex align-items-center justify-content-center flex-column gap-1 w-100">
+                        <span class="w-100 text-truncate pe-none" t-out="this.editingAppointmentValues.name"/>
+                        <div class="d-flex flex-row flex-wrap gap-1 w-100">
+                            <button class="flex-fill btn btn-secondary px-1 py-0" title="Save &amp; copy URL"
+                                t-on-click.stop.prevent="() => this.appointmentProps.saveAndCopyAppointmentUrl(this.editingAppointmentValues.id)">
+                                <i class="oi oi-filled" data-icon="check"/>
+                                Save &amp; copy URL
+                            </button>
+                            <button class="flex-fill btn btn-secondary px-1 py-0" title="Edit Appointment"
+                                t-on-click.stop.prevent="() => this.appointmentProps.openAppointmentForm(this.editingAppointmentValues.id)">
+                                <i class="oi oi-filled" data-icon="edit"/>
+                                Options
+                            </button>
+                        </div>
+                    </div>
+                    <div t-if="this.editingAppointmentValues.appointment_tz !== this.userTimezone" class="mt-1 alert alert-info py-2 px-3 mt-2 b-0">
+                        <small>Slots displayed in your timezone (<t t-out="this.userTimezoneLocalized"/>)</small>
+                    </div>
+                </t>
+                <t t-elif="this.props.model.originalDefaultAppointmentTypeId and !this.uiService.isSmall">
+                    <span class="btn btn-secondary" t-on-click.stop.prevent="() => this.appointmentProps.setEditingAppointmentId(this.defaultAppointment.id)">Edit Appointment</span>
+                </t>
+                <t t-elif="!this.props.model.originalDefaultAppointmentTypeId and !this.uiService.isSmall and this.listedUserAppointments.length">
+                    <span class="d-flex align-items-center" type="button" t-on-click.stop.prevent="this.toggleAppointmentOptions">
+                        <span class="o_cw_filter_label fw-bolder text-truncate flex-grow-1">Booking Pages</span>
+                        <i class="o_cw_filter_collapse_icon oi ms-1" t-att-data-icon="this.state.appointmentOptionsCollapsed ? 'arrow_left' : 'arrow_drop_down'"/>
+                    </span>
+                    <div t-if="!this.state.appointmentOptionsCollapsed" class="o_calendar_filter_items d-flex flex-column gap-1">
+                        <div class="o_calendar_filter_item position-relative w-100"
+                            t-foreach="this.listedUserAppointments" t-as="appointment" t-key="appointment.id">
+                            <label class="d-flex align-items-center gap-1">
+                                <span
+                                    class="o_cw_filter_title flex-grow-1 text-truncate lh-base cursor-pointer"
+                                    title="Select this appointment type"
+                                    t-att-class="this.defaultAppointment?.id === appointment.id ? 'fw-bolder' : false"
+                                    t-on-click.stop.prevent="() => this.appointmentProps.setSelectedAppointmentTypeId(this.defaultAppointment?.id === appointment.id ? false : appointment.id)"
+                                    t-out="appointment.name"/>
+                            </label>
+                            <!--displayed on hover-->
+                            <div class="o_appointment_filter_actions position-absolute top-0 end-0 align-items-center bg-transparent d-none">
+                                <button class="btn px-1 py-0 text-body" title="Copy invite url to clipboard"
+                                    t-on-click.stop.prevent="() => this.appointmentProps.copyAppointmentURL(appointment.id)">
+                                    <i class="oi" data-icon="link" aria-label="Copy invite url to clipboard"/>
+                                </button>
+                                <button class="btn px-1 py-0 text-body" title="Edit Appointment"
+                                    t-if="appointment.user_can_manage_slots"
+                                    t-on-click.stop.prevent="() => this.appointmentProps.setEditingAppointmentId(appointment.id)">
+                                    <i class="oi oi-filled" data-icon="edit" aria-label="Edit Appointment"/>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </xpath>
+    </t>
+</templates>

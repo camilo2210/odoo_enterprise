@@ -1,0 +1,148 @@
+# -*- coding: utf-8 -*-
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+from odoo import api, fields, models, _
+from odoo.addons.account_intrastat.models.account_intrastat_code import SUPPLEMENTARY_UNITS
+from odoo.exceptions import ValidationError
+
+
+class ProductTemplate(models.Model):
+    _inherit = 'product.template'
+
+    intrastat_code_id = fields.Many2one(
+        'account.intrastat.code',
+        compute='_compute_intrastat_values',
+        inverse='_inverse_intrastat_code_id',
+        string='Commodity Code',
+        readonly=False,
+    )
+    intrastat_supplementary_unit = fields.Selection(selection=SUPPLEMENTARY_UNITS, compute='_compute_intrastat_values')
+    intrastat_supplementary_unit_amount = fields.Float(
+        compute='_compute_intrastat_values',
+        inverse='_inverse_intrastat_supplementary_unit_amount',
+        help='The number of supplementary units per product quantity.',
+        readonly=False,
+    )
+    intrastat_origin_country_id = fields.Many2one(
+        'res.country',
+        compute='_compute_intrastat_values',
+        inverse='_inverse_intrastat_origin_country_id',
+        string='Country of Origin',
+        readonly=False,
+    )
+    # remove in master
+    valid_intrastat_code_ids = fields.Many2many(
+        string="Intrastat Code IDs",
+        comodel_name='account.intrastat.code',
+        compute="_compute_valid_intrastat_code_ids",
+    )
+    intrastat_code_domain = fields.Char(
+        compute='_compute_intrastat_code_domain',
+    )
+    account_fiscal_country_group_codes = fields.Json(related="company_id.account_fiscal_country_group_codes")
+
+    @api.depends('type')
+    def _compute_intrastat_code_domain(self):
+        """Dynamically compute the domain for intrastat_code_id."""
+        country_id = self.env.company.account_fiscal_country_id.id
+        service_codes_available = self.env["account.intrastat.code"].search_count(
+            [
+                ("country_id", "in", (country_id, False)),
+                ("type", "=", "service"),
+            ],
+            limit=1,
+        )
+        for product in self:
+            code_type = 'service' if service_codes_available and product.type == 'service' else 'commodity'
+            product.intrastat_code_domain = str([
+                ("country_id", "in", (country_id, False)),
+                ("type", "=", code_type),
+            ])
+
+    @api.depends('product_variant_ids')
+    def _compute_intrastat_values(self):
+        for product_template in self:
+            variant = product_template.product_variant_ids[:1]
+            product_template.intrastat_code_id = variant.intrastat_code_id
+            product_template.intrastat_supplementary_unit = variant.intrastat_code_id.supplementary_unit
+            product_template.intrastat_supplementary_unit_amount = variant.intrastat_supplementary_unit_amount
+            product_template.intrastat_origin_country_id = variant.intrastat_origin_country_id
+
+    # remove in master
+    @api.depends('type')
+    def _compute_valid_intrastat_code_ids(self):
+        valid_intrastat_code = dict(self.env['account.intrastat.code']._read_group(
+            domain=[('country_id', 'in', (self.env.company.account_fiscal_country_id.id, False))],
+            groupby=['type'],
+            aggregates=['id:recordset'],
+        ))
+        for product in self:
+            if 'service' in valid_intrastat_code and product.type == 'service':
+                valid_codes = valid_intrastat_code['service']
+            else:
+                valid_codes = valid_intrastat_code['commodity']
+            product.valid_intrastat_code_ids = valid_codes
+
+    @api.constrains('product_variant_ids', 'intrastat_code_id')
+    def _check_variant_for_intrastat(self):
+        for product_template in self:
+            if (not product_template.product_variant_ids and product_template.intrastat_code_id and
+                any(attribute.create_variant == 'dynamic' for attribute in product_template.attribute_line_ids.attribute_id)):
+                raise ValidationError(_("The product template has no products/variants. At least one variant is required to set the Intrastat values."))
+
+    @api.onchange('intrastat_code_id')
+    def _onchange_intrastat_code_id(self):
+        return self._check_active_intrastat_code()
+
+    def _check_active_intrastat_code(self):
+        expired = self.intrastat_code_id.expiry_date and fields.Date.context_today(self) >= self.intrastat_code_id.expiry_date
+        not_yet_active = self.intrastat_code_id.start_date and fields.Date.context_today(self) < self.intrastat_code_id.start_date
+        if expired or not_yet_active:
+            return {
+                'warning': {
+                    'title': _("Invalid Intrastat Code"),
+                    'message': _("Note that the selected commodity code is invalid based on its start or expiry date. You can still select it.")
+                }
+            }
+
+    def _inverse_intrastat_code_id(self):
+        for product_template in self:
+            product_template.product_variant_ids.intrastat_code_id = product_template.intrastat_code_id
+
+    def _inverse_intrastat_supplementary_unit_amount(self):
+        for product_template in self:
+            product_template.product_variant_ids.intrastat_supplementary_unit_amount = product_template.intrastat_supplementary_unit_amount
+
+    def _inverse_intrastat_origin_country_id(self):
+        for product_template in self:
+            product_template.product_variant_ids.intrastat_origin_country_id = product_template.intrastat_origin_country_id
+
+    def _get_related_fields_variant_template(self):
+        fields = super()._get_related_fields_variant_template()
+        fields += ['intrastat_code_id', 'intrastat_origin_country_id', 'intrastat_supplementary_unit', 'intrastat_supplementary_unit_amount']
+        return fields
+
+
+class ProductProduct(models.Model):
+    _inherit = 'product.product'
+
+    intrastat_code_id = fields.Many2one(comodel_name='account.intrastat.code', index='btree_not_null')
+    # The supplementary unit of the current commodity code
+    intrastat_supplementary_unit = fields.Selection(related='intrastat_code_id.supplementary_unit')
+    # The ratio of product to the number of supplementary units
+    intrastat_supplementary_unit_amount = fields.Float(
+        string='Supplementary Units',
+        help='The number of supplementary units per product quantity.',
+    )
+    intrastat_origin_country_id = fields.Many2one('res.country', string='Country of Origin')
+
+    @api.depends('intrastat_supplementary_unit')
+    def _compute_intrastat_supplementary_unit_amount(self):
+        """ In the case when the product has no supplementary unit (i.e. we are using weight) the supplementary unit amount is set to 0 """
+        for product in self:
+            if not product.intrastat_supplementary_unit:
+                product.intrastat_supplementary_unit_amount = 0
+
+    @api.onchange('intrastat_code_id')
+    def _onchange_intrastat_code_id(self):
+        return self.product_tmpl_id._check_active_intrastat_code()

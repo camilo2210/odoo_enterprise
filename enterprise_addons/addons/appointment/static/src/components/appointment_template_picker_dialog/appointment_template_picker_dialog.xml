@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="appointment.AppointmentTemplatePickerDialog">
+        <Dialog size="'lg'" title.translate="Choose an appointment preset">
+            <div class="o_appointment_template_picker row g-2 g-md-3 justify-content-center">
+                <t t-set="templateNames" t-value="Object.keys(this.appointmentTypeTemplatesData)"/>
+                <t t-foreach="templateNames" t-as="templateName" t-key="templateName">
+                    <t t-set="templateData" t-value="this.appointmentTypeTemplatesData[templateName]"/>
+                    <t t-set="templateElemClass" t-value="'col-12 col-md-4'"/>
+                    <t t-set="templateDescriptionClass" t-value="'card-body p-0 text-start text-md-center'"/>
+                    <t t-set="templateIconClass" t-value="'o_image_64_contain mx-auto'"/>
+                    <t t-call="appointment.AppointmentTemplateCard"/>
+                </t>
+            </div>
+            <t t-set-slot="footer">
+                <button t-on-click="this.props.close" class="btn btn-primary" data-hotkey="x">Close</button>
+            </t>
+        </Dialog>
+    </t>
+
+    <t t-name="appointment.AppointmentTemplateCard">
+        <div t-att-class="templateElemClass">
+            <button
+                t-on-click.stop.prevent="() => this.onTemplateClick(templateData)"
+                class="o_appointment_template_card card flex-row flex-md-column align-items-center w-100 h-100 gap-4 gap-md-3 p-3 border rounded"
+                t-attf-aria-label="Select {{templateData.title}} template"
+            >
+                <img t-att-class="templateIconClass" t-attf-src="{{templateData.icon}}" t-attf-alt="{{templateData.title}}"/>
+                <div t-att-class="templateDescriptionClass">
+                    <h3 class="card-title" t-out="templateData.title"/>
+                    <p class="card-text" t-out="templateData.description"/>
+                </div>
+            </button>
+        </div>
+    </t>
+</templates>

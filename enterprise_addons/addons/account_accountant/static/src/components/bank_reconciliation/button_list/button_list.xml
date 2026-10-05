@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <t t-name="account_accountant.BankRecButtonListDropdown">
+        <Dropdown t-if="!this.statementLineData.is_reconciled">
+            <div class="activity-container position-relative">
+                <button class="btn btn-secondary" t-att-class="{'btn-sm': !this.ui.isSmall}">
+                    <i class="oi" data-icon="more_vert"/>
+                </button>
+                <span t-if="this.displaySuggestionPill" class="suggestion-dot o_link_color rounded-pill"/>
+            </div>
+
+            <t t-set-slot="content">
+                <t t-foreach="this.buttonsInDropdown" t-as="button" t-key="button_index">
+                    <DropdownItem class="'btn btn-link'" onSelected.bind="button.action">
+                        <div class="d-flex justify-content-between gap-2 align-items-center">
+                            <t t-out="button.label"/>
+                            <div t-if="button?.suggestion"
+                                 class="align-items-center d-flex badge rounded-pill o_link_color">
+                                <span>Suggestions</span>
+                            </div>
+                        </div>
+                    </DropdownItem>
+                </t>
+                <BankRecFileUploader record="this.bankRecFileUploaderRecord">
+                    <t t-set-slot="toggler">
+                        <span class="dropdown-item o-navigable btn btn-link">
+                            <t t-if="this.statementLineData.amount > 0">
+                                Upload Refunds
+                            </t>
+                            <t t-else="">
+                                Upload Bills
+                            </t>
+                        </span>
+                    </t>
+                </BankRecFileUploader>
+                <div class="dropdown-divider"/>
+                <t t-foreach="this.reconcileModelsInDropdown" t-as="model" t-key="model.id">
+                    <DropdownItem class="'btn btn-link'" onSelected.bind="() => this.triggerReconciliationModel(model)">
+                        <t t-out="model.display_name"/>
+                    </DropdownItem>
+                </t>
+                <div t-if="this.reconcileModelsInDropdown.length" class="dropdown-divider"/>
+                <DropdownItem class="'btn btn-link'" onSelected.bind="this.actionViewRecoModels">
+                    Manage Models
+                </DropdownItem>
+                <DropdownItem class="'btn btn-link'" onSelected.bind="this.deleteTransaction">
+                    Delete Transaction
+                </DropdownItem>
+            </t>
+        </Dropdown>
+    </t>
+    <t t-name="account_accountant.BankRecButtonList">
+        <div class="d-flex flex-wrap gap-1">
+            <t t-if="this.props.preSelectedReconciliationModel and !this.statementLineData.is_reconciled">
+                <div class="d-flex gap-1">
+                    <BankRecButton
+                        label="this.props.preSelectedReconciliationModel.display_name"
+                        primary="true"
+                        action.bind="() => this.triggerReconciliationModel(this.props.preSelectedReconciliationModel)"
+                    />
+                    <t t-call="account_accountant.BankRecButtonListDropdown"/>
+                </div>
+            </t>
+            <t t-elif="this.buttons?.toReview">
+                <div class="d-flex gap-1">
+                    <BankRecButton t-props="this.buttons.toReview"/>
+                    <t t-call="account_accountant.BankRecButtonListDropdown"/>
+                </div>
+            </t>
+            <t t-elif="!this.statementLineData.is_reconciled">
+                <t t-foreach="this.buttonsToDisplay" t-as="button" t-key="button_index">
+                    <t t-if="!button_last">
+                        <BankRecButton t-props="button"/>
+                    </t>
+                    <t t-else="">
+                        <div class="d-flex gap-1">
+                            <BankRecButton t-props="button"/>
+                            <t t-call="account_accountant.BankRecButtonListDropdown"/>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </div>
+    </t>
+</templates>

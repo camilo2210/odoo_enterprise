@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="documents.SearchPanelContent" t-inherit="web.SearchPanelContent" t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('o_search_panel')]" position="attributes">
+            <attribute name="class" remove="pt-4" add="pt-1" separator=" "/>
+        </xpath>
+        <xpath expr="//section" position="attributes">
+            <attribute name="t-att-data-section-id">section.id</attribute>
+        </xpath>
+        <xpath expr="//button[@t-on-click='this.toggleSidebar']" position="replace"/>
+        <xpath expr="//header" position="replace"/>
+    </t>
+
+    <t t-name="documents.SearchPanel.Regular" t-inherit="documents.SearchPanelContent" t-inherit-mode="primary"/>
+
+    <t t-name="documents.SearchPanel.Category">
+        <t t-if="this.uiService.isSmall">
+            <t t-call="documents.SearchPanel.Category.Small"/>
+        </t>
+        <t t-else="">
+            <t t-call="documents.SearchPanel.Category.Large"/>
+        </t>
+    </t>
+
+    <t t-name="documents.SearchPanel.Category.Large" t-inherit="web.SearchPanel.Category" t-inherit-mode="primary">
+        <xpath expr="//li[hasclass('o_search_panel_category_value')]" position="attributes">
+            <attribute name="class" add="pe-0" separator=" "/>
+            <attribute name="t-att-class">{
+                    'o_treeEntry' : isChildList and !this.uiService.isSmall,
+                    'o_has_treeEntry': value.childrenIds.length,
+                    'o_all_or_trash_category' : !valueId || valueId === 'TRASH',
+                    'ps-0': !isChildList,
+                    'py-0': this.uiService.isSmall
+                }
+            </attribute>
+            <attribute name="t-att-title">value.display_name</attribute>
+            <attribute name="t-att-data-value-id">valueId</attribute>
+        </xpath>
+        <xpath expr="//header" position="attributes">
+            <attribute name="t-on-click"/>
+            <attribute name="t-on-keydown"/>
+            <attribute name="tabindex"/>
+        </xpath>
+        <xpath expr="//*[hasclass('o_search_panel_label')]" position="replace">
+            <div
+                class="o_search_panel_label d-flex align-items-center w-100 mb-0 cursor-pointer"
+                t-att-class="{'o_with_counters': section.enableCounters}"
+                t-att-data-tooltip="value.display_name"
+                t-on-contextmenu.prevent.stop="(ev) => this.openActionsPopover(ev, section, value)"
+            >
+                <button
+                    class="o_toggle_fold btn border-0 rounded-end-0 px-2 h-100 flex-shrink-0 text-center lh-sm"
+                    t-att-class="{'o_toggle_fold_disabled opacity-0': !value.childrenIds.length}"
+                    t-attf-tabindex="{{!value.childrenIds.length ? '-1' : '0'}}"
+                    t-on-click="!value.childrenIds.length ? () => this.toggleCategory(section, value) : () => this.toggleFold(section, value)"
+                    t-on-keydown="(ev) => this.onFoldKeyDown(ev, section, value)"
+                >
+                    <i class="oi" t-attf-data-icon="{{ this.state.expanded[section.id][valueId] ? 'arrow_drop_down' : 'arrow_right' }}"/>
+                </button>
+                <button class="o_search_panel_label_btn btn w-100 d-flex align-items-center position-relative border-0 ps-1 pe-0 overflow-hidden lh-sm" t-on-click="() => this.toggleCategory(section, value)">
+                    <i t-if="typeof valueId !== 'number'" t-attf-class="oi {{ this.constructor.rootIcons[valueId][1] ? 'oi-filled' : '' }} me-1" t-att-data-icon="this.constructor.rootIcons[valueId][0]"/>
+                    <span
+                        class="o_search_panel_label_title min-w-0 text-truncate"
+                        t-att-class="{'fw-bold' : value.bold}"
+                        t-out="value.display_name"
+                    />
+                    <span t-if="!this.env.searchModel.context.documents_view_secondary"
+                        class="o_documents_search_panel_section_actions position-absolute end-0 top-0 bottom-0 d-flex align-items-center ps-1"
+                    >
+                        <button t-if="valueId and typeof valueId === 'number'"
+                            class="o_documents_search_panel_section_edit btn rounded-start-0 px-1 h-100 lh-1"
+                            t-att-class="{'rounded-end-0' : value.shortcut_document_id}"
+                            t-on-click.stop.prevent="(ev) => this.openActionsPopover(ev, section, value)"
+                        >
+                            <i class="oi oi-fw" data-icon="more_vert"/>
+                        </button>
+                        <i t-if="value.shortcut_document_id" class="o_documents_search_panel_section_edit me-1 oi" data-icon="open_in_new"
+                            title="This is a shortcut"/>
+                        <span t-if="this.isUploadingInFolder(valueId)" class="oi oi-spin" data-icon="autorenew"/>
+                    </span>
+                </button>
+            </div>
+        </xpath>
+    </t>
+
+    <t t-name="documents.SearchPanel.Category.Operations" t-inherit="documents.SearchPanel.Category.Large" t-inherit-mode="primary">
+        <!-- disable folder actions -->
+        <xpath expr="//div[hasclass('o_search_panel_label')]" position="attributes">
+            <attribute name="t-on-contextmenu.prevent.stop"/>
+        </xpath>
+        <xpath expr="//span[hasclass('o_documents_search_panel_section_actions')]" position="replace"/>
+    </t>
+
+    <t t-name="documents.SearchPanel.FiltersGroup">
+        <t t-if="this.uiService.isSmall">
+            <t t-call="web.SearchPanel.FiltersGroup"/>
+        </t>
+        <t t-else="">
+            <t t-call="documents.SearchPanel.FiltersGroup.Large"/>
+        </t>
+    </t>
+
+    <t t-name="documents.SearchPanel.FiltersGroup.Small" t-inherit="web.SearchPanel.FiltersGroup" t-inherit-mode="primary"/>
+
+    <t t-name="documents.SearchPanel.FiltersGroup.Large" t-inherit="web.SearchPanel.FiltersGroup" t-inherit-mode="primary">
+        <xpath expr="//li[hasclass('o_search_panel_filter_value')]" position="attributes">
+            <attribute name="class">o_documents_search_panel_editable</attribute>
+        </xpath>
+        <xpath expr="//div//label//span[hasclass('o_search_panel_counter')]" position="replace"/>
+        <xpath expr="//div//label//span[hasclass('o_search_panel_counter')]" position="attributes">
+            <attribute name="class" add="ms-2 me-3" remove="mx-2" separator=" "/>
+        </xpath>
+    </t>
+
+    <t t-name="documents.SearchPanel.Small" t-inherit="web.SearchPanel.Small" t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('o_search_panel_section')]" position="attributes">
+            <attribute name="class" add="o_documents_search_panel_small_section" separator=" "/>
+        </xpath>
+    </t>
+
+    <t t-name="documents.SearchPanel.Category.Small" t-inherit="documents.SearchPanel.Category.Large" t-inherit-mode="primary">
+        <xpath expr="//*[hasclass('o_documents_search_panel_section_actions')]" position="replace"/>
+    </t>
+
+    <t t-name="documents.SearchPanel">
+        <t t-if="this.uiService.isSmall">
+            <t t-call="documents.SearchPanel.Small"/>
+        </t>
+        <t t-else="">
+            <t t-call="documents.SearchPanel.Large"/>
+        </t>
+    </t>
+
+    <t t-name="documents.SearchPanel.Large" t-inherit="web.SearchPanel" t-inherit-mode="primary">
+        <xpath expr="//t[@t-call='web.SearchPanel.Regular']" position="attributes">
+            <attribute name="t-call">documents.SearchPanel.Regular</attribute>
+        </xpath>
+    </t>
+</templates>

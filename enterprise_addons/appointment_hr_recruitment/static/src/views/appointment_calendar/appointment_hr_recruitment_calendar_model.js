@@ -1,0 +1,11 @@
+import { AttendeeCalendarModel } from "@calendar/views/attendee_calendar/attendee_calendar_model";
+import { patch } from "@web/core/utils/patch";
+
+patch(AttendeeCalendarModel.prototype, {
+    _getInviteParams() {
+        return {
+            ...super._getInviteParams(),
+            applicant_code: this.meta.context.applicant_code,
+        };
+    },
+});

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ai_website_livechat.AIRecordsPreview" owl="1">
+        <div t-if="this.previewSets.length" class="o_ai_record_previews">
+            <t t-foreach="this.previewSets" t-as="previewSet" t-key="previewSet.preview_key">
+                <h6 t-if="previewSet.header" class="o_ai_preview_card_set_header" t-out="previewSet.header"/>
+                <AIPreviewCardSet
+                    t-if="previewSet.has_preview_cards"
+                    previewSet="previewSet"
+                    thread="this.props.thread"
+                />
+                <t t-elif="previewSet.records.length">
+                    <t t-call="ai_website_livechat.AIRecordPreviewLinks"/>
+                </t>
+            </t>
+        </div>
+    </t>
+    <t t-name="ai_website_livechat.AIRecordPreviewLinks" owl="1">
+        <div>
+            <t t-foreach="previewSet.records" t-as="record" t-key="record.id">
+                <span class="o_ai_preview_link">
+                    <a t-if="record.url !== '#'" t-att-href="record.url" target="_blank" rel="noopener noreferrer"><t t-out="record.name"/></a>
+                    <span t-else="" t-out="record.name"/>
+                </span>
+            </t>
+        </div>
+    </t>
+    <t t-name="ai_website_livechat.AIPreviewCardSet" owl="1">
+        <div t-if="this.previewCards.html" class="o_ai_preview_cards_wrapper o_ai_preview_card_set" t-on-click="this.onCardClick">
+            <div class="o_ai_preview_cards_container d-flex align-items-center gap-1 overflow-hidden">
+                <button t-if="this.carousel.state.canScroll" class="o_ai_carousel_btn o_ai_carousel_prev btn btn-light btn-sm rounded-circle border p-0 flex-shrink-0 d-flex align-items-center justify-content-center align-self-center" type="button"
+                        t-att-class="{ invisible: !this.carousel.hasPrev }" t-att-disabled="!this.carousel.hasPrev"
+                        t-on-click="() => this.carousel.prev()">
+                    <i class="oi" data-icon="chevron_left"/>
+                </button>
+                <div t-ref="this.cardsHostRef" class="o_ai_preview_cards_root flex-grow-1 min-w-0" t-att-class="{ 'o-ai-has-next': this.carousel.hasNext, 'o-ai-has-prev': this.carousel.hasPrev }">
+                    <slot t-att-name="this.slotName"/>
+                </div>
+                <button t-if="this.carousel.state.canScroll" class="o_ai_carousel_btn o_ai_carousel_next btn btn-light btn-sm rounded-circle border p-0 flex-shrink-0 d-flex align-items-center justify-content-center align-self-center" type="button"
+                        t-att-class="{ invisible: !this.carousel.hasNext }" t-att-disabled="!this.carousel.hasNext"
+                        t-on-click="() => this.carousel.next()">
+                    <i class="oi" data-icon="chevron_right"/>
+                </button>
+            </div>
+        </div>
+        <t t-elif="this.props.previewSet.records.length">
+            <t t-set="previewSet" t-value="this.props.previewSet"/>
+            <t t-call="ai_website_livechat.AIRecordPreviewLinks"/>
+        </t>
+    </t>
+</templates>

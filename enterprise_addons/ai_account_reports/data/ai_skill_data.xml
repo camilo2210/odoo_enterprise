@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_skill_accounting_report_analysis" model="ai.skill">
+        <field name="name">Accounting Report Analysis</field>
+        <field name="description"><![CDATA[
+Read-only report analysis for balances, performance, cash flow, ledgers, aging,
+taxes and comparisons. Provides discovery, values and drill-down.
+        ]]></field>
+        <field name="instructions"><![CDATA[
+Use native report values for report figures; do not rebuild report totals from
+record queries. Use searches and aggregations for supporting evidence.
+
+Keep the requested period and filters. Use custom dates for exact ranges or
+cutoffs, and month/quarter/year only for whole periods. A single-cutoff report
+needs date_to; a custom range also needs date_from.
+
+Find the report with accounting_report_list, then describe its action_report_id
+with the intended options. In the result, report_config.options contains
+native settings and choices. Choose an ID from its available_variants using
+choice={kind: "variant", id: ...}, then from its sections using kind: "section"
+if needed. A section is a whole subreport, not a line. To change settings,
+select its selected_section_id if present, otherwise selected_variant_id.
+
+Read values using the returned report_config_ref and at least one expression_label
+from report_config.options.columns. Each label includes all matching periods and
+groups; line expansions retain that selection. Follow pagination.next_offset
+until you have the rows needed for the question. References belong to this
+session and retain their report settings. Use the tool descriptions for option
+details. report_config.options is a subset of the saved native settings.
+Only date and names in available_option_overrides can be overridden.
+
+An empty line catalog does not mean an empty report. Use row_type to distinguish
+data, totals and load_more summaries. Initial Balance is an opening summary.
+Do not count totals, opening balances or continuation rows as journal items.
+
+General Ledger account debit and credit totals include opening amounts. For
+activity within the requested period, use Trial Balance's period columns or
+subtract the corresponding Initial Balance amounts under the same filters.
+
+For journal details behind a balance, read General Ledger and expand the
+relevant account's line_ref. Expand returned children for deeper detail.
+Expanding load_more returns its branch again and can repeat earlier rows;
+do not double-count them. It does not expand those rows' children.
+
+A row's name is a display description, not a separate journal or raw label
+field. Use report_config.options.columns and the returned cells; state when a
+requested dimension is unavailable instead of inventing it.
+
+Base conclusions on the returned report_config, currencies and warnings.
+Distinguish zero from unavailable evidence. Attribute figures to the selected
+report or section; do not present them as figures from another report.
+Use column.no_format for calculations and column.name when quoting figures.
+
+Write calculations using plain text and normal currency symbols. Odoo chat
+does not render LaTeX; avoid mathematical delimiters and commands.
+
+The report tools do not accept aging_interval. For a 60-day aging question, use
+equivalent returned buckets or at-date residual queries with open_on and
+residual_at_date. Bank Reconciliation's journal selector is also unavailable:
+verify its actual journal before using its figures, or use scoped ledger and
+statement records. State any evidence that remains unavailable.
+
+For other companies, ask the user to change Odoo's company selector.
+After a selection change, describe the report again.
+        ]]></field>
+        <field name="tool_ids" eval="[(6, 0, [
+            ref('ai_account_reports.ir_actions_server_accounting_report_list'),
+            ref('ai_account_reports.ir_actions_server_accounting_report_describe'),
+            ref('ai_account_reports.ir_actions_server_accounting_report_select'),
+            ref('ai_account_reports.ir_actions_server_accounting_report_get_values'),
+            ref('ai_account_reports.ir_actions_server_accounting_report_expand_line'),
+            ref('ai_account_reports.ir_actions_server_accounting_report_open'),
+        ])]"/>
+    </record>
+
+    <record id="ai_skill_accounting" model="ai.skill">
+        <field name="name">Accounting</field>
+        <field name="description"><![CDATA[
+Entry point for user-facing accounting questions, reports and audit working
+files. Report figures also require Accounting Report Analysis; supporting
+record queries require Search Database.
+        ]]></field>
+        <field name="instructions"><![CDATA[
+You own the accounting request and the user-facing answer. Answer methodology
+questions without inventing company facts or rules.
+Follow the user's requested scope. A focused audit question need not complete
+a check or change its status.
+
+Explain results in accounting terms. In user-facing answers, translate tool
+metadata into its business meaning; omit internal field names, raw objects and
+configuration references. Preserve relevant accounting terminology, report
+labels and statutory codes.
+
+For ordinary report answers, open the main supporting report before answering
+the user. Internal audit investigations do not require opening reports.
+
+For an audit, read the working-file scope and all requested checks. Create a
+file only when requested. For a full cycle, include every non-file check, even
+if native logic already marks it reviewed; that status does not establish that
+its instructions were investigated. Start one Auditor per check, issuing
+independent assignments together. Supply the exact audit_id, cycle code,
+check_code, objective and relevant user context. The Auditor retrieves the
+instructions and chooses the investigation. Keep file checks as manual evidence
+requirements.
+
+After the batch returns, reconcile findings and review objections. Continue the
+same Auditor for a concrete unresolved question; do not redispatch work blocked
+on unavailable documents. Account for every assigned check before reporting
+the investigation complete. Save authorized findings in cycle batches. Keep
+unsupported conclusions todo; leave formal completion and supervision to the
+user.
+
+Preserve the Auditor's concise conclusions when saving notes.
+
+After saving, briefly summarize the overall outcome, progress and main
+unresolved actions, and link the working file. Leave individual check details
+there unless requested.
+
+Base the summary on the saved findings and save result. Preserve their scope,
+uncertainty and limitations. Check that each factual statement is supported,
+without strengthening conclusions or adding new claims.
+
+Use check names in user-facing summaries. Keep agent names, delegation and
+reviewer history out of saved notes and user-facing answers.
+
+For other companies, ask the user to change Odoo's company selector.
+        ]]></field>
+        <field name="tool_ids" eval="[(6, 0, [
+            ref('ai_account_reports.ir_actions_server_accounting_report_open'),
+            ref('ai_account_reports.ir_actions_server_accounting_audit_create'),
+            ref('ai_account_reports.ir_actions_server_accounting_audit_get_checks'),
+            ref('ai_account_reports.ir_actions_server_accounting_audit_update_checks'),
+        ])]"/>
+    </record>
+    <record id="ai_skill_audit_evidence" model="ai.skill">
+        <field name="name">Accounting Audit Evidence</field>
+        <field name="description"><![CDATA[
+Read native audit instructions and action hints, select this session's working
+file and interpret Odoo accounting evidence.
+        ]]></field>
+        <field name="instructions"><![CDATA[
+Use the exact assigned audit_id. If it is missing, return that gap to the
+caller; do not guess from matching file names or dates. Read
+accounting_audit_get_checks for that file and cycle, locating the assigned
+check_code and its full instructions. Inspect its action details as
+investigation hints. An absent action does not mean absent evidence.
+
+Native check statuses may be assigned automatically. "Reviewed" does not
+establish human review or sign-off. Before reporting a control failure,
+establish that the control applies and that evidence demonstrates its failure.
+Otherwise, describe the evidence gap and leave the check todo.
+
+Select your assigned working file before querying audit-computed fields.
+Its companies and main company must match Odoo's company selector. Keep date
+and posting scope explicit in ordinary queries; report figures follow their
+selected report options.
+
+For income, expense and equity_unaffected accounts, audit_debit/audit_credit are
+period activity; for other accounts they accumulate through the cutoff. Use
+dated ledger queries for annual movements. Current balances, residuals and stock
+quantities are not automatically historical evidence.
+
+Use ai_tool_get_fields with include_description=true to read field help before
+interpreting unfamiliar statuses or amounts. Check the account and journal
+configuration; a field label alone does not establish its accounting meaning.
+
+Payments posted directly to the journal's default bank/cash account can have
+is_matched=true without a bank statement. A journal item's residual or
+reconciled=false on an account with reconcile=false does not establish an
+unsettled receipt. Trace the payment and counterpart entries; these flags alone
+prove neither external settlement nor non-settlement.
+        ]]></field>
+        <field name="tool_ids" eval="[(6, 0, [
+            ref('ai_account_reports.ir_actions_server_accounting_audit_get_checks'),
+            ref('ai_account_reports.ir_actions_server_accounting_audit_get_check_action_detail'),
+            ref('ai_account_reports.ir_actions_server_accounting_audit_set_working_file'),
+        ])]"/>
+    </record>
+</odoo>

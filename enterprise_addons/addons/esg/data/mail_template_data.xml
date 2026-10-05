@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="mail_template_esg_metric_ask_feedback" model="mail.template">
+            <field name="name">CSRD Metric: Ask Stakeholder Reviews</field>
+            <field name="model_id" ref="survey.model_survey_user_input"/>
+            <field name="description">Sent to stakeholders to gather CSRD Metric feedback</field>
+            <field name="body_html" type="html">
+                <t t-set="logged_user" t-value="ctx.get('logged_user')"/>
+                <t t-set="company_name" t-value="ctx.get('company_name')"/>
+                <t t-set="deadline" t-value="ctx.get('deadline')"/>
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                        <p style="margin-left:5px">Dear <t t-out="object.partner_id.name or 'stakeholder'">[Stakeholder]</t></p>
+                        <span>
+                            <t t-out="logged_user">[Current user]</t> invites you to participate in the CSRD double materiality review for <t t-out="company_name">[Company Name]</t>. We are looking for your input on: <br/>
+                            - How the company impacts the environment, society, and the economy. <br/>
+                            - How these impacts could affect the company financially. <br/>
+                            Please complete your review by <t t-out="deadline">[specified deadline]</t> to help us meet CSRD requirements. Your expertise is important for an accurate assessment. </span>
+                        <br/> Thank you for your contribution. <br/>
+                        Best regards, <t t-out="logged_user">[Current user]</t>
+                        <br/><br/>
+                        <div style="margin: 16px 0px 16px 0px; text-align: center;">
+                            <a t-att-href="object.get_start_url()"
+                                t-attf-style="background-color: {{user.company_id.email_secondary_color or '#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: {{user.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px; font-size:13px;">
+                                Start the Review
+                            </a>
+                        </div>
+                    </p>
+                </div>
+            </field>
+            <field name="auto_delete" eval="True"/>
+            <field name="use_default_to" eval="False"/>
+        </record>
+    </data>
+</odoo>

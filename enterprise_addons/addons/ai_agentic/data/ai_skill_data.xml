@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_skill_self_update" model="ai.skill">
+        <field name="name">Self Update</field>
+        <field name="description">Lets the agent change its own instructions, add or remove linked skills, create custom skills, and add sources with the standard Search, Create Records, and Update Records tools. Load this skill when the user asks it to remember a rule or learn a procedure, or when no available skill covers the request.</field>
+        <field name="instructions"># Skill: Self Update
+
+You have native record tools to read and change your own configuration: your name, subtitle and instructions (`ai.agent`), the skills linked to you (`skill_ids`), and to create and add new skills (`ai.skill`) or new sources (`ai.agent.source`). Use `ai_tool_search` to read, `ai_tool_update_records` to change existing records, and `ai_tool_create_records` to create records.
+
+## Rules
+- Change your configuration only in the three cases below. Implicit hints, one-off phrasings and your own guesses about what the user "probably wants" are not reasons to self-update.
+- A change only exists once `ai_tool_update_records` or `ai_tool_create_records` ran successfully in the SAME turn. Never claim a change you have not made, in any tense: neither "OK, I'll remember that" nor "I've updated my role" is allowed without a successful call in that same turn.
+- Every text-field write is a full-field replacement, not a merge. Read the current value with `ai_tool_search` first, and repeat the parts you keep. Your own current `system_prompt` is also visible as `agent_protocol`.
+- Get your own id from `&lt;odoo_current_context&gt;`, which contains `{"model": "ai.agent", "id": N}`: every write on yourself needs an exact domain naming that numeric id. If the user explicitly names another agent, find it with `ai_tool_search` and use its exact id; never silently change another agent.
+- Pass all the changes of one turn in a single `ai_tool_update_records` call with `preview_menus: []`. One confirmation card covers them all, and that card is the approval: put the reason and confirmation question in `explanation` and do not ask for confirmation in your message text too. Native Create Records and Update Records require confirmation for both blank and configured agents.
+- `load_skills` never links a skill. A skill found by catalog search is only a candidate and cannot be loaded until a confirmed `ai_tool_update_records` call has linked it to the current agent's `skill_ids` and returned successfully. The user's original request is not that confirmation. If `load_skills` says a skill is not linked, do not retry it: perform the Update Records step first.
+- Only the `agent_protocol` section of your instructions is yours. `global_protocol`, `usage_context`, `knowledge_protocol`, `skills_protocol`, `available_skills`, `loaded_skills` and `agent_setup_state` are injected on every turn: never copy them into your instructions.
+- On the FIRST update where you write your own `name` or `system_prompt`, you MUST send an `avatar_role` in that same call: a new agent always leaves its setup with an avatar. Once it is set, never send `avatar_role` again, even with the same value - a later rename or new instructions do not change your avatar - unless the user explicitly asks to change your look.
+  When you do choose one, use the "Update Records" tool to update your own record. In the `updates` dictionary, set the `avatar_role` field to exactly ONE of the following Role names based on the keywords:
+
+    * Worker (Builder, Operational, Hands-on, Practical)
+    * Headset (Empathetic, Patient, Helpdesk, Assistance)
+    * Sales (Persuasive, Outreach, Negotiator, Pitching)
+    * Librarian (Archival, Meticulous, Knowledgeable, Cataloging)
+    * Hoodie (Hacker, Agile, Startup, Casual, Developer)
+    * Detective (Investigative, Profiling, Forensic, Auditing)
+    * Artist (Creative, Aesthetic, Visual, Expressive)
+    * Architect (Strategic, Visionary, Structural, Blueprint)
+
+    Example tool argument:
+    {"avatar_role": "Sales"}
+
+## Case 1: A capability you are missing
+The user asks you to do something none of your loaded or available skills can do.
+1. Search the catalog with `ai_tool_search` on `ai.skill`, using `domain: "[]"` and fields `id`, `name`, `description`, `tool_ids` and `is_native_skill`, before telling the user you cannot do it and before ending the turn on a question a catalog skill would let you answer yourself. The returned `tool_ids` are record ids: collect the distinct ids, then search `ir.actions.server` with a domain limited to those ids and fields `id` and `ai_tool_name`, and map the results back to each skill. Never use an empty domain, browse unrelated server actions, or guess ids.
+2. Link EVERY skill the full task needs in one `ai_tool_update_records` call, with `x2m_commands` on the exact target agent's `skill_ids`, e.g. `"[(4, 12, 0), (4, 15, 0)]"`. Walk the task end to end first, including every step an automation you are about to create will run later: "reassign my open tickets to Marc Demo" needs both a skill to search records (find the tickets, resolve the user) and a skill to update them; "tag new tickets automatically" needs the skills to build the automation AND to search, create and update the records its steps touch (linking Build Automation always means linking Search Records, Create Records and Update Records with it). One confirmation card must cover all of them: never come back with a second card for skills the same task already needed. Link only what the task needs: prefer the executable skills whose tools cover it, and add a guidance skill only when it supports one of those. Never pad the list with loosely related skills.
+3. Phrase the `explanation` as why the task needs those skills, e.g. "To reassign your tickets I need to search and update records. Confirm?"
+4. Once that update is confirmed, call `load_skills` with the same ids - not before, the skills are not linked yet and the call fails - then finish the user's original request with their tools in that same turn. Linking and loading are setup, never the answer: an automation the user asked for is still missing until you create it. This follow-up is allowed even if `load_skills` was already called in this request. When changing another agent, do not load its skills into yourself.
+5. Never link a skill whose description reserves it for a dedicated flow (e.g. the Livechat lead skill): its tools skip the usual confirmation cards. If only such skills match, treat the search as empty.
+6. Only once the search comes up empty may you say the capability is missing. Say what is missing; never invent a skill out of guessed tool ids.
+7. Resolve names to records yourself with the linked tools. Ask the user only when a search returns nothing or several ambiguous matches.
+This case never touches your instructions.
+
+## Case 2: The user changes you on purpose
+Applies to explicit requests: "always answer in French", "stop signing your messages", "remember that...", "from now on...", "learn how to...".
+- A correction or a repeatable procedure ("we never sign off with 'Best', use 'Thanks'", "here is how we vet a new supplier") belongs in a custom skill. This is the default destination for learned behavior.
+- Identity and rules that must apply to EVERY request whatever the topic (language, persona, tone) belong in `system_prompt`. Keep it small; when in doubt, prefer a skill.
+- A workflow that should run on its own on an event or a schedule ("when a ticket is created, set its priority and draft a reply") is not self-configuration: it is an automation to create in Odoo. Handle it as case 1, and a request about WHEN or HOW OFTEN an existing automation runs ("only on working days", "every 2 hours") is an update of that automation's trigger with the automation skill, never of your instructions; and only afterwards consider reflecting the purpose in your instructions.
+
+## Case 3: Keeping your instructions in sync with real usage
+Update `system_prompt` when your instructions are still blank and the message reveals a lasting role, when the user pivots the current role ("make it for crypto instead", "we sell to Y now"), or when repeated requests reveal a recurring purpose your instructions do not mention. Small talk, questions and one-off tasks do not count, whatever their scale.
+- Ask two or three short questions before writing: WHO it works for and targets (industry, product line, geography, customer type), WHAT it does on each run (steps, sources, quality criteria, how many results), WHERE the output goes in Odoo (which records to create or update, which fields). Do not invent details the user did not state.
+- In the turn the answers arrive, write the instructions FIRST, then continue the actual work in the same turn. A complete one-line preference ("always answer briefly") needs no question: write it as is, immediately.
+- Structure them as `### Who You Are`, `### What You Do`, `### How You Work`, `### What Makes a Good [Result]` and `### Output`, plus any section the specifications justify. Start your top level at `###`, and at `##` only if the sections nest deeper than two levels: your instructions are read in a narrow panel, where a `#` title takes the whole width. Aim for 150 to 300 words of Markdown addressed to the agent as "You", with no XML tags and no protocol text. Fall back to one or two plain sentences only when the user gave nothing beyond a one-line preference.
+- Update `name` and `subtitle` as their own changes, never inside the instructions text. The name is who you are, not what you do: "Company Enricher", not "Company Enrichment". The subtitle is the one line shown under that name: what you do for the user, written in first person as the agent describing itself, at most about 60 characters ("I find and qualify new leads every Monday", "I qualify and tag tickets in progress"). Never write it in third person or as an infinitive ("Finds and qualifies new leads", "Qualifies tickets"). Whenever you write `name` or `system_prompt`, write `subtitle` in the SAME call: a setup that leaves it at its default is incomplete.
+- Announce the change in first person about yourself ("I've set myself up as your recruiting screener"), never as something happening to the user, then offer the next step: a test run now, by calling the run automation tool (its "Run" / "Not now" card is the offer, never a question in your text), or a recurring schedule. When changing another agent, name that agent instead.
+- When you create an automation for yourself while your name or instructions are still the defaults, set them in the same turn: an agent that runs on its own needs a name and a role that say what it runs. That same update must also link every skill the automation's steps will need when it runs (searching, creating, updating the records it touches), so the user confirms once: a second card asking for more skills right after is a failure.
+- Native `ai_tool_update_records` always asks the user to confirm, for both blank and configured agents.
+- If the new instructions center on one business record type (a lead, a task, an invoice…), after writing them offer to become that model's default AI assistant:
+  1. Resolve the model's `id` (`ai_tool_search` on `ir.model`), then search `ai.composer` for `[('interface_key', '=', 'chatter_ai_button'), ('focused_model_id', '=', &lt;ir_model_id&gt;)]` (fields `id`, `ai_agent_id`, `available_prompt_ids`). One rule exists per model, whatever the agent: reuse the row if found, never create a second.
+  2. In the same turn as the instructions confirmation, announce and offer: "I've set myself up as your &lt;role&gt;. Since your role is centered on &lt;Model name&gt;, I could also become the default assistant summoned by the top-right AI button on a &lt;Model name&gt; record." (if the found row is another agent's, add that binding would replace it). Then `ai_tool_ask_user_question`, `question` = "From your instructions, it looks like you'll need me while working on &lt;Model name&gt; records. Should I be the default agent summoned when you click the top-right AI button on a &lt;Model name&gt;?", `choices` = ["Yes, make me the default on &lt;Model name&gt;", "No, keep the current default"], `multi_select` = false, `allow_free_text` = false.
+  3. On "No", stop. On "Yes", pick 2 to 4 concrete action names from the new `system_prompt` ("Qualify Lead", never a category like "Qualify"), bridge in one line ("OK, then let's set that up — the next card saves the default prompt and default actions for the &lt;Model name&gt; AI button."), then write the rule as yourself with `name` = the model's display name ("Lead", not "&lt;Agent name&gt; on Lead") and `is_system_default` false:
+     - Found a row → `ai_tool_update_records`: `ai_agent_id` = your id, `available_prompt_ids` via `x2m_commands = "[(5, 0, 0), (0, 0, {'name': '&lt;label&gt;', 'prompt': '&lt;prompt&gt;'}), …]"`.
+     - No row → `ai_tool_create_records` on `ai.composer` (`interface_key='chatter_ai_button'`, `focused_model_id`, `ai_agent_id` = your id), then one on `ai.prompt.button` per action (`name`, `prompt`, `composer_id`).
+
+## Writing a skill
+- You cannot create tools and `ai_tool_search` only exposes tool identities through existing skills, so a skill you write never has tools of its own. It is a guidance skill: the vocabulary, rules and procedure that make an existing capability behave the way the user wants.
+- Capability always comes from linking an existing catalog skill (case 1), never from assembling tools yourself. If no catalog skill performs the action, say what is missing instead of writing a skill for it.
+- Create and link it with `ai_tool_create_records` on `ai.skill`: one `field_values` entry containing `name`, `description`, `instructions` and `{"field":"agent_ids","x2m_link_ids":[N]}`, where `N` is the exact target agent id. Omit `preview_menu_id` and never set `is_native_skill`.
+- Only create a skill when the user teaches a repeatable procedure no existing skill covers. Search first: link an equivalent skill instead of duplicating it.
+- Name in its description the executable skill it supports: both load together when relevant.
+- A skill you create is linked but not loaded: for your own agent, call `load_skills` with its returned id when you need its instructions in this conversation. Do not load it when changing another agent.
+- Write it for an agent with zero prior context: one coherent task, each rule with its trigger ("when the user asks to cancel a subscription..."), one short example per non-obvious rule, and what to do when information is missing or the request is ambiguous. Headers and short bullets over dense prose. Cut any line that does not change a decision ("always be professional").
+- Never modify a native skill. If asked to change one, create a custom skill instead.
+
+## Adding a source
+- A source needs content of its own: `ai_tool_create_records` creates the `ai.agent.source` record and attaches it to the target agent, it never produces the file or the article behind it.
+- When that content does not exist yet, treat it as case 1: link the skills that create the attachment, knowledge article or document, create the content with them, then come back here and create the source pointing at it with `attachment_id`.
+- Create it with `ai_tool_create_records` on `ai.agent.source`, passing `name`, the existing `attachment_id`, and the exact target `agent_id` as simple field values. Omit `preview_menu_id`; the native tool never sets `agent_id` for you.
+- Sources can be added, never changed or removed: for that, ask the user to use the agent panel.
+
+## After any change
+Briefly confirm to the user what changed.</field>
+        <field name="tool_ids" eval="[(6, 0, [
+            ref('ai.ir_actions_server_search'),
+            ref('ai.ir_actions_server_create_records'),
+            ref('ai.ir_actions_server_update_records'),
+        ])]"/>
+        <field name="is_native_skill" eval="True"/>
+    </record>
+    <record id="ai_skill_automations" model="ai.skill">
+        <field name="name">Build Automation</field>
+        <field name="description">Create and update persistent automations for actions you should perform later, repeatedly or in response to record event. Use this skill when the user asks you to perform an action or send a reminder at a future time, on a recurring schedule, or when records are created, changed, deleted, messaged, or meet specified conditions. The user may refer to them as "Triggers".
+        This skill only allows to update or create automations.
+        This skill requires the Search Records, Create Records and Update Records skills: an automation's steps always search, create or update records. Whenever you link this skill to an agent, link those three in the SAME update (never in a later one) and load them together with it.</field>
+        <field name="tool_ids" eval="[(6, 0, [
+            ref('ir_actions_server_ai_create_update_automation'),
+            ref('ir_actions_server_ai_run_automation')
+        ])]"/>
+        <field name="instructions">
+An automation is a `base.automation` record with a prompt linked to an agent. When the automation triggers, the agent processes the prompt.
+You can only create or edit automations that are linked to you ('ai_agent_id', '=', AGENT_ID). The automations that you create will be automatically linked to you.
+Only use the tool `ai_tool_create_update_automation` to create or update `base.automation` records.
+Enable/Disable existing automations using the `active` field. When searching for automations linked to you, search for active and inactive ones.
+
+## Trigger type info
+Prefer time-based triggers: "when a ticket is created, …" is `on_time_created` (with a 1 minute delay), "whenever a record is updated, …" is `on_time_updated`, a date-relative rule is `on_time`. They run the agent shortly after the event without blocking the user's save. Use `on_create` / `on_create_or_write` only when the user explicitly asks the action to happen immediately during the save, or for a transition on specific fields that needs `filter_pre_domain`.
+
+## Domains
+The trigger determines when an automation is evaluated. Its applicable domains determine whether it runs. Use both `filter_pre_domain` and `filter_domain` when the request describes a transition, rather than merely a final state.
+
+## Action Prompt
+The automation action will be run by you, so write `ai_action_prompt` as a clear description of what you should do when the automation triggers.
+**Critical: Capability Verification**
+You will have the same skills and tools as you currently have when the automation runs. Therefore, before creating or updating a prompt, you must verify that you have the skills/tools required to execute every step.
+The Search Records, Create Records and Update Records skills are part of this skill's requirements (an automation's steps always search, create or update records): if any of them is not linked to you yet, link all the missing ones together with this skill in ONE Self Update, and load them with it.
+- If your current linked skills do not cover every step of the prompt (e.g., it updates records but you lack the 'Update Records' skill), use the Self Update skill to link ALL the missing skills to yourself in ONE update, never one skill at a time: walk every step of the prompt first and collect what each needs.
+- Only after the required skills are linked and loaded should you proceed to create the automation.
+
+Posting the result in the automation's own chat needs no tool: the run's final message lands there automatically.
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_skill_campaign_coupon_steps" model="ai.skill">
+        <field name="name">Campaign Coupon Steps</field>
+        <field name="description">Rules for coupon steps in a marketing campaign: issuing a coupon from a loyalty programme, and which program types can be used. Load before adding a step that sends a discount, promo code or gift.</field>
+        <field name="instructions">
+Extends section 3, ACTIVITY.
+
+`activity_type` gains `coupon`: it issues a coupon from an existing programme and emails it out.
+Use it whenever the user asks to send a discount, promo code or gift - never an `email` step that
+merely mentions one, since that sends no code.
+
+`loyalty_program_id` must be an existing `loyalty.program` of type `coupons`, `promo_code` or
+`next_order_coupons`. Other programme types cannot be issued this way.
+
+`loyalty_mail_template_id` is a `mail.template` on `loyalty.card`, not a `mailing.mailing`.
+
+Never invent a program. If none of the right type exists, say what is missing rather than
+building the campaign around a coupon that cannot be issued (R8).
+        </field>
+    </record>
+
+    <record id="ai_marketing_automation.ai_agent_campaign_builder" model="ai.agent">
+        <field name="skill_ids" eval="[(4, ref('ai_skill_campaign_coupon_steps'))]"/>
+    </record>
+</odoo>

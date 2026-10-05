@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_logging_avalara_tree" model="ir.ui.view">
+        <field name="name">ir.logging.avalara</field>
+        <field name="model">ir.logging</field>
+        <field name="arch" type="xml">
+            <list create="0">
+                <field name="message"/>
+                <field name="path"/>
+                <field name="func"/>
+                <field name="line"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="ir_logging_avalara_action" model="ir.actions.act_window">
+        <field name="name">Avalara Logging</field>
+        <field name="res_model">ir.logging</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('name', 'in', ['Avatax', 'Avatax US'])]</field>
+    </record>
+
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.account.avatax</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//setting[@id='avatax_settings']" position="inside">
+                <div class="content-group" invisible="not module_account_avatax">
+                    <div class="text-muted">
+                        <p class="m-0">Use Avalara Included to create an account via this database with Odoo special pricing using credits via Odoo IAP.</p>
+                        <p class="m-0">Use Avalara Direct to connect an external account managed through the Avalara Portal.</p>
+                        <p><widget name="documentation_link" path="/applications/finance/accounting/taxes/avalara.html#available-integrations" label="Help me choose."/></p>
+                    </div>
+                    <div class="row mt16">
+                        <label string="Integration Method" for="avalara_connection_method" class="col-lg-5 o_light_label"/>
+                        <field name="avalara_connection_method" widget="radio" options="{'horizontal': true}"/>
+                    </div>
+                    <div class="row" invisible="avalara_connection_method == 'iap'">
+                        <label string="Environment" for="avalara_environment" class="col-lg-5 o_light_label"/>
+                        <field name="avalara_environment"/>
+                    </div>
+                    <div class="row" invisible="avalara_connection_method == 'iap' and not avalara_api_id">
+                        <label string="API ID" for="avalara_api_id" class="col-lg-5 o_light_label"/>
+                        <field name="avalara_api_id" readonly="avalara_connection_method == 'iap'"/>
+                    </div>
+                    <div class="row" invisible="avalara_connection_method != 'iap'" >
+                        <label string="Avatax Portal Email" for="avalara_account_email" class="col-lg-5 o_light_label"/>
+                        <field name="avalara_account_email"/>
+                    </div>
+                    <div class="row" invisible="avalara_connection_method == 'iap'">
+                        <label string="API KEY" for="avalara_api_key" class="col-lg-5 o_light_label" />
+                        <field name="avalara_api_key"/>
+                    </div>
+                    <div class="row" invisible="avalara_connection_method == 'iap'">
+                        <label string="Company Code" for="avalara_partner_code" class="col-lg-5 o_light_label" />
+                        <field name="avalara_partner_code"/>
+                    </div>
+                    <div class="mt16" invisible="(avalara_api_id and avalara_api_key) or avalara_connection_method == 'iap'">
+                        <a href="https://www.avalara.com/us/en/get-started.html" target="_new">
+                            <i class="oi me-2" data-icon="east"/>
+                            How to Get Credentials
+                        </a>
+                    </div>
+                    <div class="mt16" invisible="(not avalara_api_key and avalara_connection_method != 'iap') or not avalara_api_id">
+                        <a href="https://admin.avalara.com/" target="_new">
+                            <i title="Go to Avatax portal" role="img" aria-label="Go to Avatax portal" class="oi oi-fw" data-icon="open_in_new"/>
+                            Avatax portal
+                        </a>
+                        <button name="avatax_ping" type="object" noSaveDialog="1" string="Test connection" class="btn-link" icon="power" />
+                    </div>
+                    <div class="mt16" invisible="not (avalara_api_id and avalara_api_key and avalara_connection_method == 'manual') or avalara_iap_connected or avalara_environment == 'sandbox'">
+                        <button name="avatax_migrate_to_iap" type="object" noSaveDialog="1"
+                                string="Migrate to Avalara Included" class="btn-link" icon="power"
+                                confirm="This action will migrate your Avalara Direct account to an Avalara Included account. Please review the considerations for each integration via the link in settings. Do you still want to proceed?"
+                                confirm-title="Migrate to Avalara Included?" confirm-label="Yes, I'm sure" cancel-label="No, go back"
+                                />
+                        <div class="text-muted">
+                            Migrate your already created Avalara Direct account to Avalara Included
+                        </div>
+                    </div>
+                    <div class="mt16" invisible="avalara_iap_connected or avalara_api_id or avalara_connection_method == 'manual'">
+                        <button name="avatax_connect_to_iap" type="object" noSaveDialog="1"
+                                string="Connect to Avalara Included" class="btn-link" icon="power"
+                                confirm="This action will create an Avalara Included account linked to Odoo's master account. Please read and accept Avalara's terms and conditions before proceeding: https://legal.avalara.com/"
+                                confirm-title="Create an Account" confirm-label="I accept the terms and conditions" cancel-label="No, go back"
+                                />
+                        <div class="text-muted">
+                            Create an Avatax account linked to this database and Odoo IAP
+                        </div>
+                    </div>
+                    <div class="mt16">
+                        <div class="row" title="Use Universal Product Code instead of custom defined codes in Avalara.">
+                            <label string="Use UPC" for="avalara_use_upc" class="col-lg-5 o_light_label" />
+                            <field name="avalara_use_upc" class="w-50"/>
+                        </div>
+                        <div class="row" title="The transactions will be committed for reporting in Avatax." invisible="avalara_connection_method == 'iap'">
+                            <label string="Commit Transactions" for="avalara_commit" class="col-lg-5 o_light_label" />
+                            <field name="avalara_commit" class="w-50"/>
+                        </div>
+                        <div class="row" title="Validate and correct the addresses of partners in North America with Avalara.">
+                            <label string="Address Validation" for="avalara_address_validation" class="col-lg-5 o_light_label" />
+                            <field name="avalara_address_validation" class="w-50"/>
+                        </div>
+                        <div class="mt16">
+                            <button name="avatax_sync_company_params" type="object" noSaveDialog="1" string="Sync Parameters" class="btn-link" icon="refresh" />
+                            <div class="text-muted">
+                                Synchronize exemption codes, parameters, and units of measurement from Avatax
+                            </div>
+                        </div>
+                        <div class="mt16">
+                            <button name="avatax_log" type="object" noSaveDialog="1" string="Start logging for 30 minutes" class="btn-link" icon="article" />
+                            <button name="account_avatax.ir_logging_avalara_action" type="action" noSaveDialog="1" string="Show logs" class="btn-link" icon="article" />
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

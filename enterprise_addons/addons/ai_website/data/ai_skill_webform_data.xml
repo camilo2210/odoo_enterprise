@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_actions_server_get_webform_info" model="ir.actions.server">
+        <field name="name">AI Tool: Get Webform Info</field>
+        <field name="ai_tool_name">ai_tool_get_webform_info</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="model_id" ref="ai.model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Reading webform actions</field>
+        <field name="ai_tool_description">
+List the available webform actions (what a form submission does: send an
+email, create a record), or, with an action_key, describe one action: the
+data-model_name to set on the form and the model fields an input `name` can
+bind to, including which ones are required.
+Call it with the action_key BEFORE wiring a form to an action: never guess
+model names or field names.
+        </field>
+        <field name="ai_tool_schema">
+{
+    "type": "object",
+    "properties": {
+        "action_key": {
+            "type": "string",
+            "description": "Key of the form action to describe (e.g. 'send_mail'). Empty string lists all available actions."
+        }
+    },
+    "required": ["action_key"]
+}
+        </field>
+        <field name="code">ai['result'] = record._ai_tool_get_webform_info(action_key)</field>
+    </record>
+
+    <record id="ir_actions_server_set_webform_action" model="ir.actions.server">
+        <field name="name">AI Tool: Set Form Action</field>
+        <field name="ai_tool_name">ai_tool_set_webform_action</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="model_id" ref="ai.model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Wiring the form action</field>
+        <field name="ai_tool_description">
+Wire a form on the page to a form action, exactly like the editor's Action
+selector does: switches the form's model, renders the action's default fields,
+hidden defaults and success page, and/or sets hidden destination/preset field
+values. Returns the resulting form HTML, the form as it was before a switch
+(previous_form_html), and the action's destination fields with their candidate
+records so you can ask the user to choose.
+Call it after applying the form snippet and before adapting the fields. Never
+wire a form by hand (data-model_name or hidden dnone inputs).
+        </field>
+        <field name="ai_tool_schema">
+{
+    "type": "object",
+    "properties": {
+        "form_selector": {
+            "type": "string",
+            "description": "CSS selector matching the form (or its section) on the page"
+        },
+        "action_key": {
+            "type": "string",
+            "description": "Key of the form action to wire, from \"Get Webform Info\""
+        },
+        "fields": {
+            "type": "array",
+            "description": "Hidden destination/preset values to set, only ever values the user approved. Empty when only switching the action.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Model field name"
+                    },
+                    "value": {
+                        "type": "string",
+                        "description": "The value; for a relational field, the numeric id of the targeted record"
+                    }
+                },
+                "required": ["name", "value"]
+            }
+        }
+    },
+    "required": ["form_selector", "action_key", "fields"]
+}
+        </field>
+        <field name="code">ai['result'] = record._ai_tool_set_webform_action(action_key, form_selector, fields)</field>
+    </record>
+
+    <record id="ai_skill_webform" model="ai.skill">
+        <field name="name">Webforms</field>
+        <field name="description">
+        Rules and tools for website forms: 
+        Any form whose submission does any kind of a backend action.
+        Load BEFORE creating, editing, rewiring or removing any form on a page.
+        </field>
+        <field name="instructions">
+# Webforms
+A webform does a backend action on submission: it sends an email or creates a
+record. The action wired on the form decides WHICH. The "Get Webform Info" tool
+lists the available actions and, per action, the model fields a form input
+can bind to.
+
+## Building a form
+- ALWAYS start from one of the droppable form snippets fetched with "Get
+Snippets": "s_title_form" (title above a simple form, the default choice),
+"s_form_aside" (form beside contact info), "s_website_form_cover" (form
+over a cover image). Adapt it; NEVER compose a form's structure from
+scratch.
+- Flow for a new form: apply the adapted snippet, wire it with "Set Form
+Action", resolve the destinations with the user, then adapt the rendered
+fields (texts, styling, extra fields).
+- Keep the form's wiring exactly as rendered and change only texts, styling
+and the fields themselves: every field wrapper's classes, every `data-*`
+attribute, and the submit block (including the empty
+&lt;span id="s_website_form_result"/&gt; and the a.s_website_form_send
+button) must survive your edits.
+- NEVER write a `website_form_signature` input: it is managed automatically
+and anything you write there is removed.
+- In those snippets the &lt;section class="s_website_form"
+data-snippet="s_website_form" data-name="Form"&gt; is NESTED inside the
+snippet's own top-level section: KEEP that nesting. Never place a section
+carrying `s_website_form` directly at page level, and never merge its
+classes into your own section's root: nested, the user gets a clean
+separate "Form" panel in the editor; top-level or merged, the form options
+fuse with the section's. The nested form section's only content is the
+container holding the &lt;form&gt; (and the end message div); your titles,
+texts and images live in the wrapper section around it.
+
+## Wiring the action
+- NEVER wire a form by hand, no editing `data-model_name`, no hand-written
+hidden dnone inputs. Call "Set Form Action": it does exactly what the
+editor's Action selector does (renders the action's fields, hidden defaults
+and success page) and returns the resulting form HTML plus the action's
+destination fields.
+- Destinations are where submissions end up (the recipient address, the
+record new entries attach to, ...). EVERY destination field the tool
+returns must be resolved WITH the user before the form is done: present the
+candidates and any prefilled value as the recommended choice with the
+Ask User Question tool, then call "Set Form Action" again with the approved
+values in `fields`. A prefilled or default value is NOT a user choice: even
+when the tool result shows a destination already filled in, you must still
+ask. Never choose a destination yourself, never leave a required
+destination unset, and never invent a value.
+- In any form HTML you write, leave the recipient (`email_to`) value EMPTY.
+A recipient only ever comes from the user: ask (the company address from
+"Get Webform Info" is the choice to recommend), then set the approved
+address with "Set Form Action". Never write, guess or reuse an address the
+user did not give you in this conversation.
+- To aim the submission at a specific record beyond the listed destinations
+(any relational model field), pass it through `fields` the same way: find
+the record id with the retrieval tools and confirm with the user first.
+- An input whose `name` is a listed model field stores the answer in that
+database field. An input with any other name is a custom question: its
+wrapper div must carry the `s_website_form_custom` class and its `name` must
+equal its visible label text. Never invent model field names, and give
+every input a non-empty `name`.
+- Every field the action lists as REQUIRED must be present in the form
+(visible, or hidden with a value), or submissions fail.
+
+## Changing an existing form's action
+Switching re-renders the form's fields, exactly like the editor. The tool
+returns the form as it was in `previous_form_html`: rebuild from it every
+previous field that still makes sense: keep labels, types, required marks
+and conditional visibility; bind each to a matching field of the new model,
+otherwise keep it custom; skip what the new action's fields already cover.
+Tell the user what was carried over and what was dropped.
+
+## Understanding the request
+- "Add/create a (new/another) form" means a NEW section with a new form.
+NEVER modify, replace or remove an existing form unless the user asks about
+that specific form, even if it seems redundant or imperfect.
+- When editing an existing form, touch only that form, and only what the
+request needs.
+
+## Designing the fields
+A great form is a SHORT form: every field must earn its place. Ask exactly
+what the recipient needs to act on a submission, nothing more.
+- The fields rendered by "Set Form Action" are the BASE of the form. Some
+cannot be removed (the editor forbids it): repurpose them, label,
+placeholder and description are free text to fit the form's purpose; only
+the `name` is fixed. Before adding any field, check that no rendered field
+already collects that information: relabeling beats duplicating (e.g. a
+mandatory "Subject" can become "What do you need?", never add your own
+subject-like field next to it).
+- Prefer binding a listed model field over a custom question whenever one
+matches the information.
+- Pick the input type that matches the answer: a choice list when the
+answers form a small known set, date/number inputs for dates and amounts,
+one textarea for the single open message a form rarely needs more than.
+- Mark a field required only when a submission is unusable without it.
+- When the user asks for a simple or standard form, the action's rendered
+fields, possibly relabeled, are usually the whole form.
+
+## Success behavior
+`data-success-mode` on the form: "redirect" (with `data-success-page`, a
+local URL), "message", or "nothing". Unless the user asked for a redirect,
+prefer "message": create a div.s_website_form_end_message.d-none sibling
+right AFTER the form, with real content styled like its section, IN THE
+SAME apply call, it is what the visitor sees instead of the form after
+submitting, so a message-mode form without it (or with an empty one) shows
+nothing.
+
+## Field markup
+- EVERY field wrapper contains a &lt;label class="s_website_form_label"&gt;
+with a &lt;span class="s_website_form_label_content"&gt; inside, single
+checkboxes included: the caption goes in THAT label like any other field
+(the form-check div holds only the input). One field without it breaks the
+editing sidebar for the whole form.
+- Required field: `s_website_form_required` on the wrapper div, a
+&lt;span class="s_website_form_mark"&gt; after the label content span, and
+the `required` attribute on the input.
+- Field description: a &lt;span class="s_website_form_field_description
+small form-text text-muted"&gt; right after the input.
+- The wrapper div's `data-type` is the ORM field type, NEVER the HTML input
+type. Valid values: char, text, html,  email, tel, url, integer, float,
+monetary, date, datetime, binary, boolean, selection, many2one, one2many,
+many2many. A numeric input is `integer` or `float` (its &lt;input&gt; still
+uses type="number"), a file upload is `binary`.
+- Date and datetime fields: a TEXT input in a picker wrapper, NEVER a
+native date input (type="date", "datetime-local" or "time" crashes every
+submission): &lt;div class="s_website_form_date input-group date"&gt; (or
+s_website_form_datetime) containing &lt;input type="text"
+class="form-control datetimepicker-input s_website_form_input"&gt; and
+&lt;div class="input-group-text o_input_group_date_icon"&gt;&lt;i
+class="oi oi-filled" data-icon="calendar_today"/&gt;&lt;/div&gt;.
+- File upload fields: &lt;input type="file" class="form-control
+s_website_form_input" data-max-files-number="1" data-max-file-size="64"&gt;
+(number of files and megabytes). To restrict the allowed types, `accept`
+takes ONLY these values, comma-separated: image/*, application/pdf,
+application/*, video/*, audio/*, NEVER extension lists like ".pdf,.doc"
+(they make every upload fail); omit `accept` to allow any file.
+- Choice fields : use the builder's exact vocabulary and structure; never
+invent `data-type` values or plain Bootstrap markup:
+  - `data-type` on the wrapper div: "selection" = radio buttons,
+  "many2one" = dropdown, "one2many" = multiple checkboxes, "boolean" = a
+  single checkbox (its input has value="Yes"; its caption goes in the
+  field's s_website_form_label like any other field, NOT in an inline
+  label next to the checkbox).
+  - Radio/checkbox options live in &lt;div class="row s_col_no_resize
+  s_col_no_bgcolor s_website_form_multiple" data-name="FIELD_NAME"
+  data-display="horizontal"&gt;; each option is &lt;div class="radio
+  col-12"&gt; (or class "checkbox") holding &lt;div class="form-check"&gt;
+  with the &lt;input class="s_website_form_input form-check-input"&gt;
+  (same `name` for the whole group, `value` = the option, unique `id`) and
+  a &lt;label class="form-check-label s_website_form_check_label"&gt; for
+  that id with the option text.
+  - A dropdown is a single &lt;select class="form-select
+  s_website_form_input"&gt; with its &lt;option value="..."&gt; elements. A
+  "choose one" placeholder is the builder's own empty option, first and
+  preselected: &lt;option class="s_website_form_empty_option" value=""
+  selected="selected"&gt;Select an option...&lt;/option&gt;; NEVER a plain
+  valueless option, the builder offers it as a real choice and it submits
+  an empty value.
+  - BOUND choice fields (the input's `name` is a listed selection or
+  relational model field): every option/radio `value` must be, VERBATIM,
+  one of the keys listed by "Get Webform Info" (selection field) or the
+  targeted record's numeric id (relational field). Any other value makes
+  every submission fail. Only the visible option TEXT is free to rephrase.
+  Custom choice fields have no such constraint.
+- Conditional visibility (prefer it over custom JavaScript): on the wrapper
+div, class `s_website_form_field_hidden_if` + `data-visibility-dependency`
+(the controlling field's `name`), `data-visibility-comparator`, and
+`data-visibility-condition` when the comparator compares against a value.
+Comparators by controlling field type: select/radio/checkbox: `selected`,
+`!selected`, `contains`, `!contains`; text: `equal`, `!equal`, `contains`,
+`!contains`, `set`, `!set`; number: `equal`, `!equal`, `greater`, `less`,
+`greater or equal`, `less or equal`, `set`, `!set`; date/datetime:
+`dateEqual`, `date!equal`, `after`, `before`, `equal or after`,
+`equal or before`, `set`, `!set`; file: `fileSet`, `!fileSet`. The `set`,
+`!set`, `fileSet`, `!fileSet` comparators take no condition value.
+
+## Rules
+- A form's captcha protection is automatic: never add captcha markup and
+never mention captcha configuration to the user.
+- Custom JavaScript on a form must never remove or replace its submit
+machinery (the send button, the result span, the input names): decorate the
+form, don't rewire it.
+- Check the tool results after applying: fix what they report before telling
+the user the form is ready, and never claim an action works if wiring it
+failed.
+        </field>
+        <field name="tool_ids" eval="[(6, 0, [
+            ref('ir_actions_server_get_webform_info'),
+            ref('ir_actions_server_set_webform_action'),
+        ])]"/>
+    </record>
+
+    <record id="ai_agent_website_builder" model="ai.agent">
+        <field name="skill_ids" eval="[(4, ref('ai_skill_webform'))]"/>
+    </record>
+</odoo>

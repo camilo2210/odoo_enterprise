@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_actions_server_move_in_folder" model="ir.actions.server">
+        <field name="name">AI Tool: Move To Folder</field>
+        <field name="ai_tool_name">ai_tool_move_to_folder</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">ai['result'] = record._ai_action_move_in_folder(folder_id)</field>
+        <field name="model_id" ref="documents.model_documents_document"/>
+        <field name="ai_tool_description">Move the documents in the given folder id</field>
+        <field name="ai_tool_schema">
+        {
+            "properties": {
+                "folder_id": {
+                    "type": "integer",
+                    "description": "Id of the new folder."
+                }
+            },
+            "required": ["folder_id"],
+            "type": "object"
+        }
+        </field>
+    </record>
+
+    <record id="ir_actions_server_add_tags" model="ir.actions.server">
+        <field name="name">AI Tool: Add Tags</field>
+        <field name="ai_tool_name">ai_tool_add_tags</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">ai['result'] = record._ai_action_add_tags(tag_names)</field>
+        <field name="model_id" ref="documents.model_documents_document"/>
+        <field name="ai_tool_description">Add the tags on the document</field>
+        <field name="ai_tool_schema">
+        {
+            "properties": {
+                "tag_names": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Names of the tags to add"
+                }
+            },
+            "required": ["tag_names"],
+            "type": "object"
+        }
+        </field>
+    </record>
+
+     <record id="ir_actions_server_rename_file" model="ir.actions.server">
+        <field name="name">AI Tool: Rename File</field>
+        <field name="ai_tool_name">ai_tool_rename_file</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">ai['result'] = record._ai_action_rename_file(name)</field>
+        <field name="model_id" ref="documents.model_documents_document"/>
+        <field name="ai_tool_description">Rules:
+1. ORIGIN: APP (Odoo's apps, modules, models/Other), UP (User Upload), EM (Email), PE (Peppol). Use document messages to know document source.
+2. DATE: Date of document creation on our system (YYYYMMDD, if day missing, default to 01).
+3. SENDER: Creator name. Strip spaces/illegal chars (use CamelCase).
+4. DOCTYPE: VBL(VendorBill), INV(Invoice), CRN(CreditNote), TAX(Tax/FinReport), RCP(Receipt), CV(Resume), CON(Contract), IDV(ID/Visa), INS(Insurance), FIN(Fine), MISC(Other).       
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 60,
+                    "description": "new name"
+                }
+            },
+            "required": ["name"],
+            "type": "object"
+        }
+        </field>
+    </record>
+</odoo>

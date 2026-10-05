@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="account_move_filter_inherit_account_direct_debit" model="ir.ui.view">
+            <field name="name">account.move.filter.inherit.account_direct_debit</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_account_invoice_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="//filter[@name='out_refund']" position="after">
+                    <filter name="has_mandate"
+                            string="Has Mandate"
+                            domain="[('has_usable_mandate', '=', True)]"
+                            help="Invoices matching a valid Direct Debit Mandate"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="account_move_line_filter_inherit_account_direct_debit" model="ir.ui.view">
+            <field name="name">account.move.line.filter.inherit.account_direct_debit</field>
+            <field name="model">account.move.line</field>
+            <field name="inherit_id" ref="account.view_account_move_line_payment_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="//filter[@name='refunds']" position="after">
+                    <separator/>
+                    <filter name="has_mandate"
+                            string="With mandate"
+                            domain="[('move_id.has_usable_mandate', '=', True)]"
+                            help="Journal Items matching a valid Direct Debit Mandate"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

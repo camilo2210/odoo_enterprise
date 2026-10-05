@@ -1,0 +1,132 @@
+.o-mail-Message-content,
+.o_ai_livechat_message_content {
+    &:has(.o_ai_record_previews) {
+        .o_ai_preview_data {
+            display: none;
+        }
+    }
+}
+
+@mixin o-ai-preview-card-line-clamp($lines: 5) {
+    display: -webkit-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: $lines;
+}
+
+.o-mail-Message-content:has(.o_ai_preview_cards_wrapper) {
+    width: 100%;
+}
+
+.o_ai_preview_cards_wrapper {
+    @media (prefers-reduced-motion: no-preference) {
+        animation: o-ai-preview-cards-enter nth($transition-base, 2) nth($transition-base, 3) both;
+    }
+}
+
+.o_ai_preview_card_set_header {
+    margin: map-get($spacers, 2) 0 map-get($spacers, 1);
+    color: inherit;
+    font-size: $font-size-sm;
+    font-weight: inherit;
+}
+
+.o_ai_preview_cards {
+    --o-ai-preview-card-gap: #{map-get($spacers, 2)};
+    --o-ai-scroll-gutter: #{map-get($spacers, 2)};
+    --o-ai-card-basis-wide: calc((100% - var(--o-ai-preview-card-gap)) / 2);
+    --o-ai-card-basis-narrow: 90%;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: var(--o-ai-preview-card-gap);
+    margin-block: map-get($spacers, 2);
+    padding: map-get($spacers, 3);
+    overflow: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scroll-padding-inline: var(--o-ai-scroll-gutter);
+
+    @include media-breakpoint-down(lg) {
+        overflow-x: auto;
+        overflow-y: hidden;
+        overscroll-behavior-x: contain;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    & > .o_ai_preview_card {
+        flex: 0 0 var(--o-ai-card-basis, var(--o-ai-card-basis-wide));
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        scroll-snap-align: start;
+        scroll-margin-inline: var(--o-ai-scroll-gutter);
+        container-type: inline-size;
+
+        & > * {
+            flex: 1 1 auto;
+        }
+
+        &:hover {
+            cursor: pointer;
+        }
+
+        :is(h1, h2, h3, .h1, .h2, .h3, .card-title) {
+            @include font-size($h5-font-size);
+            @include o-ai-preview-card-line-clamp(2);
+            line-height: $headings-line-height;
+        }
+
+        .o_record_cover_container {
+            min-height: map-get($spacers, 5) * 4;
+        }
+    }
+}
+
+.o_ai_preview_cards_root {
+    --o-ai-fade-size: #{map-get($spacers, 3)};
+    --_fade-left: black;
+    --_fade-right: black;
+
+    &.o-ai-has-prev {
+        --_fade-left: transparent;
+    }
+
+    &.o-ai-has-next {
+        --_fade-right: transparent;
+    }
+
+    mask-image: linear-gradient(
+        to right,
+        var(--_fade-left) 0%,
+        black var(--o-ai-fade-size),
+        black calc(100% - var(--o-ai-fade-size)),
+        var(--_fade-right) 100%
+    );
+    -webkit-mask-image: linear-gradient(
+        to right,
+        var(--_fade-left) 0%,
+        black var(--o-ai-fade-size),
+        black calc(100% - var(--o-ai-fade-size)),
+        var(--_fade-right) 100%
+    );
+}
+
+.o_ai_carousel_btn {
+    aspect-ratio: 1;
+    width: map-get($spacers, 4);
+}
+
+@keyframes o-ai-preview-cards-enter {
+    from {
+        opacity: 0;
+        transform: translateY(map-get($spacers, 1));
+    }
+}

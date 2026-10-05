@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_agent_view_kanban" model="ir.ui.view">
+        <field name="name">ai.agent.kanban</field>
+        <field name="model">ai.agent</field>
+        <field name="arch" type="xml">
+            <kanban action="open_agent_chat"
+                    type="object"
+                    on_create="ai_agentic.ai_agent_action_create"
+                    sample="1"
+                    class="o_ai_agent_kanban o_ai_agent_kanban_main"
+                    default_order="sequence">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="subtitle"/>
+                <field name="image_128"/>
+                <field name="custom_skill_ids"/>
+                <field name="active"/>
+                <field name="is_system_agent"/>
+
+                <templates>
+                    <t t-name="menu" groups="base.group_system">
+                        <a role="menuitem" type="archive" class="dropdown-item" t-if="widget.editable and record.active.raw_value"><i class="oi me-1" role="img" data-icon="archive"/>Archive</a>
+                        <a role="menuitem" type="unarchive" class="dropdown-item" t-if="widget.editable and !record.active.raw_value"><i class="oi me-1" role="img" data-icon="unarchive"/>Unarchive</a>
+                        <t t-if="widget.deletable and !record.is_system_agent.raw_value">
+                            <a role="menuitem" type="delete" class="dropdown-item text-danger"><i class="oi me-1" role="img" data-icon="delete"/>Delete</a>
+                        </t>
+                    </t>
+                    <t t-name="card">
+                        <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                        <div class="d-flex">
+                            <aside>
+                                <field name="image_128" widget="image" alt="Agent" class="rounded"/>
+                            </aside>
+                            <main class="ms-2" style="padding-top: 10px;">
+                                <h4 style="margin-bottom: 2px;">
+                                    <field name="name"/>
+                                </h4>
+                            </main>
+                        </div>
+                        <div class="mt-1">
+                            <field name="subtitle" class="text-muted"/>
+                            <field name="custom_skill_ids" widget="many2many_tags" readonly="True" class="mt-2"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="ai_agent_action_create" model="ir.actions.server">
+        <field name="name">Create Agent</field>
+        <field name="model_id" ref="ai.model_ai_agent"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_create_agent()</field>
+    </record>
+
+    <record id="ai_agent_view_tree" model="ir.ui.view">
+        <field name="name">ai.agent.list</field>
+        <field name="model">ai.agent</field>
+        <field name="arch" type="xml">
+            <list string="Properties" js_class="ai_agent_list" action="open_agent_chat" type="object" edit="0">
+                <field name="avatar_128" widget="image" options="{'size': [24, 24], 'img_class': 'o_avatar rounded'}" width="30" nolabel="1"/>
+                <field name="name" string="Name"/>
+                <field name="subtitle"/>
+                <field name="custom_skill_ids" string="Skills" widget="many2many_tags"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="ai_agent_view_form" model="ir.ui.view">
+        <field name="name">ai.agent.form</field>
+        <field name="model">ai.agent</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="active" invisible="1"/> <!-- used by the agent panel menu -->
+                    <field name="is_system_agent" invisible="1"/> <!-- used by the agent panel menu -->
+                    <field name="image_128" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. SDR Advisor"/></h1>
+                        <field name="subtitle" placeholder="e.g. Get tips to close more sales"/>
+                    </div>
+                    <notebook>
+                        <page string="Instructions">
+                            <field name="system_prompt"/>
+                            <field name="system_prompt_rendered" invisible="1"/> <!-- displayed by the agent panel instead of the raw Markdown -->
+                        </page>
+                        <page string="Skills">
+                            <group string="Tools">
+                                <field name="allowed_agent_ids" widget="many2many_tags"/>
+                                <field
+                                    name="skill_ids"
+                                    widget="many2many_checkboxes"
+                                    domain="[('is_native_skill', '=', True)]"
+                                    nolabel="1"
+                                />
+                            </group>
+                            <field
+                                name="custom_skill_ids"
+                                widget="ai_agent_panel_skill_x2many"
+                                mode="list"
+                                domain="[('is_native_skill', '=', False)]"
+                            >
+                                <list create="1" edit="1" delete="1" limit="20">
+                                    <field name="name"/>
+                                </list>
+                            </field>
+                            <field
+                                name="allowed_agent_ids"
+                                widget="ai_agent_panel_agent_x2many"
+                                mode="list"
+                                domain="[('id', '!=', id)]"
+                            >
+                                <list create="1" edit="1" delete="1" limit="20">
+                                    <field name="id"/>  <!-- To retrieve the avatar source URL-->
+                                    <field name="name"/>
+                                    <field name="subtitle"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Sources">
+                            <group>
+                                <field name="restrict_to_sources"/>
+                            </group>
+                            <field
+                                name="sources_ids"
+                                widget="ai_agent_panel_source_x2many"
+                                mode="list"
+                            >
+                                <list create="1" edit="0" delete="1">
+                                    <field name="name"/>
+                                    <field name="type"/>
+                                    <field name="mimetype"/>
+                                    <field name="is_folder"/>
+                                    <field name="file_sources_count"/>
+                                    <field name="is_active"/>
+                                    <field name="status"/>
+                                    <field name="error_details"/>
+                                    <field name="user_has_access"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Triggers">
+                            <field
+                                name="automation_ids"
+                                widget="ai_agent_panel_trigger_x2many"
+                                mode="list"
+                                readonly="1"
+                            >
+                                <list create="0" edit="0" delete="0" limit="20">
+                                    <field name="id" invisible="1"/> <!-- used by the view widget to perform ORM operations on the automation -->
+                                    <field name="model_name" invisible="1"/> <!-- used by the view widget to conditionally render parts of the component (the "Run" button) -->
+                                    <field name="name"/>
+                                    <field name="active"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="ai_agent_view_search" model="ir.ui.view">
+        <field name="name">ai.agent.search</field>
+        <field name="model">ai.agent</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="Agent" filter_domain="['|', ('name','ilike',self), ('subtitle','ilike',self)]"/>
+                <field name="system_prompt"/>
+                <field name="sources_ids"
+                       string="Sources"
+                       filter_domain="[
+                       '|', '|',
+                       ('sources_ids.name','ilike',self),
+                       ('sources_ids.attachment_id.name','ilike',self),
+                       ('sources_ids.web_page_id.url','ilike',self)]"/>
+                <filter name="filter_is_archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="ai_agent_action" model="ir.actions.act_window">
+        <field name="name">Agents</field>
+        <field name="res_model">ai.agent</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="ai_agent_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first Agent!
+            </p>
+            <p>
+                Agents help you manage and organize your AI operations.
+            </p>
+        </field>
+    </record>
+
+    <record id="ai_tool_view_search" model="ir.ui.view">
+        <field name="name">ir.actions.server.ai.tool.search</field>
+        <field name="model">ir.actions.server</field>
+        <field name="inherit_id" ref="base.view_server_action_search"/>
+        <field name="arch" type="xml">
+            <search>
+                <filter string="Use in AI is set" name="ai_tools" domain="[('use_in_ai', '=', True)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="ai_tool_action" model="ir.actions.act_window">
+        <field name="name">Tools</field>
+        <field name="res_model">ir.actions.server</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="base.view_server_action_tree" />
+        <field name="search_view_id" ref="ai_tool_view_search" />
+        <field name="context">{
+            'default_use_in_ai': True,
+            'allow_use_in_ai_edit': True,
+            'search_default_ai_tools': 1,
+            }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Tools found!
+            </p>
+            <p>
+                Tools are the specific actions an AI agent can take in your database (like 
+                generating an image or updating a record) when called by an Agent.
+            </p>
+        </field>
+    </record>
+</odoo>

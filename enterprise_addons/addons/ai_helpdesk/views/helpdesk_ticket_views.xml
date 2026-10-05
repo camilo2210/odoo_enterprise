@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="helpdesk_ticket_view_form" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.form</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_ticket_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_button_box')]/button[@name='action_open_helpdesk_ticket']" position="before">
+                <button name="action_open_similar_tickets" type="object" class="oe_stat_button" icon="content_copy" invisible="not id or not use_ai or embedding_status == 'processing' or similar_tickets_count == 0">
+                    <div class="o_field_widget o_stat_info">
+                        <div class="d-flex align-items-baseline gap-1">
+                            <span class="o_stat_value order-1">
+                                <field name="similar_tickets_count" nolabel="1"/>
+                            </span>
+                            <span class="o_stat_text order-2">Similar</span>
+                        </div>
+                        <div class="d-flex align-items-baseline gap-1">
+                            <span class="o_stat_value">
+                                <field name="similar_closed_tickets_count" nolabel="1"/>
+                            </span>
+                            <span class="o_stat_text order-2">Closed</span>
+                        </div>
+                    </div>
+                </button>
+                <button name="action_refresh_similarity_status" type="object" class="oe_stat_button" icon="content_copy" invisible="not id or not use_ai or embedding_status != 'processing'">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_text">Searching...</span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_recompute_ticket_embeddings" model="ir.actions.server">
+        <field name="name">Look for similar tickets</field>
+        <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+        <field name="binding_model_id" ref="helpdesk.model_helpdesk_ticket"/>
+        <field name="binding_view_types">form</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_recompute_ticket_embeddings()</field>
+    </record>
+</odoo>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="audit_report_front_cover">
+        <t t-call="web.report_layout">
+            <t t-call="web.external_layout">
+                <div class="o-audit-report">
+                    <div class="o-cover">
+                        <h1 t-out="audit_report.title"/>
+                        <p>Fiscal period from <t t-out="format_date(audit_report.start_date)"/> to <t t-out="format_date(audit_report.end_date)"/></p>
+                        <hr/>
+                        <p t-out="audit_report.company_id.name"/>
+                        <t t-if="audit_report.company_id.vat">
+                            <p><t t-out="audit_report.company_id.partner_id.vat_label"/>: <t t-out="audit_report.company_id.vat"/></p>
+                        </t>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <template id="audit_report_table_of_content">
+        <t t-call="web.report_layout">
+            <t t-call="web.external_layout">
+                <div class="o-audit-report">
+                    <div class="o-toc">
+                        <h1>Table of content</h1>
+                        <t t-set="primary_color" t-value="audit_report.company_id.primary_color"/>
+                        <t t-foreach="headings" t-as="heading">
+                            <a t-attf-class="o-toc-h#{heading['depth'] + 1}"
+                               t-attf-style="#{('background: ' + lighten_color(primary_color, 0.8)) if (primary_color and heading['depth'] == 0) else ''}"
+                               href="http://odoo.com">
+                                <div class="o-toc-title" t-out="heading['outline']['/Title']"/>
+                                <div t-out="heading['outline']['/Page'] + 1 + heading['page_offset_in_body'] + offset"/>
+                            </a>
+                        </t>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <template id="audit_report_page_layout">
+        <t t-call="web.report_layout">
+            <t t-call="web.external_layout">
+                <div class="o-audit-report" t-out="body"/>
+            </t>
+        </t>
+    </template>
+
+    <template id="audit_report_title_page">
+        <t t-call="web.report_layout">
+            <t t-call="web.external_layout">
+                <div class="o-audit-report">
+                    <div style="height: 350px"/>
+                    <h1 t-out="title"/>
+                    <t t-set="secondary_color" t-value="audit_report.company_id.secondary_color"/>
+                    <hr t-attf-style="#{('background: ' + secondary_color + '; border-color: ' + secondary_color) if secondary_color else ''}"/>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <template id="audit_report_empty_document">
+        &lt;!DOCTYPE html&gt;
+        <html>
+            <head>
+                <meta charset="UTF-8"/>
+            </head>
+            <body>
+                <t t-foreach="range(number_of_pages)" t-as="k">
+                    <div style="page-break-before: always;">&#160;</div>
+                </t>
+            </body>
+        </html>
+    </template>
+
+    <template id="audit_report_footer">
+        &lt;!DOCTYPE html&gt;
+        <html>
+            <head>
+                <meta charset="UTF-8"/>
+                <style>
+                    body {
+                        margin: 0;
+                        font-size: 12px;
+                    }
+                    .o-footer {
+                        text-align: right;
+                        padding-top: 16px;
+                        padding-bottom: 16px;
+                    }
+                    .o-footer.o_css_margins {
+                        padding-left: 11mm;
+                        padding-right: 11mm;
+                    }
+                    .o-footer .o-pill {
+                        padding: 4px 6px;
+                        border-radius: 8px;
+                    }
+                </style>
+                <script>
+                    function subst() {
+                        var urlParams = document.location.search.substring(1).split('&amp;');
+                        urlParams.forEach(function (urlParam) {
+                            var parts = urlParam.split('=', 2);
+                            if (parts[0] === 'page' || parts[0] === 'topage') {
+                                var elements = document.querySelectorAll('.' + parts[0]);
+                                for (var k = 0; k &lt; elements.length; k++) {
+                                    elements[k].textContent = decodeURI(parts[1]);
+                                }
+                            }
+                        });
+                    }
+                </script>
+            </head>
+            <body onload="subst()">
+                <div t-attf-class="o-footer #{'o_css_margins' if audit_report.company_id.paperformat_id.css_margins else ''}"
+                    t-attf-style="font-family: #{audit_report.company_id.font}">
+                    <t t-set="primary_color" t-value="audit_report.company_id.primary_color"/>
+                    <span class="o-pill" t-attf-style="#{('background: ' + lighten_color(primary_color, 0.8)) if primary_color else ''}">
+                        <span class="page"></span> / <span class="topage"></span>
+                    </span>
+                </div>
+            </body>
+        </html>
+    </template>
+</odoo>

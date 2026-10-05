@@ -1,0 +1,246 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+        <record id="account_return_kanban_view" model="ir.ui.view">
+            <field name="name">account.return.kanban</field>
+            <field name="model">account.return</field>
+            <field name="arch" type="xml">
+                <kanban js_class="account_return_kanban" on_create="account_reports.action_create_account_return" options="{'allowed_categories': ['account_return']}">
+                    <field name="state"/>
+                    <field name="check_ids"/>
+                    <field name="is_completed"/>
+                    <field name="type_external_id"/>
+                    <field name="report_opened_once"/>
+                    <field name="is_report_set"/>
+                    <field name="has_move_entries"/>
+                    <field name="is_main_company_active"/>
+                    <field name="show_companies"/>
+                    <field name="show_amount_to_pay"/>
+                    <field name="date_submission"/>
+                    <field name="days_to_deadline"/>
+                    <field name="return_type_category"/>
+                    <field name="manually_created"/>
+                    <field name="visible_states"/>
+                    <field name="is_tax_return"/>
+                    <field name="is_ec_sales_list_return"/>
+                    <field name="active" invisible="1"/>
+                    <field name="next_state"/>
+                    <field name="show_submit_button"/>
+
+                    <t t-name="card" class="mt-0 border-0 border-bottom px-0">
+                        <t t-set="in_checks_view" t-value="context.in_checks_view"/>
+                        <t t-set="in_kanban_list_view" t-value="!in_checks_view"/>
+
+                        <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="not context.get('in_checks_view') or active"/>
+                        <div class="alert alert-warning text-center" role="alert" invisible="not context.get('in_checks_view') or not show_companies_mismatch_warning">
+                            Your active companies do not match this return's companies. The results shown for the checks might be incomplete.
+                        </div>
+                        <div class="o_account_return_padding position-relative grid g-2 py-1 w-100">
+                            <div class="o_account_return_title d-flex align-items-center flex-wrap column-gap-2">
+                                <div class="d-flex flex-wrap gap-1">
+                                    <field class="fw-bold" name="name"/>
+                                    <div t-if="in_kanban_list_view and record.unresolved_check_count.raw_value" class="text-nowrap text-danger">
+                                        <field class="fw-bolder" name="unresolved_check_count"/> Pending
+                                    </div>
+                                    <div t-if="in_kanban_list_view and !record.unresolved_check_count.raw_value and record.resolved_check_count.raw_value" class="text-nowrap ps-2 text-success">
+                                        <field class="fw-bolder" name="resolved_check_count"/> Passed
+                                    </div>
+                                </div>
+                                <div id="date_wrapper" class="o_field_widget" invisible="return_type_category == 'audit'">
+                                    <t t-if="!record.date_submission.raw_value">
+                                        <span t-attf-class="badge rounded-pill {{
+                                            record.is_completed.raw_value ? 'text-bg-success' :
+                                            record.days_to_deadline.raw_value &lt; 0 ? 'text-bg-danger' :
+                                            record.days_to_deadline.raw_value &lt;= 7 ? 'text-bg-warning' :
+                                            'text-bg-secondary'
+                                        }}" t-att-title="record.date_deadline.value">
+                                            <field class="smaller" name="date_deadline"/>
+                                        </span>
+                                    </t>
+                                    <t t-else="">
+                                        <span class="oe_stat_text text-black-50">Submitted on </span><field class="text-black-50" name="date_submission"/>
+                                    </t>
+                                </div>
+                                <field name="company_ids" widget="many2many_tags" invisible="not show_companies" class="pt-1"/>
+                            </div>
+
+                            <div id="account_tax_return_amount" class="account_tax_return_amount d-flex align-items-center justify-content-lg-center" t-if="record.return_type_category.raw_value != 'audit' and record.show_amount_to_pay.raw_value">
+                                <field name="amount_to_pay_currency_id" invisible="1"/>
+                                <div id="return_amount_to_pay" invisible="not show_amount_to_pay or not is_main_company_active">
+                                    <div class="o_account_return_amount o_field_widget small fw-bold">
+                                        <field name="period_amount_to_pay"/>
+                                    </div>
+                                    <span t-if="in_kanban_list_view and record.total_amount_to_pay.raw_value !== record.period_amount_to_pay.raw_value"
+                                          class="oe_stat_text text-muted smaller fw-bold">
+                                            Balance <field name="total_amount_to_pay"/>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- States bar -->
+                            <div class="o_account_return_state align-items-center grid gap-0"
+                                 t-attf-style="--state-count: #{record.visible_states.raw_value.length};">
+                                <t t-foreach="record.visible_states.raw_value" t-as="state" t-key="state.name">
+                                    <div class="state-container position-relative d-flex gap-2 flex-column align-items-center" t-att-class="{'active': state.active}">
+                                        <div class="state-bubble rounded-circle z-1" t-attf-class="bg-#{state.alert_type}" t-att-title="state.error_msg"/>
+                                        <span class="state-label smaller text-nowrap text-truncate px-1" t-out="state.label"/>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="o_account_return_buttons d-flex flex-wrap justify-content-end align-items-center gap-1">
+                                <field name="activity_ids" invisible="context.get('in_checks_view')" widget="kanban_activity" class="ms-1"/>
+
+                                <button type="object" name="action_open_attachments" invisible="context.get('in_checks_view') or message_attachment_count &lt;= 0 or not is_main_company_active">
+                                    <i class="oi oi-lg" data-icon="attach_file" title="Open Attachments"/>
+                                    <sup><field name="message_attachment_count"/></sup>
+                                </button>
+
+                                <t t-if="record.is_report_set.raw_value">
+                                    <button
+                                        type="object"
+                                        name="action_open_report"
+                                        t-attf-class="btn #{in_kanban_list_view ? 'btn-sm' : ''} text-nowrap text-truncate btn-#{record.show_submit_button.raw_value and !record.report_opened_once.raw_value? 'primary': 'secondary'}"
+                                        string="Preview"
+                                    />
+                                </t>
+
+                                <t t-if="record.is_main_company_active.raw_value and !record.is_completed.raw_value" id="default_buttons">
+                                    <t t-if="record.next_state.raw_value == 'reviewed' and record.unresolved_check_count.raw_value">
+                                        <t t-if="in_kanban_list_view">
+                                            <button class="btn btn-primary btn-sm text-nowrap text-truncate" type="object" name="action_open_account_return">Review</button>
+                                        </t>
+                                        <t t-else="">
+                                            <button class="btn btn-primary text-nowrap text-truncate" type="object" name="action_validate" invisible="not active">Validate</button>
+                                        </t>
+                                    </t>
+                                    <t t-elif="record.show_submit_button.raw_value">
+                                        <button
+                                            type="object"
+                                            name="action_submit"
+                                            t-attf-class="btn #{in_kanban_list_view ? 'btn-sm' : ''} text-nowrap text-truncate btn-#{(!record.is_report_set.raw_value or record.report_opened_once.raw_value)? 'primary': 'secondary'}"
+                                            invisible="not active"
+                                        >
+                                            <!-- so it can be targeted -->
+                                            <span>Submit</span>
+                                        </button>
+                                    </t>
+                                    <t t-elif="record.next_state.raw_value == 'paid'">
+                                        <button t-attf-class="btn btn-primary text-nowrap text-truncate #{in_kanban_list_view ? 'btn-sm' : ''}" type="object" name="action_pay">Pay</button>
+                                    </t>
+                                </t>
+
+                                <div class="dropdown show" invisible="not is_main_company_active">
+                                    <button class="btn border-0" type="button" data-bs-toggle="dropdown">
+                                        <i class="oi" data-icon="more_vert" title="Dropdown Menu"/>
+                                    </button>
+
+                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" role="menu">
+                                        <a invisible="is_completed or not active" class="dropdown-item" type="object" name="action_mark_completed" string="Mark as Completed"/>
+                                        <a invisible="not has_move_entries or state not in ('reviewed', 'submitted', 'paid')" class="dropdown-item" type="object" name="action_view_entry" string="View Entry"/>
+                                        <a invisible="context.get('in_checks_view') or not active or state or is_completed" class="dropdown-item" type="object" name="action_archive" string="Archive"/>
+                                        <a invisible="active" class="dropdown-item" type="object" name="action_unarchive" string="Unarchive"/>
+                                        <a invisible="context.get('in_checks_view') or not (manually_created and not state)" class="dropdown-item" type="delete" name="action_delete" groups="account.group_account_user">Delete</a>
+
+                                        <!-- Reset should be last-->
+                                        <t t-if="record.state.raw_value or record.is_completed.raw_value">
+                                            <a t-if="record.is_tax_return.raw_value" class="dropdown-item" type="object" name="action_reset_tax_return_common" string="Reset"/>
+                                            <a t-if="record.is_ec_sales_list_return.raw_value" class="dropdown-item" type="object" name="action_reset_2_states" string="Reset"/>
+                                            <a t-if="record.return_type_category.raw_value == 'audit'" class="dropdown-item" type="object" name="action_reset_custom_return" string="Reset"/>
+                                            <a t-if="record.type_external_id.raw_value == 'account_reports.annual_corporate_tax_return_type'" class="dropdown-item" type="object" name="action_reset_annual_closing" string="Reset"/>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="account_return_calendar_view" model="ir.ui.view">
+            <field name="name">account.return.calendar</field>
+            <field name="model">account.return</field>
+            <field name="arch" type="xml">
+                <calendar
+                    js_class="account_return_calendar"
+                    string="Tax Return"
+                    create="False"
+                    edit="False"
+                    delete="False"
+                    date_start="date_deadline"
+                    mode="year"
+                    quick_create="0"
+                    color="type_id">
+                    <field name="name"/>
+                    <field name="type_id" filters="1"/>
+                </calendar>
+            </field>
+        </record>
+
+        <record id="account_return_search_view" model="ir.ui.view">
+            <field name="name">account.return</field>
+            <field name="model">account.return</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="date_to"/>
+                    <field name="date_from"/>
+                    <field name="date_deadline"/>
+                    <field name="type_id"/>
+                    <field name="state"/>
+                    <field name="date_submission"/>
+                    <filter name="todo_returns" string="To Do" domain="[('is_completed', '=', False), ('date_to', '&lt;', 'today')]"/>
+                    <filter name="done_returns" string="Done" domain="[('is_completed', '=', True)]"/>
+                    <separator/>
+                    <filter name="date_deadline_filter" string="Deadline" date="date_deadline"/>
+                    <separator/>
+                    <filter name="filter_archived" string="Archived" domain="[('active', '=', False)]"/>
+                    <filter name="groupby_date_to" string="Date" context="{'group_by': 'date_to:month'}"/>
+                    <filter name="groupby_type_id" string="Return Type" context="{'group_by': 'type_id'}"/>
+                    <separator/>
+                    <filter invisible="1" string="Return type" name="filter_report_id" domain="[('type_id.report_id.id', '=', context.get('filter_report_id'))]"/>
+                    <separator/>
+                    <filter invisible="1" string="My Activities" name="filter_activities_my" domain="[('activity_user_id', '=', uid)]"/>
+                    <separator invisible="1"/>
+                    <filter invisible="1" string="Late Activities" name="activities_overdue" domain="[('my_activity_date_deadline', '&lt;', 'today')]" help="Show all records whose next activity date is past"/>
+                    <filter invisible="1" string="Today Activities" name="activities_today" domain="[('my_activity_date_deadline', '=', 'today')]"/>
+                    <filter invisible="1" string="Future Activities" name="activities_upcoming_all" domain="[('my_activity_date_deadline', '&gt;', 'today')]"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_server_open_view_account_return" model="ir.actions.server">
+            <field name="name">Open Tax Return</field>
+            <field name="model_id" ref="model_account_return"/>
+            <field name="state">code</field>
+            <field name="code">action = model.action_open_tax_return_view()</field>
+        </record>
+
+        <record id="action_view_account_return" model="ir.actions.act_window">
+            <field name="name">Tax Returns</field>
+            <field name="res_model">account.return</field>
+            <field name="view_mode">kanban,calendar,search</field>
+            <field name="domain">[('return_type_category', '=', 'account_return')]</field>
+            <field name="path">tax-return</field>
+            <field name="view_id" ref="account_reports.account_return_kanban_view"/>
+            <field name="search_view_id" ref="account_reports.account_return_search_view"/>
+            <field name="context">{'search_default_groupby_date_to': 1, 'search_default_todo_returns': 1, 'max_number_opened_groups': 100000}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">No tax return to do!</p>
+                <p>Time to relax 🌴</p>
+            </field>
+        </record>
+
+        <record id="action_create_account_return" model="ir.actions.act_window">
+            <field name="name">Generate Return</field>
+            <field name="res_model">account.return.creation.wizard</field>
+            <field name="view_id" ref="account_reports.return_creation_wizard_form"/>
+            <field name="target">new</field>
+            <field name="context">{'open_account_return_on_save': True}</field>
+        </record>
+
+        <menuitem id="menu_action_account_return" parent="account.account_closing_menu" action="action_server_open_view_account_return" name="Tax Returns" sequence="67"/>
+    </data>
+</odoo>

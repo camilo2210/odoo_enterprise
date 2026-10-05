@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+<t t-inherit="mail.MessagingMenu" t-inherit-mode="extension">
+    <xpath expr="//DiscussSearch" position="after">
+        <Dropdown t-if="this.showAgentFilterDropdown">
+            <button class="btn btn-outline-secondary ms-1 flex-shrink-0 position-relative" aria-label="Filters" title="Filters">
+                <i class="oi oi-filled" data-icon="filter_alt" role="img"/>
+                <span t-if="this.isAgentFilterActive" class="position-absolute top-0 start-100 translate-middle p-1 rounded-circle bg-success">
+                    <span class="visually-hidden">filters active</span>
+                </span>
+            </button>
+            <t t-set-slot="content">
+                <CheckboxItem
+                    class="{ 'border-bottom mb-2': true, selected: !this.isAgentFilterActive }"
+                    checked="!this.isAgentFilterActive"
+                    onSelected="() => this.selectAgentFilter(undefined)"
+                >My Recent Chats</CheckboxItem>
+                <t t-foreach="this.chatAgents" t-as="agent" t-key="agent.id">
+                    <CheckboxItem
+                        class="{ selected: this.isAgentSelected(agent) }"
+                        checked="this.isAgentSelected(agent)"
+                        onSelected="() => this.selectAgentFilter(agent)"
+                    >
+                        <span class="d-flex align-items-center gap-2">
+                            <DiscussAvatar record="agent.partner_id" size="20"/>
+                            <span class="text-truncate" t-out="agent.name"/>
+                        </span>
+                    </CheckboxItem>
+                </t>
+            </t>
+        </Dropdown>
+    </xpath>
+</t>
+
+</templates>

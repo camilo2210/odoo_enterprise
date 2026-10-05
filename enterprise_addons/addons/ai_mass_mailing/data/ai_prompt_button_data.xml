@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="ai_prompt_optout_reason" model="ai.prompt.button">
+            <field name="name">Top reason for which people opt-out from lists</field>
+            <field name="prompt">
+Look at the records of the mailing subscription (model_name:  mailing.subscription). Group them by the opt out reason (field_name: opt_out_reason_id).
+Ignore the "Not specified" or False values, those people did not provide feedback.
+Answer with the top 3 reasons for which people unsubscribe. The answer should be a numbered list with the total for each reason between parenthesis.
+Example:
+1. I'm not interested (64)
+2. I receive too many emails (52)
+3. I changed my mind (17)
+After this list, offer to help me reduce it by giving me marketing techniques.
+Don't mention the model_name or field_name or any record ids in the response.
+            </field>
+        </record>
+
+        <record id="ai.ai_systray_action" model="ai.composer">
+            <field name="available_prompt_ids" eval="[
+                (4, ref('ai_mass_mailing.ai_prompt_optout_reason')),
+            ]"/>
+        </record>
+    </data>
+</odoo>

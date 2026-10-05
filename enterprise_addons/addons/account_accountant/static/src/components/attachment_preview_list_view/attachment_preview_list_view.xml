@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates xml:space="preserve">
+    <t t-name="account_accountant.AttachmentPreviewListView" t-inherit="web.ListView">
+        <xpath expr="//div[@t-ref='this.rootRef']" position="attributes" type="add">
+            <attribute name="class" add="o_move_line_list_view" separator=" "/>
+        </xpath>
+        <xpath expr="//t[@t-component='this.props.Renderer']" position="attributes">
+            <attribute name="setSelectedRecord.bind">this.setSelectedRecord</attribute>
+        </xpath>
+        <xpath expr="//Layout" position="inside">
+            <t t-call="account_accountant.AttachmentPreview"/>
+        </xpath>
+    </t>
+
+    <t t-name="account_accountant.AttachmentPreview">
+        <div t-if="this.previewEnabled" class="o_attachment_preview d-print-none" t-att-class="{'hidden': !this.attachmentPreviewState.displayAttachment}">
+            <t t-if="this.attachmentPreviewState.displayAttachment">
+                <t t-if="this.attachmentPreviewState.thread and this.attachmentPreviewState.thread.attachmentsInWebClientView.length > 0">
+                    <AccountAttachmentView thread="this.thread" openInPopout="false" setPopout.bind="this.setPopout"/>
+                </t>
+                <t t-elif="!this.attachmentPreviewState.selectedRecord">
+                    <p class="text-center">Choose a line to preview its attachments.</p>
+                </t>
+                <t t-else="">
+                    <p class="text-center">No attachments linked.</p>
+                </t>
+            </t>
+            <div class="o_attachment_control toggle d-none d-md-block ms-n3" t-on-click="this.togglePreview"/>
+        </div>
+        <t t-else="">
+            <div class="o_popout_icon d-none d-md-block" t-on-click="() => this.setPopout(true)">
+                <i class="oi" data-icon="fullscreen_exit" title="Open attachment in pop out"/>
+            </div>
+            <t t-if="this.popout.active">
+                <div class="o_attachment_preview d-print-none"
+                     t-if="this.attachmentPreviewState.thread?.attachmentsInWebClientView.length"
+                >
+                    <AccountAttachmentView thread="this.thread" openInPopout="true" setPopout.bind="this.setPopout"/>
+                </div>
+            </t>
+        </t>
+    </t>
+</templates>

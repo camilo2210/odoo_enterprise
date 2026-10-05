@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="ai_agentic.AiAgentSourceRow">
+        <t t-set="record" t-value="this.record"/>
+        <div>
+            <div
+                t-attf-class="o_ai_agent_panel_list_row d-flex align-items-center gap-2 w-100 {{ this.props.isNested ? 'o_ai_agent_panel_list_row_nested py-1 px-2 small' : 'p-2 border rounded-4 bg-body' }}"
+            >
+                <button
+                    class="btn btn-link text-start text-reset text-decoration-none min-w-0 flex-grow-1 p-0"
+                    type="button"
+                    t-att-class="{ 'cursor-pointer': this.canOpenSource(), 'opacity-50': !record.data.is_active }"
+                    t-on-click="() => this.onClickSource()"
+                >
+                    <span class="d-flex align-items-center gap-2 min-w-0">
+                        <i
+                            t-if="record.data.is_folder"
+                            class="oi opacity-75" t-att-data-icon="this.isUnfolded ? 'arrow_drop_down' : 'arrow_right'"
+                        />
+                        <t t-set="icon" t-value="this.sourceIconConfig()"/>
+                        <i t-if="icon.type === 'icon'" class="oi ms-1" t-att-data-icon="icon.icon" t-att-title="icon.title"/>
+                        <i t-elif="icon.type === 'mimetype'" class="o_image o_icon_preview" t-att-data-mimetype="icon.dataMimetype" t-att-title="icon.title"/>
+                        <img t-elif="icon.type === 'image'" class="o_icon_preview" t-att-src="icon.src" t-att-alt="icon.title" t-att-title="icon.title"/>
+                        <span class="min-w-0">
+                            <span class="text-900 fw-medium d-block text-truncate" t-att-title="record.data.name" t-out="record.data.name"/>
+                            <span
+                                t-if="this.sourcesCountLabel()"
+                                class="d-inline-flex align-items-center px-2 py-0 small rounded-pill border bg-light ms-1"
+                            >
+                                <span class="fw-bold" t-out="this.sourcesCountLabel()"/>
+                            </span>
+                        </span>
+                    </span>
+                </button>
+                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                    <span
+                        t-if="record.data.status"
+                        t-attf-class="badge rounded-pill {{ this.statusBadgeClass() }}"
+                        t-att-data-tooltip="this.statusErrorTooltip()"
+                    >
+                        <t t-out="record.data.status"/>
+                    </span>
+                    <Dropdown
+                        t-if="this.sourcesFolderTree.canManageSources()"
+                        menuClass="'o_ai_agent_panel_list_row_menu'"
+                        position="'bottom-end'"
+                    >
+                        <button class="btn btn-sm o-no-caret px-1" title="Dropdown menu">
+                            <span class="oi" data-icon="more_vert"/>
+                        </button>
+                        <t t-set-slot="content">
+                            <DropdownItem
+                                t-if="this.canRetryOrReprocess()"
+                                onSelected="() => this.onClickRetryOrReprocess()"
+                            >
+                                <i class="oi oi-fw me-2" data-icon="refresh"/>
+                                <t t-out="this.retryOrReprocessLabel()"/>
+                            </DropdownItem>
+                            <DropdownItem
+                                t-if="this.canToggleActive()"
+                                onSelected="() => this.onClickToggleActive()"
+                            >
+                                <i class="oi oi-fw me-2" data-icon="block"/>
+                                <t t-out="this.toggleActiveLabel()"/>
+                            </DropdownItem>
+                            <DropdownItem
+                                class="'text-danger'"
+                                onSelected="() => this.onClickRemoveSource()"
+                            >
+                                <i class="oi oi-fw oi-filled me-2" data-icon="delete"/>Remove
+                            </DropdownItem>
+                        </t>
+                    </Dropdown>
+                </div>
+            </div>
+            <div
+                t-if="record.data.is_folder and this.isUnfolded"
+                class="ps-4 d-flex flex-column gap-2 mt-2"
+            >
+                <t t-foreach="this.childRecords()" t-as="record" t-key="record.resId">
+                    <AiAgentSourceRow record="record" isNested="true"/>
+                </t>
+            </div>
+        </div>
+    </t>
+
+</templates>

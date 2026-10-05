@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="ir_actions_server_view_form" model="ir.ui.view">
+        <field name="name">ir.actions.server.view.form.inherit.ai</field>
+        <field name="model">ir.actions.server</field>
+        <field name="inherit_id" ref="base.view_server_action_form"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <data>
+                <xpath expr="//page[@name='usage']" position="inside">
+                    <group name="use_in_ai">
+                        <label for="use_in_ai"/>
+                        <div>
+                            <field
+                                name="use_in_ai"
+                                invisible="not ai_tool_is_candidate"
+                                readonly="context.get('default_use_in_ai', False) and not context.get('allow_use_in_ai_edit', False)"/>
+                            <field name="ai_tool_name" nolabel="1" class="oe_inline ms-2" placeholder="ai_tool_name" invisible="not use_in_ai"/>
+                        </div>
+                        <field name="ai_tool_description"
+                            invisible="not use_in_ai or not ai_tool_is_candidate"
+                            placeholder="Short explanation of what this does"/>
+                        <field name="ai_tool_schema"
+                            placeholder="JSON schema for the parameters of the action (leave empty if no arguments are needed)"
+                            invisible="not use_in_ai or not ai_tool_is_candidate or not ai_tool_has_schema"
+                            widget="ai_json_schema"/>
+                    </group>
+                </xpath>
+                <xpath expr="//page[@name='usage']" position="attributes">
+                    <attribute name="invisible" add="not ai_tool_is_candidate or context.get('is_modal')" separator="and"/>
+                </xpath>
+                <xpath expr="//page[@name='explanation']" position="before">
+                    <page string="Prompt" name="ai_action_prompt" invisible="state != 'ai'">
+                        <group>
+                            <label for="ai_tool_ids"/>
+                            <div class="d-flex flex-row align-items-baseline">
+                                <i
+                                    class="oi text-warning me-2"
+                                    data-icon="warning"
+                                    invisible="not ai_tool_show_warning"
+                                    aria-hidden="true"
+                                    title="The AI will not be limited by the groups defined on tools"/>
+                                <field name="ai_tool_ids"
+                                    nolabel="1"
+                                    widget="many2many_tags"
+                                    options="{'no_create': True, 'no_create_edit': True}"/>
+                            </div>
+                            <field name="ai_action_prompt"
+                                string="Instructions"
+                                widget="ai_prompt"
+                                options="{'model_reference_field': 'model_name'}"
+                                required="state == 'ai'"/>
+                        </group>
+                    </page>
+                </xpath>
+                <xpath expr="//page[@name='ir_actions_server_code_help']//ul" position="inside">
+                    <li invisible="not use_in_ai">
+                        To return a result to the AI agent, do <code>ai['result'] = ...</code>
+                    </li>
+                </xpath>
+                <xpath expr="//button[@name='create_action']" position="attributes">
+                    <attribute name="invisible" add="context.get('default_use_in_ai', False)" separator="or"/>
+                </xpath>
+            </data>
+        </field>
+    </record>
+</odoo>

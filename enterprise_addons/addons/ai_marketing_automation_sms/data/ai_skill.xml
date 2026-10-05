@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ai_skill_campaign_sms_steps" model="ai.skill">
+        <field name="name">Campaign SMS Steps</field>
+        <field name="description">Rules for SMS steps in a marketing campaign: the sms activity type, its mailing, and the sms trigger types. Load before adding or editing any SMS step, or any step reacting to one.</field>
+        <field name="instructions">
+Extends section 3, ACTIVITY, and section 4, MAILING.
+
+`activity_type = 'sms'`, with `mass_mailing_id` on a mailing whose `mailing_type = 'sms'`. Never
+use an email activity to stand in for one.
+
+The text goes in `body_plaintext`, not `body_arch`. `subject` is only an internal title.
+`email_from` is not required.
+
+Recipients need a mobile number on the campaign's model. Check before planning an SMS step.
+
+The only SMS trigger types are `sms_click`, `sms_not_click` and `sms_bounce` - there is no open-
+or reply-based SMS trigger, whatever names appear elsewhere.
+
+Add SMS only when asked: it costs credits per message.
+        </field>
+    </record>
+
+    <record id="ai_marketing_automation.ai_agent_campaign_builder" model="ai.agent">
+        <field name="skill_ids" eval="[(4, ref('ai_skill_campaign_sms_steps'))]"/>
+    </record>
+</odoo>

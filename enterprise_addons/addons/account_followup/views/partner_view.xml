@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="res_partner_view_form">
+            <field name="name">res.partner.view.form</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="priority" eval="5"/>
+            <field name="arch" type="xml">
+                <div name="button_box" position="inside">
+                    <button groups="account.group_account_basic,account.group_account_readonly" type="object" class="oe_stat_button"
+                            name="open_follow_up_report" icon="format_list_bulleted" invisible="not has_moves">
+                        <div class="o_field_widget o_stat_info">
+                            <span class="o_stat_value">
+                                <field name="total_all_due" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </span>
+                            <span class="o_stat_text">Open Items</span>
+                        </div>
+                    </button>
+                </div>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_partner_property_form_followup">
+            <field name="name">res.partner.property.form.followup</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="account.view_partner_property_form" />
+            <field name="arch" type="xml">
+                <group name="general" position="after">
+                    <group string="Invoice Follow-ups" name="invoice_followups"
+                        groups="account.group_account_invoice">
+                        <group colspan="2" invisible="not automatic_invoice_reminder">
+                            <div colspan="2">
+                                <field name="followup_line_id" widget="statusbar"
+                                    options="{'clickable': '1'}" />
+                            </div>
+
+                            <label for="followup_reminder_type" />
+                            <div class="d-flex">
+                                <field name="followup_reminder_type"
+                                    widget="radio"
+                                    class="w-50"
+                                    options="{'horizontal': true}"
+                                />
+                            </div>
+                            <field name="followup_next_action_date" />
+                            <field name="followup_responsible_id" />
+                        </group>
+                        <div colspan="2" invisible="automatic_invoice_reminder">
+                            "Automatic Invoice Reminders" is currently disabled. <button name="%(account.action_account_config)d"
+                                type="action"
+                                string="Open settings"
+                                class="btn btn-link p-0 "
+                            /> to enable them. </div>
+
+                    </group>
+                </group>
+            </field>
+        </record>
+
+        <record id="res_partner_view_tree" model="ir.ui.view">
+            <field name="name">res.partner.list.inherit.reminder</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='application_statistics']" position="after">
+                    <field name="last_reminder" optional="hide" groups="account.group_account_invoice,account.group_account_readonly"/>
+                    <field name="followup_line_id" optional="hide" groups="account.group_account_invoice,account.group_account_readonly"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

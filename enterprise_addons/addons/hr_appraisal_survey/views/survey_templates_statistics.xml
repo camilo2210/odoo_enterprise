@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+    <template id="hr_appraisal_survey_button_form_view" inherit_id="survey.survey_button_form_view">
+        <xpath expr="//div[hasclass('survey_button_form_view_hook')]" position="inside">
+            <t t-if="survey.survey_type == 'appraisal'">
+                <a groups="hr_appraisal.group_hr_appraisal_manager"
+                    t-attf-href="/odoo/action-hr_appraisal_survey.survey_survey_action_appraisal/{{survey.id}}"
+                    class="alert alert-link">
+                    <i class="oi me-2" data-icon="east"/>Go to Appraisal</a>
+                <t t-if="appraisal_id and (env.user == appraisal_id.employee_user_id or appraisal_id.is_manager)">
+                    or <a t-attf-href="/odoo/action-hr_appraisal.open_view_hr_appraisal_tree/{{appraisal_id}}" class="alert alert-link">Go to the appraisal from</a>
+                </t>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="hr_appraisal_survey_page_statistics_header" inherit_id="survey.survey_page_statistics_header">
+        <xpath expr="//div[hasclass('o_survey_statistics_header')]" position="inside">
+            <div class="mt-3 border rounded p-3" t-if="appraisal_id and answers">
+                <p>
+                    Appraisal of <strong t-out="employee_name"/> at the request of
+                    <strong t-out="', '.join(requestor.name for requestor in requestors)"/>
+                    on <strong t-out="appraisal_date"/>
+                </p>
+                <p class="mb-0">
+                    Responded:
+                    <t t-foreach="answers" t-as="answer">
+                        <a t-att-href="'/survey/print/%s?answer_token=%s&amp;review=True' % (survey.access_token, answer.access_token)" target="_blank"><t t-out="answer.partner_id.name"/></a><t t-if="not answer_last">, </t>
+                    </t>
+                </p>
+            </div>
+        </xpath>
+    </template>
+</data>
+</odoo>

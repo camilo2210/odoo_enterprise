@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_actions_sort_campaign_steps" model="ir.actions.server">
+        <field name="name">AI Tool: Sort Steps</field>
+        <field name="ai_tool_name">ai_tool_sort_campaign_steps</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="model_id" ref="ai_marketing_automation.model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Sorting campaign activities.</field>
+        <field name="ai_tool_description">Sort the activities to be displayed correctly.</field>
+        <field name="code">ai['result'] = record._sort_campaign_steps(campaign_id)</field>
+        <field name="ai_tool_schema">
+{
+    "type": "object",
+    "properties": {
+        "campaign_id": {
+            "type": "integer",
+            "description": "ID of the campaign whose activities should be sorted."
+        }
+    },
+    "required": ["campaign_id"]
+}
+        </field>
+    </record>
+
+    <record id="ir_actions_check_module_installed" model="ir.actions.server">
+        <field name="name">AI Tool: Check Module Installed</field>
+        <field name="ai_tool_name">ai_tool_check_module_installed</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="model_id" ref="ai_marketing_automation.model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Checking for module availability.</field>
+        <field name="ai_tool_description">Check if a given module is installed or not.</field>
+        <field name="code">ai['result'] = record._is_module_installed(module_name)</field>
+        <field name="ai_tool_schema">
+{
+    "type": "object",
+    "properties": {
+        "module_name": {
+            "type": "string",
+            "description": "Name of the module to check if it's installed."
+        }
+    },
+    "required": ["module_name"]
+}
+        </field>
+    </record>
+
+    <record id="ir_actions_delete_campaign_step" model="ir.actions.server">
+        <field name="name">AI Tool: Delete Step</field>
+        <field name="ai_tool_name">ai_tool_delete_campaign_step</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="model_id" ref="ai_marketing_automation.model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Removing a campaign step.</field>
+        <field name="ai_tool_description">Delete a step from a marketing campaign, repairing the surrounding workflow. This is the only supported way to remove a campaign activity.</field>
+        <field name="code">ai['result'] = record._delete_campaign_step(activity_id, step_type, cascade_delete)</field>
+        <field name="ai_tool_schema">
+{
+    "type": "object",
+    "properties": {
+        "activity_id": {
+            "type": "integer",
+            "description": "ID of the marketing.activity whose step should be removed."
+        },
+        "step_type": {
+            "type": "string",
+            "description": "Which part of the node to remove. Use 'delay' to remove only the waiting period and keep the step itself, 'trigger' to remove the interaction node, or the activity's own type (email, action, split, log_note, subscribe_to_list, structure) to remove the activity."
+        },
+        "cascade_delete": {
+            "type": "boolean",
+            "description": "Send false for every step except the root. True is only for deleting the root activity (trigger_type 'begin'), which removes the entire campaign workflow and requires the user's explicit confirmation first. Always send this explicitly."
+        }
+    },
+    "required": ["activity_id", "step_type", "cascade_delete"]
+}
+        </field>
+    </record>
+</odoo>

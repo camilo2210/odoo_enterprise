@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="account_return_check_kanban_view" model="ir.ui.view">
+            <field name="name">account.return.check.kanban</field>
+            <field name="model">account.return.check</field>
+            <field name="arch" type="xml">
+                <kanban js_class="account_return_check_kanban" create="0" edit="0" class="account_return_check_kanban">
+                    <field name="state"/>
+                    <field name="return_state"/>
+                    <field name="result"/>
+                    <field name="action"/>
+                    <field name="type"/>
+                    <field name="attachment_ids"/>
+                    <field name="cycle_id"/>
+                    <field name="records_count"/>
+                    <field name="is_return_active"/>
+                    <field name="is_main_company_active"/>
+                    <field name="return_id"/> <!-- mandatory -->
+
+                    <templates>
+                        <t t-name="card" class="o_return_check_kanban_card p-0 rounded" >
+                            <t t-set="result" t-value="record.result.raw_value"/>
+                            <t t-set="is_return_active" t-value="record.is_return_active.raw_value" />
+                            <t t-set="message" t-value="record.message.raw_value"/>
+                            <t t-set="records_count" t-value="record.records_count.raw_value"/>
+                            <t t-set="records_name" t-value="record.records_name.raw_value"/>
+                            <t t-set="return_state" t-value="record.return_state.raw_value"/>
+
+                            <t t-set="card_border_color" t-value="result === 'anomaly' ? 'red' : (result === 'todo' ? 'gray' : 'green')"/>
+                            <div t-attf-class="return-check-card-#{card_border_color} rounded-end p-2 p-lg-3 pb-0 pb-lg-0 opacity-trigger-hover">
+                                <div class="d-flex flex-wrap z-0 pb-2">
+                                    <div class="col-12 col-md-8">
+                                        <div>
+                                            <field class="oe_inline fw-bold" name="name" readonly="1" nolabel="1"/>
+                                            <span t-if="records_count" class="ps-3 text-danger small">
+                                                <t t-out="records_count &lt; 21 ? records_count : '20+'"/>
+                                                <field name="records_name" class="ms-1"/>
+                                            </span>
+                                        </div>
+                                        <div invisible="not message" class="text-muted">
+                                            <field class="m-0" name="message"/>
+                                        </div>
+                                        <div class="d-flex align-items-center pt-2" t-if="record.is_return_active.raw_value and record.type.raw_value === 'file'">
+                                            <widget invisible="attachment_ids" name="account_return_check_file_uploader"/>
+                                            <t t-if="record.attachment_ids.raw_value.length">
+                                                <widget name="account_return_check_attachment_viewer"/>
+                                                <button type="object" class="btn-link oi-lg text-dark ms-1" title="delete" icon="delete" icon_class="oi-filled" name="action_unlink_attachments"/>
+                                            </t>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-4 pt-2 pt-xl-0 d-flex align-items-center align-self-start justify-content-end z-1">
+                                        <field name="approver_supervisor_ids" widget="many2many_avatar_user_approver" readonly="True" class="d-flex mt-0 me-2"/>
+                                        <t t-if="!return_state">
+                                            <field
+                                                name="result"
+                                                widget="account_review_state_selection_badge"
+                                                readonly="not is_main_company_active"
+                                                options="{
+                                                    'todo': {'decoration': 'info'},
+                                                    'reviewed': {'decoration': 'success'},
+                                                    'supervised': {'decoration': 'success', 'can_edit': 'account.group_account_manager'},
+                                                    'anomaly': {'decoration': 'danger'},
+                                                }"
+                                            />
+                                        </t>
+                                        <t t-else="">
+                                            <field
+                                                name="result"
+                                                widget="account_review_state_selection_badge"
+                                                readonly="not is_main_company_active"
+                                                options="{
+                                                    'todo': {'decoration': 'info', 'can_edit': false},
+                                                    'reviewed': {'decoration': 'success', 'can_edit': false},
+                                                    'supervised': {'decoration': 'success', 'can_edit': false},
+                                                    'anomaly': {'decoration': 'danger', 'can_edit': false},
+                                                }"
+                                            />
+                                        </t>
+                                    </div>
+                                </div>
+                                <div class="w-100 mb-2">
+                                    <div class="px-2 border-start small">
+                                        <field name="notes" widget="account_return_editable_badge" placeholder="Add notes..." readonly="not is_main_company_active"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="account_return_check_search_view" model="ir.ui.view">
+            <field name="name">account.return.check.search</field>
+            <field name="model">account.return.check</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="result"/>
+                    <field name="cycle_id"/>
+                    <field name="type"/>
+                    <field name="return_id"/>
+                    <field name="template_id"/>
+
+                    <filter name="anomaly_checks" string="Anomaly" domain="[('result', '=', 'anomaly')]"/>
+                    <filter name="todo_checks" string="To Review" domain="[('result', '=', 'todo')]"/>
+                    <filter name="reviewed_checks" string="Reviewed" domain="[('result', '=', 'reviewed')]"/>
+                    <filter name="supervised_checks" string="Supervised" domain="[('result', '=', 'supervised')]"/>
+                    <filter name="groupby_cycle" string="Cycle" context="{'group_by': 'cycle_id'}"/>
+                </search>
+            </field>
+        </record>
+    </data>
+</odoo>

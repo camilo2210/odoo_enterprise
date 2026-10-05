@@ -1,0 +1,17 @@
+id,name,model_id,group_id/id,operation,domain
+appointment_type_rule_internal,appointment.type: apt internal rule (read self-staff and resources),appointment.type,hr_recruitment.group_hr_recruitment_interviewer,r,"[
+            '|',
+                ('staff_user_ids', 'in', [user.id, False]),
+                ('schedule_based_on', '=', 'resources')]"
+appointment_type_rule_internal_published,appointment.type: apt internal rule (read published),appointment.type,hr_recruitment.group_hr_recruitment_interviewer,r,"[('is_published', '=', True)]"
+appointment_type_rule_recruitment_user_create,appointment.type: recruitment officers can access appointment types of category 'anytime',appointment.type,hr_recruitment.group_hr_recruitment_interviewer,cru,"[('category', '=', 'anytime')]"
+appointment_slot_rule_internal,appointment.slot: apt internal rule (read self-staff and resources),appointment.slot,hr_recruitment.group_hr_recruitment_interviewer,r,"[
+            ('appointment_type_id', 'any', [
+                '|',
+                ('staff_user_ids', 'in', [user.id, False]),
+                ('schedule_based_on', '=', 'resources')
+            ])
+        ]"
+appointment_slot_rule_internal_published,appointment.slot: apt internal rule (read published),appointment.slot,hr_recruitment.group_hr_recruitment_interviewer,r,"[('appointment_type_id.is_published', '=', True)]"
+appointment_slot_rule_recruitment_user_create,appointment.slot: recruitment officers create rule,appointment.slot,hr_recruitment.group_hr_recruitment_interviewer,cu,"[
+            ('appointment_type_id', 'any', [('category', '=', 'anytime')])]"

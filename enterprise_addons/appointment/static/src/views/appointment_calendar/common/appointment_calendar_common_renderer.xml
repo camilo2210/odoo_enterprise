@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="appointment.AttendeeCalendarCommonRenderer.slot" xml:space="preserve">
+        <div class="d-flex flex-row flex-nowrap w-100 h-100 py-0 cursor-grab">
+            <div t-if="!subslots.length" class="w-100 d-flex justify-content-center text-center overflow-hidden"
+                t-att-class="{'mt-1': eventDurationMinutes &gt; 30}">
+                <!--one or the other will be displayed based on CSS container size logic, to simplify subslot sizing-->
+                <!--both should fit on one line at their respective size-->
+                <span t-att-class="eventDurationMinutes &lt;= 40 ? 'o_appointment_slot_fc_event_title_full' : false">
+                    <t t-out="slotStartFormatted"/> - <t t-out="slotEndFormatted"/>
+                </span>
+                <span t-if="eventDurationMinutes &lt;= 40" class="o_appointment_slot_fc_event_title_short d-none"><t t-out="slotStartFormatted"/></span>
+            </div>
+            <t t-if="subslots.length">
+                <!--subslots that can fit sequentially in their slot are styled so as to match the fc grid-->
+                <!--if they overlap or are too small to be readable, they are simply listed in a scrollable div-->
+                <t t-if="!hasOverlap">
+                    <div class="o_calendar_subslots_container d-flex flex-column flex-grow-1">
+                        <t t-foreach="subslots" t-as="subslot" t-key="subslot_index">
+                            <!--empty spacer for the non-bookable gaps-->
+                            <div t-if="subslot.isGap" t-attf-style="flex: {{subslot.flexWeight}} 0 0;"/>
+                            <div t-else=""
+                                class="o_calendar_subslot d-flex align-items-center justify-content-center text-center text-nowrap overflow-hidden"
+                                t-att-class="{'o_calendar_subslot_first': subslot.isFirst, 'o_calendar_subslot_last': subslot.isLast}"
+                                t-attf-style="flex: {{subslot.flexWeight}} 0 0; min-height: 0;">
+                                <!--one or the other will be displayed based on CSS container size logic, to simplify subslot sizing-->
+                                <!--both should fit on one line at their respective size-->
+                                <span class="o_appointment_slot_fc_event_title_full"><t t-out="subslot.startFormatted"/> - <t t-out="subslot.endFormatted"/></span>
+                                <span class="o_appointment_slot_fc_event_title_short d-none"><t t-out="subslot.startFormatted"/></span>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+                <t t-else="">
+                    <div class="o_calendar_subslots_container o_calendar_subslots_scroll d-flex flex-column flex-grow-1 gap-1 overflow-y-scroll">
+                        <div t-foreach="subslots" t-as="subslot" t-key="subslot_index"
+                            class="o_calendar_subslot d-flex align-items-center justify-content-center text-center text-nowrap overflow-hidden"
+                            t-att-class="{'o_calendar_subslot_first': subslot_first, 'o_calendar_subslot_last': subslot_last}">
+                            <!--one or the other will be displayed based on CSS container size logic, to simplify subslot sizing-->
+                            <!--both should fit on one line at their respective size-->
+                            <span class="o_appointment_slot_fc_event_title_full"><t t-out="subslot.startFormatted"/> - <t t-out="subslot.endFormatted"/></span>
+                            <span class="o_appointment_slot_fc_event_title_short d-none"><t t-out="subslot.startFormatted"/></span>
+                        </div>
+                    </div>
+                </t>
+            </t>
+            <div class="o_calendar_slot_trash_icon position-absolute w-100 h-100 z-3 d-flex align-items-center o_hidden">
+                <i data-icon="delete" t-att-class="{
+                    'cursor-pointer oi m-auto': true,
+                    'oi-2x': eventDurationMinutes &gt; 30,
+                    'me-1': eventDurationMinutes &lt;= 60,
+                }"/>
+            </div>
+        </div>
+    </t>
+</templates>

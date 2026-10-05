@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates>
+    <t t-name="account_reports.PartnerLedgerLineName" t-inherit="account_reports.AccountReportLineNameCustomizable">
+        <xpath expr="//td[@data-id='line_name']" position="attributes">
+            <t t-if="this.props.line.unfoldable?.()">
+                <attribute name="class" add="more" separator=" "/>
+            </t>
+        </xpath>
+
+        <xpath expr="//t[@data-id='line_buttons']" position="inside">
+            <t t-if="this.props.line.unfoldable?.() and this.modelName() === 'res.partner'">
+                <button
+                    class="btn btn_action"
+                    t-on-click="(ev) => this.controller.reportAction(ev, 'action_open_partner', { id: this.props.line.id() })"
+                >
+                    Partner
+                </button>
+
+                <button
+                    class="btn btn_action"
+                    t-on-click="(ev) => this.controller.reportAction(ev, 'open_journal_items', {
+                    line_id: this.props.line.id(),
+                    view_ref: 'account.view_move_line_tree_grouped_partner',
+                })"
+                >
+                    Journal Items
+                </button>
+            </t>
+        </xpath>
+
+        <xpath expr="//i[@data-id='btn_foldable']" position="after">
+            <t t-if="this.props.line.trust?.() === 'good'">
+                <i class="oi oi-filled text-success partner_trust" data-icon="circle" title="Partner is good"/>
+            </t>
+            <t t-elif="this.props.line.trust?.() === 'bad'">
+                <i class="oi oi-filled text-danger partner_trust" data-icon="circle" title="Partner is bad"/>
+            </t>
+        </xpath>
+    </t>
+</templates>

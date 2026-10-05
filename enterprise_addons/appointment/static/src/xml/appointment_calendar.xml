@@ -1,0 +1,52 @@
+<templates>
+    <t t-name="appointment.calendar_wrapper">
+        <t t-set="hideCalendar" t-value="(month_first_available !== 0 &amp;&amp; !month_first_available) || !isAppointmentActive"/>
+        <div id="calendar" t-attf-class="p-0 border rounded-3 bg-body overflow-hidden #{hideCalendar ? 'd-none' : ''}">
+            <t t-set="displayed_month_id" t-value="month_kept_from_update === false ? month_first_available : month_kept_from_update"/>
+            <div t-foreach="slots" t-key="slots_index" t-as="month"
+                t-attf-id="month-#{month['id']}"
+                t-att-data-month-name="month['month']"
+                t-att-data-month-number="month['month_number']"
+                t-att-data-year-number="month['year_number']"
+                t-attf-class="o_appointment_month #{month['id'] !== displayed_month_id ? 'd-none' : ''}">
+                <div id="calendarHeader" class="position-relative d-flex align-items-center p-3 border-bottom">
+                    <button t-if="month['id'] > 0" type="button" id="prevCal"
+                        class="btn o_js_calendar_navigate position-absolute top-50 start-0 ms-2 translate-middle-y">
+                        <i class="oi" data-icon="chevron_backward"/>
+                    </button>
+                    <h5 t-out="month['month']" class="o_appointment_month_name mx-auto mb-0"/>
+                    <button t-if="slots.length > (month['id'] + 1)" type="button" id="nextCal"
+                        class="btn o_js_calendar_navigate position-absolute top-50 end-0 me-2 translate-middle-y">
+                        <i class="oi" data-icon="chevron_forward"/>
+                    </button>
+                </div>
+                <table t-attf-class="w-100 {{month['has_availabilities'] ? '' : 'd-none'}}">
+                    <tr class="o_appointment_weekdays">
+                        <t t-foreach="formattedDays" t-as="formattedDay" t-key="formattedDay_index">
+                            <th class="py-2 text-center"><small t-out="formattedDay"/></th>
+                        </t>
+                    </tr>
+                    <tr t-foreach="month['weeks']" t-as="week" t-key="week_index" class="o_appointment_week">
+                        <t t-foreach="week" t-as="day" t-key="day_index">
+                            <td t-attf-class="#{day['weekend_cls']} #{day['today_cls']} text-center"
+                                t-att-title="day['today_cls'] ? todayLabel : ''">
+                                <div t-if="day['slots'].length"
+                                    t-att-id="day['day']"
+                                    t-out="day['day_number']"
+                                    t-attf-class="#{day['today_cls']} #{day['tomorrow_cls']} o_day_wrapper o_slot_day o_appointment_btn btn d-block position-relative m-1 p-2 border"
+                                    t-att-data-available-slots="stringifySlots(day['slots'])"
+                                    t-att-data-slot-date="day['day']"/>
+                                <div t-else=""
+                                    t-out="day['day_number']"
+                                    t-attf-class="#{day['mute_cls']} o_day_wrapper border border-transparent position-relative m-1 p-2"/>
+                            </td>
+                        </t>
+                    </tr>
+                </table>
+                <div t-attf-class="{{month['has_availabilities'] ? 'd-none' : ''}} o_appointment_month_loader d-flex align-items-center py-5 my-5">
+                    <i class="oi oi-3x oi-spin mx-auto text-o-color-2" data-icon="progress_activity"/>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

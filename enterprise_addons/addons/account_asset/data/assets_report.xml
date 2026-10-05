@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="assets_report" model="account.report">
+        <field name="name">Depreciation Schedule</field>
+        <field name="filter_hierarchy">never</field>
+        <field name="groupby">account_root,asset_id</field>
+        <field name="filter_unfold_all" eval="True"/>
+        <field name="filter_period_comparison" eval="False"/>
+        <field name="filter_journals" eval="False"/>
+        <field name="filter_analytic_groupby" eval="True"/>
+        <field name="custom_handler_model_id" ref="model_account_asset_report_handler"/>
+        <field name="load_more_limit" eval="80"/>
+        <field name="default_opening_date_filter">previous_year</field>
+        <field name="column_ids">
+            <record id="assets_report_acquisition_date" model="account.report.column">
+                <field name="name">Acquisition Date</field>
+                <field name="expression_label">acquisition_date</field>
+                <field name="figure_type">date</field>
+            </record>
+            <record id="assets_report_first_method" model="account.report.column">
+                <field name="name">Method</field>
+                <field name="expression_label">method</field>
+                <field name="figure_type">string</field>
+            </record>
+            <record id="assets_report_duration_rate" model="account.report.column">
+                <field name="name">Rate</field>
+                <field name="expression_label">duration_rate</field>
+                <field name="figure_type">string</field>
+            </record>
+            <record id="assets_report_date_from" model="account.report.column">
+                <field name="name">date from</field>
+                <field name="expression_label">assets_date_from</field>
+            </record>
+            <record id="assets_report_assets_plus" model="account.report.column">
+                <field name="name">+</field>
+                <field name="expression_label">assets_plus</field>
+            </record>
+            <record id="assets_report_assets_minus" model="account.report.column">
+                <field name="name">-</field>
+                <field name="expression_label">assets_minus</field>
+            </record>
+            <record id="assets_report_assets_date_to" model="account.report.column">
+                <field name="name">date to</field>
+                <field name="expression_label">assets_date_to</field>
+            </record>
+            <record id="assets_report_depre_date_from" model="account.report.column">
+                <field name="name">date from</field>
+                <field name="expression_label">depre_date_from</field>
+            </record>
+            <record id="assets_report_depre_plus" model="account.report.column">
+                <field name="name">+</field>
+                <field name="expression_label">depre_plus</field>
+            </record>
+            <record id="assets_report_depre_minus" model="account.report.column">
+                <field name="name">-</field>
+                <field name="expression_label">depre_minus</field>
+            </record>
+            <record id="assets_report_depre_date_to" model="account.report.column">
+                <field name="name">date to</field>
+                <field name="expression_label">depre_date_to</field>
+            </record>
+            <record id="assets_report_balance" model="account.report.column">
+                <field name="name">book_value</field>
+                <field name="expression_label">balance</field>
+            </record>
+        </field>
+        <field name="line_ids">
+            <record id="depreciation_schedule_line" model="account.report.line">
+                <field name="name">Depreciation Schedule</field>
+                <field name="foldability">always_unfolded</field>
+                <field name="expression_ids">
+                    <record id="depreciation_schedule_line_acquisition_date" model="account.report.expression">
+                        <field name="label">acquisition_date</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">acquisition_date</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="depreciation_schedule_line_method" model="account.report.expression">
+                        <field name="label">method</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">method</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="depreciation_schedule_line_duration_rate" model="account.report.expression">
+                        <field name="label">duration_rate</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">duration_rate</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="depreciation_schedule_line_assets_date_from" model="account.report.expression">
+                        <field name="label">assets_date_from</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">assets_date_from</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="depreciation_schedule_line_assets_plus" model="account.report.expression">
+                        <field name="label">assets_plus</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">assets_plus</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="depreciation_schedule_line_assets_minus" model="account.report.expression">
+                        <field name="label">assets_minus</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">assets_minus</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="depreciation_schedule_line_assets_date_to" model="account.report.expression">
+                        <field name="label">assets_date_to</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">assets_date_to</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="depreciation_schedule_line_depre_date_from" model="account.report.expression">
+                        <field name="label">depre_date_from</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">depre_date_from</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="depreciation_schedule_line_depre_plus" model="account.report.expression">
+                        <field name="label">depre_plus</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">depre_plus</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="depreciation_schedule_line_depre_minus" model="account.report.expression">
+                        <field name="label">depre_minus</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">depre_minus</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="depreciation_schedule_line_depre_date_to" model="account.report.expression">
+                        <field name="label">depre_date_to</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">depre_date_to</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="depreciation_schedule_line_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">balance</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                </field>
+            </record>
+        </field>
+    </record>
+
+    <record id="account_grouped_assets_report" model="account.report">
+        <field name="name">Group by: Account</field>
+        <field name="root_report_id" ref="assets_report"/>
+        <field name="groupby">account_root,account_id,asset_id</field>
+        <field name="custom_handler_model_id" ref="model_account_asset_report_handler"/>
+        <field name="column_ids">
+            <record id="account_grouped_assets_report_acquisition_date" model="account.report.column">
+                <field name="name">Acquisition Date</field>
+                <field name="expression_label">acquisition_date</field>
+                <field name="figure_type">date</field>
+            </record>
+            <record id="account_grouped_assets_report_first_method" model="account.report.column">
+                <field name="name">Method</field>
+                <field name="expression_label">method</field>
+                <field name="figure_type">string</field>
+            </record>
+            <record id="account_grouped_assets_report_duration_rate" model="account.report.column">
+                <field name="name">Rate</field>
+                <field name="expression_label">duration_rate</field>
+                <field name="figure_type">string</field>
+            </record>
+            <record id="account_grouped_assets_report_date_from" model="account.report.column">
+                <field name="name">date from</field>
+                <field name="expression_label">assets_date_from</field>
+            </record>
+            <record id="account_grouped_assets_report_assets_plus" model="account.report.column">
+                <field name="name">+</field>
+                <field name="expression_label">assets_plus</field>
+            </record>
+            <record id="account_grouped_assets_report_assets_minus" model="account.report.column">
+                <field name="name">-</field>
+                <field name="expression_label">assets_minus</field>
+            </record>
+            <record id="account_grouped_assets_report_assets_date_to" model="account.report.column">
+                <field name="name">date to</field>
+                <field name="expression_label">assets_date_to</field>
+            </record>
+            <record id="account_grouped_assets_report_depre_date_from" model="account.report.column">
+                <field name="name">date from</field>
+                <field name="expression_label">depre_date_from</field>
+            </record>
+            <record id="account_grouped_assets_report_depre_plus" model="account.report.column">
+                <field name="name">+</field>
+                <field name="expression_label">depre_plus</field>
+            </record>
+            <record id="account_grouped_assets_report_depre_minus" model="account.report.column">
+                <field name="name">-</field>
+                <field name="expression_label">depre_minus</field>
+            </record>
+            <record id="account_grouped_assets_report_depre_date_to" model="account.report.column">
+                <field name="name">date to</field>
+                <field name="expression_label">depre_date_to</field>
+            </record>
+            <record id="account_grouped_assets_report_balance" model="account.report.column">
+                <field name="name">book_value</field>
+                <field name="expression_label">balance</field>
+            </record>
+        </field>
+        <field name="line_ids">
+            <record id="account_grouped_depreciation_schedule_line" model="account.report.line">
+                <field name="name">Depreciation Schedule</field>
+                <field name="foldability">always_unfolded</field>
+                <field name="expression_ids">
+                    <record id="account_grouped_depreciation_schedule_line_acquisition_date" model="account.report.expression">
+                        <field name="label">acquisition_date</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">acquisition_date</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="account_grouped_depreciation_schedule_line_method" model="account.report.expression">
+                        <field name="label">method</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">method</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="account_grouped_depreciation_schedule_line_duration_rate" model="account.report.expression">
+                        <field name="label">duration_rate</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">duration_rate</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="account_grouped_depreciation_schedule_line_assets_date_from" model="account.report.expression">
+                        <field name="label">assets_date_from</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">assets_date_from</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="account_grouped_depreciation_schedule_line_assets_plus" model="account.report.expression">
+                        <field name="label">assets_plus</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">assets_plus</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="account_grouped_depreciation_schedule_line_assets_minus" model="account.report.expression">
+                        <field name="label">assets_minus</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">assets_minus</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="account_grouped_depreciation_schedule_line_assets_date_to" model="account.report.expression">
+                        <field name="label">assets_date_to</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">assets_date_to</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="account_grouped_depreciation_schedule_line_depre_date_from" model="account.report.expression">
+                        <field name="label">depre_date_from</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">depre_date_from</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="account_grouped_depreciation_schedule_line_depre_plus" model="account.report.expression">
+                        <field name="label">depre_plus</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">depre_plus</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="account_grouped_depreciation_schedule_line_depre_minus" model="account.report.expression">
+                        <field name="label">depre_minus</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">depre_minus</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="account_grouped_depreciation_schedule_line_depre_date_to" model="account.report.expression">
+                        <field name="label">depre_date_to</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">depre_date_to</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="account_grouped_depreciation_schedule_line_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">balance</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                </field>
+            </record>
+        </field>
+    </record>
+
+    <record id="asset_grouped_assets_report" model="account.report">
+        <field name="name">Group by: Asset Group</field>
+        <field name="root_report_id" ref="assets_report"/>
+        <field name="groupby">account_root,asset_group_id,asset_id</field>
+        <field name="custom_handler_model_id" ref="model_account_asset_report_handler"/>
+        <field name="column_ids">
+            <record id="asset_grouped_assets_report_acquisition_date" model="account.report.column">
+                <field name="name">Acquisition Date</field>
+                <field name="expression_label">acquisition_date</field>
+                <field name="figure_type">date</field>
+            </record>
+            <record id="asset_grouped_assets_report_first_method" model="account.report.column">
+                <field name="name">Method</field>
+                <field name="expression_label">method</field>
+                <field name="figure_type">string</field>
+            </record>
+            <record id="asset_grouped_assets_report_duration_rate" model="account.report.column">
+                <field name="name">Rate</field>
+                <field name="expression_label">duration_rate</field>
+                <field name="figure_type">string</field>
+            </record>
+            <record id="asset_grouped_assets_report_date_from" model="account.report.column">
+                <field name="name">date from</field>
+                <field name="expression_label">assets_date_from</field>
+            </record>
+            <record id="asset_grouped_assets_report_assets_plus" model="account.report.column">
+                <field name="name">+</field>
+                <field name="expression_label">assets_plus</field>
+            </record>
+            <record id="asset_grouped_assets_report_assets_minus" model="account.report.column">
+                <field name="name">-</field>
+                <field name="expression_label">assets_minus</field>
+            </record>
+            <record id="asset_grouped_assets_report_assets_date_to" model="account.report.column">
+                <field name="name">date to</field>
+                <field name="expression_label">assets_date_to</field>
+            </record>
+            <record id="asset_grouped_assets_report_depre_date_from" model="account.report.column">
+                <field name="name">date from</field>
+                <field name="expression_label">depre_date_from</field>
+            </record>
+            <record id="asset_grouped_assets_report_depre_plus" model="account.report.column">
+                <field name="name">+</field>
+                <field name="expression_label">depre_plus</field>
+            </record>
+            <record id="asset_grouped_assets_report_depre_minus" model="account.report.column">
+                <field name="name">-</field>
+                <field name="expression_label">depre_minus</field>
+            </record>
+            <record id="asset_grouped_assets_report_depre_date_to" model="account.report.column">
+                <field name="name">date to</field>
+                <field name="expression_label">depre_date_to</field>
+            </record>
+            <record id="asset_grouped_assets_report_balance" model="account.report.column">
+                <field name="name">book_value</field>
+                <field name="expression_label">balance</field>
+            </record>
+        </field>
+        <field name="line_ids">
+            <record id="asset_grouped_depreciation_schedule_line" model="account.report.line">
+                <field name="name">Depreciation Schedule</field>
+                <field name="foldability">always_unfolded</field>
+                <field name="expression_ids">
+                    <record id="asset_grouped_depreciation_schedule_line_acquisition_date" model="account.report.expression">
+                        <field name="label">acquisition_date</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">acquisition_date</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="asset_grouped_depreciation_schedule_line_method" model="account.report.expression">
+                        <field name="label">method</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">method</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="asset_grouped_depreciation_schedule_line_duration_rate" model="account.report.expression">
+                        <field name="label">duration_rate</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">duration_rate</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="asset_grouped_depreciation_schedule_line_assets_date_from" model="account.report.expression">
+                        <field name="label">assets_date_from</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">assets_date_from</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="asset_grouped_depreciation_schedule_line_assets_plus" model="account.report.expression">
+                        <field name="label">assets_plus</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">assets_plus</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="asset_grouped_depreciation_schedule_line_assets_minus" model="account.report.expression">
+                        <field name="label">assets_minus</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">assets_minus</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="asset_grouped_depreciation_schedule_line_assets_date_to" model="account.report.expression">
+                        <field name="label">assets_date_to</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">assets_date_to</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="asset_grouped_depreciation_schedule_line_depre_date_from" model="account.report.expression">
+                        <field name="label">depre_date_from</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">depre_date_from</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="asset_grouped_depreciation_schedule_line_depre_plus" model="account.report.expression">
+                        <field name="label">depre_plus</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">depre_plus</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="asset_grouped_depreciation_schedule_line_depre_minus" model="account.report.expression">
+                        <field name="label">depre_minus</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">depre_minus</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="asset_grouped_depreciation_schedule_line_depre_date_to" model="account.report.expression">
+                        <field name="label">depre_date_to</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">depre_date_to</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                    <record id="asset_grouped_depreciation_schedule_line_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_depreciation_schedule</field>
+                        <field name="subformula">balance</field>
+                        <field name="auditable" eval="False"/>
+                    </record>
+                </field>
+            </record>
+        </field>
+    </record>
+</odoo>

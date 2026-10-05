@@ -1,0 +1,1626 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_actions_server_run_view_action" model="ir.actions.server">
+        <field name="name">AI Tool: Run view action</field>
+        <field name="ai_tool_name">ai_tool_run_view_action</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_run_view_action(menu_id, action_type)
+        </field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Preparing your view</field>
+        <field name="ai_tool_description">
+            Runs to open views of type `ir.actions.client` and `ir.actions.report` in an Odoo database.
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "menu_id": {
+                    "type": "number",
+                    "description": "The id of the menu linked to the action to execute."
+                },
+                "action_type": {
+                    "type": "string",
+                    "description": "The type of the action to execute",
+                    "enum": ["ir.actions.client", "ir.actions.report"]
+                }
+            },
+            "required": ["menu_id", "action_type"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_start_session" model="ir.actions.server">
+        <field name="name">AI Tool: Start Session</field>
+        <field name="ai_tool_name">ai_tool_start_session</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_start_session(ai, agent_id, message, attachment_ids)
+        </field>
+        <field name="ai_tool_thinking_text">Starting an agent</field>
+        <field name="ai_tool_description">Delegate a focused task to an allowed agent. Returns its final answer and session ID.</field>
+        <field name="ai_tool_schema">
+            {
+                "type": "object",
+                "properties": {
+                    "agent_id": {"type": "integer"},
+                    "message": {"type": "string"},
+                    "attachment_ids": {"type": "array", "items": {"type": "integer"}}
+                },
+                "required": ["agent_id", "message"]
+            }
+        </field>
+    </record>
+    <record id="ir_actions_server_continue_session" model="ir.actions.server">
+        <field name="name">AI Tool: Continue Session</field>
+        <field name="ai_tool_name">ai_tool_continue_session</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_continue_session(ai, session_id, message, attachment_ids)
+        </field>
+        <field name="ai_tool_thinking_text">Continuing an agent</field>
+        <field name="ai_tool_description">Send another message to an idle direct child, retaining its conversation.</field>
+        <field name="ai_tool_schema">
+            {
+                "type": "object",
+                "properties": {
+                    "session_id": {"type": "integer"},
+                    "message": {"type": "string"},
+                    "attachment_ids": {"type": "array", "items": {"type": "integer"}}
+                },
+                "required": ["session_id", "message"]
+            }
+        </field>
+    </record>
+    <record id="ir_actions_server_load_skills" model="ir.actions.server">
+        <field name="name">AI Tool: Load Skills</field>
+        <field name="ai_tool_name">ai_tool_load_skills</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_load_skills(ai, skill_ids)
+        </field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Getting ready</field>
+        <field name="ai_tool_description">Retrieves detailed information about skills, given a list of ids.</field>
+        <field name="ai_tool_schema">
+            {
+                "type": "object",
+                "properties": {
+                    "skill_ids": {
+                        "type": "array",
+                        "items": {"type": "integer"},
+                        "description": "List of skill ids to load."
+                    }
+                },
+                "required": ["skill_ids"]
+            }
+        </field>
+    </record>
+    <record id="ir_actions_server_ask_user_question" model="ir.actions.server">
+        <field name="name">AI: Ask User Question</field>
+        <field name="ai_tool_name">ai_tool_ask_user_question</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_ask_user_question(ai, question, choices=choices, multi_select=multi_select, allow_free_text=allow_free_text)
+        </field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_description">
+            Use this tool when you want the user to choose a direction or action so that their selection determines what you do next. This includes
+            presenting ideas, suggestions, recommendations, alternatives, improvements, or next actions for the user to select. It presents clickable options instead
+            of listing choices in prose. When recommending improvements, ALWAYS make each recommendation a selectable action with this tool; do not give a prose list and then offer to apply it.
+            ## RULES
+            - Ask one focused question that resolves one decision, with 2-4 options.
+            - Each option must be a direct answer or action for that question. If you need several unrelated pieces of information,
+            ask one question per information instead of combining the questions into a single option list.
+            - The question itself must be a complete, standalone question - full question sentence, clear on its own without relying on the
+            preceding text for grammar or meaning. Not a fragment or label (e.g. "Which lighting style should the scene use?" not "Lighting style:").
+            - Each option must stand alone as a specific action; understandable and actionable without rereading the question (e.g. "Use warm
+            ambient lighting," not "Lighting atmosphere" or "Yes"). Options must be mutually exclusive unless combining them is meaningful, in
+            which case set multi_select to true so users can pick more than one, but never add a collective or catch-all option (e.g. "All of
+            the above," "None," "Combination of these," "Mix of options"), since multi_select already lets users select every option individually.
+            - Never pad the list with a no-op choice ("Skip," "Not now," "Maybe later"): the user can skip the question, and can
+            type an unlisted answer when allow_free_text is true.
+            - The options are the answer itself, not labels for an answer you will expand afterwards. If you would follow the
+            user's selection by writing out the content behind every label anyway, you are not asking a question - just write the answer.
+            - Never add an "Other" / "Something else" / "Custom" choice - a free-text alternative is already offered automatically when
+            allow_free_text is true (see below), and none is offered at all when it's false.
+            - Use a direct answer or action when the answer is already known from context, a reasonable default is clear, or another tool
+            already handles its own confirmation flow. Ask in plain text when fewer than two meaningful options exist.
+            - Do not ask about minor field choices when creating or updating records. Use a reasonable default unless it affects what the user asked for.
+            - Never ask a question the user's latest message already answered. If they ask for a given number of ideas, options, or
+            strategies, provide exactly that many. Use this tool only when they need to choose or apply one or more of them; otherwise answer directly.
+            ## MULTISELECT
+            - Set multi_select to true only when the user may choose more than one answer/action to this one question and each option is independently meaningful on its own.
+            - An option that bundles several independently applicable actions together (e.g. "Apply the copy and layout refinements") is a sign you
+            collapsed choices that should be separate: split each independent action into its own option and set multi_select to true, instead of
+            forcing an all-or-nothing pick.
+            - multi_select is one flag for the whole list: only set it true if every option is independently selectable. If any
+            option is mutually exclusive with the rest, leave it false.
+            - Any combination of options must remain coherent: if selecting two of them together would conflict or not make
+            sense, they don't belong in the same list.
+            ## ALLOW_FREE_TEXT
+            - Explicitly set allow_free_text to true in most tool calls, so the user can provide an unlisted answer.
+            - Set it to false only for a complete, fixed set of valid answers - e.g. a plain yes/no question,
+            picking a record from a fixed set of search/lookup results, or choosing from a constant enum where every
+            valid value is already listed. In these cases nothing outside the listed choices is a valid answer.
+            ## USER ANSWER
+            - The user's answer is confirmation to proceed with whatever you are doing. When the question was asked mainly to get information needed to execute an action,
+            act on the answer immediately; don't just restate the choice and wait for a separate "apply it," "do it," or "confirm" message.
+            - Your next turn must be constrained by the selection, move forward with only what was selected.
+            - Only ask a follow-up question if a *new* piece of information is genuinely still missing.
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "question": {
+                    "type": "string",
+                    "description": "The question to show the user. Must be a complete, self-contained question"
+                },
+                "choices": {
+                    "type": "array",
+                    "description": "Between two and four meaningful clickable choices to offer.",
+                    "items": {
+                        "type": "string",
+                        "description": "Short answer shown to the user and sent back when selected."
+                    }
+                },
+                "multi_select": {
+                    "type": "boolean",
+                    "description": "Allow the user to pick more than one choice. Set to false if a single choice is required for the question."
+                },
+                "allow_free_text": {
+                    "type": "boolean",
+                    "description": "Whether the user can provide an unlisted answer. Explicitly set to true in most calls; set to false only for a complete, fixed set of answers."
+                }
+            },
+            "required": ["question", "choices", "multi_select", "allow_free_text"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_get_menu_details" model="ir.actions.server">
+        <field name="name">AI Tool: Get Menu Details</field>
+        <field name="ai_tool_name">ai_tool_get_menu_details</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_get_menu_details(menu_ids, include_model_fields)
+        </field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Finding the best view</field>
+        <field name="ai_tool_description">
+            Retrieves detailed information for the given menu ids, including the action_id, the technical model name, the default filters and groupings, the domain, and the search view details (list of searchable fields, available filters and grouping options).
+            Use it before opening a view.
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "menu_ids": {
+                    "type": "array",
+                    "items": {"type": "number"},
+                    "description": "List of menu IDs to get details for (available in menu data context)"
+                },
+                "include_model_fields": {
+                    "type": "boolean",
+                    "description": "Whether to include the fields of the models of the menu"
+                }
+            },
+            "required": ["menu_ids", "include_model_fields"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_get_fields" model="ir.actions.server">
+        <field name="name">AI Tool: Get Fields</field>
+        <field name="ai_tool_name">ai_tool_get_fields</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_get_fields(model_name, include_description)
+        </field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Analyzing model</field>
+        <field name="ai_tool_description">
+            Retrieves the searchable fields for the given model that can be used in domain filters and grouping.
+            Essential for building valid domains. Only the fields returned by this tool can be used in domains.
+            Essential for updating records.
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "model_name": {
+                    "type": "string",
+                    "description": "Technical model name (e.g., 'sale.order', 'product.product', 'res.partner')"
+                },
+                "include_description": {
+                    "type": "boolean",
+                    "description": "Whether to include the fields descriptions (default: true)"
+                }
+            },
+            "required": ["model_name"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_open_menu_list" model="ir.actions.server">
+        <field name="name">AI Tool: Open Menu List</field>
+        <field name="ai_tool_name">ai_tool_open_menu_list</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_open_menu_list(menu_id, model_name, selected_filters, selected_groupbys, search, custom_domain)
+        </field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Preparing your List view</field>
+        <field name="ai_tool_description">
+            Redirects the UI to the List view of a given menu.
+            Ideal when the user needs to review, filter, sort or export data
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "menu_id": {
+                    "type": "number",
+                    "description": "The id of the menu to open"
+                },
+                "model_name": {
+                    "type": "string",
+                    "description": "The technical model name (eg. 'res.users')"
+                },
+                "selected_filters": {
+                    "type": "array",
+                    "description": "List of active filters. Can include both predefined search filters and specific date range configurations. Use [] for no filters",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "description": "The technical name of a predefined filter (e.g., 'my_favorites' or 'active'). Must match a name in the menu's search view's available filters"
+                            },
+                            {
+                                "type": "object",
+                                "description": "Custom date range configuration",
+                                "properties": {
+                                    "field_name": {
+                                        "type": "string",
+                                        "description": "The technical name of the date field (e.g., 'date_order')"
+                                    },
+                                    "selected_periods": {
+                                        "type": "array",
+                                        "description": "List of relative periods (e.g., ['month', 'year-1'])",
+                                        "items": {
+                                            "type": "string",
+                                            "description": "Pattern: 'month', 'year', 'month±N', 'year±N', 'first_quarter', 'second_quarter', 'third_quarter', 'fourth_quarter' or 'custom_...' (where N restrictions and custom_... patterns are found in the menu's search view)"
+                                        }
+                                    }
+                                },
+                                "required": ["field_name", "selected_periods"]
+                            }
+                        ]
+                    }
+                },
+                "selected_groupbys": {
+                    "type": "array",
+                    "description": "Ordered list of fields or date intervals objects to group by. Prioritize fields in the menu's search views' groupby fields. Any other groupable field can be used.  Use [] for no grouping.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "description": "The technical name of the field to group by"
+                            },
+                            {
+                                "type": "object",
+                                "description": "Date interval grouping object",
+                                "properties": {
+                                    "field_name": {
+                                        "type": "string",
+                                        "description": "The technical name of the date field"
+                                    },
+                                    "intervals": {
+                                        "type": "array",
+                                        "description": "List of intervals to group by",
+                                        "items": {
+                                            "type": "string",
+                                            "description": "Interval name",
+                                            "enum": ["day", "week", "month", "quarter", "year"]
+                                        }
+                                    }
+                                },
+                                "required": ["field_name", "intervals"]
+                            }
+                        ]
+                    }
+                },
+                "search": {
+                    "type": "array",
+                    "description": "Simulates typing into the search bar. Use this for quick text lookups on specific fields. Use [] for no search",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "search_field": {
+                                "type": "string",
+                                "description": "Technical name of the field to search (e.g., 'partner_id', 'name'). Must be a searchable field"
+                            },
+                            "value": {
+                                "type": "string",
+                                "description": "Text value to search for"
+                            }
+                        },
+                        "required": ["search_field", "value"]
+                    }
+                },
+                "custom_domain": {
+                    "type": "string",
+                    "description": "Optional odoo domain, to use when search view elements are insufficient."
+                }
+            },
+            "required": ["menu_id", "model_name", "selected_filters", "selected_groupbys", "search"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_open_menu_kanban" model="ir.actions.server">
+        <field name="name">AI Tool: Open Menu Kanban</field>
+        <field name="ai_tool_name">ai_tool_open_menu_kanban</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_open_menu_kanban(menu_id, model_name, selected_filters, selected_groupbys, search, custom_domain)
+        </field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Preparing your Kanban view</field>
+        <field name="ai_tool_description">
+            Redirects the UI to the Kanban view of the given menu.
+            Ideal for: stage/status visualization, pipeline views, task boards, workflow management
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "menu_id": {
+                    "type": "number",
+                    "description": "The id of the menu to open"
+                },
+                "model_name": {
+                    "type": "string",
+                    "description": "The technical model name (eg. 'res.users')"
+                },
+                "selected_filters": {
+                    "type": "array",
+                    "description": "List of active filters. Can include both predefined search filters and specific date range configurations. Use [] for no filters",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "description": "The technical name of a predefined filter (e.g., 'my_favorites' or 'active'). Must match a name in the menu's search view's available filters"
+                            },
+                            {
+                                "type": "object",
+                                "description": "Custom date range configuration",
+                                "properties": {
+                                    "field_name": {
+                                        "type": "string",
+                                        "description": "The technical name of the date field (e.g., 'date_order')"
+                                    },
+                                    "selected_periods": {
+                                        "type": "array",
+                                        "description": "List of relative periods (e.g., ['month', 'year-1'])",
+                                        "items": {
+                                            "type": "string",
+                                            "description": "Pattern: 'month', 'year', 'month±N', 'year±N', 'first_quarter', 'second_quarter', 'third_quarter', 'fourth_quarter' or 'custom_...' (where N restrictions and custom_... patterns are found in the menu's search view)"
+                                        }
+                                    }
+                                },
+                                "required": ["field_name", "selected_periods"]
+                            }
+                        ]
+                    }
+                },
+                "selected_groupbys": {
+                    "type": "array",
+                    "description": "Ordered list of fields or date intervals objects to group by. Prefer fields in the menu's search views' groupby fields. Any other groupable field can be used.  Use [] for no grouping.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "description": "The technical name of the field to group by"
+                            },
+                            {
+                                "type": "object",
+                                "description": "Date interval grouping object",
+                                "properties": {
+                                    "field_name": {
+                                        "type": "string",
+                                        "description": "The technical name of the date field"
+                                    },
+                                    "intervals": {
+                                        "type": "array",
+                                        "description": "List of intervals to group by",
+                                        "items": {
+                                            "type": "string",
+                                            "description": "Interval name",
+                                            "enum": ["day", "week", "month", "quarter", "year"]}
+                                    }
+                                },
+                                "required": ["field_name", "intervals"]
+                            }
+                        ]
+                    }
+                },
+                "search": {
+                    "type": "array",
+                    "description": "Simulates typing into the search bar. Use this for quick text lookups on specific fields. Use [] for no search",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "search_field": {
+                                "type": "string",
+                                "description": "Technical name of the field to search (e.g., 'partner_id', 'name'). Must be a searchable field"
+                            },
+                            "value": {
+                                "type": "string",
+                                "description": "Text value to search for"
+                            }
+                        },
+                        "required": ["search_field", "value"]
+                    }
+                },
+                "custom_domain": {
+                    "type": "string",
+                    "description": "Optional odoo domain, to use when search view elements are insufficient."
+                }
+            },
+            "required": ["menu_id", "model_name", "selected_filters", "selected_groupbys", "search"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_open_menu_pivot" model="ir.actions.server">
+        <field name="name">AI Tool: Open Menu Pivot</field>
+        <field name="ai_tool_name">ai_tool_open_menu_pivot</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_open_menu_pivot(menu_id, model_name, selected_filters, row_groupbys, col_groupbys, measures, search, custom_domain)
+        </field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Preparing your Pivot view</field>
+        <field name="ai_tool_description">
+            Redirects the UI to the Pivot view of the given menu.
+            Ideal for "Reporting" app menus, "Top N" queries, rankings, cross-tabulation, performance metrics, aggregate measures.
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "menu_id": {
+                    "type": "number",
+                    "description": "The id of the menu to open (preferably 'Reporting' app menu)"
+                },
+                "model_name": {
+                    "type": "string",
+                    "description": "The technical model name (eg. 'res.users')"
+                },
+                "selected_filters": {
+                    "type": "array",
+                    "description": "List of active filters. Can include both predefined search filters and specific date range configurations. Use [] for no filters",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "description": "The technical name of a predefined filter (e.g., 'my_favorites' or 'active'). Must match a name in the menu's search view's available filters"
+                            },
+                            {
+                                "type": "object",
+                                "description": "Custom date range configuration",
+                                "properties": {
+                                    "field_name": {
+                                        "type": "string",
+                                        "description": "The technical name of the date field (e.g., 'date_order')"
+                                    },
+                                    "selected_periods": {
+                                        "type": "array",
+                                        "description": "List of relative periods (e.g., ['month', 'year-1'])",
+                                        "items": {
+                                            "type": "string",
+                                            "description": "Pattern: 'month', 'year', 'month±N', 'year±N', 'first_quarter', 'second_quarter', 'third_quarter', 'fourth_quarter' or 'custom_...' (where N restrictions and custom_... patterns are found in the menu's search view)"
+                                        }
+                                    }
+                                },
+                                "required": ["field_name", "selected_periods"]
+                            }
+                        ]
+                    }
+                },
+                "row_groupbys": {
+                    "type": "array",
+                    "description": "Ordered list of fields or date intervals objects to group the rows by. Prefer fields in the menu's search views' groupby fields. Any other groupable field can be used.  Use [] for no grouping.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "description": "The technical name of the field to group by"
+                            },
+                            {
+                                "type": "object",
+                                "description": "Date interval grouping object",
+                                "properties": {
+                                    "field_name": {
+                                        "type": "string",
+                                        "description": "The technical name of the date field"
+                                    },
+                                    "intervals": {
+                                        "type": "array",
+                                        "description": "List of intervals to group by",
+                                        "items": {
+                                            "type": "string",
+                                            "description": "Interval name",
+                                            "enum": ["day", "week", "month", "quarter", "year"]}
+                                    }
+                                },
+                                "required": ["field_name", "intervals"]
+                            }
+                        ]
+                    }
+                },
+                "col_groupbys": {
+                    "type": "array",
+                    "description": "Ordered list of fields or date intervals objects to group the columns by. Prefer fields in the menu's search views' groupby fields. Any other groupable field can be used.  Use [] for no grouping.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "description": "The technical name of the field to group by"
+                            },
+                            {
+                                "type": "object",
+                                "description": "Date interval grouping object",
+                                "properties": {
+                                    "field_name": {
+                                        "type": "string",
+                                        "description": "The technical name of the date field"
+                                    },
+                                    "intervals": {
+                                        "type": "array",
+                                        "description": "List of intervals to group by",
+                                        "items": {
+                                            "type": "string",
+                                            "description": "Interval name",
+                                            "enum": ["day", "week", "month", "quarter", "year"]}
+                                    }
+                                },
+                                "required": ["field_name", "intervals"]
+                            }
+                        ]
+                    }
+                },
+                "measures": {
+                    "type": "array",
+                    "description": "List of quantitative measures to display. Refer to 'compute report measures' for valid names or ise '__count' for record count. Order affects column sequence",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "Technical field name (e.g., 'amount_total') or '__count'"
+                            },
+                            "order": {
+                                "type": "string",
+                                "enum": ["desc", "asc"],
+                                "description": "Sorting direction. Note: Only the first measure in the array with an 'order' will define the table's sort column"
+                            }
+                        },
+                        "required": ["name"]
+                    }
+                },
+                "search": {
+                    "type": "array",
+                    "description": "Simulates typing into the search bar. Use this for quick text lookups on specific fields. Use [] for no search",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "search_field": {
+                                "type": "string",
+                                "description": "Technical name of the field to search (e.g., 'partner_id', 'name'). Must be a searchable field"
+                            },
+                            "value": {
+                                "type": "string",
+                                "description": "Text value to search for"
+                            }
+                        },
+                        "required": ["search_field", "value"]
+                    }
+                },
+                "custom_domain": {
+                    "type": "string",
+                    "description": "Optional odoo domain, to use when search view elements are insufficient."
+                }
+            },
+            "required": ["menu_id", "model_name", "selected_filters", "row_groupbys", "col_groupbys", "measures", "search"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_open_menu_graph" model="ir.actions.server">
+        <field name="name">AI Tool: Open Menu Graph</field>
+        <field name="ai_tool_name">ai_tool_open_menu_graph</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_open_menu_graph(
+                menu_id, model_name, selected_filters, selected_groupbys, measure,
+                mode, order, search, stacked, cumulated, custom_domain)
+        </field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Preparing your Graph view</field>
+        <field name="ai_tool_description">
+            Redirects the UI to the Graph view of the given menu
+            Ideal for trends, comparisons, distributions, visual KPIs.
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "menu_id": {
+                    "type": "number",
+                    "description": "The id of the menu to open"
+                },
+                "model_name": {
+                    "type": "string",
+                    "description": "The technical model name (eg. 'res.users')"
+                },
+                "selected_filters": {
+                    "type": "array",
+                    "description": "List of active filters. Can include both predefined search filters and specific date range configurations. Use [] for no filters",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "description": "The technical name of a predefined filter (e.g., 'my_favorites' or 'active'). Must match a name in the menu's search view's available filters"
+                            },
+                            {
+                                "type": "object",
+                                "description": "Custom date range configuration",
+                                "properties": {
+                                    "field_name": {
+                                        "type": "string",
+                                        "description": "The technical name of the date field (e.g., 'date_order')"
+                                    },
+                                    "selected_periods": {
+                                        "type": "array",
+                                        "description": "List of relative periods (e.g., ['month', 'year-1'])",
+                                        "items": {
+                                            "type": "string",
+                                            "description": "Pattern: 'month', 'year', 'month±N', 'year±N', 'first_quarter', 'second_quarter', 'third_quarter', 'fourth_quarter' or 'custom_...' (where N restrictions and custom_... patterns are found in the menu's search view)"
+                                        }
+                                    }
+                                },
+                                "required": ["field_name", "selected_periods"]
+                            }
+                        ]
+                    }
+                },
+                "selected_groupbys": {
+                    "type": "array",
+                    "description": "Ordered list of fields or date intervals objects to group by. Prefer fields in the menu's search views' groupby fields. Any other groupable field can be used.  Use [] for no grouping",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "description": "The technical name of the field to group by"
+                            },
+                            {
+                                "type": "object",
+                                "description": "Date interval grouping object",
+                                "properties": {
+                                    "field_name": {
+                                        "type": "string",
+                                        "description": "The technical name of the date field"
+                                    },
+                                    "intervals": {
+                                        "type": "array",
+                                        "description": "List of intervals to group by",
+                                        "items": {
+                                            "type": "string",
+                                            "description": "Interval name",
+                                            "enum": ["day", "week", "month", "quarter", "year"]}
+                                    }
+                                },
+                                "required": ["field_name", "intervals"]
+                            }
+                        ]
+                    }
+                },
+                "measure": {
+                    "type": "string",
+                    "description": "measure to display. Refer to 'compute report measures' for valid names or use '__count' for record count"
+                },
+                "mode": {
+                    "type": "string",
+                    "description": "Chart type: 'bar' for comparisons, 'line' for trends, 'pie' for proportions",
+                    "enum": ["bar", "line", "pie"]
+                },
+                "order": {
+                    "type": "string",
+                    "description": "Sort direction: 'DESC' for highest first, 'ASC' for lowest first",
+                    "enum": ["DESC", "ASC"]
+                },
+                "search": {
+                    "type": "array",
+                    "description": "Simulates typing into the search bar. Use this for quick text lookups on specific fields. Use [] for no search",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "search_field": {
+                                "type": "string",
+                                "description": "Technical name of the field to search (e.g., 'partner_id', 'name'). Must be a searchable field"
+                            },
+                            "value": {
+                                "type": "string",
+                                "description": "Text value to search for"
+                            }
+                        },
+                        "required": ["search_field", "value"]
+                    }
+                },
+                "stacked": {
+                    "type": "boolean",
+                    "description": "Whether to stack bars/areas on top of each other (default: false)"
+                },
+                "cumulated": {
+                    "type": "boolean",
+                    "description": "Whether to show cumulative values over time (default: false)"
+                },
+                "custom_domain": {
+                    "type": "string",
+                    "description": "Optional odoo domain, to use when search view elements are insufficient."
+                }
+            },
+            "required": ["menu_id", "model_name", "selected_filters", "selected_groupbys", "measure", "mode", "order", "search"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_compute_report_measures" model="ir.actions.server">
+        <field name="name">AI Tool: Compute Report Measures</field>
+        <field name="ai_tool_name">ai_tool_compute_report_measures</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_compute_report_measures(action_id, model_name)
+        </field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Selecting the best measure</field>
+        <field name="ai_tool_description">
+            Retrieves numeric fields (measures) available for aggregation in pivot/graph views.
+            It must be called before opening a pivot or a graph menu to get the menu's available measures
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "action_id": {
+                    "type": "number",
+                    "description": "Action ID - the id of the action linked to a menu or available in the current view context."
+                },
+                "model_name": {
+                    "type": "string",
+                    "description": "Model name - must match the action's model"
+                }
+            },
+            "required": ["action_id", "model_name"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_adjust_search" model="ir.actions.server">
+        <field name="name">AI Tool: Adjust Search</field>
+        <field name="ai_tool_name">ai_tool_adjust_search</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_adjust_search(model_name, remove_facets, toggle_filters, toggle_groupbys, apply_searches, measures, mode, order, stacked, cumulated, custom_domain, switch_view_type)
+        </field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Refining search filters</field>
+        <field name="ai_tool_description">
+            Adjusts the UI to change to edit the search filters, groupbys, view type, ...
+            The current view, active filters, facets, ... are given in the "Current View" section of the context message.
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "model_name": {
+                    "type": "string",
+                    "description": "The technical model name (eg. 'res.users') of the current view"
+                },
+                "remove_facets": {
+                    "type": "array",
+                    "items": {
+                        "type": "number",
+                        "description": "Id of the facet to remove. Must be in the facets of the 'Current Session'"
+                    },
+                    "description": "List of ids of facets groups to remove, where each facet represents a group of related filters, groupbys, or search terms. Use this when: (1) User wants to 'switch' or 'change' from X to Y (remove X's facet first), (2) User wants to clear existing filters/groupings, (3) Reducing constraints. Use mpty array [] for no removals."
+                },
+                "toggle_filters": {
+                    "type": "array",
+                    "description": "List of filters to add/remove. Can include both predefined search filters and specific date range configurations. If the filter is already applied, removes it. Use [] for no filters",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "description": "The technical name of a predefined filter (e.g., 'my_favorites' or 'active'). Must match a name in the menu's search view's available filters"
+                            },
+                            {
+                                "type": "object",
+                                "description": "Custom date range configuration",
+                                "properties": {
+                                    "field_name": {
+                                        "type": "string",
+                                        "description": "The technical name of the date field (e.g., 'date_order')"
+                                    },
+                                    "selected_periods": {
+                                        "type": "array",
+                                        "description": "List of relative periods (e.g., ['month', 'year-1'])",
+                                        "items": {
+                                            "type": "string",
+                                            "description": "Pattern: 'month', 'year', 'month±N', 'year±N', 'first_quarter', 'second_quarter', 'third_quarter', 'fourth_quarter' or 'custom_...' (where N restrictions and custom_... patterns are found in the menu's search view)"
+                                        }
+                                    }
+                                },
+                                "required": ["field_name", "selected_periods"]
+                            }
+                        ]
+                    }
+                },
+                "toggle_groupbys": {
+                    "type": "array",
+                    "description": "Ordered list of fields or date intervals objects to group by to add/remove. Prefer fields in the menu's search views' groupby fields. Any other groupable field can be used. For date groupbys, each interval is toggled on/off independently. To switch from one interval to another (e.g., week to month), use remove_facets to remove the existing date groupby facet first. Use [] for no grouping",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "description": "The technical name of the field to group by"
+                            },
+                            {
+                                "type": "object",
+                                "description": "Date interval grouping object",
+                                "properties": {
+                                    "field_name": {
+                                        "type": "string",
+                                        "description": "The technical name of the date field"
+                                    },
+                                    "intervals": {
+                                        "type": "array",
+                                        "description": "List of intervals to group by",
+                                        "items": {
+                                            "type": "string",
+                                            "description": "Interval name",
+                                            "enum": ["day", "week", "month", "quarter", "year"]}
+                                    }
+                                },
+                                "required": ["field_name", "intervals"]
+                            }
+                        ]
+                    }
+                },
+                "apply_searches": {
+                    "type": "array",
+                    "description": "Simulates typing into the search bar. Use this for quick text lookups on specific fields. Use [] for no search",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "search_field": {
+                                "type": "string",
+                                "description": "Technical name of the field to search (e.g., 'partner_id', 'name'). Must be a searchable field"
+                            },
+                            "value": {
+                                "type": "string",
+                                "description": "Text value to search for"
+                            }
+                        },
+                        "required": ["search_field", "value"]
+                    }
+                },
+                "measures": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "List of measures to be activated. Can be multiple items in pivot view but only one item in graph view."
+                },
+                "mode": {
+                    "type": "string",
+                    "description": "For graph view: Chart type: 'bar' for comparisons, 'line' for trends, 'pie' for proportions"
+                },
+                "order": {
+                    "type": "string",
+                    "description": "For graph view: Sort direction: 'DESC' for highest first, 'ASC' for lowest first"
+                },
+                "stacked": {
+                    "type": "boolean",
+                    "description": "For graph view: Stack bars/areas on top of each other (default: false)"
+                },
+                "cumulated": {
+                    "type": "boolean",
+                    "description": "For graph view: Show cumulative values over time (default: false)"
+                },
+                "custom_domain": {
+                    "type": "string",
+                    "description": "Optional odoo domain, to use when search view elements are insufficient."
+                },
+                "switch_view_type": {
+                    "type": "string",
+                    "description": "The view type to switch to. Must be one of the available view types. Empty string for no switch."
+                }
+            },
+            "required": ["model_name"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_get_models" model="ir.actions.server">
+        <field name="name">AI Tool: Get Models</field>
+        <field name="ai_tool_name">ai_tool_get_models</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_get_models()
+        </field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Retrieving models</field>
+        <field name="ai_tool_description">
+            Returns all Odoo models (excluding transient and abstract models) accessible to the current user, with their technical name and description.
+            Use this tool to identify the correct technical model name before searching, creating, or updating records.
+        </field>
+    </record>
+    <record id="ir_actions_server_get_menus" model="ir.actions.server">
+        <field name="name">AI Tool: Get Menus</field>
+        <field name="ai_tool_name">ai_tool_get_menus</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_get_menus()
+        </field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Retrieving menus</field>
+        <field name="ai_tool_description">
+            For each menu accessible to the current user, this tool returns the menu id and complete name, the related action id, action type and action explanation
+            the available view types and default view type and the model of the view.
+        </field>
+    </record>
+    <record id="ir_actions_server_search" model="ir.actions.server">
+        <field name="name">AI Tool: Search</field>
+        <field name="ai_tool_name">ai_tool_search</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_search(model_name, domain, fields, offset, limit, order)
+        </field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Searching the database</field>
+        <field name="ai_tool_description">
+            Search for records and their values in the database.
+            Ideal for "Do I have...", "Is there any", "What is the name of", searching for relations, ...
+            Returns {records, total_count} and a pagination hint when more rows remain; by default only display_name is fetched (pass `fields` for more) and at most 50 rows (max 200) are returned.
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "model_name": {
+                    "type": "string",
+                    "description": "Technical model name (e.g., 'sale.order', 'product.product', 'res.partner')"
+                },
+                "domain": {
+                    "type": "string",
+                    "description": "Search domain. Use an empty list to match all records"
+                },
+                "fields": {
+                    "type": "array",
+                    "description": "list of fields to fetch. DEFAULT: display_name only — pass explicit field names to retrieve more (do NOT omit to get all fields).",
+                    "items": {
+                        "type": "string",
+                        "description": "Technical name of a field available on the model. Related field paths (eg. 'partner_id.name') are not allowed"
+                    }
+                },
+                "offset": {
+                    "type": "number",
+                    "description": "number of results to skip (default 0). Use with `limit` to paginate."
+                },
+                "limit": {
+                    "type": "number",
+                    "description": "max rows to return (default 50, max 200). Use `offset` to paginate."
+                },
+                "order": {
+                    "type": "string",
+                    "description": "Optional 'order by' specification. This field should have the form `field_name DESC` (or ASC for ascending order)"
+                }
+            },
+            "required": ["model_name", "domain"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_read_binary_content" model="ir.actions.server">
+        <field name="name">AI Tool: Read Binary Content</field>
+        <field name="ai_tool_name">ai_tool_read_binary_content</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_read_binary_content(model_name, record_ids, field_name)
+        </field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Reading binary content</field>
+        <field name="ai_tool_description">
+            Read the content of attachments, images, or any binary field for any record.
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "model_name": {
+                    "type": "string",
+                    "description": "Technical model name, 'ir.attachment' or the model holding the binary field"
+                },
+                "record_ids": {
+                    "type": "array",
+                    "description": "Record IDs to read the content of, at most 5 at a time",
+                    "items": {"type": "integer"}
+                },
+                "field_name": {
+                    "type": "string",
+                    "description": "Technical name of the binary field to read. It is not required for 'ir.attachment' records"
+                }
+            },
+            "required": ["model_name", "record_ids"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_preview_records" model="ir.actions.server">
+        <field name="name">AI Tool: Prepare Record Previews</field>
+        <field name="ai_tool_name">ai_tool_prepare_record_previews</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_prepare_record_previews(ai, model_name, records_to_preview, header)
+        </field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Previewing records</field>
+        <field name="ai_tool_description">
+            # Prepares preview metadata for records to display as rich cards in the chat.
+
+            ## Call this ONLY when the user wants to see the records themselves -
+            e.g., "show me...", "list...", "find...", "recommend/suggest...?", anything in this context, or when
+            it is useful to preview the search results to let the user choose among them before taking another action.
+            Based on the context, you can decide basically when the records are the answer themselves.
+
+            ## Do NOT call it when:
+            - The records are intermediate data feeding another tool call
+            (update, create, building arguments).
+            - The user asked a question that the records merely answer
+            (counts, yes/no, totals, "who is...", "when is..."). Reply with
+            the answer in text; do not preview the records behind it.
+
+            Returns `preview_metadata`: the authoritative final values (computed
+            prices, currency, links). Base your reply on these, never on raw values
+            from earlier search results.
+
+            ## Your reply:
+            ### Rich cards/ records'previews appear automatically below your message. Because the previews already show the record details:
+            - Keep your ENTIRE reply to a single short sentence (e.g., "Here are the things you can buy:")
+            - Do NOT list record names, descriptions, prices, or any other details - the previews handle this
+            - Do NOT use bullet points or numbered lists and NEVER List the search results in your reply, even if there are only a few. The previews will show all the necessary records in a clear format.
+
+            ## Models with rich preview cards are currently:
+            - Products (`product.template`, `product.product`), Appointments (`appointment.type`), Events (`event.event`),
+            Blog Posts (`blog.post`), Courses (`slide.channel`), Lessons/Slides (`slide.slide`), and Jobs (`hr.job`).
+            - All other record previews are rendered as regular record links.
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "model_name": {
+                    "type": "string",
+                    "description": "Technical model name of the searched records (e.g., 'product.product', 'slide.channel')"
+                },
+                "records_to_preview": {
+                    "type": "array",
+                    "description": "The records array that are needed to be previewed.",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "description": "The record ID"
+                            }
+                        },
+                        "required": ["id"]
+                    }
+                },
+                "header": {
+                    "type": "string",
+                    "description": "Group heading. Include only when making multiple calls for one response; Never use it for a single-group message response."
+                }
+            },
+            "required": ["model_name", "records_to_preview"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_read_group" model="ir.actions.server">
+        <field name="name">AI Tool: Read group</field>
+        <field name="ai_tool_name">ai_tool_read_group</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_read_group(model_name, domain, groupby, aggregates, having, offset, limit, order)
+        </field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_description">
+            Search for records to group them by specific values and perform aggregate calculations like sums, averages, or counts. Use this tool when users ask for totals, statistics, or data distributions across different categories.
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "model_name": {
+                    "type": "string",
+                    "description": "Technical model name (e.g., 'sale.order', 'product.product', 'res.partner')"
+                },
+                "domain": {
+                    "type": "string",
+                    "description": "Search domain. Use an empty list to match all records"
+                },
+                "groupby": {
+                    "type": "array",
+                    "description": "list of groupby descriptions by which the records will be grouped. A groupby description is either a field (then it will be grouped by that field) or a string `'field:granularity'`. Right now, the only supported granularities are `'day'`, `'week'`, `'month'`, `'quarter'` or `'year'`, and they only make sense for date/datetime fields. Additionally integer date parts are also supported: `'year_number'`, `'quarter_number'`, `'month_number'`, `'iso_week_number'`, `'day_of_year'`, `'day_of_month'`, 'day_of_week', 'hour_number', 'minute_number' and 'second_number'.",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "aggregates": {
+                    "type": "array",
+                    "description": "list of aggregates specification. Each element is `'field:agg'` (aggregate field with aggregation function `'agg'`). The possible aggregation functions are the ones provided by `PostgreSQL`, `'count_distinct'` with the expected meaning and `'recordset'` to act like `'array_agg'` converted into a recordset. Only stored fields can be used for aggregation.",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "having": {
+                    "type": "string",
+                    "description": "A domain where the valid 'fields' are the aggregates. The provided field names must exist in the aggregate elements. Example `[('amount_total:sum', '&gt;', 1000)]`"
+                },
+                "offset": {
+                    "type": "number",
+                    "description": "optional number of groups to skip. Use with `limit` to paginate."
+                },
+                "limit": {
+                    "type": "number",
+                    "description": "max groups to return (default 100, max 500). Use `offset` to paginate."
+                },
+                "order": {
+                    "type": "string",
+                    "description": "optional 'order by' specification, for overriding the natural sort ordering of the groups. The order must be a valid PostgreSQL group by, it must use a valid `aggregate` or `groupby element. The provided fields must exist in the group by or aggregate elements. DO NOT make up any field name. i.e. For an aggregate `amount_total:sum`, the valid order is `amount_total:sum`."
+                }
+            },
+            "required": ["model_name", "domain"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_compute_date" model="ir.actions.server">
+        <field name="name">AI Tool: Compute Date</field>
+        <field name="ai_tool_name">ai_tool_compute_date</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">
+            ai['result'] = record._ai_tool_compute_date(model_name, field_name, operations, pin)
+        </field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_thinking_text">Calculating the date range</field>
+        <field name="ai_tool_description">
+            Computes exact date/datetime values for relative date expressions. Can traverse years, quarters, months, weeks, and days, and anchor to specific weekdays or times.
+
+            **Returns**:
+            - Date fields: 'YYYY-MM-DD' (in user timezone)
+            - Datetime fields: 'YYYY-MM-DD HH:MM:SS' (in UTC)
+
+            **Core Concepts**:
+
+            1. **Operations**: Sequential transformations applied to current time
+               - navigate: Move through time periods
+                 * Required: type="navigate", period (minute/hour/day/week/month/quarter/year), offset (negative=past, positive=future)
+                 * Optional: boundary ('start' or 'end' of period)
+               - find_previous: Search backward for specific weekday
+                 * Required: type="find_previous", weekday (0-6)
+                 * Note: boundary not supported - use pin for time adjustment
+               - find_next: Search forward for specific weekday
+                 * Required: type="find_next", weekday (0-6)
+                 * Note: boundary not supported - use pin for time adjustment
+
+            2. **Pin**: Final anchoring to specific position (applied after all operations)
+               - day: Lock to specific day (integer 1-31) or weekday occurrence (object with weekday 0-6, occurrence 1-5)
+               - time: Set specific time ('HH:MM' or 'HH:MM:SS')
+
+            **Examples**:
+
+            # "Yesterday at midnight"
+            {"operations": [{"type": "navigate", "period": "day", "offset": -1, "boundary": "start"}]}
+
+            # "Next Friday at 5 PM"
+            {"operations": [{"type": "find_next", "weekday": 4}], "pin": {"time": "17:00"}}
+
+            # "Start of last week"
+            {"operations": [{"type": "navigate", "period": "week", "offset": -1, "boundary": "start"}]}
+
+            # "First Monday of last month"
+            {"operations": [{"type": "navigate", "period": "month", "offset": -1, "boundary": "start"}], "pin": {"day": {"weekday": 0, "occurrence": 1}}}
+
+            # "3rd week of 2 quarters ago"
+            {"operations": [{"type": "navigate", "period": "quarter", "offset": -2, "boundary": "start"}, {"type": "navigate", "period": "week", "offset": 2, "boundary": "start"}]}
+
+            # "Last Monday at 5 PM"
+            {"operations": [{"type": "find_previous", "weekday": 0}], "pin": {"time": "17:00"}}
+
+            # "5 days into last month"
+            {"operations": [{"type": "navigate", "period": "month", "offset": -1, "boundary": "start"}, {"type": "navigate", "period": "day", "offset": 5}]}
+
+            # "2nd week of 3 years ago"
+            {"operations": [{"type": "navigate", "period": "year", "offset": -3, "boundary": "start"}, {"type": "navigate", "period": "week", "offset": 1, "boundary": "start"}]}
+
+            # "10 days before end of last quarter"
+            {"operations": [{"type": "navigate", "period": "quarter", "offset": -1, "boundary": "end"}, {"type": "navigate", "period": "day", "offset": -10}]}
+
+            Note: Weekday values are 0=Monday through 6=Sunday. Weeks start Monday (ISO 8601).
+        </field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "model_name": {
+                    "type": "string",
+                    "description": "Technical model name (e.g., 'sale.order')"
+                },
+                "field_name": {
+                    "type": "string",
+                    "description": "Date or datetime field name (e.g., 'date_order', 'create_date')"
+                },
+                "operations": {
+                    "type": "array",
+                    "description": "Sequential operations to apply. Each operation transforms the working datetime.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "enum": ["navigate"],
+                                        "description": "Navigate through time periods"
+                                    },
+                                    "period": {
+                                        "type": "string",
+                                        "enum": ["minute", "hour", "day", "week", "month", "quarter", "year"],
+                                        "description": "Time period to navigate"
+                                    },
+                                    "offset": {
+                                        "type": "integer",
+                                        "description": "Number of periods to move. Negative = past, positive = future. Default: 0"
+                                    },
+                                    "boundary": {
+                                        "type": "string",
+                                        "enum": ["start", "end"],
+                                        "description": "Navigate to start or end of period (optional)"
+                                    }
+                                },
+                                "required": ["type", "period"]
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "enum": ["find_previous", "find_next"],
+                                        "description": "Find previous or next occurrence of a weekday"
+                                    },
+                                    "weekday": {
+                                        "type": "integer",
+                                        "description": "Target weekday. 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday"
+                                    }
+                                },
+                                "required": ["type", "weekday"]
+                            }
+                        ]
+                    }
+                },
+                "pin": {
+                    "type": "object",
+                    "description": "Final anchoring applied after all operations.",
+                    "properties": {
+                        "day": {
+                            "anyOf": [
+                                {
+                                    "type": "integer",
+                                    "description": "Day of month (1-31)"
+                                },
+                                {
+                                    "type": "object",
+                                    "description": "Weekday selector",
+                                    "properties": {
+                                        "weekday": {
+                                            "type": "integer",
+                                            "description": "Weekday (0=Monday, 6=Sunday)"
+                                        },
+                                        "occurrence": {
+                                            "type": "integer",
+                                            "description": "Nth occurrence in month (1-5). E.g., 2 for '2nd Monday'"
+                                        }
+                                    },
+                                    "required": ["weekday"]
+                                }
+                            ]
+                        },
+                        "time": {
+                            "type": "string",
+                            "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$",
+                            "description": "Time in 'HH:MM' or 'HH:MM:SS' format (24-hour)"
+                        }
+                    },
+                    "required": []
+                }
+            },
+            "required": ["model_name", "field_name"]
+        }
+        </field>
+    </record>
+
+    <record id="ir_actions_server_update_records" model="ir.actions.server">
+        <field name="name">AI Tool: Update Records</field>
+        <field name="ai_tool_name">ai_tool_update_records</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">ai['result'] = record._ai_tool_update_records(ai, explanation, preview_menus, updates)</field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_description">Update records
+        This tool is used to update existing records of the database. It exposes three main parameters:
+            - explanation: A message to explain the tool call with a question asking for user's CONFIRMATION.
+            - preview_menus: a list of menus to open per models comprised in the list of updates.
+            - updates: the list of records to update with their fields values.</field>
+        <field name="ai_tool_thinking_text">Preparing your update</field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "explanation": {
+                    "type": "string",
+                    "description": "An explanation of the tool call. It MUST end asking for user's CONFIRMATION."
+                },
+                "preview_menus": {
+                    "type": "array",
+                    "description": "An array containing the menus to open to show the preview of created records",
+                    "items": {
+                        "type": "object",
+                        "description": "A mapping between the record model and the menu to open.",
+                        "properties": {
+                            "model_name": {
+                                "type": "string",
+                                "description": "The name of the model linked to the menu"
+                            },
+                            "menu_id": {
+                                "type": "integer",
+                                "description": "The id of the menu to call to show the preview. Always the default view of the model."
+                            }
+                        },
+                        "required": ["model_name", "menu_id"]
+                    }
+                },
+                "updates": {
+                    "type": "array",
+                    "description": "list of updates to do",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "model_name": {
+                                "type": "string",
+                                "description": "technical name of the model (eg. 'mail.message')"
+                            },
+                            "domain": {
+                                "type": "string",
+                                "description": "Odoo domain of the records of the given model name to update. Cannot be a dummy truthy domain (e.g. '[]', 'True'). To update all records, pass a domain that matches all records."
+                            },
+                            "changes": {
+                                "type": "array",
+                                "description": "list of objects of changes. Objects must either use value or x2m_commands, but not both. x2m_commands can only be used with a one2many or a many2many field",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "field": {
+                                            "type": "string",
+                                            "description": "technical name of the field to update"
+                                        },
+                                        "value": {
+                                            "anyOf": [
+                                                { "type": "string" },
+                                                { "type": "number" },
+                                                { "type": "boolean" },
+                                                { "type": "null" }
+                                            ],
+                                            "description": "The new value to assign to the field. Must be 'null' if the field is updated using a x2m command. Cannot be used to create records"
+                                        },
+                                        "x2m_commands": {
+                                            "type": "string",
+                                            "description": "List of commands to apply to the field. Can only be used on a one2many or many2many field"
+                                        }
+                                    },
+                                    "description": "Change to apply to a field",
+                                    "required": ["field"]
+                                }
+                            }
+                        },
+                        "required": ["model_name", "domain", "changes"]
+                    }
+                }
+            },
+            "required": ["explanation", "preview_menus", "updates"]
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_create_records" model="ir.actions.server">
+        <field name="name">AI Tool: Create Records</field>
+        <field name="ai_tool_name">ai_tool_create_records</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">ai['result'] = record._ai_tool_create_records(ai, explanation, preview_menu_id, model_name, values)</field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_description">Create records
+        This tool is used to create new records in the database. It exposes three main parameters:
+            - explanation: A message to explain the tool call with a question asking for user's CONFIRMATION.
+            - model_name: the technical name of the model to create records for
+            - preview_menu_id: the id of a menu to be used to generate a link (used in multiple records creation only)
+            - values: the list of records to create with their fields values.</field>
+        <field name="ai_tool_thinking_text">Creating some records</field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "explanation": {
+                    "type": "string",
+                    "description": "An explanation of the tool call. It MUST end with a question asking for user's CONFIRMATION."
+                },
+                "model_name": {
+                    "type": "string",
+                    "description": "technical name of the model (i.e. 'mail.message')"
+                },
+                "preview_menu_id": {
+                    "type": "integer",
+                    "description": "The id of a menu linked to the model specified in `model_name`, used to generate the preview link for created records. It must be a valid menu for that model, preferably its default view menu. This field should almost always be filled — only leave it empty if the model has absolutely no associated menu."
+                },
+                "values": {
+                    "type": "array",
+                    "description": "list of records to create along with their fields",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "field_values": {
+                                "type": "array",
+                                "description": "list of values to assign to the fields of the record",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "field": {
+                                            "type": "string",
+                                            "description": "technical name of the field"
+                                        },
+                                        "value": {
+                                            "anyOf": [
+                                                { "type": "string" },
+                                                { "type": "number" },
+                                                { "type": "boolean" },
+                                                { "type": "null" }
+                                            ],
+                                            "description": "The value to assign to the field. Use 'null' if the field is initialized using a x2m command"
+                                        },
+                                        "x2m_link_ids": {
+                                            "anyOf": [
+                                                {
+                                                    "type": "integer",
+                                                    "description": "The id of a record to link"
+                                                },
+                                                {
+                                                    "type": "array",
+                                                    "description": "A list of existing records ids to link.",
+                                                    "items": {
+                                                        "type": "integer",
+                                                        "description": "The id of an existing record."
+                                                    }
+                                                },
+                                                { "type": "null"}
+                                            ]
+                                        }
+                                    },
+                                    "description": "Values to apply to the newly created record. field_values is a list of x2m_commands if the field is a one2many or a many2many, a value otherwise",
+                                    "required": ["field"]
+                                }
+                            }
+                        },
+                        "required": ["field_values"]
+                    }
+                }
+            },
+            "required": ["explanation", "model_name", "values"]
+        }
+        </field>
+    </record>
+
+    <record id="ir_actions_server_ai_generate_image" model="ir.actions.server">
+        <field name="name">AI Tool: Generate an Image</field>
+        <field name="ai_tool_name">ai_tool_generate_an_image</field>
+        <field name="state">code</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="code">ai['result'] = record._ai_tool_generate_image(ai,prompt,images_paths,image_title,feedback,aspect_ratio)</field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="ai_tool_description">
+Never use this tool preemptively. Use it once the user asks explicitly to generate an image and provide the details of the scene. only use it when the user asks explicitly to generate an image.
+Aspect Ratio: If the user does not explicitly specify an aspect ratio, default to a 1:1 (square) image format. Only use a different aspect ratio when the user clearly requests it.
+        </field>
+        <field name="ai_tool_thinking_text">Working on your picture</field>
+        <field name="ai_tool_schema">
+        {
+            "properties": {
+                "prompt": {
+                    "type": "string",
+                    "description": "The prompt that will be sent to the LLM to generate the image with the description that the user has specified. Make sure to specify how each attachment if any will be used in the generation process."
+                },
+                "images_paths": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "A list of paths of images that should be used for image generation."
+                },
+                "image_title": {
+                    "type": "string",
+                    "description": "A descriptive name for the generated image"
+                },
+                "feedback": {
+                    "type": "string",
+                    "description": "A message that will be shown to the user after the image is generated successfully to ask for their feedback. The feedback should be short and concise and should give the user a hint on what else can be changed in the image. For example, if the user asked for a picture of a cat, the feedback could be 'Here is your picture of a cat. Let me know if you want me to change anything else (more cats, different pose, different background, ..)'. The feedback should be properly formatted HTML"
+                },
+                "aspect_ratio": {
+                    "type": "string",
+                    "description": "The aspect ratio to use for image generation. If not specified by the user, use the aspect ratio of the reference image (if any). Otherwise default to '1:1'."
+                }
+            },
+            "required": ["prompt", "image_title", "feedback", "aspect_ratio"],
+            "type": "object"
+        }
+        </field>
+    </record>
+    <record id="ir_actions_server_ai_web_search" model="ir.actions.server">
+        <field name="name">AI Tool: Web Search</field>
+        <field name="ai_tool_name">ai_tool_web_search</field>
+        <field name="model_id" ref="model_ai_tool"/>
+        <field name="state">code</field>
+        <field name="code">ai['result'] = record._ai_tool_web_search(ai, query, retrieval_mode, context_hint)</field>
+        <field name="use_in_ai" eval="True"/>
+        <field name="ai_tool_description">Use this tool to delegate research to a specialized search agent.</field>
+        <field name="ai_tool_thinking_text">Searching the web</field>
+        <field name="ai_tool_schema">
+        {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "A comprehensive search query containing all necessary context to find a factual answer. Use specific names, dates, or technical terms so the search agent can work independently."
+                },
+                "retrieval_mode": {
+                    "type": "string",
+                    "enum": ["fact", "summary", "deep"],
+                    "description": "Controls the depth of results returned. Use 'fact' for simple lookups (addresses, dates, names), 'summary' for understanding a topic, and 'deep' for content generation or in-depth research requiring multiple perspectives and rich detail."
+                },
+                "context_hint": {
+                    "type": "string",
+                    "description": "Optional. A short description of how the result will be used (e.g. 'writing a 800-word news article' or 'answering a quick user question'). Helps the search agent calibrate source selection and framing."
+                }
+            },
+            "required": ["query", "retrieval_mode"]
+        }
+        </field>
+    </record>
+</odoo>

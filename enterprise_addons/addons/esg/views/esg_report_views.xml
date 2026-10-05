@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="esg_report_form_view" model="ir.ui.view">
+        <field name="name">esg.report.form</field>
+        <field name="model">esg.report</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <div class="oe_title" colspan="2">
+                        <div class="o_form_label">Title</div>
+                        <h1>
+                            <field class="text-break" options="{'line_breaks': False}" widget="text" name="title" placeholder="e.g. VSME Annual Report" invisible="report_type == 'csrd'"/>
+                            <field class="text-break" options="{'line_breaks': False}" widget="text" name="title" placeholder="e.g. CSRD Annual Report" invisible="report_type != 'csrd'"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="report_type" invisible="context.get('default_report_type') == 'csrd'" widget="report_type_selection"/>
+                        <div class="o_form_label">Dates</div>
+                        <div class="d-flex align-items-center gap-3">
+                            <field name="start_date" no_label="1"/>
+                            <i class="oi oi-fw" data-icon="east" title="arrow"/>
+                            <field name="end_date" no_label="1"/>
+                        </div>
+                        <field name="responsible_user_ids" widget="many2many_avatar_user"/>
+                        <field name="company_id"/>
+                        <field name="nace_id" invisible="report_type == 'csrd'" options="{'no_create': True}"/>
+                        <field name="base_year" widget="integer" options="{'type': 'number'}"/>
+                    </group>
+                </group>
+                <footer>
+                    <button string="Save" class="btn-primary" special="save" data-hotkey="S"/>
+                    <button string="Discard" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="esg_report_kanban_view" model="ir.ui.view">
+        <field name="name">esg.report.kanban</field>
+        <field name="model">esg.report</field>
+        <field name="arch" type="xml">
+            <kanban
+                highlight_color="color"
+                on_create="esg.action_esg_report_quick_create"
+                action="action_open_knowledge_report_article"
+                type="object"
+            >
+                <field name="title"/>
+                <field name="status"/>
+                <field name="knowledge_article_id"/>
+                <templates>
+                    <t t-name="menu">
+                        <a type="object" name="action_set_to_draft"
+                            invisible="status == 'draft'"
+                            class="dropdown-item" role="menuitem">Set to Draft</a>
+                        <a type="object" name="action_set_to_done"
+                            invisible="status == 'done'"
+                            class="dropdown-item" role="menuitem">Set to Done</a>
+                        <a type="object" name="action_edit_esg_report"
+                            class="dropdown-item" role="menuitem">Configure</a>
+                        <a type="object" name="action_update_materiality"
+                            invisible="status == 'done' or report_type != 'csrd'"
+                            confirm="This action will synchronize your report with the latest materiality results and fold/unfold sections accordingly. You can reactivate or adjust them manually at any time. Are you sure to continue?"
+                            confirm-title="Update Materiality Results" confirm-label="Update" cancel-label="Discard"
+                            class="dropdown-item" role="menuitem">Update Materiality</a>
+                        <a type="delete" class="dropdown-item" role="menuitem">Delete</a>
+                        <hr class="dropdown-divider"/>
+                        <div role="menuitem" aria-haspopup="true">
+                            <field name="color" widget="kanban_color_picker"/>
+                        </div>
+                    </t>
+                    <t t-name="card">
+                        <field name="title" class="fw-bold fs-5 flex-grow-1"/>
+                        <div class="py-3">
+                            <div class="d-flex align-items-center">
+                                <i class="oi oi-fw oi-filled me-2" data-icon="calendar_today" title="Calendar"/>
+                                <field name="start_date"/>
+                                <i class="oi oi-fw" data-icon="east" title="arrow"/>
+                                <field name="end_date"/>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-end">
+                            <div class="flex-grow-1">
+                                <button type="object" name="action_esg_report_pdf" class="btn btn-primary">Print</button>
+                            </div>
+                            <div class="d-flex">
+                                <div invisible="status != 'draft'" class="badge text-bg-secondary align-self-center mx-2">Draft</div>
+                                <div invisible="status != 'done'" class="badge text-bg-success align-self-center mx-2">Done</div>
+                                <field name="responsible_user_ids" widget="many2many_avatar_user" class="ms-auto"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="esg_report_search_view" model="ir.ui.view">
+        <field name="name">esg.report.search</field>
+        <field name="model">esg.report</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="title"/>
+                <filter name="filter_my_esg_reports" string="My Reports"
+                    domain="[('create_uid', '=', uid)]"/>
+                <separator/>
+                <filter name="filter_draft" string="Draft"
+                    domain="[('status', '=', 'draft')]"/>
+                <filter name="filter_done" string="Done"
+                    domain="[('status','=', 'done')]"/>
+                <group>
+                    <filter name="group_by_responsible_user_ids" domain="[]" context="{'group_by': 'responsible_user_ids'}"/>
+                    <filter name="group_by_start_date" domain="[]" context="{'group_by': 'start_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_esg_report_quick_create" model="ir.actions.act_window">
+        <field name="name">Create a Report</field>
+        <field name="res_model">esg.report</field>
+        <field name="target">new</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="esg_report_form_view"/>
+    </record>
+
+    <record id="action_view_esg_vsme_report" model="ir.actions.act_window">
+        <field name="name">VSME Reports</field>
+        <field name="path">esg-vsme</field>
+        <field name="res_model">esg.report</field>
+        <field name="view_mode">kanban</field>
+        <field name="context">{'default_report_type': 'vsme_basic'}</field>
+        <field name="domain">[('report_type', 'in', ('vsme_basic', 'vsme_advanced'))]</field>
+        <field name="help" type="html">
+            <h1>Create a VSME Report</h1>
+            <div class="d-flex o_view_esg_report_nocontent_helper_container">
+                <div class="flex-grow-1">
+                    <img src="/esg/static/src/img/puzzle.svg"/>
+                    <h2>Load a Template</h2>
+                    <p>Start from our ready-to-use templates</p>
+                </div>
+                <i class="oi fs-2 mt-5 text-muted" data-icon="east"/>
+                <div class="flex-grow-1">
+                    <img src="/esg/static/src/img/signature.svg"/>
+                    <h2>Edit its content</h2>
+                    <p>Customize all of its content.<br/>Add sections, pages, or attachments</p>
+                </div>
+                <i class="oi fs-2 mt-5 text-muted" data-icon="east"/>
+                <div class="flex-grow-1">
+                    <img src="/esg/static/src/img/documents_pile.svg"/>
+                    <h2>Print your Report</h2>
+                    <p>Get a complete PDF file, ready to be shared</p>
+                </div>
+            </div>
+        </field>
+    </record>
+
+    <record id="action_view_esg_csrd_report" model="ir.actions.act_window">
+        <field name="name">CSRD Reports</field>
+        <field name="path">esg-csrd</field>
+        <field name="res_model">esg.report</field>
+        <field name="view_mode">kanban</field>
+        <field name="context">{'default_report_type': 'csrd'}</field>
+        <field name="domain">[('report_type', '=', 'csrd')]</field>
+        <field name="help" type="html">
+            <h1>Create a CSRD Report</h1>
+            <div class="d-flex o_view_esg_report_nocontent_helper_container">
+                <div class="flex-grow-1">
+                    <img src="/esg/static/src/img/puzzle.svg"/>
+                    <h2>Load a Template</h2>
+                    <p>Start from our ready-to-use templates</p>
+                </div>
+                <i class="oi fs-2 mt-5 text-muted" data-icon="east"/>
+                <div class="flex-grow-1">
+                    <img src="/esg/static/src/img/signature.svg"/>
+                    <h2>Edit its content</h2>
+                    <p>Customize all of its content.<br/>Add sections, pages, or attachments</p>
+                </div>
+                <i class="oi fs-2 mt-5 text-muted" data-icon="east"/>
+                <div class="flex-grow-1">
+                    <img src="/esg/static/src/img/documents_pile.svg"/>
+                    <h2>Print your Report</h2>
+                    <p>Get a complete PDF file, ready to be shared</p>
+                </div>
+            </div>
+        </field>
+    </record>
+</odoo>

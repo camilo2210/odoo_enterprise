@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data noupdate="1">
+
+    <record id="ai_prompt_button_social_post" model="ai.prompt.button">
+        <field name="name">Write a social post</field>
+    </record>
+
+    <record id="ai_prompt_button_social_post_idea" model="ai.prompt.button">
+        <field name="name">Help me find ideas to post</field>
+        <field name="prompt">
+            Find originals ideas to post on the social medias.
+        </field>
+        <field name="sequence">20</field>
+    </record>
+
+    <record id="ai_prompt_button_generate_an_image" model="ai.prompt.button">
+        <field name="name">Help me generate an image</field>
+        <field name="prompt">
+If a reference image is available, treat it as the strict visual anchor for the subject only. If no reference image exists,
+use the textual description and available context to precisely define the subject's appearance. Your task is to generate a high-fidelity,
+visually explicit image that reinterprets the same subject within a new, contextually meaningful scenario.
+        </field>
+        <field name="sequence">20</field>
+    </record>
+
+    <record id="ai_composer_text_field_social" model="ai.composer">
+        <field name="name">Social Post Message</field>
+        <field name="interface_key">text_field_social</field>
+        <field name="ai_agent_id" ref="ai.ai_default_agent" />
+        <field name="default_prompt">
+            Your job is to help create a post that will be published on social medias.
+            YOUR REPLY WILL BE INSERTED AS IS in the post, DO NOT ADD ANY EXTRA COMMENTARY THAT SHOULDN'T APPEAR IN THE post.
+            Give your answers succinctly and to the point, DO NOT use markdown or HTML.
+        </field>
+        <field name="is_system_default">True</field>
+        <field name="available_prompt_ids" eval="[(4, ref('ai_social.ai_prompt_button_social_post')), (4, ref('ai_social.ai_prompt_button_social_post_idea'))]"/>
+    </record>
+
+    <record id="ai_composer_dialog_social_post" model="ai.composer">
+        <field name="name">Social Media Manager</field>
+        <field name="interface_key">media_dialog</field>
+        <field name="focused_model_id" ref="social.model_social_post"/>
+        <field name="ai_agent_id" ref="ai.ai_default_agent"/>
+        <field name="is_system_default">True</field>
+        <field name="available_prompt_ids" eval="[(4, ref('ai_social.ai_prompt_button_generate_an_image'))]"/>
+    </record>
+
+</data>
+</odoo>

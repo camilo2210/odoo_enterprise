@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="mail.Message" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o-mail-Message-core')]" position="attributes">
+            <attribute name="t-attf-class" add="{{ this.isAIMessage ? 'flex-column' : '' }}" separator=" "/>
+            <attribute name="t-attf-class" add="{{ this.props.thread?.channel?.isAiChat and this.props.message.isSelfAuthored ? 'flex-row-reverse' : '' }}" separator=" "/>
+        </xpath>
+        <xpath expr="//div[hasclass('o-mail-Message-sidebar')]" position="attributes">
+            <attribute name="t-attf-class" add="{{ this.isAIMessage ? 'd-none' : '' }}" separator=" "/>
+        </xpath>
+        <xpath expr="//div[hasclass('o-mail-Message-header')]" position="attributes">
+            <attribute name="t-attf-style" add="{{ this.props.thread?.channel?.isAiChat and this.props.message.isSelfAuthored ? 'justify-content: flex-end;' : '' }}" separator=" "/>
+        </xpath>
+        <xpath expr="//span[hasclass('o-mail-Message-author')]" position="before">
+            <div t-if="this.isAIMessage" class="o-mail-Message-avatarContainer position-relative bg-inherit rounded-3" t-att-class="this.getAvatarContainerAttClass()">
+                <img class="o-mail-Message-avatar w-100 h-100 rounded-3" t-att-src="this.message.authorAvatarUrl" t-att-class="this.authorAvatarAttClass"/>
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('o-mail-Message-bubbleTail')]" position="attributes">
+            <attribute name="t-attf-class" add="{{ this.isAIMessage ? 'd-none' : '' }}" separator=" "/>
+        </xpath>
+        <xpath expr="//div[hasclass('o-mail-Message-bubble')]" position="attributes">
+            <attribute name="t-attf-class" add="{{ this.isAIMessage ? 'd-none' : '' }}" separator=" "/>
+        </xpath>
+        <xpath expr="//div[hasclass('o-mail-Message-contentContainer')]" position="attributes">
+            <attribute name="t-att-class"></attribute>
+            <attribute name="t-attf-class" add="{{ this.props.thread?.channel?.isAiChat and this.env.inChatWindow ? 'flex-column' : '' }}" separator=" "/>
+            <attribute name="t-attf-class" add="{{ this.props.thread?.channel?.isAiChat and !this.env.inChatWindow and this.props.message.isSelfAuthored ? 'flex-row-reverse' : '' }}" separator=" "/>
+            <attribute name="t-attf-class" add="{{ !this.props.thread?.channel?.isAiChat and this.isAlignedRight ? 'flex-row-reverse' : '' }}" separator=" "/>
+        </xpath>
+        <xpath expr="//div[hasclass('o-mail-Message-textContent')]" position="attributes">
+            <attribute name="t-attf-class" add="{{ this.props.thread?.channel?.isAiChat and !this.env.inChatWindow ? 'flex-column' : '' }}" separator=" "/>
+        </xpath>
+        <xpath expr="//div[hasclass('o-mail-Message-textContent')]" position="after">
+            <t t-set="isNewestAIMessage" t-value="this.isAIMessage and this.props.message.eq(this.props.thread.channel.newestMessage)"/>
+            <t t-if="isNewestAIMessage">
+                <div
+                    t-foreach="this.props.thread.channel.ai_session_ids.filter(session => session.external_pending_tool)"
+                    t-as="session" t-key="session.id"
+                    class="o_ai_external_pending_tool d-flex align-items-center gap-2 text-muted mt-1"
+                >
+                    <i class="oi oi-fw oi-spin" data-icon="autorenew" aria-hidden="true"/>
+                    <span t-if="session.parent_session_id" t-out="session.agent_id.name"/>
+                    <span>Working...</span>
+                    <button
+                        class="o_ai_cancel_external btn btn-sm btn-link text-muted p-0 ms-auto"
+                        t-on-click="() => session.cancelExternalTool()"
+                    >Cancel</button>
+                </div>
+            </t>
+        </xpath>
+    </t>
+    <t t-inherit="mail.Message.actions" t-inherit-mode="extension">
+        <xpath expr="//*[hasclass('o-mail-Message-actions')]" position="attributes">
+            <attribute name="t-attf-class" add="{{ this.props.thread?.channel?.isAiChat and this.isAlignedRight ? 'flex-row-reverse' : '' }}" separator=" "/>
+            <attribute name="t-attf-class" add="{{ this.props.thread?.channel?.isAiChat and !this.env.inChatWindow and this.isAIMessage ? 'px-2' : '' }}" separator=" "/>
+        </xpath>
+    </t>
+</templates>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<templates>
+    <t t-name="documents.DocumentsActionPopover">
+        <div t-ref="this.containerRef">
+            <t t-if="this.props.targetRecords.length">
+                <DropdownItem t-foreach="this.mainActions()" t-as="action" t-key="action_index"
+                    onSelected="() => this.onItemSelected(action)">
+                    <i t-attf-class="oi oi-fw me-1#{action.iconClass ? ' ' + action.iconClass : ''}#{action.icon ? '' : ' invisible'}" t-att-data-icon="action.icon || 'info'"/>
+                    <t t-out="action.description"/>
+                </DropdownItem>
+                <div role="separator" class="dropdown-divider"
+                     t-if="this.mainActions().length and this.pinActions().length"/>
+                <Dropdown t-if="this.pinActions().length">
+                    <button class="opacity-trigger-hover">
+                        <i class="oi oi-fw" aria-hidden="true"/>Actions
+                    </button>
+                    <t t-set-slot="content">
+                        <DropdownItem t-foreach="this.pinActions()" t-as="pinAction" t-key="pinAction_index"
+                            onSelected="() => this.onItemSelected(pinAction)" t-out="pinAction.description"/>
+                    </t>
+                </Dropdown>
+                <div role="separator" class="dropdown-divider"
+                     t-if="(this.pinActions().length || this.mainActions().length) and this.actionMenuProps()"/>
+                <ActionMenusFlat t-if="this.actionMenuProps()" t-props="this.actionMenuProps()"/>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="documents.ActionMenusFlat">
+        <t t-set="currentGroup" t-value=""/>
+        <t t-foreach="this.actionItems" t-as="item" t-key="item.key">
+            <div role="separator" class="dropdown-divider" t-if="currentGroup !== null and currentGroup !== item.groupNumber"/>
+            <t t-if="item.Component" t-component="item.Component" t-props="item.props" />
+            <DropdownItem t-else="" class="item.class ? item.class + ' o_menu_item' : 'o_menu_item'" onSelected="() => this.onItemSelected(item)">
+                <i t-if="item.icon" class="oi oi-fw me-1" t-att-class="item.iconClass" t-att-data-icon="item.icon"/>
+                <t t-out="item.description"/>
+            </DropdownItem>
+            <t t-set="currentGroup" t-value="item.groupNumber"/>
+        </t>
+    </t>
+</templates>

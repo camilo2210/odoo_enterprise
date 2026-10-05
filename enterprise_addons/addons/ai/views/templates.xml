@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="ai_log_action">
+        <span>Action <b t-out="action.name"/> executed.</span>
+        <t t-if="tool_calls">
+            <div t-foreach="tool_calls" t-as="call">
+                <t t-if="call['error']">❌ </t>
+                <t t-else="">✅ </t>
+                <a href="#" class="o_ai_tool_summary text-black">
+                    <b t-out="call['action'].name"/>
+                    <div t-if="call['arguments']" class="o_ai_tool_arguments">
+                        <span>with arguments</span>
+                        <span t-foreach="call['arguments']" t-as="arg">
+                            <t t-out="arg"/> = <i t-out="call['arguments'][arg] or 'False'"/>
+                        </span>
+                    </div>
+                </a>
+                <t t-if="call['error']">
+                    <i class="oi text-danger" data-icon="arrow_forward" aria-hidden="true"/>
+                    <span class="text-danger" t-out="call['error']"/>
+                </t>
+                <t t-elif="call['result'] and call['result'] != 'success'">
+                    <i class="oi" data-icon="arrow_forward" aria-hidden="true"/>
+                    <span t-out="call['result']"/>
+                </t>
+            </div>
+        </t>
+        <span t-else="">
+            No tool was executed.
+        </span>
+    </template>
+
+    <template id="ai_records_preview">
+        <p><t t-out="explanation" /></p>
+        <div class="o-rounded-bubble border mt-1 p-2">
+            <t t-call="ai.ai_record_preview"/>
+        </div>
+    </template>
+
+    <template id="ai_record_preview">
+        <t t-if="len(sections) > 1">
+            <ul class="mb-0">
+                <li t-foreach="sections" t-as="section">
+                    <t t-set="items" t-value="section['items']"/>
+                    <b><t t-out="section['label']"/>:</b>
+                    <t t-if="template == 'create'">
+                        <t t-call="ai.ai_record_create_fields_preview"/>
+                    </t>
+                    <t t-else="">
+                        <t t-call="ai.ai_record_update_fields_preview"/>
+                    </t>
+                </li>
+            </ul>
+        </t>
+        <t t-else="">
+            <t t-set="items" t-value="sections[0]['items']"/>
+            <t t-if="template == 'create'">
+                <t t-call="ai.ai_record_create_fields_preview"/>
+            </t>
+            <t t-else="">
+                <p class="mb-0"><b><t t-out="sections[0]['label']"/></b>:</p>
+                <t t-call="ai.ai_record_update_fields_preview"/>
+            </t>
+        </t>
+    </template>
+
+    <template id="ai_record_update_fields_preview">
+        <ul>
+            <li t-foreach="items" t-as="change">
+                <t t-if="change.get('old_val')">
+                    <t t-out="change['old_val']"/> → <t t-out="change['new_val']"/> (<i><t t-out="change['field_name']"/></i>)
+                </t>
+                <t t-else="">
+                    <t t-out="change['field_name']"/> → <t t-out="change['new_val']"/>
+                </t>
+            </li>
+        </ul>
+    </template>
+
+    <template id="ai_record_create_fields_preview">
+        <t t-if="len(sections) == 1 and len(items) == 1">
+            <p>
+                <t t-set="item" t-value="items[0]"/>
+                <t t-call="ai.ai_record_create_fields_preview_value"/>
+            </p>
+        </t>
+        <t t-else="">
+            <t t-if="len(items) == 1">
+                <t t-set="item" t-value="items[0]"/>
+                <t t-call="ai.ai_record_create_fields_preview_value"/>
+            </t>
+            <t t-else="">
+                <ul>
+                    <li t-foreach="items" t-as="item">
+                        <t t-call="ai.ai_record_create_fields_preview_value"/>
+                    </li>
+                </ul>
+            </t>
+        </t>
+    </template>
+
+    <template id="ai_record_create_fields_preview_value">
+        <t t-if="len(items) > 1 or len(sections) == 1">
+            <span class="pe-1"><b><t t-out="item['label']"/></b>:</span>
+        </t>
+        <t t-set="item_val" t-value="item['value']"/>
+        <t t-if="isinstance(item_val, list)">
+            <ul>
+                <t t-foreach="item['value']" t-as="command">
+                    <li>
+                        <span><t t-out="command['label']"/>:</span>
+                        <t t-if="isinstance(command['value'], list)">
+                            <t t-set="items" t-value="command['value']"/>
+                            <t t-call="ai.ai_record_create_fields_preview"/>
+                        </t>
+                        <t t-else="">
+                            <t t-out="command['value']"/>
+                        </t>
+                    </li>
+                </t>
+            </ul>
+        </t>
+        <t t-else="">
+            <t t-out="item_val"/>
+        </t>
+    </template>
+</odoo>

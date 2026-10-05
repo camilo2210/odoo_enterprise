@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_account_payment_form_inherit_account_online_payment" model="ir.ui.view">
+            <field name="name">account.payment.form.inherit.account_online_payment</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_form" />
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='action_post']" position="attributes">
+                    <attribute name="invisible">state != 'draft' or (could_initiate_payment and payment_method_code != 'manual') or show_download_xml_button</attribute>
+                </xpath>
+
+                <xpath expr="//button[@name='action_post']" position="after">
+                    <button name="action_pay" string="Pay Now" type="object" class="btn btn-secondary"
+                            invisible="state != 'draft' or not could_initiate_payment or payment_method_code != 'manual'" data-hotkey="q"/>
+                    <button name="action_connect_bank" string="Connect Bank" type="object" class="btn btn-secondary"
+                            invisible="state != 'draft' or not show_connect_bank_button" data-hotkey="a"/>
+                    <button name="action_activate_payments" string="Activate Payments" type="object" class="btn btn-secondary"
+                            invisible="state != 'draft' or not show_activate_payments_button" data-hotkey="a"/>
+                </xpath>
+
+                <xpath expr="//button[@name='action_download_xml']" position="before">
+                    <button name="action_pay" string="Pay Now" type="object" class="oe_highlight"
+                            invisible="state != 'draft' or not could_initiate_payment or payment_method_code == 'manual'" data-hotkey="q"/>
+                </xpath>
+
+                <xpath expr="//button[@name='action_post']" position="before">
+                    <button name="action_sign" string="Sign Payment" type="object" class="btn btn-secondary"
+                            invisible="payment_online_status != 'unsigned'" data-hotkey="q"/>
+                </xpath>
+
+                <xpath expr="//button[@name='action_download_xml']" position="replace">
+                    <button name="action_download_xml" string="Generate File" type="object" class="oe_highlight"
+                            invisible="state != 'draft' or not show_download_xml_button or could_initiate_payment" data-hotkey="s"/>
+                    <button name="action_download_xml" string="Generate File" type="object" class="btn btn-secondary"
+                            invisible="state != 'draft' or not show_download_xml_button or not could_initiate_payment" data-hotkey="s"/>
+                </xpath>
+
+                <xpath expr="//field[@name='payment_method_line_id']" position="before">
+                    <field name="payment_method_placeholder" string="Payment Method" invisible="not payment_method_placeholder"/>
+                </xpath>
+
+                <xpath expr="//field[@name='payment_method_line_id']" position="attributes">
+                    <attribute name="invisible">payment_method_placeholder</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='transaction_uuid']" position="after">
+                    <field name="payment_online_status" widget="account_online_payment_refresh_button" invisible="not payment_identifier" groups="base.group_no_one"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_account_payment_list_inherit_account_online_payment" model="ir.ui.view">
+            <field name="name">account.payment.list.inherit.account_online_payment</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_tree" />
+            <field name="arch" type="xml">
+                <xpath expr="//header/button[@name='action_download_xml']" position="before">
+                    <button name="action_pay" type="object" string="Pay Now" invisible="context.get('default_payment_type') == 'inbound'" groups="account.group_account_basic" data-hotkey="q"/>
+                </xpath>
+
+                <xpath expr="//button[@name='action_post']" position="replace"/>
+            </field>
+        </record>
+
+        <record id="view_account_payment_search_inherit_account_online_payment" model="ir.ui.view">
+            <field name="name">account.payment.search.inherit.account_online_payment</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_search"/>
+            <field name="arch" type="xml">
+                <filter name="state_draft" position="after">
+                    <filter string="To Sign" name="to_sign" domain="[('could_initiate_payment', '=', True), ('is_sent', '=', False), ('state', '=', 'draft')]"/>
+                </filter>
+                <filter name="outstanding" position="before">
+                    <filter string="Others" name="other_payment_methods" domain="[('payment_method_code', 'not in', ['sepa_ct', 'iso20022', 'iso20022_se', 'iso20022_ch', 'iso20022_us'])]"/>
+                </filter>
+            </field>
+        </record>
+
+        <record model="ir.actions.server" id="action_account_payment_confirm">
+            <field name="name">Confirm</field>
+            <field name="model_id" ref="account.model_account_payment"/>
+            <field name="binding_model_id" ref="account.model_account_payment"/>
+            <field name="binding_view_types">list,kanban</field>
+            <field name="state">code</field>
+            <field name="code">
+if records:
+    action = records.action_post()
+            </field>
+        </record>
+    </data>
+</odoo>

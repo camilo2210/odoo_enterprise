@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="ai.AgentSourceURLDialog">
+        <Dialog title.translate="Add Links" size="'md'">
+            <div class="row gy-4 p-3">
+                <textarea
+                    t-model.proxy="this.state.urls"
+                    class="form-control p-2"
+                    rows="4"
+                    placeholder="Paste your links, one per line"
+                    t-ref="this.autofocusRef"
+                    required="required"/>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-on-click="this.onConfirm">Save</button>
+                <button class="btn btn-secondary" t-on-click="this.props.close">Discard</button>
+            </t>
+        </Dialog>
+    </t>
+
+    <t t-name="ai.AgentSourceAddDialog">
+        <Dialog title.translate="Add Sources" size="'lg'">
+            <div class="position-relative" style="min-height: 250px;" >
+                <p class="mb-1">Add sources to your AI Agent to get answers based on specific content.</p>
+                <input
+                    type="file"
+                    t-ref="this.fileInputRef"
+                    multiple="true"
+                    class="o_input_file d-none"
+                    t-att-accept="this.allowedExtensions"
+                    t-on-change.stop="this.addAttachmentSources"
+                />
+                <div class="pt-2" t-att-class="this.state.loading ? 'opacity-50 pe-none' : ''">
+                    <div t-if="this.state.loading" class="d-flex justify-content-center w-100 position-absolute" style="bottom: 15px;">
+                        <div class="text-muted">
+                            <i class="oi oi-spin me-2" data-icon="progress_activity"></i>
+                            Adding sources...
+                        </div>
+                    </div>
+                    <div class="row gy-3 justify-content-center">
+                        <t t-foreach="this.cardsData" t-as="card" t-key="card.title">
+                            <div class="col col-md-6">
+                                <AiAgentPanelCard
+                                    icon="card.icon"
+                                    image="card.image"
+                                    title="card.title"
+                                    description="card.description"
+                                    onClick="card.onClick"
+                                />
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-on-click="this.props.close">Close</button>
+            </t>
+        </Dialog>
+    </t>
+
+</templates>
