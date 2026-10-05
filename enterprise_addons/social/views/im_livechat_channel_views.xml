@@ -1,0 +1,127 @@
+<?xml version="1.0"?>
+<odoo>
+<data>
+    <record id="im_livechat_channel_action_social" model="ir.actions.act_window">
+        <field name="name">Channels</field>
+        <field name="res_model">im_livechat.channel</field>
+        <field name="view_mode">kanban,form</field>
+        <field name="context">{'search_default_has_social_account': 1}</field>
+        <field name="help" type="html">
+            <img class="o_social_no_account_placeholder"
+                src="/social/static/img/megaphone.svg"/>
+            <p> No Live Chat channel found </p>
+            <p> Link Live Chat channels to your social media accounts to respond to messages directly from Odoo. </p>
+        </field>
+    </record>
+
+    <record id="im_livechat_channel_view_search" model="ir.ui.view">
+        <field name="name">im_livechat.channel.view.search.inherit.social</field>
+        <field name="model">im_livechat.channel</field>
+        <field name="inherit_id" ref="im_livechat.im_livechat_channel_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <filter name="has_social_account" string="Connected to Social" domain="[('social_account_ids', '!=', False)]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="im_livechat_channel_view_form" model="ir.ui.view">
+        <field name="name">im_livechat.channel.view.form.inherit.social</field>
+        <field name="model">im_livechat.channel</field>
+        <field name="inherit_id" ref="im_livechat.im_livechat_channel_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='configuration_widget']" position="before">
+                <page string="Social" name="social" groups="im_livechat.im_livechat_group_manager">
+                    <group>
+                        <div invisible="has_active_accounts" class="alert alert-light" role="alert">
+                            <button type="action" name="%(social.action_social_media)d"
+                                class="btn-link p-0"
+                                string="Start by connecting your accounts"/>
+                        </div>
+                        <field name="social_account_ids" widget="many2many"
+                            unlink="0" create="0" nolabel="1" colspan="2"
+                            invisible="not has_active_accounts">
+                            <kanban can_open="0">
+                                <field name="name"/>
+                                <field name="is_livechat_webhook_registered"/>
+                                <field name="media_id"/>
+                                <field name="livechat_awaiting_discuss_channel_count"/>
+                                <templates>
+                                    <t t-name="card">
+                                        <div class="d-flex flex-column justify-content-between align-items-start w-100 h-100">
+                                            <div class="d-flex flex-row align-items-center justify-content-between w-100">
+                                                <div class="d-flex flex-row align-items-center">
+                                                    <img class="img me-1"
+                                                        height="14"
+                                                        width="14"
+                                                        alt="Media"
+                                                        loading="lazy"
+                                                        t-attf-src="/web/image/social.media/{{record.media_id.raw_value}}/image/14x14"/>
+                                                    <field name="name" class="fw-bold"/>
+                                                </div>
+                                                <div class="d-flex flex-row align-items-center">
+                                                    <span invisible="not is_livechat_webhook_registered"
+                                                        class="badge rounded-pill text-bg-success">
+                                                        Connected
+                                                    </span>
+                                                    <button name="action_delete_webhook"
+                                                        type="object"
+                                                        invisible="not is_livechat_webhook_registered"
+                                                        class="oe_link px-0 ms-2 py-0"
+                                                        icon="close"/>
+                                                    <button name="action_register_webhook"
+                                                        class="oe_link px-0"
+                                                        type="object"
+                                                        string="Test &amp; Confirm"
+                                                        invisible="is_livechat_webhook_registered"/>
+                                                </div>
+                                            </div>
+                                            <button name="action_view_social_need_action"
+                                                class="oe_link px-0"
+                                                type="object"
+                                                invisible="not livechat_awaiting_discuss_channel_count">
+                                                <field name="livechat_awaiting_discuss_channel_count"/> Social Chats awaiting
+                                            </button>
+                                        </div>
+                                    </t>
+                                </templates>
+                            </kanban>
+                        </field>
+                    </group>
+                    <group>
+                        <group name="social_away_message">
+                            <field name="social_away_message" string="Away Message" invisible="not social_account_ids"
+                                placeholder="Auto-reply message for when operators are offline."/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="im_livechat_channel_view_kanban" model="ir.ui.view">
+        <field name="name">im_livechat.channel.view.kanban.inherit.social</field>
+        <field name="model">im_livechat.channel</field>
+        <field name="inherit_id" ref="im_livechat.im_livechat_channel_view_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <button
+                    class="btn btn-link d-block px-0"
+                    type="object"
+                    name="action_view_social_need_action"
+                    invisible="social_discuss_channel_need_action_count == 0">
+                    <field name="social_discuss_channel_need_action_count"/>
+                    Social Chats awaiting
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <menuitem
+        id="social_live_channels"
+        name="Channels"
+        parent="social.menu_social_global"
+        action="im_livechat_channel_action_social"
+        sequence="22"/>
+</data>
+</odoo>

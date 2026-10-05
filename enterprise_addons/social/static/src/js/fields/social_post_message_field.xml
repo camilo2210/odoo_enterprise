@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<templates xml:space="preserve">
+    <t t-name="social.SocialPostMessageField" t-inherit="mail.EmojisTextField">
+        <xpath expr="//textarea" position="attributes">
+            <attribute name="t-on-input">this.onInputDetectMention</attribute>
+        </xpath>
+        <xpath expr="//textarea/.." position="after">
+            <div class="position-absolute" t-attf-style="width: {{ this.state.width }}px; z-index: 99">
+                <NavigableList t-if="this.state.isSuggesting" class="'w-100'" onSelect.bind="this.onSelect" optionTemplate="this.optionTemplate" options="this.navigableListOptions"/>
+            </div>
+        </xpath>
+
+        <xpath expr="//*[hasclass('o_field_input_buttons')]" position="before">
+            <div class="o_field_social_count d-inline-flex flex-row w-50 align-items-center">
+                <t t-foreach="this.remainingCharsPerMedia" t-as="countValues" t-key="countValues.mediaId">
+                    <img
+                        class="img me-1" height="12" loading="lazy"
+                        t-att-alt="countValues.mediaType"
+                        t-attf-src="/web/image/social.media/{{countValues.mediaId}}/image/12x12"/>
+                    <span t-out="countValues.remainingCount" class="me-2 text-muted" t-att-class="{'o_social_exceed_count': countValues.remainingCount &lt; 0}"/>
+                </t>
+            </div>
+        </xpath>
+
+        <xpath expr="//*[hasclass('o_field_input_buttons')]" position="inside">
+            <button class="btn" data-hotkey="A" t-on-click="() => this.onMentionClick()" title="Mention">
+                <i class="oi" data-icon="alternate_email"/>
+            </button>
+        </xpath>
+    </t>
+    <t t-name="social.MentionsTemplate">
+        <t t-set="userInfo" t-value="option.userInfo"/>
+        <t t-if="userInfo">
+            <img t-if="userInfo.profile_image_url" t-att-src="userInfo.profile_image_url"/>
+            <div class="d-flex flex-column">
+                <strong t-out="userInfo.name" class="px-2 py-1 align-self-start flex-shrink-0 text-truncate"/>
+                <em t-if="userInfo.description" class="o_social_mention_option_description ps-2 text-600 text-truncate align-self-center text-wrap" t-out="userInfo.description"/>
+            </div>
+        </t>
+        <strong t-else="" class="py-1 align-self-start flex-shrink-1 text-wrap" t-out="option.label"/> <i t-if="!option.isLoaded" class="oi oi-spin ms-1" data-icon="progress_activity"/>
+    </t>
+</templates>

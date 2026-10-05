@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="pos_urban_piper.OrderDisplay" t-inherit="point_of_sale.OrderDisplay" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('order-container')]" position="before">
+            <div t-if="this.props.order.isInstantOrder" class="bg-warning bg-opacity-25 text-warning text-center py-2 fw-semibold">
+                <span t-out="this.props.order.delivery_provider_id.name" />: Quick Order
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('order-summary')]" position="before">
+            <div t-if="this.showTimer" class="ms-auto p-2 px-2">
+                <div class="rounded-pill p-1 px-2" t-att-class="{'text-bg-danger': this.state.remainingTime lt 5, 'text-bg-info text-white': this.state.remainingTime >= 5}">
+                    <i class="oi px-1" data-icon="schedule" aria-hidden="true"/>
+                    <span t-out="this.state.remainingTime" />'
+                </div>
+            </div>
+            <div t-if="this.pos.router.currentScreen() == 'TicketScreen' and this.props.order.delivery_provider_id and this.props.order.delivery_status == 'placed'" class="d-flex align-items-center gap-2 mx-2 mb-2"  t-att-class="{'pe-none opacity-50' : this.props.order.isInstantOrder}">
+                    <t t-set="currentOrder" t-value="this.props.order"/>
+                    <button
+                        type="button"
+                        class="btn btn-secondary btn-sm m-0 px-3 py-1 fs-5"
+                        t-on-click="() => this.changePrepTime(currentOrder, false)">
+                        －
+                    </button>
+                    <div class="d-flex w-100 position-relative border rounded">
+                        <input
+                            type="number"
+                            class="border-0 text-end sm fs-5 w-50 p-1 bg-transparent text-body"
+                            t-att-value="this.props.order.prep_time"
+                            t-on-blur="(event) => this.onInputChangePrepTime(currentOrder, event.target.value, event)"/>
+                        <div class="d-flex align-items-center fs-5 w-50 text-start py-1"><span class="lh-sm ps-1">Minutes</span></div>
+                    </div>
+                    <button
+                        type="button"
+                        class="increment-btn btn btn-secondary m-0 btn-sm px-3 py-1 fs-5"
+                        t-on-click="() => this.changePrepTime(currentOrder, true)">
+                        ＋
+                    </button>
+                </div>
+        </xpath>
+    </t>
+</templates>

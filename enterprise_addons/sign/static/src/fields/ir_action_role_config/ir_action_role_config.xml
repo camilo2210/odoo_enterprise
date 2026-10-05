@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="sign.IrActionRoleConfig">
+        <div class="row g-2 mb-2" t-foreach="this.list.records" t-as="record" t-key="record.id">
+            <div class="col-2">
+                <label class="o_form_label mb-0">
+                    <t t-out="record.data.name"/>
+                </label>
+            </div>
+            <div class="col-2">
+                <select class="o_input o_field_widget o_field_selection" t-att-value="record.data.signer_type" t-on-change="(ev) => this.onSignerTypeChange(record, ev)">
+                    <t t-foreach="this.signerTypeOptions" t-as="option" t-key="option.value">
+                        <option t-att-value="option.value" t-att-selected="record.data.signer_type === option.value" t-out="option.label"/>
+                    </t>
+                </select>
+            </div>
+            <div class="col-8" t-if="record.data.signer_type === 'fixed'">
+                <Many2OneField id="this.partnerId" name="this.partnerIdFieldInfo.name" record="record" t-props="this.partnerIdFieldInfo.additionalProps"/>
+            </div>
+            <div class="col-8" t-if="record.data.signer_type === 'linked_field'">
+                <Many2OneField id="this.linkedId" name="this.linkedFieldIdFieldInfo.name" record="record" t-props="this.linkedFieldIdFieldInfo.additionalProps"/>
+            </div>
+        </div>
+    </t>
+</templates>

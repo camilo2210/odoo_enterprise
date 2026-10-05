@@ -1,0 +1,99 @@
+<odoo>
+    <record id="view_platform_order_entity_form" model="ir.ui.view">
+        <field name="name">platform.order.entity.form</field>
+        <field name="model">platform.order.entity</field>
+        <field name="arch" type="xml">
+            <form string="Provider Store">
+                <header>
+                    <button string="Sync Menu" name="action_sync_menu" type="object" class="oe_highlight" invisible="menu_sync_state != 'draft'" />
+                    <button string="Sync Menu" name="action_sync_menu" type="object" invisible="menu_sync_state == 'draft'" />
+                    <field name="menu_sync_state" widget="statusbar" />
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="provider_id" options="{'no_create': True}"/>
+                            <field name="external_id"/>
+                        </group>
+                        <group>
+                            <field name="config_id" required="True" options="{'no_create': True}"/>
+                            <field name="service_hours_id"/>
+                            <field name="last_menu_synced"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Accounting" name="accounting">
+                            <group>
+                                <field name="payment_method_id" />
+                                <field name="pricelist_line_ids" force_save="1" mode="list" widget="one2many">
+                                    <list create="0" delete="0" editable="bottom">
+                                        <field name="name"/>
+                                        <field name="external_key"/>
+                                        <field name="pricelist_id"/>
+                                    </list>
+                                </field>
+                            </group>
+                        </page>
+                        <page name="presets" string="Presets">
+                            <group>
+                                <field name="delivery_preset_id" options="{'no_create': True}"/>
+                                <field name="pickup_preset_id" options="{'no_create': True}"/>
+                                <field name="dinein_preset_id" options="{'no_create': True}"/>
+                            </group>
+                        </page>
+                        <page name="general" string="General">
+                            <group>
+                                <field name="available_categ_ids"
+                                    widget="many2many_tags"
+                                    options="{'no_create': True}"
+                                    domain="available_categ_ids_domain"
+                                    placeholder="If no categories are selected, all categories will be available."/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_platform_order_entity_list" model="ir.ui.view">
+        <field name="name">platform.order.entity.list</field>
+        <field name="model">platform.order.entity</field>
+        <field name="arch" type="xml">
+            <list string="Provider Entities"
+                decoration-danger="menu_sync_state == 'error'"
+                decoration-success="menu_sync_state == 'done'"
+                decoration-muted="menu_sync_state in ['queuing', 'processing']"
+                decoration-info="menu_sync_state == 'draft'">
+                <header>
+                    <button name="action_sync_menu" type="object" string="Sync Menu" />
+                </header>
+                <field name="display_name" string="Name" />
+                <field name="config_id" options="{'no_create': True}"/>
+                <field name="provider_id" options="{'no_create': True}"/>
+                <field name="external_id"/>
+                <field name="last_menu_synced"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="platform_order_entity_view_search" model="ir.ui.view">
+        <field name="name">platform_order_entity.view.search</field>
+        <field name="model">platform.order.entity</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" />
+                <field name="provider_id" />
+            </search>
+        </field>
+    </record>
+
+    <record id="action_platform_order_entity" model="ir.actions.act_window">
+        <field name="name">Platform Order Entities</field>
+        <field name="res_model">platform.order.entity</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

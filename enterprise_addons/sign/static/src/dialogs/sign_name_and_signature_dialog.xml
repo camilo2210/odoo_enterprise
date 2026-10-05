@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="sign.SignNameAndSignatureDialog">
+        <Dialog t-props="this.dialogProps">
+            <SignNameAndSignature t-props="this.nameAndSignatureProps"/>
+            <div class="mt16 small">
+                By signing, I agree that the chosen signature/initials will be a valid electronic representation of my hand-written signature/initials for all purposes when it is used on documents, including legally binding contracts.
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-if="this.props.onConfirmAll" t-on-click="this.props.onConfirmAll" t-att-disabled="this.footerState.signAllButtonsDisabled">Sign all</button>
+                <button class="btn btn-secondary" t-on-click="this.props.onConfirm" t-att-disabled="this.footerState.signButtonDisabled">Sign</button>
+                <button class="btn btn-secondary" t-on-click="this.props.close">Discard</button>
+            </t>
+        </Dialog>
+    </t>
+
+    <t t-name="sign.NameAndSignature" t-inherit="web.NameAndSignature" t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('o_web_sign_signature_group')]" position="attributes">
+            <attribute name="class" remove="bg-100" separator=" "/> 
+            <attribute name="style" add="background-color: #ffffff;" separator=" "/>
+        </xpath>
+        <xpath expr="//div[hasclass('division')]" position="after">
+            <div t-attf-class="col-auto form-check btn border-0">
+                <input type="checkbox" t-attf-class="o_web_frame_button form-check-input" id="switchFrame" t-att-checked="this.state.activeFrame" t-on-change="this.onFrameChange"/>
+                <label class="form-check-label text-dark" for="switchFrame" data-tooltip="Include a visual security frame around your signature">Frame</label>
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('o_signature_stroke')]" position="before">
+            <div t-attf-class="o_sign_frame {{ this.signFrameClass }}" t-ref="this.signFrameRef">
+                <p t-att-hash="this.props.hash" t-attf-sign_label="Signed with Odoo Sign"/>
+            </div>
+        </xpath>
+        <xpath expr="//canvas[hasclass('o_web_sign_signature')]" position="attributes">
+            <attribute name="t-on-click">this.onSignatureAreaClick</attribute>
+        </xpath>
+    </t>
+</templates>

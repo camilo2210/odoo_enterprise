@@ -1,0 +1,95 @@
+<odoo>
+    <!-- Quality Control From Stock Picking -->
+
+    <!-- For Drawer -->
+    <record id="quality_point1" model="quality.point">
+        <field name="product_ids" eval="[(4, ref('product.product_product_27'))]"/>
+        <field name="picking_type_ids" eval="[(4, ref('stock.picking_type_in'))]"/>
+        <field name="note">Quality Control For Drawer's Parts By Manufacturing Department.</field>
+    </record>
+
+    <!-- For Office Lamp -->
+    <record id="quality_point2" model="quality.point">
+        <field name="product_ids" eval="[(4, ref('product.product_delivery_02')), (4, ref('product.product_product_9')), (4, ref('product.product_product_20'))]"/>
+        <field name="picking_type_ids" eval="[(4, ref('stock.picking_type_in'))]"/>
+        <field name="note">Quality Control For Office Lamp, Pedal Bin, and Flipover By Manufacturing Department.</field>
+    </record>
+
+    <record id="quality_spreadsheet_template_cabinet" model="quality.spreadsheet.template">
+        <field name="name">Quality Control Spreadsheet</field>
+        <field name="check_cell">B17</field>
+        <field name="spreadsheet_binary_data" type="bytes" file="quality_control/data/quality_spreadsheet_template_demo.json"/>
+    </record>
+
+    <record id="quality_point_with_spreadsheet" model="quality.point">
+        <field name="product_ids" eval="[(4, ref('product.product_product_10')),(4, ref('product.product_delivery_01'))]"/>
+        <field name="test_type_id" ref="test_type_spreadsheet"/>
+        <field name="picking_type_ids" eval="[(4, ref('stock.picking_type_in'))]"/>
+        <field name="spreadsheet_template_id" ref="quality_spreadsheet_template_cabinet"/>
+        <field name="note">Please fill in the attached spreadsheet to complete the quality check.</field>
+    </record>
+
+    <record id="incoming_shipment1_copy" model="stock.picking">
+        <field name="user_id"></field>
+        <field name="picking_type_id" ref="stock.picking_type_in"/>
+        <field name="partner_id" ref="base.res_partner_1"/>
+        <field name="scheduled_date" eval="DateTime.today() - timedelta(days=5)"/>
+        <field name="location_id" ref="stock.stock_location_suppliers"/>
+        <field name="location_dest_id" ref="stock.stock_location_stock"/>
+        <field name="state">draft</field>
+        <field name="move_ids" model="stock.move" eval="[(0, 0, {
+            'product_id': ref('product.product_delivery_01'),
+            'uom_id': ref('uom.product_uom_unit'),
+            'product_uom_qty': 35.0,
+            'picking_type_id': ref('stock.picking_type_in'),
+            'location_id': ref('stock.stock_location_suppliers'),
+            'location_dest_id': ref('stock.stock_location_stock'),
+        })]"/>
+    </record>
+
+    <record id="incoming_shipment3_copy" model="stock.picking">
+        <field name="user_id"></field>
+        <field name="picking_type_id" ref="stock.picking_type_in"/>
+        <field name="partner_id" ref="base.res_partner_1"/>
+        <field name="location_id" ref="stock.stock_location_suppliers"/>
+        <field name="location_dest_id" ref="stock.stock_location_stock"/>
+        <field name="state">draft</field>
+        <field name="move_ids" model="stock.move" eval="[(0, 0, {
+            'product_id': ref('product.product_product_10'),
+            'uom_id': ref('uom.product_uom_unit'),
+            'product_uom_qty': 120.0,
+            'picking_type_id': ref('stock.picking_type_in'),
+            'location_id': ref('stock.stock_location_suppliers'),
+            'location_dest_id': ref('stock.stock_location_stock'),
+        })]"/>
+    </record>
+
+    <function model="stock.picking" name="action_confirm">
+        <value model="stock.picking" eval="[ref('incoming_shipment1_copy'), ref('incoming_shipment3_copy')]"/>
+    </function>
+
+    <function model="stock.move" name="_create_quality_checks">
+        <function eval="[[('state', 'in', ('waiting', 'confirmed', 'partially_available', 'assigned'))]]" model="stock.move" name="search"/>
+    </function>
+
+    <function model="stock.move.line" name="write">
+        <value model="stock.move.line" search="[('picking_id', '=', ref('stock.incoming_shipment1'))]"/>
+        <value eval="{'quantity': 35}"/>
+    </function>
+
+    <function model="stock.move.line" name="write">
+        <value model="stock.move.line" search="[('picking_id', '=', ref('stock.incoming_shipment3'))]"/>
+        <value eval="{'quantity': 120}"/>
+    </function>
+
+    <function model="quality.check" name="do_pass">
+        <value model="quality.check" search="[('picking_id', '=', ref('stock.incoming_shipment1'))]"/>
+    </function>
+    <function model="quality.check" name="do_pass">
+        <value model="quality.check" search="[('picking_id', '=', ref('stock.incoming_shipment3'))]"/>
+    </function>
+
+    <function model="stock.picking" name="button_validate">
+        <value model="stock.picking" eval="[ref('stock.incoming_shipment1'), ref('stock.incoming_shipment3')]"/>
+    </function>
+</odoo>

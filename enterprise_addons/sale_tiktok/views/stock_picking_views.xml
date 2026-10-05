@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="stock_picking_list" model="ir.ui.view">
+        <field name="name">TikTok Shop Picking List</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree"/>
+        <field name="arch" type="xml">
+            <field name="state" position="after">
+                <field
+                    name="tiktok_delivery_status"
+                    widget="badge"
+                    invisible="not tiktok_order_ref"
+                    decoration-info="tiktok_delivery_status in ['draft', 'confirmed']"
+                    decoration-success="tiktok_delivery_status == 'done'"
+                    decoration-danger="tiktok_delivery_status == 'canceled'"
+                    decoration-warning="tiktok_delivery_status == 'manual'"
+                    optional="hide"
+                />
+            </field>
+        </field>
+    </record>
+
+    <record id="stock_picking_form" model="ir.ui.view">
+        <field name="name">tiktok.shop.picking.form</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <sheet position="before">
+                <div
+                    class="alert alert-warning text-center"
+                    role="alert"
+                    invisible="not tiktok_order_ref or tiktok_delivery_status != 'manual'"
+                >
+                    This order contains unsupported TikTok Shop delivery status.
+                    Please process the order manually on TikTok Shop.
+                </div>
+            </sheet>
+            <xpath expr="//button[@name='button_validate'][1]" position="attributes">
+                <attribute
+                    name="invisible"
+                    add="tiktok_order_ref and not tiktok_label_attachment_id"
+                    separator=" or "
+                />
+            </xpath>
+            <xpath expr="//button[@name='button_validate'][2]" position="attributes">
+                <attribute
+                    name="invisible"
+                    add="tiktok_order_ref and not tiktok_label_attachment_id"
+                    separator=" or "
+                />
+            </xpath>
+            <button name="action_cancel" position="before">
+                <button
+                    name="action_tiktok_ship_order"
+                    string="Ship on TikTok"
+                    type="object"
+                    class="btn-primary"
+                    invisible="not tiktok_order_ref or tiktok_delivery_status != 'draft'"
+                />
+                <button
+                    name="action_tiktok_sync_pickings"
+                    string="Download TikTok Label"
+                    type="object"
+                    class="btn-primary"
+                    invisible="not tiktok_order_ref
+                                or tiktok_delivery_status != 'confirmed'
+                                or tiktok_label_attachment_id"
+                />
+            </button>
+            <div name="button_box" position="after">
+                <field
+                    name="tiktok_delivery_status"
+                    widget="badge"
+                    decoration-info="tiktok_delivery_status in ('draft', 'confirmed')"
+                    decoration-success="tiktok_delivery_status == 'done'"
+                    decoration-danger="tiktok_delivery_status == 'canceled'"
+                    decoration-warning="tiktok_delivery_status == 'manual'"
+                    class="float-end"
+                    invisible="not tiktok_order_ref"
+                    optional="hide"
+                />
+            </div>
+            <field name="origin" position="after">
+                <field name="tiktok_order_ref" invisible="not tiktok_order_ref"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

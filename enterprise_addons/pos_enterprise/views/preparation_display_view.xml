@@ -1,0 +1,220 @@
+<odoo>
+    <record id="action_preparation_display" model="ir.actions.act_window">
+        <field name="name">Preparation Display</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">pos.prep.display</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Need a touchscreen interface to manage order ?
+            </p>
+            <p>
+                Different products and categories are sent to different tablets and screens.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_preparation_display_bar_restaurant_filter"
+        model="ir.actions.act_window">
+        <field name="name">Preparation Display</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">pos.prep.display</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_filter_bar_restaurant': True}</field>
+    </record>
+
+    <!-- Link used to open Preparation Display in the point_of_sale module -->
+    <record id="action_pos_preparation_display_bar_restaurant_filter_link" model="ir.actions.act_url">
+        <field name="name">Preparation Display</field>
+        <field name="target">self</field>
+        <field name="url" eval="'/odoo/action-pos_enterprise.action_preparation_display_bar_restaurant_filter?menu_id=%d' % (ref('point_of_sale.menu_point_root'))"/>
+    </record>
+
+    <record id="preparation_display_view_form" model="ir.ui.view">
+        <field name="name">preparation.display.form.view</field>
+        <field name="model">pos.prep.display</field>
+        <field name="arch" type="xml">
+            <form string="Preparation Display">
+                <sheet>
+                    <div class="oe_title mb-32">
+                        <label for="name" />
+                        <h1>
+                            <field name="name" class="oe_inline" />
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="pos_config_ids" widget="many2many_tags" create="False" placeholder="All PoS"/>
+                            <field name="category_ids" widget="many2many_tags" create="False" placeholder="All categories"/>
+                            <field name="stage_ids" widget="many2many_tags" placeholder="Stages"/>
+                        </group>
+                        <group>
+                            <label class="o_form_label" for="auto_clear"/>
+                            <div class="o_row">
+                                <field name="auto_clear" />
+                                <div invisible="not auto_clear">
+                                    <label for="clear_time_interval" string="After" style="font-weight:bold;"/>
+                                    <field name="clear_time_interval" class="oe_inline border-bottom text-center"/>
+                                    <label for="clear_time_interval" string="minutes" style="font-weight:bold;"/>
+                                </div>
+                            </div>
+                            <field name="printer_ids" widget="many2many_tags" placeholder="None" options="{'no_quick_create': True}"
+                                context="{'allow_only_preparation': True, 'default_product_categories_ids': category_ids}"/>
+                            <field name="auto_print_stage_id" string="Print at Stage" invisible="not printer_ids" widget="selection" placeholder="Manual"/>
+                            <field name="use_barcode" invisible="not printer_ids"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="preparation_display_view_tree" model="ir.ui.view">
+        <field name="name">preparation.display.list.view</field>
+        <field name="model">pos.prep.display</field>
+        <field name="arch" type="xml">
+            <list string="Preparation Display" create="1" delete="1">
+                <field name="name" />
+                <field name="pos_config_ids" widget="many2many_tags" />
+                <field name="category_ids" widget="many2many_tags" />
+                <field name="stage_ids" widget="many2many_tags" />
+            </list>
+        </field>
+    </record>
+
+    <record id="preparation_display_view_search" model="ir.ui.view">
+        <field name="name">preparation.display.search.view</field>
+        <field name="model">pos.prep.display</field>
+        <field name="arch" type="xml">
+            <search string="Preparation Display">
+                <field name="name" />
+                <field name="pos_config_ids" />
+                <filter string="Is a Bar/Restaurant" name="filter_bar_restaurant"
+                    domain="[('contains_bar_restaurant', '=', True)]" />
+            </search>
+        </field>
+    </record>
+
+    <record id="preparation_display_view_kanban" model="ir.ui.view">
+        <field name="name">preparation.display.kanban.view</field>
+        <field name="model">pos.prep.display</field>
+        <field name="arch" type="xml">
+            <kanban can_open="0" class="o_pos_kanban">
+                <templates>
+                    <t t-name="menu">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-4">
+                                    <div groups="point_of_sale.group_pos_manager">
+                                        <a type="open">Configure</a>
+                                    </div>
+                                    <div groups="base.group_no_one">
+                                        <a name="open_reset_wizard" type="object">Reset all orders</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-name="card">
+                        <field name="name" class="fw-bold fs-4 ms-2"/>
+                        <field name="stage_ids" widget="many2many_tags" class="ms-2"/>
+                        <div class="row pb-4 mt-4">
+                            <div name="card_left" class="col-12 col-sm-7 d-flex flex-row">
+                                <button class="btn btn-primary ms-1 me-1" name="open_ui" type="object">
+                                    Preparation Screen
+                                </button>
+                            </div>
+                            <div class="col-12 col-sm-5">
+                                <div class="row g-0 text-end pe-1">
+                                    <div class="col-10">
+                                        <span>In progress</span>
+                                    </div>
+                                    <div class="col-2">
+                                        <field name="order_count"/>
+                                    </div>
+                                </div>
+                                <div class="row g-0 text-end pe-1">
+                                    <div class="col-10">
+                                        <span>Average time</span>
+                                    </div>
+                                    <div class="col-2">
+                                        <span><field name="average_time" />'</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="pos_prep_stage_view_form" model="ir.ui.view">
+        <field name="name">pos.prep.stage.form</field>
+        <field name="model">pos.prep.stage</field>
+        <field name="arch" type="xml">
+            <form string="Preparation Stage">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="prep_display_ids" widget="many2many_tags"/>
+                            <field name="alert_timer"/>
+                        </group>
+                        <group>
+                            <field name="color" widget="color"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="pos_prep_stage_view_tree" model="ir.ui.view">
+        <field name="name">pos.prep.stage.list</field>
+        <field name="model">pos.prep.stage</field>
+        <field name="arch" type="xml">
+            <list string=" Stages" create="1" delete="1">
+                <field name="sequence" widget="handle"/>
+                <field name="name" />
+                <field name="color" widget="color" />
+                <field name="alert_timer" />
+                <field name="prep_display_ids" widget="many2many_tags"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_pos_prep_stage_view_tree" model="ir.actions.act_window">
+        <field name="name">Preparation Stages</field>
+        <field name="res_model">pos.prep.stage</field>
+        <field name="view_id" ref="pos_prep_stage_view_tree"/>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_pos_prep_stage"
+        parent="point_of_sale.menu_point_config_product"
+        action="action_pos_prep_stage_view_tree"
+        sequence="12" />
+
+    <menuitem
+        name="Preparation Display"
+        id="menu_pos_preparation_display"
+        parent="point_of_sale.menu_point_of_sale"
+        action="action_preparation_display"
+        sequence="99" />
+
+    <menuitem
+        id="menu_point_kitchen_display_root"
+        name="Kitchen Display"
+        groups="point_of_sale.group_pos_user"
+        web_icon="pos_enterprise,static/description/icon.png"
+        sequence="51"
+        active="False"
+        action="action_pos_preparation_display_bar_restaurant_filter_link" />
+</odoo>

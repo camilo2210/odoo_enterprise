@@ -1,0 +1,41 @@
+<odoo>
+    <record id="resource_calendar_form_inherit_resource" model="ir.ui.view">
+        <field name="name">resource.calendar.form.inherit</field>
+        <field name="mode">primary</field>
+        <field name="model">resource.calendar</field>
+        <field name="inherit_id" ref="resource.resource_calendar_form"/>
+        <field name="arch" type="xml">
+            <group name="resource_header" position="replace" />
+            <div name="button_box" position="replace" />
+            <group name="resource_details" position="replace" />
+            <field name="attendance_ids" position="inside">
+                <list editable="bottom" default_order="sequence, dayofweek, hour_from">
+                    <field name="dayofweek"/>
+                    <field name="hour_from" widget="float_time"/>
+                    <field name="hour_to" widget="float_time"/>
+                </list>
+            </field>
+        </field>
+    </record>
+    <record id="view_resource_calendar_tree_inherit_resource" model="ir.ui.view">
+        <field name="name">view_resource_calendar_tree.inherit</field>
+        <field name="mode">primary</field>
+        <field name="model">resource.calendar</field>
+        <field name="inherit_id" ref="resource.view_resource_calendar_tree"/>
+        <field name="arch" type="xml">
+            <field name="work_time_rate" position="replace" />
+            <field name="full_time_required_hours" position="replace" />
+            <field name="work_resources_count" position="replace" />
+        </field>
+    </record>
+
+    <record id="action_platform_order_service_hours" model="ir.actions.act_window">
+        <field name="name">Service Hours</field>
+        <field name="res_model">resource.calendar</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_resource_calendar_tree_inherit_resource')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('resource_calendar_form_inherit_resource')})]"/>
+    </record>
+</odoo>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sign.SignTemplateMobileFieldsPanel">
+        <div class="o_sign_mobile_fields_panel d-flex flex-column h-100">
+            <t t-if="this.props.signer and !this.props.hasSignRequests">
+                <div class="o_sign_mobile_context_line d-flex align-items-center gap-2 px-3 py-2 border-bottom small">
+                    <div t-attf-class="{{ 'o_color_responsible_' + this.props.signer.colorId }} o_sign_item_count flex-shrink-0">
+                        <t t-out="this.props.signer.itemsCount"/>
+                    </div>
+                    <span class="text-truncate" t-att-title="this.props.signer.name" t-out="this.props.signer.name"/>
+                    <t t-if="this.props.documentName">
+                        <span class="flex-shrink-0">·</span>
+                        <span class="text-truncate" t-att-title="this.props.documentName" t-out="this.props.documentName"/>
+                    </t>
+                </div>
+                <div class="o_sign_mobile_field_list flex-grow-1 overflow-auto p-2 d-flex flex-column gap-1">
+                    <t t-foreach="this.state.signItemTypes" t-as="itemType" t-key="itemType.id">
+                        <button
+                            type="button"
+                            class="o_sign_field_type_button o_sign_mobile_field_btn btn text-break"
+                            t-att-data-color-id="this.props.signer.colorId"
+                            t-att-data-role-id="this.props.signer.roleId"
+                            t-att-data-item-type-id="itemType.id"
+                            t-att-data-signer-id="this.props.signer.id"
+                            t-att-data-role-name="this.props.signer.name">
+                            <span class="o_sign_field_type_button_content o_sign_mobile_field_row d-flex align-items-center gap-2">
+                                <span t-attf-class="o_sign_mobile_field_icon o_color_responsible_{{ this.props.signer.colorId }}">
+                                    <i
+                                        class="oi oi-fw"
+                                        t-att-class="{'oi-filled': itemType.icon === 'calendar_today' || this.icon_type[itemType.item_type] === 'calendar_today'}"
+                                        t-attf-data-icon="#{itemType.icon ? itemType.icon : this.icon_type[itemType.item_type]}"
+                                        role="img"/>
+                                </span>
+                                <span class="o_sign_mobile_field_label flex-grow-1 text-start text-truncate"><t t-out="itemType.name"/></span>
+                            </span>
+                        </button>
+                    </t>
+                    <t t-if="this.state.isAdmin">
+                        <button type="button"
+                            class="o_sign_mobile_add_field btn d-flex align-items-center justify-content-center gap-2"
+                            title="Add a new custom field"
+                            t-on-click="() => this.onAddCustomField()">
+                            <i class="oi" data-icon="add" role="img"/>
+                            <span>Add Field</span>
+                        </button>
+                    </t>
+                </div>
+            </t>
+            <div t-elif="this.props.hasSignRequests" class="text-muted text-center p-3">Fields cannot be edited in view only mode.</div>
+            <div t-else="" class="text-muted text-center p-3">Add a signer to place fields.</div>
+        </div>
+    </t>
+</templates>

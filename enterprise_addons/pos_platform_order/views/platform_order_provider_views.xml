@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_platform_order_provider_form" model="ir.ui.view">
+        <field name="name">platform.order.provider.form</field>
+        <field name="model">platform.order.provider</field>
+        <field name="arch" type="xml">
+            <form string="Food ordering provider">
+                <sheet>
+                    <div class="oe_button_box" name="button_box"
+                         invisible="module_state != 'installed'">
+                        <button name="%(action_platform_order_entity)d"
+                                type="action"
+                                class="oe_stat_button"
+                                context="{'search_default_provider_id': id, 'default_provider_id': id}"
+                                icon="home">
+                            <div class="o_stat_info o_field_widget">
+                                <span class="o_stat_text text-success">Entites</span>
+                            </div>
+                        </button>
+                    </div>
+                    <field name="image_1920" widget="image" class="oe_avatar"
+                           readonly="module_state != 'installed'"/>
+                    <widget name="web_ribbon" title="Disabled" bg_color="text-bg-danger" invisible="module_state != 'installed' or state != 'disabled'"/>
+                    <widget name="web_ribbon" title="Test Mode" bg_color="text-bg-warning" invisible="module_state != 'installed' or state != 'test'"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Name"/></h1>
+                        <div invisible="module_state == 'installed' or not module_id">
+                            <button type="object" class="btn btn-primary" name="button_immediate_install" string="Install"/>
+                        </div>
+                    </div>
+                    <group>
+                        <group name="payment_state" invisible="module_state not in ('installed', False)">
+                            <field name="code" groups="base.group_no_one" readonly="id"/>
+                            <field name="state" widget="radio"/>
+                        </group>
+                    </group>
+                    <notebook invisible="module_id and module_state != 'installed'">
+                        <page string="Credentials" name="credentials" invisible="code == 'none'">
+                            <group name="provider_credentials"/>
+                        </page>
+                        <page string="Configuration" name="configuration">
+                            <group>
+                                <group name="accounting" string="Accounting" groups="point_of_sale.group_pos_manager">
+                                    <field name="company_id" />
+                                    <field name="default_payment_method_id" required="module_state == 'installed'" />
+                                    <field name="default_pricelist_id" required="module_state == 'installed'" />
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_platform_order_provider_list" model="ir.ui.view">
+        <field name="name">platform.order.provider.list</field>
+        <field name="model">platform.order.provider</field>
+        <field name="arch" type="xml">
+            <list string="Platform Order Providers" create="false">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code" groups="base.group_no_one"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_platform_order_provider_kanban" model="ir.ui.view">
+        <field name="name">platform.order.provider.kanban</field>
+        <field name="model">platform.order.provider</field>
+        <field name="arch" type="xml">
+            <kanban create="false" quick_create="false">
+                <field name="module_id"/>
+                <field name="module_state"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card" class="flex-row">
+                        <t t-set="installed" t-value="!record.module_id.value || (record.module_id.value &amp;&amp; record.module_state.raw_value === 'installed')"/>
+                        <t t-set="is_disabled" t-value="record.state.raw_value=='disabled'"/>
+                        <aside>
+                            <field type="open" name="image_128" widget="image" class="mb-0 o_image_64_max" alt="provider"/>
+                        </aside>
+                        <main class="ms-2">
+                            <field name="name" class="mb-0 fw-bold fs-4"/>
+                            <field name="company_id" groups="base.group_multi_company" class="fs-6 text-muted mb-1"/>
+                            <div class="d-flex">
+                                <t t-if="installed">
+                                    <field name="state" widget="label_selection"
+                                        options="{'classes': {'enabled': 'success', 'test': 'warning', 'disabled' : 'light'}}"/>
+                                </t>
+                            </div>
+                            <footer>
+                                <button t-if="!installed" type="object" class="btn btn-sm btn-primary ms-auto" name="button_immediate_install">Install</button>
+                            </footer>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_platform_order_provider_search" model="ir.ui.view">
+        <field name="name">platform.order.provider.search</field>
+        <field name="model">platform.order.provider</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="provider" filter_domain="[('name', 'ilike', self)]"/>
+                <filter name="provider_installed" string="Installed" domain="[('module_state', '=', 'installed')]"/>
+                <group>
+                    <filter string="Provider" name="code" context="{'group_by': 'code'}"/>
+                    <filter string="State" name="state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_platform_order_providers" model="ir.actions.act_window">
+        <field name="name">Platform Order Providers</field>
+        <field name="res_model">platform.order.provider</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Platform Order Providers found
+            </p>
+        </field>
+    </record>
+
+</odoo>

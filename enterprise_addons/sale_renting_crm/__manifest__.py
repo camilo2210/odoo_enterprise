@@ -1,0 +1,21 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+{
+    'name': 'Opportunity to Rental',
+    'category': 'Sales/Sales',
+    'description': """
+This module adds a shortcut on one or several opportunity cases in the CRM.
+===========================================================================
+
+This shortcut allows you to generate a rental order based on the selected case.
+    """,
+    'depends': ['sale_renting', 'sale_crm'],
+    'data': [
+        'views/crm_lead_views.xml',
+        'wizard/crm_lead_rental_views.xml',
+        'security/ir.access.csv',
+    ],
+    'auto_install': True,
+    'author': 'Odoo S.A.',
+    'license': 'OEEL-1',
+}

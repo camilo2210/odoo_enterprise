@@ -1,0 +1,43 @@
+<odoo>
+    <record id="account_analytic_line_view_grid_inherit" model="ir.ui.view">
+        <field name="name">account.analytic.line.report.grid.inherit</field>
+        <field name="model">account.analytic.line</field>
+        <field name="inherit_id" ref="analytic_enterprise.account_analytic_line_report_view_grid"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//grid" position="attributes">
+                <attribute name="js_class">margin_analytic_line_grid</attribute>
+            </xpath>
+            <xpath expr="//field[@name='account_id']" position="before">
+                <field name="account_id" type="row" invisible="1"/> <!-- do not copy the `type` with _patch_view -->
+            </xpath>
+            <xpath expr="//field[@name='date']" position="before">
+                <field name="billable_type" type="row" section="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_view_analytic_reporting_inherit_sale_project_tree" model="ir.actions.act_window.view">
+        <field name="act_window_id" ref="sale_project.action_analytic_reporting_inherit_sale_project"/>
+        <field name="sequence" eval="20"/>
+        <field name="view_mode">grid</field>
+        <field name="view_id" ref="account_analytic_line_view_grid_inherit"/>
+    </record>
+
+    <record id="account_analytic_line_report_view_grid" model="ir.ui.view">
+        <field name="name">account.analytic.margins.grid.inherit.sale.project.enterprise</field>
+        <field name="model">account.analytic.line</field>
+        <field name="inherit_id" ref="analytic_enterprise.account_analytic_line_report_view_grid"/>
+        <field name="mode">primary</field>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <xpath expr="/grid" position="attributes">
+                <attribute name="js_class">margin_analytic_line_grid</attribute>
+            </xpath>
+            <xpath expr="//field[@name='account_id']" position="replace">
+                <field name="category_report" type="row"/>
+                <field name="billable_type" type="row"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

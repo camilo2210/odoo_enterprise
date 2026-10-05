@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="pos_iot.IotTestDialog">
+        <Dialog title.translate="IoT Connection Status" size="'md'">
+            <p class="text-muted m-0">Tested at <t t-out="this.startTime.toLocaleString()" /></p>
+            <ul>
+                <li class="pt-3" t-foreach="this.iotBoxes" t-as="iotBox" t-key="iotBox.identifier">
+                    <p class="fs-4 my-0 text-decoration-underline fw-bold" t-out="iotBox.name" />
+
+                    <span class="fs-6 fw-bold">Network</span>
+                    <ul class="px-0 pb-3">
+                        <li>
+                            Longpolling status:
+                            <span class="float-end me-4">
+                                <StatusIcon status="this.boxStatus[iotBox.id].longpolling"/>
+                            </span>
+                        </li>
+                        <li>
+                            Websocket status:
+                            <span class="float-end me-4">
+                                <StatusIcon status="this.boxStatus[iotBox.id].websocket"/>
+                            </span>
+                        </li>
+                        <li>
+                            Network speed:
+                            <span class="float-end me-4">
+                                <StatusIcon status="this.boxStatus[iotBox.id].websocket"/>
+                                <span t-if="this.boxStatus[iotBox.id].websocket === 'success'">
+                                    Local network speed is <b t-out="this.boxStatus[iotBox.id].localNetworkSpeed"/>, internet speed is <b t-out="this.boxStatus[iotBox.id].internetSpeed"/>
+                                </span>
+                            </span>
+                        </li>
+                    </ul>
+
+                    <span class="fs-6 fw-bold">Devices</span>
+                    <ul class="px-0 pb-3">
+                        <li t-foreach="this.iotDevicesByBox.get(iotBox)" t-as="device" t-key="device.identifier">
+                            <span t-out="`${device.name} `" />
+                            <span class="text-muted" t-out="`(${device.identifier}): `" />
+                            <span class="float-end me-4">
+                                <StatusIcon status="this.deviceStatus[device.id]" />
+                                <span t-if="this.deviceStatus[device.id] !== 'success' and this.deviceStatus[device.id] !== 'loading'">
+                                    (<t t-out="this.deviceStatus[device.id]" />)
+                                </span>
+                            </span>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </Dialog>
+    </t>
+</templates>

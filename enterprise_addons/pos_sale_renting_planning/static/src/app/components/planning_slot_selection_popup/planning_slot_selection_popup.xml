@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="PlanningSlotSelectionPopup" t-inherit="pos_sale_planning.PlanningSlotSelectionPopup" t-inherit-mode="extension">
+        <xpath expr="//Input" position="after">
+            <Dropdown>
+                <button class="ms-1 btn btn-light lh-lg">
+                    <t t-out="this.filterOptions[this.state.selectedFilter].text" />
+                    <i class="oi ms-1" data-icon="arrow_drop_down" aria-hidden="true"/>
+                </button>
+                <t t-set-slot="content">
+                    <div class="p-2" t-foreach="this.filterOptionsList" t-as="key" t-key="key">
+                        <DropdownItem onSelected="() => this._onSelectFilter(key)">
+                            <span t-out="this.filterOptions[key].text"/>
+                        </DropdownItem>
+                    </div>
+                </t>
+            </Dropdown>
+        </xpath>
+        <xpath expr="//div[hasclass('planning-info')]" position="inside">
+            <div class="p-1 badge rounded-pill w-25" t-attf-class="{{this.getRentalStatusClass(slot)}}" t-out="this.getRentalStatus(slot)" />
+        </xpath>
+        <xpath expr="//tr[hasclass('slot-line')]" position="inside">
+            <td class="text-break">
+                <div class="badge rounded-pill" t-attf-class="{{this.getRentalStatusClass(slot)}}" t-out="this.getRentalStatus(slot)" />
+            </td>
+        </xpath>
+    </t>
+</templates>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+
+    <t t-name="sale_timesheet_enterprise.TimesheetKpiLeaderboardHeader">
+
+        <div name="timesheet_kpi_leaderboard_header"
+             class="align-items-center gap-4 bg-view border rounded-3 mx-3 mb-2 py-2 px-3"
+             t-att-class="this.timesheetLeaderboardService.showLeaderboard ? 'd-flex': 'd-inline-flex'"
+        >
+            <div name="period" class="d-flex flex-column lh-1 text-muted text-uppercase small fw-bold text-center">
+                <span t-out="this.props.date.monthShort"/>
+                <span t-out="this.props.date.year"/>
+            </div>
+
+            <TimesheetKpi
+                t-if="!this.uiService.isSmall or !this.timesheetLeaderboardService.showLeaderboard"
+                t-props="this.workedTimeKpiProps"
+            />
+
+            <TimesheetKpi
+                t-if="!this.uiService.isSmall or !this.timesheetLeaderboardService.showLeaderboard"
+                t-props="this.billableTimeKpiProps"
+            />
+
+            <TimesheetKpi
+                t-if="this.timesheetKpiService.showIndicators"
+                t-props="this.billingRateKpiProps"
+            />
+
+            <div name="open_timesheet_assistant" class="d-flex align-items-center flex-shrink-0" t-if="this.showAssistantButton">
+                <a class="d-flex flex-column btn btn-link text-start lh-1 p-0"
+                   t-on-click="() => this.actionService.doAction('hr_timesheet_activitywatch_action')"
+                >
+                    <span class="small">Want to track your</span>
+                    <span class="small">activities automatically?</span>
+                </a>
+            </div>
+
+            <TimesheetLeaderboard
+                t-if="this.timesheetLeaderboardService.showLeaderboard"
+                date="this.props.date"
+                displayEarnYourRank="!this.timesheetKpiService.data.billable_time"
+            />
+        </div>
+
+    </t>
+
+</templates>

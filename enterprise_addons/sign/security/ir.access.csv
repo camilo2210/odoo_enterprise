@@ -1,0 +1,49 @@
+id,name,model_id,group_id/id,operation,domain
+ir_rule_sign_request_group_sign_manager,sign.request: group_sign_manager: Create and manage sign requests,sign.request,sign.group_sign_manager,crud,
+ir_rule_sign_request_group_sign_user_create,sign.request: group_sign_user: Create sign requests,sign.request,sign.group_sign_user,c,
+ir_rule_sign_request_group_sign_user_sender,sign.request: group_sign_user: sender: Manage sign requests,sign.request,sign.group_sign_user,rud,"[('create_uid', '=', user.id)]"
+ir_rule_sign_request_group_sign_user_signer_follower,"sign.request: group_sign_user: signer,follower: Manage sign requests",sign.request,sign.group_sign_user,ru,"['|', ('message_partner_ids','in', user.partner_id.ids), ('request_item_ids.partner_id', 'in', user.partner_id.ids)]"
+ir_rule_sign_template_group_sign_manager,sign.template: group_sign_manager: Create and manage templates,sign.template,sign.group_sign_manager,crud,
+ir_rule_sign_template_group_sign_user_create,sign.template: group_sign_user: Create templates,sign.template,sign.group_sign_user,c,
+ir_rule_sign_template_group_sign_user,sign.template: group_sign_user: Manage templates,sign.template,sign.group_sign_user,rud,"['|', ('authorized_ids', 'in', user.id), '|', ('group_ids', 'in', user.all_group_ids.ids), ('user_id', '=', user.id)]"
+ir_rule_sign_document_group_sign_manager,sign.document: group_sign_manager: Create and manage documents,sign.document,sign.group_sign_manager,crud,
+ir_rule_sign_document_group_sign_user_create,sign.document: group_sign_user: Create documents,sign.document,sign.group_sign_user,c,
+ir_rule_sign_document_group_sign_user,sign.document: group_sign_user: Manage documents,sign.document,sign.group_sign_user,crud,"['|', ('template_id.authorized_ids', 'in', user.id), '|', ('template_id.group_ids', 'in', user.all_group_ids.ids), ('template_id.user_id', '=', user.id)]"
+ir_rule_sign_document_group_sign_user_sign_request_access,sign.document: group_sign_user: sign request document access,sign.document,sign.group_sign_user,r,"['|', ('template_id.sign_request_ids.create_uid', '=', user.id), '|', ('template_id.sign_request_ids.message_partner_ids', 'in', user.partner_id.ids), ('template_id.sign_request_ids.request_item_ids.partner_id', 'in', user.partner_id.ids)]"
+ir_rule_sign_request_item_group_sign_manager,sign.request.item: group_sign_manager: Create and manage sign request items,sign.request.item,sign.group_sign_manager,cru,
+ir_rule_sign_request_item_group_sign_user_sender,sign.request.item: group_sign_user: sender: Create and manage sign request items,sign.request.item,sign.group_sign_user,cru,"[('sign_request_id.create_uid', '=', user.id)]"
+ir_rule_sign_request_item_group_sign_user_follower,sign.request.item: group_sign_user: follower: Manage sign request items,sign.request.item,sign.group_sign_user,ru,"[('sign_request_id.message_partner_ids', 'in', user.partner_id.ids)]"
+ir_rule_sign_request_item_group_sign_user_signer,sign.request.item: group_sign_user: signer: Read sign request items,sign.request.item,sign.group_sign_user,r,"[('sign_request_id.request_item_ids.partner_id', 'in', user.partner_id.ids)]"
+ir_rule_sign_item_group_sign_manager,sign.item: group_sign_manager: Create and manage template items,sign.item,sign.group_sign_manager,crud,"[('template_id.has_sign_requests', '=', False)]"
+ir_rule_sign_item_group_sign_manager_readonly,sign.item: group_sign_manager: Readonly access to template items,sign.item,sign.group_sign_manager,r,
+ir_rule_sign_item_group_sign_user_readonly,sign.item: group_sign_user: Read template items,sign.item,sign.group_sign_user,r,"['|', ('template_id.authorized_ids', 'in', user.id), '|', ('template_id.group_ids', 'in', user.all_group_ids.ids), ('template_id.user_id', '=', user.id)]"
+ir_rule_sign_item_group_sign_user_edit,sign.item: group_sign_user: Create and manage template items,sign.item,sign.group_sign_user,cud,"['&', ('template_id.has_sign_requests', '=', False), '|', ('template_id.authorized_ids', 'in', user.id), '|', ('template_id.group_ids', 'in', user.all_group_ids.ids), ('template_id.user_id', '=', user.id)]"
+access_sign_item_option_user,sign.item.option.user,sign.item.option,sign.group_sign_user,cr,
+access_sign_item_option_admin,sign.item.option.admin,sign.item.option,sign.group_sign_manager,cru,
+access_sign_item_role_user,sign.item.role.user,sign.item.role,sign.group_sign_user,r,
+ir_rule_sign_item_role_group_sign_user_readonly_own,sign.item.role: group_sign_user: Write/Create/delete own item roles,sign.item.role,sign.group_sign_user,cud,"
+                ['|',
+                    ('create_uid.id', '=', user.id),
+                    '|',
+                        ('item_ids.template_id.authorized_ids', 'in', user.id),
+                        '|',
+                        ('item_ids.template_id.group_ids', 'in', user.all_group_ids.ids),
+                        ('item_ids.template_id.user_id', '=', user.id)
+                ]
+            "
+ir_rule_sign_item_role_group_sign_manager,sign.item.role: group_sign_manager: Manage all item roles,sign.item.role,sign.group_sign_manager,crud,
+ir_rule_sign_item_type_group_sign_user,sign.item.type: group_sign_user: See shared or own item types,sign.item.type,sign.group_sign_user,cr,"['|', '|', '|', ('shared', '=', True), ('authorized_group_ids', 'in', user.all_group_ids.ids), ('create_uid', '=', user.id), ('authorized_users', 'in', user.id)]"
+ir_rule_sign_item_type_group_sign_user_write,sign.item.type: group_sign_user: Edit own item types,sign.item.type,sign.group_sign_user,ud,"[('create_uid', '=', user.id)]"
+ir_rule_sign_item_type_group_sign_manager,sign.item.type: group_sign_manager: Manage all item types,sign.item.type,sign.group_sign_manager,crud,
+access_sign_item_radio_set_user,sign.item.radio.set.user,sign.item.radio.set,sign.group_sign_user,crud,
+access_sign_template_tag_user,sign.template.tag.user,sign.template.tag,sign.group_sign_user,r,
+access_sign_template_tag_manager,sign.template.tag.manager,sign.template.tag,sign.group_sign_manager,crud,
+ir_rule_sign_log_group_sign_user,sign.log: group_sign_user: Read sign logs,sign.log,sign.group_sign_user,r,"['|', ('sign_request_id.message_partner_ids', 'in', user.partner_id.ids), '|', ('sign_request_id.request_item_ids.partner_id', 'in', user.partner_id.ids), ('sign_request_id.create_uid', '=', user.id)]"
+ir_rule_sign_log_group_sign_manager,sign.log: group_sign_manager: Read sign logs,sign.log,sign.group_sign_manager,r,
+access_sign_send_request_user,sign.send.request.user,sign.send.request,sign.group_sign_user,crud,
+access_sign_send_request_signer_user,sign.send.request.signer.user,sign.send.request.signer,sign.group_sign_user,crud,
+access_sign_template_preview,sign.template.preview.user,sign.template.preview,sign.group_sign_user,cru,
+ir_rule_sign_request_document_group_manager,sign.request.document: group_sign_manager: read request documents,sign.request.document,sign.group_sign_manager,r,
+ir_rule_sign_request_document_group_sign_user,sign.request.document: group_sign_user: sender|signer|follower: read request documents,sign.request.document,sign.group_sign_user,r,"['|', ('sign_request_id.create_uid', '=', user.id), '|', ('sign_request_id.message_partner_ids', 'in', user.partner_id.ids), ('sign_request_id.request_item_ids.partner_id', 'in', user.partner_id.ids)]"
+access_sign_request_share,sign.request.share,sign.request.share,sign.group_sign_user,cru,
+access_certificate_wizard_user,certificate.wizard.user,certificate.wizard,base.group_system,crud,

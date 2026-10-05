@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="product_pricelist_item_view_search" model="ir.ui.view">
+        <field name="name">product.pricelist.item.search.inherit.sale.renting</field>
+        <field name="model">product.pricelist.item</field>
+        <field name="inherit_id" ref="product.product_pricelist_item_view_search"/>
+        <field name="priority">500</field>
+        <field name="arch" type="xml">
+            <filter name="filter_to_sell" position="after">
+                <filter
+                    name="filter_rental"
+                    string="Rental"
+                    domain="[
+                        '|',
+                        ('product_tmpl_id', '=', False),
+                        '&amp;',
+                        ('product_tmpl_id.sale_ok', '=', True),
+                        ('product_tmpl_id.rent_periodicity', '!=', False),
+                    ]"
+                />
+            </filter>
+        </field>
+    </record>
+
+    <record id="product_pricelist_item_list_multi_edit" model="ir.ui.view">
+        <field name="name">product.pricelist.item.list.multi.edit</field>
+        <field name="model">product.pricelist.item</field>
+        <field name="inherit_id" ref="product.product_pricelist_item_tree_view"/>
+        <field name="mode">primary</field>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <list position="attributes">
+                <attribute name="multi_edit">1</attribute>
+            </list>
+            <field name="company_id" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="product_pricelist_item_action_multi_edit" model="ir.actions.act_window">
+        <field name="name">Price Rules</field>
+        <field name="res_model">product.pricelist.item</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="product_pricelist_item_list_multi_edit"/>
+        <field name="context">{
+            'search_default_visible': True,
+            'search_default_filter_rental': True,
+        }</field>
+    </record>
+
+</odoo>

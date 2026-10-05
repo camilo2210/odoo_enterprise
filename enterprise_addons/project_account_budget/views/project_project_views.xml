@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="project_project_card_view_inherited" model="ir.ui.view">
+        <field name="name">project.project.card.inherited</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project_card"/>
+        <field name="arch" type="xml">
+            <a class="o_project_milestone_btn" position="after">
+                <field name="account_id" invisible="1"/>
+                <field name="total_budget_amount" invisible="1"/>
+                <field name="total_budget_progress" invisible="1"/>
+                <t t-if="record.account_id and record.total_budget_amount.raw_value">
+                    <t t-set="budget_progress" t-value="record.total_budget_progress.raw_value"/>
+                    <t t-if="budget_progress == -1.0" t-set="budget_title">Budget allocated</t>
+                    <t t-elif="budget_progress &gt;= 0.25" t-set="budget_title">Budget on track</t>
+                    <t t-elif="budget_progress &gt;= 0" t-set="budget_title">Budget soon overspent</t>
+                    <t t-else="" t-set="budget_title">Budget overspent</t>
+                    <button name="action_budget_spent" type="object" class="btn btn-light d-flex p-1">
+                        <i role="img" aria-label="Budget"
+                            t-attf-class="oi text-{{ budget_progress == -1.0 ? 'muted' : budget_progress &gt;= 0.25 ? 'success' : budget_progress &gt;= 0 ? 'warning' : 'danger' }}"
+                            t-att-data-tooltip="budget_title"
+                         data-icon="money_bag"/>
+                    </button>
+                </t>
+            </a>
+        </field>
+    </record>
+
+    <record id="view_edit_project_inherit_form_sale_account_budget" model="ir.ui.view">
+        <field name="name">project.project.view.inherit.sale.account.budget</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_view_all_rating']" position="after">
+                <t groups="account.group_account_readonly">
+                    <button class="oe_stat_button" name="action_budget_spent" type="object" icon="money_bag"
+                        groups="project.group_project_manager" context="{'active_id': id}" invisible="is_template or not budget_count">
+                        <div class="o_stat_info">
+                            <span class="o_stat_value">
+                                <field name="currency_id" invisible="1"/><!--Needed for widget bellow -->
+                                <field name="total_budget_achieved_amount" widget="monetary" options="{'currency_field':'currency_id'}"/> <t invisible="not total_budget_achieved_progress">(<field name="total_budget_achieved_progress" widget="percentage" options="{'digits': [1, 0]}"/>)</t>
+                            </span>
+                            <span class="o_stat_text">Budget</span>
+                        </div>
+                    </button>
+                </t>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="project_embedded_action_project_budgets" model="ir.embedded.actions">
+        <field name="parent_res_model">project.project</field>
+        <field name="sequence">131</field>
+        <field name="name">Budgets</field>
+        <field name="parent_action_id" ref="project.act_project_project_2_project_task_all"/>
+        <field name="python_method">action_open_project_budgets</field>
+        <field name="context">{"from_embedded_action": true}</field>
+        <field name="groups_ids" eval="[(4, ref('account.group_account_readonly'))]" />
+        <field name="domain">[('account_id', '!=', False)]</field>
+    </record>
+
+    <record id="project_embedded_action_update_budgets" model="ir.embedded.actions">
+        <field name="parent_res_model">project.project</field>
+        <field name="sequence">131</field>
+        <field name="name">Budgets</field>
+        <field name="parent_action_id" ref="project.project_update_all_action"/>
+        <field name="python_method">action_open_project_budgets</field>
+        <field name="context">{"from_embedded_action": true}</field>
+        <field name="groups_ids" eval="[(4, ref('account.group_account_readonly'))]" />
+        <field name="domain">[('account_id', '!=', False)]</field>
+    </record>
+</odoo>

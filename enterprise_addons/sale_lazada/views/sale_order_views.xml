@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="sale_order_list" model="ir.ui.view">
+        <field name="name">lazada.order.list</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.sale_order_tree"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="lazada_order_ref" optional="hide"/>
+                <field name="lazada_shop_id" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_order_form" model="ir.ui.view">
+        <field name="name">lazada.order.form</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <sheet position="before">
+                <div
+                    class="alert alert-warning text-center"
+                    role="alert"
+                    invisible="not lazada_order_ref or lazada_order_status != 'manual'"
+                >
+                    This order contains unsupported Lazada order status.
+                    Please process the order manually on Lazada.
+                </div>
+            </sheet>
+            <div name="button_box" position="after">
+                <field
+                    name="lazada_fulfillment_type"
+                    widget="badge"
+                    invisible="not lazada_order_ref"
+                    decoration-info="1"
+                    class="float-end"
+                />
+            </div>
+            <t groups="sale.group_auto_done_setting" position="after">
+                <t groups="!sale.group_auto_done_setting">
+                    <button
+                        name="action_lock"
+                        type="object"
+                        string="Lock"
+                        help="If the sale is locked, you can not modify it anymore. However, you will still be able to invoice or deliver."
+                        invisible="locked or state != 'sale' or not lazada_order_ref"
+                        groups="sales_team.group_sale_manager"
+                    />
+                </t>
+            </t>
+            <group name="order_details" position="inside">
+                <field
+                    name="lazada_order_ref"
+                    invisible="not lazada_order_ref"
+                />
+                <field
+                    name="lazada_shop_id"
+                    invisible="not lazada_shop_id"
+                    readonly="1"
+                />
+            </group>
+        </field>
+    </record>
+
+    <record id="sale_order_search" model="ir.ui.view">
+        <field name="name">lazada.order.search</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_sales_order_filter"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="lazada_order_ref"/>
+                <field name="lazada_shop_id"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

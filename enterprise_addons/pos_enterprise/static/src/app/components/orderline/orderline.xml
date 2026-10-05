@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="pos_enterprise.Orderline">
+        <section
+            class="o_preparation_display_orderline text-800"
+            t-attf-class="{{ this.preparation_line.combo_parent_id ? 'ms-4 pt-0' : 'py-1' }}"
+            t-att-class="{ 'o_pdis_orderline--done opacity-50 text-decoration-line-through text-muted': this.props.orderline.todo === false }"
+        >
+            <div class="o_pdis_orderline_infos d-flex pe-2">
+                <div class="o_pdis_quantity px-2 text-center text-800">
+                    <div class="o_pdis_todo" t-out="`${this.preparation_line.todoQuantity}x`"/>
+                </div>
+                <div
+                    class="o_pdis_product-name flex-grow-1"
+                    t-out="
+                        this.preparation_line.prep_order_id.pos_order_id.config_id.module_pos_restaurant
+                        ? this.preparation_line.product_id.name
+                        : this.preparation_line.product_id.display_name"
+                    />
+            </div>
+            <div t-if="this.preparation_line.attribute_value_ids.length > 0" class="ms-4 my-1 fst-italic small text-800">
+                <div t-foreach="this.attributeData" t-as="attribute" t-key="attribute.id">
+                    <p class="pe-2 m-0">
+                        - <t t-out="attribute.name" /> : <t t-out="attribute.value" />
+                    </p>
+                </div>
+            </div>
+
+            <div class="o_pdis_orderline_warning">
+                <div t-if="this.customerNotes.length" class="list-inline customer-note fst-italic smaller text-800 text-break d-flex rounded-3 ms-4 px-2 py-1 me-1 mt-1">
+                    <t t-foreach="this.customerNotes" t-as="subNote" t-key="subNote_index">
+                        <li t-out="subNote"/>
+                    </t>
+                </div>
+
+                <div class="d-flex flex-wrap gap-1 pt-2 ms-4 bg-opacity-75"
+                    t-att-class="{ 'o_pdis_orderline_blinking': this.noteState.isActive }">
+                    <t t-foreach="this.internalNotes" t-as="note" t-key="note_index">
+                        <BadgeTag text="note.text" color="note.colorIndex"/>
+                    </t>
+                </div>
+                <div t-if="this.preparation_line.roundedCancelled > 0" class="o_pdis--cancelled d-flex w-100 pt-2">
+                    <div
+                        t-if="this.preparation_line.roundedCancelled > 0"
+                        t-out="`${this.preparation_line.roundedQuantity}x`"
+                        class="ps-2 pe-2 text-danger opacity-50 small text-decoration-line-through"
+                    />
+                    <div t-out="`${this.preparation_line.roundedCancelled} cancelled`"
+                        class="px-2 rounded bg-danger bg-opacity-25 text-danger small"
+                    />
+                </div>
+            </div>
+        </section>
+    </t>
+</templates>

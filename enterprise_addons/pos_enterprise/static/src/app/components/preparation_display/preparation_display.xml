@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="pos_enterprise.PrepDisplay">
+        <div t-if="!this.prepDisplay.posHasProducts and this.prepDisplay.loadingProducts" class="block-top-header position-absolute top-0 start-0 bg-black opacity-50 w-100 h-100 z-1000">
+            <div class="d-flex h-100 w-100 text-white flex-row align-items-center justify-content-center">
+                <div class="o_spinner d-flex flex-column mb-4">
+                    <img src="/web/static/img/spin.svg" alt="Loading..."/>
+                    Loading...
+                </div>
+            </div>
+        </div>
+        <div class="o_pdis_main_screen d-flex flex-column vh-100 w-100 bg-view overflow-hidden user-select-none">
+            <div class="o_pdis_navbar border d-flex align-items-center justify-content-between">
+                <t t-set="isLastStage" t-value="this.prepDisplay.selectedStageId === this.prepDisplay.lastStage.id"/>
+                <t t-set="isAllStage" t-value="this.prepDisplay.selectedStageId === 0"/>
+                <t t-set="isDebug" t-value="this.debugMode.isActive()"/>
+                <div class="d-none d-lg-flex align-items-center gap-3 ms-3 justify-content-start">
+                    <button class="btn border p-2 fs-5 rounded"
+                        t-on-click="() => { this.toggleCategoryFilter(); this.showSidebar = !this.showSidebar }">
+                        <div class="position-relative px-1">
+                            <i class="oi oi-fw" t-att-data-icon="this.showSidebar ? 'dock_to_right' : 'close_small'" role="img"/>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-bg-info smaller fw-bolder py-1 px-2" t-if="this.filterSelected and this.showSidebar" t-out="this.filterSelected" />
+                        </div>
+                    </button>
+                    <button class="btn fs-5 px-3 py-2 border" t-on-click="() => this.toggleTheme()">
+                        <i class="oi" t-att-data-icon="this.preparationTheme === 'dark' ? 'light_mode' : 'dark_mode'"/>
+                    </button>
+                </div>
+                <Stages stages="this.prepDisplay.data.models['pos.prep.stage'].getAll()" />
+                <div class="d-inline-block d-sm-inline-block d-xs-inline-block d-md-inline-block d-lg-none mx-2">
+                    <button t-if="this.isBurgerMenuClosed()" class="btn position-relative px-3 py-2 rounded border burger-menu" t-on-click="this.openMenu">
+                        <div class="d-flex px-1">
+                            <i class="oi d-block" data-icon="menu" aria-hidden="true"></i>
+                        </div>
+                    </button>
+                    <button t-else="" class="btn position-relative px-3 py-2 rounded border burger-menu " t-on-click="this.closeMenu">
+                        <div class="position-relative d-flex align-items-center justify-content-center">
+                            <i class="oi fs-5" data-icon="menu" aria-hidden="true"/>
+                        </div>
+                        <ul class="dropdown-menu sub-menu position-absolute d-flex shadow-sm flex-column align-items-stretch z-1 end-0 top-100">
+                            <li t-if="!isLastStage and !isAllStage" class="menu-item navbar-button recall-button" t-on-click="() => this.recallLastChange()">
+                                <a class="dropdown-item py-2"
+                                    t-att-class="{'disabled': this.isHistoryEmpty()}">
+                                    Recall
+                                </a>
+                            </li>
+                            <li t-if="isLastStage and !isDebug" class="menu-item navbar-button" t-on-click="() => this.archiveAllVisibleOrders()">
+                                <a class="dropdown-item py-2">
+                                    Done
+                                </a>
+                            </li>
+                            <li t-if="isDebug" class="menu-item navbar-button" t-on-click="() => this.prepDisplay.resetOrders()">
+                                <a class="dropdown-item py-2">
+                                    Done
+                                </a>
+                            </li>
+                            <li class="menu-item navbar-button" t-on-click="() => { this.toggleCategoryFilter(); this.showSidebar = !this.showSidebar }">
+                                <a class="dropdown-item py-2">
+                                    Filters
+                                    <span t-if="this.filterSelected>0" class="badge text-bg-info rounded-pill py-1 ms-2" t-out="this.filterSelected"/>
+                                </a>
+                            </li>
+                            <li class="menu-item navbar-button" t-on-click="() => this.toggleTheme()">
+                                <a class="dropdown-item py-2">
+                                    Switch to <span t-out="this.preparationTheme === 'dark' ? 'Light' : 'Dark'"/> Mode
+                                </a>
+                            </li>
+                            <li class="menu-item navbar-button" t-on-click="() => this.prepDisplay.exit()">
+                                <a class="dropdown-item py-2">
+                                    Close
+                                </a>
+                            </li>
+                        </ul>
+                    </button>
+                </div>
+                <div class="d-none d-lg-flex">
+                    <div class="d-flex gap-3 align-items-center justify-content-end pe-3 top-buttons">
+                        <button t-if="!isLastStage and !isAllStage" class="btn btn-light d-flex align-items-center fs-5 px-3 py-2 border rounded"
+                            t-att-class="{'disabled': this.isHistoryEmpty()}"
+                            t-on-click="() => this.recallLastChange()">
+                            <i class="oi pe-0 pe-lg-2" data-icon="undo" aria-hidden="true"></i> 
+                            <span class="d-none d-lg-inline-block">Recall</span>
+                        </button>
+                        <button t-if="isLastStage and !isDebug" class="btn btn-light d-flex align-items-center fs-5 px-3 py-2 border rounded"
+                            t-on-click="() => this.archiveAllVisibleOrders()">
+                            <i class="oi oi-filled pe-0 pe-lg-2" data-icon="delete" aria-hidden="true"></i> 
+                            <span class="d-none d-lg-inline-block">Done</span>
+                        </button>
+                        <button t-if="isDebug" class="btn btn-danger d-flex align-items-center fs-5 px-3 py-2 border rounded"
+                            t-on-click="() => this.prepDisplay.resetOrders()">
+                            <i class="oi oi-filled pe-0 pe-lg-2" data-icon="delete" aria-hidden="true"></i>
+                            <span class="d-none d-lg-inline-block">Done</span>
+                        </button>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-end">
+                        <button class="btn rounded border d-flex align-items-center px-3 py-2 me-3 fs-5 shadow-none" t-on-click="() => this.prepDisplay.exit()">
+                            <span class="o_pdis_close d-none d-lg-inline-block px-2">Close</span>
+                            <i class="oi oi-lg" data-icon="logout" role="img"/>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="o_pdis_content d-flex w-100">
+                <div class="o_pdis_sidebar border d-flex pt-2 flex-column text-800" t-att-class="{'hide-category d-none': !this.prepDisplay.showCategoryFilter}">
+                    <div t-if="this.filterSelected" class="btn btn-secondary btn-lg my-1 mx-2 sidebar-btn rounded-3" t-on-click="() => this.resetFilter()">
+                        Clear All Filters
+                    </div>
+                    <div class="o_pdis_categories mh-100 overflow-auto px-3 mb-auto">
+                        <div class="o_pdis_time">
+                            <t t-set="orderDays" t-value="this.prepDisplay.orderDays"/>
+                            <section class="o_pdis_name_quantity d-flex justify-content-between mt-3 pt-2 pb-1 fs-5 fw-bold">
+                                <span class="name category-name">Time</span>
+                                <span class="count" t-out="orderDays[0]"/>
+                            </section>
+                            <hr class="mt-1 mb-2 me-n2"/>
+                            <t t-set="time_filters" t-value="[['now', 'Now'], ['today', 'Today'], ['tomorrow', 'Tomorrow'], ['next_days', 'Next days']]" />
+                            <t t-foreach="time_filters" t-as="time_filter" t-key="time_filter[0]">
+                                <div class="d-flex justify-content-between p-1 my-1 cursor-pointer"
+                                    t-att-class="{ 'sidebar-btn rounded-3 fw-bold bg-opacity-25 px-2': this.prepDisplay.selectedTimeIds.has(time_filter[0])}"
+                                    t-on-click="() => this.prepDisplay.toggleTime(time_filter[0])">
+                                    <div class="pe-2 text-truncate">
+                                        <span class="pe-2" t-out="time_filter[1]"/>
+                                    </div>
+                                    <span t-out="orderDays[time_filter[0]]"/>
+                                </div>
+                            </t>
+                        </div>
+                        <div class="o_pdis_preset" t-if="this.prepDisplay.displayPresetsFilter">
+                            <t t-set="orderCountPresets" t-value="this.prepDisplay.orderCountPresets"/>
+                            <section class="o_pdis_name_quantity d-flex justify-content-between mt-3 pt-2 pb-1 fs-5 fw-bold">
+                                <span class="name category-name">Preset</span>
+                                <span class="count" t-out="orderCountPresets[0]"/>
+                            </section>
+                            <hr class="mt-1 mb-2 me-n2"/>
+                            <t t-foreach="this.presets" t-as="preset" t-key="preset.id">
+                                <div class="d-flex justify-content-between p-1 my-1 cursor-pointer"
+                                    t-att-class="{ 'sidebar-btn rounded-3 fw-bold bg-opacity-25 px-2': this.prepDisplay.selectedPresetIds.has(preset.id)}"
+                                    t-on-click="() => this.prepDisplay.togglePreset(preset.id)">
+                                    <div class="pe-2 text-truncate">
+                                        <span class="pe-2" t-out="preset.name"/>
+                                    </div>
+                                    <span t-out="orderCountPresets[preset.id]"/>
+                                </div>
+                            </t>
+                        </div>
+                        <t t-foreach="this.prepDisplay.categories" t-as="category" t-key="category.id">
+                            <Category category="category_value" />
+                        </t>
+                    </div>
+                    <div t-if="this.prepDisplay.selectedStageId and this.prepDisplay.filteredOrders.length" class="btn btn-lg m-2 sidebar-btn rounded-3" t-on-click="() => this.prepDisplay.clearAllOrders()">
+                        Clear All Orders
+                    </div>
+                    <div class="w-100">
+                        <div class="border-top w-100">
+                            <button class="btn px-4 rounded-0 border-end w-50" t-on-click="() => this.changeZoom(-0.25)"
+                                t-att-class="this.state.zoom &lt;= 0.5 ? 'disabled' : ''">
+                                <i class="oi" data-icon="zoom_out" aria-hidden="true" />
+                            </button>
+                            <button class="btn px-4 rounded-0 w-50" t-on-click="() => this.changeZoom(0.25)"
+                                t-att-class="this.state.zoom &gt;= 2  ? 'disabled' : ''">
+                                <i class="oi" data-icon="zoom_in" aria-hidden="true" />
+                            </button>
+                        </div>
+                        <div class="o_pdis_logo d-flex align-items-center justify-content-center border-top">
+                            <img src="/web/static/img/logo.png" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="o_pdis_main_area w-100 h-100 overflow-hidden d-flex align-items-center justify-content-center">
+                    <div t-if="!this.prepDisplay.posHasProducts and !this.prepDisplay.loadingProducts" class="o_pdis_no_products text-dark text-center">
+                        <h2 class="mb-3"> No data available.</h2>
+                        <div class="d-flex flex-column flex-md-row align-items-center justify-content-center gap-2">
+                            <a role="button" class="btn btn-lg btn-secondary" t-on-click="() => this.prepDisplay.loadScenarioRestaurantData()">Explore demo data</a>
+                                <span class="text-muted">or simply wait for orders to be sent for preparation.</span>
+                        </div>
+                    </div>
+
+                    <div t-if="this.prepDisplay.posHasProducts"
+                        class="bg-100 o_pdis_orders position-relative d-grid flex-grow-1 h-100 gap-3 text-reset p-3 overflow-auto"
+                        t-attf-style="zoom:{{ this.state.zoom }}">
+                        <t t-foreach="this.prepDisplay.filteredOrders" t-as="order" t-key="order.prepLines[0].id">
+                            <Order order="order" />
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <MainComponentsContainer />
+    </t>
+</templates>

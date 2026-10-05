@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- A document row is shared between the desktop sidebar and the mobile
+         Documents tab. It expects a `document` variable in the calling scope. -->
+    <t t-name="sign.SignTemplateSidebar.DocumentRow">
+        <div t-attf-class="o_sign_sidebar_document_name {{ document.id === this.props.selectedDocumentId ? 'o_sign_sidebar_document_name_selected' : ''}}"
+            t-on-click="() => this.onUpdateSelectedDocument(document.id)"
+        >
+            <input type="text" t-attf-class="mx-1 o_sign_document_name_input o_input bg-transparent form-control rounded-0 {{ document.id === this.state.editableDocumentId ? '' : 'd-none' }}"
+                t-att-data-document-id="document.id"
+                t-att-value="document.display_name"
+                t-att-disabled="this.props.hasSignRequests"
+                t-on-change="ev => this.onDocumentNameChanged(document.id, ev)"
+                t-on-blur="this.onDocumentNameBlur"
+                t-on-keyup="ev => this.onFieldNameInputKeyUp(ev)"
+            />
+            <div t-attf-class="mx-1 o_sign_sidebar_document_name_text {{ document.id === this.state.editableDocumentId ? 'd-none' : '' }}"
+                t-att-title="document.display_name"
+                t-on-click="() => document.id === this.props.selectedDocumentId ? null : this.onUpdateSelectedDocument(document.id)"
+            >
+                <span t-att-title="document.display_name" class="text-truncate">
+                    <t t-out="document.display_name"/>
+                </span>
+            </div>
+            <i t-if="!this.props.hasSignRequests" class="oi oi-filled mx-1" data-icon="edit" t-on-click="() => this.onDocumentNameTextClick(document.id)"/>
+            <div t-if="!this.props.hasSignRequests">
+                <Dropdown>
+                    <button class="btn o_sign_sidebar_icon">
+                        <i class="oi" data-icon="more_vert"/>
+                    </button>
+                    <t t-set-slot="content">
+                        <t t-if="this.props.documents.filter((doc) => !doc.deleted).length > 1">
+                            <DropdownItem onSelected="() => this.onMoveDocumentUp(document.id)">
+                                <i class="oi oi-fw" data-icon="arrow_upward"/>
+                                Move Up
+                            </DropdownItem>
+                            <DropdownItem onSelected="() => this.onMoveDocumentDown(document.id)">
+                                <i class="oi oi-fw" data-icon="arrow_downward"/>
+                                Move Down
+                            </DropdownItem>
+                        </t>
+                        <DropdownItem onSelected="() => {}">
+                            <label
+                                class="d-flex align-items-center w-100"
+                                t-att-for="'replaceDocument_' + document.id"
+                                t-on-click.stop="() => {}"
+                            >
+                                <i class="oi oi-fw me-1" data-icon="upload"/>
+                                Replace document
+                            </label>
+                        </DropdownItem>
+
+                        <input
+                            type="file"
+                            t-att-id="'replaceDocument_' + document.id"
+                            class="d-none"
+                            accept="application/pdf"
+                            t-on-click.stop="() => {}"
+                            t-on-change.stop="(ev) => this.onUpdateDocument(document.id, ev)"/>
+
+                        <t t-if="this.props.documents.filter((doc) => !doc.deleted).length > 1">
+                            <DropdownItem onSelected="() => this.onRemoveDocument(document.id)">
+                                <span class="text-danger">
+                                    <i class="oi oi-fw" data-icon="delete"/>
+                                    Delete
+                                </span>
+                            </DropdownItem>
+                        </t>
+                    </t>
+                </Dropdown>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="sign.SignTemplateSidebar">
+        <div t-attf-class="o_sign_sidebar {{ this.isSidebarHidden ? 'd-none' : ''}} w-100">
+            <div class="o_sign_sidebar_documents_header_title">
+                <h6 class="m-0 mx-2">Documents</h6>
+                <div class="d-flex o_sign_add_doc_btn" t-if="!this.props.hasSignRequests and this.props.canAddDocument !== false">
+                    <t t-call="sign.SignViews.buttons"/>
+                </div>
+            </div>
+            <div class="d-flex flex-column align-items-stretch">
+                <div class="d-flex flex-column">
+                    <t t-foreach="this.props.documents.filter((doc) => !doc.deleted).sort((a,b) => a.sequence - b.sequence)" t-as="document" t-key="document.id">
+                        <t t-call="sign.SignTemplateSidebar.DocumentRow"/>
+                    </t>
+                </div>
+            </div>
+            <div class="o_sign_sidebar_signers_header_title mt-4">
+                <h6 class="m-0 mx-2">Signers</h6>
+                <button t-if="!this.props.hasSignRequests" class="btn btn-link m-0"
+                        title="Add signer"
+                        t-on-click="this.onClickAddSigner" data-hotkey="e">
+                    Add
+                </button>
+            </div>
+            <div>
+                <t t-foreach="this.props.signers" t-as="signer" t-key="signer.id">
+                    <SignTemplateSidebarRoleItems t-props="this.getSidebarRoleItemsProps(signer.id)"/>
+                </t>
+            </div>
+            <div t-if="this.props.hasSignRequests" class="text-center p-3">
+                <p class="text-info">View only mode</p>
+                <button class="btn btn-secondary w-60" t-on-click="this.props.onEditTemplate">
+                    <i class="oi oi-filled mx-1" data-icon="edit"/> Duplicate &amp; Edit
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

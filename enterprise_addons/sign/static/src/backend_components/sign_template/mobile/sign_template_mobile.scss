@@ -1,0 +1,204 @@
+$o-sign-mobile-peek-height: 76px; // handle (28px) + tab bar (48px)
+
+.o_sign_mobile_shell {
+    flex-shrink: 0;
+    background-color: $body-bg;
+    border-radius: $border-radius-xl $border-radius-xl 0 0;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+    transition: height 0.25s ease;
+
+    &.o_sign_mobile_snap_peek {
+        height: calc(#{$o-sign-mobile-peek-height} + env(safe-area-inset-bottom));
+    }
+
+    &.o_sign_mobile_snap_half {
+        height: 50%;
+    }
+
+    &.o_sign_mobile_snap_full {
+        height: 90%;
+    }
+
+    // Applied while the user drags the handle.
+    &.o_sign_mobile_shell_resizing {
+        transition: none;
+    }
+
+    // Applied while a field is dragged out of the sheet onto the PDF.
+    &.o_sign_mobile_shell_force_peek {
+        height: calc(#{$o-sign-mobile-peek-height} + env(safe-area-inset-bottom)) !important;
+    }
+
+    .o_sign_mobile_sheet_content {
+        overscroll-behavior-y: contain;
+    }
+
+    .o_sign_mobile_sheet_handle {
+        cursor: grab;
+        touch-action: none;
+        position: relative;
+        min-height: 28px;
+        align-items: center;
+
+        // Extend the grab area below the visible handle to make it easier to grab
+        &::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 -12px;
+        }
+    }
+
+    .o_sign_mobile_sheet_handle_bar {
+        width: 48px;
+        height: 5px;
+        background-color: $gray-300;
+    }
+
+    .o_sign_mobile_tabbar {
+        padding-bottom: env(safe-area-inset-bottom);
+
+        .o_sign_mobile_tab {
+            position: relative;
+            flex: 1 1 0;
+            min-width: 0;
+            min-height: 48px;
+            gap: 2px;
+            border: 0;
+
+            &:focus,
+            &:focus-visible {
+                outline: 0;
+                box-shadow: none;
+            }
+
+            &.active {
+                // Rounded selection indicator centered at the bottom of the tab.
+                &::after {
+                    content: "";
+                    position: absolute;
+                    bottom: 4px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 80%;
+                    height: 3px;
+                    border-radius: 2px;
+                    background-color: $primary;
+                }
+
+                span {
+                    font-weight: $font-weight-bold;
+                }
+            }
+        }
+    }
+
+    // The selected row is marked by a soft rounded highlight
+    .o_sign_mobile_row,
+    .o_sign_sidebar_document_name {
+        min-height: 48px;
+        margin-inline: $spacer * 0.5;
+        border-radius: $border-radius-lg;
+        transition: background-color 0.12s ease;
+    }
+
+    .o_sign_mobile_row_active,
+    .o_sign_sidebar_document_name_selected {
+        background-color: var(--SignSidebar__row-bg--active);
+        box-shadow: none;
+
+        input,
+        .o_sign_sidebar_document_name_text {
+            font-weight: $font-weight-medium;
+        }
+    }
+
+    // Document rows, restyled to be flat.
+    .o_sign_sidebar_document_name {
+        width: auto;
+        height: auto;
+        padding: 0 $spacer;
+        border-bottom: 0;
+
+        // The desktop reveals the rename pencil on hover, keep it always visible on mobile screens.
+        [data-icon='edit'] {
+            display: inline-block;
+        }
+    }
+
+    .o_sign_mobile_field_list {
+        .o_sign_field_type_button {
+            width: 100%;
+            min-height: 52px;
+            padding: 0;
+            border: 0;
+            background: none;
+            border-radius: $border-radius-lg;
+
+            &:focus,
+            &:focus-visible {
+                outline: 0;
+                box-shadow: none;
+            }
+
+            &:hover {
+                transform: none;
+            }
+        }
+
+        .o_sign_mobile_field_row {
+            width: 100%;
+            padding: $spacer * 0.5 $spacer * 0.625;
+            color: $body-color;
+            background-color: $body-bg;
+            border: 1px solid $border-color;
+            border-radius: $border-radius-lg;
+            transition: border-color 0.12s ease, background-color 0.12s ease;
+        }
+
+        .o_sign_field_type_button:active .o_sign_mobile_field_row {
+            border-color: $primary;
+            background-color: $gray-100;
+        }
+
+        .o_sign_mobile_field_icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 36px;
+            height: 36px;
+            font-size: 1rem;
+            border-radius: $border-radius;
+        }
+
+        .o_sign_mobile_field_label {
+            min-width: 0;
+            font-weight: $font-weight-medium;
+        }
+
+        // "Add Field" action: a dashed, non-draggable affordance,
+        // visually distinct from the field cards above it.
+        .o_sign_mobile_add_field {
+            width: 100%;
+            min-height: 48px;
+            margin-top: $spacer * 0.25;
+            color: $text-muted;
+            background: none;
+            border: 1px dashed $border-color;
+            border-radius: $border-radius-lg;
+            transition: border-color 0.12s ease, color 0.12s ease, background-color 0.12s ease;
+
+            &:active {
+                color: $primary;
+                border-color: $primary;
+                background-color: $gray-100;
+            }
+        }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .o_sign_mobile_shell {
+        transition: none;
+    }
+}

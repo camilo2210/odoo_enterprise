@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- List View -->
+    <record id="pricer_pricer_store_view_list" model="ir.ui.view">
+        <field name="name">pricer_store.list</field>
+        <field name="model">pricer.store</field>
+        <field name="arch" type="xml">
+            <list string="Pricer Store">
+                <header>
+                    <button
+                        name="action_button_update_pricer_tags"
+                        string="Update tags"
+                        type="object"
+                        class="btn btn-secondary"/>
+                </header>
+                <field name="name"/>
+                <field name="pricer_tenant_name" string="Tenant Name"/>
+                <field name="pricer_login" string="Login"/>
+                <field name="pricer_store_identifier" string="Store ID"/>
+
+                <!-- Last Update Time and status only visible on List View -->
+                <field name="last_update_datetime"/>
+                <field name="last_update_status_message"/>
+            </list>
+        </field>
+    </record>
+
+    <!--  Kanban View  -->
+    <record id="pricer_pricer_store_view_kanban" model="ir.ui.view">
+        <field name="name">pricer_store.kanban</field>
+        <field name="model">pricer.store</field>
+        <field name="arch" type="xml">
+            <kanban default_order="name">
+                <templates>
+                    <t t-name="card" class="p-3 d-flex flex-column justify-content-between">
+                        <div class="text-truncate fw-bold d-flex align-items-center justify-content-between" t-att-title="record.name.raw_value">
+                            <field name="name"/>
+                            <span class="float-end"><field name="tag_count"/> <i class="oi" data-icon="sell" title="tags-icon"/></span>
+                        </div>
+                        <div class="d-flex gap-1" t-if="record.last_update_datetime.raw_value">
+                            Last update:
+                            <field class="fs-6" name="last_update_datetime" widget="datetime"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="pricer_pricer_store_form_view" model="ir.ui.view">
+        <field name="name">pricer_store.form</field>
+        <field name="model">pricer.store</field>
+        <field name="arch" type="xml">
+            <form string="Pricer Store">
+                <header>
+                    <button
+                        name="action_button_update_pricer_tags"
+                        string="Update tags"
+                        type="object"
+                        class="btn btn-secondary"
+                        invisible="not id"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. My Pricer Store"/></h1>
+                    </div>
+                    <group>
+                        <field name="pricer_tenant_name"/>
+                        <field name="pricer_login"/>
+                        <field name="pricer_password" password="True"/>
+                        <field name="pricer_store_identifier"/>
+                    </group>
+                    <notebook>
+                        <page string="Tags" name="pricer_tag_ids" invisible="not id">
+                            <field name="pricer_tag_ids" readonly="False" context="{'default_pricer_store_id': id}">
+                                <list string="Pricer tag" create="1" delete="1" editable="bottom">
+                                    <field name="name"/>
+                                    <field name="product_id"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Menu Actions -->
+    <record model="ir.actions.act_window" id="action_open_pricer_stores">
+        <field name="name">Pricer Stores</field>
+        <field name="path">pricer-store</field>
+        <field name="res_model">pricer.store</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">
+                No Pricer Store configured yet!
+            </p>
+            <p>Click "New" to configure a new store.</p>
+            <a href="https://www.odoo.com/documentation/latest/applications/sales/point_of_sale/pricing/electronic_labels.html#pricer-stores" target="_blank">Documentation</a>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pos_urbanpiper_store_list" model="ir.ui.view">
+        <field name="name">pos.urbanpiper.store.list</field>
+        <field name="model">pos.urbanpiper.store</field>
+        <field name="arch" type="xml">
+            <list string="UrbanPiper Stores" sample="1">
+                <field name="name" />
+                <field name="config_id"/>
+                <field name="delivery_provider_ids" widget="list.many2many_avatar_user" options="{'tag_limit': 7}" />
+                <field name="store_identifier" optional="hide"/>
+                <field name="city" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_pos_urbanpiper_store_kanban" model="ir.ui.view">
+        <field name="name">pos.urbanpiper.store.kanban</field>
+        <field name="model">pos.urbanpiper.store</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" sample="1">
+                <templates>
+                    <t t-name="menu">
+                        <div class="container dropdown-pos-config">
+                            <div class="row" style="min-width:200px">
+                                <div class="col-6 o_kanban_manage_view">
+                                    <div role="menuitem">
+                                        <a name="action_view_store_orders" type="object">Orders</a>
+                                    </div>
+                                    <div role="menuitem">
+                                        <a name="action_view_store_products" type="object">Products</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-name="card">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <h2><field name="name"/></h2>
+                            <span invisible="not use_test_mode" class="badge rounded-pill text-bg-warning">Test Mode</span>
+                            <span invisible="use_test_mode or not is_webhook_register" class="badge rounded-pill text-bg-success">Active</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="oi oi-fw" data-icon="shopping_bag_speed" role="img" title="Point of Sale"/>
+                            <field name="config_id" class="ms-2"/>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="oi oi-fw text-muted align-items-center" data-icon="location_on" role="img" title="City"/>
+                            <field name="city" class="ms-2"/>
+                        </div>
+                        <field name="delivery_provider_ids" widget="card.many2many_avatar_user" options="{'tag_limit': 7}" class="mt-1" />
+                        <footer>
+                            <div class="d-inline-flex flex-wrap gap-3">
+                                <span>
+                                    <i class="oi oi-fw me-1 pe-none" data-icon="menu" role="img" title="Products"/>
+                                    <field name="store_product_count"/>
+                                </span>
+                                <span>
+                                    <i class="oi oi-fw me-1 pe-none" data-icon="shopping_basket" role="img" title="Orders"/>
+                                    <field name="store_order_count"/>
+                                </span>
+                            </div>
+                            <field name="create_uid" widget="many2one_avatar_user" class="ms-auto"/>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_pos_urbanpiper_store_form" model="ir.ui.view">
+        <field name="name">pos.urbanpiper.store.form</field>
+        <field name="model">pos.urbanpiper.store</field>
+        <field name="arch" type="xml">
+            <form>
+                <header invisible="not delivery_provider_ids">
+                    <button name="action_update_store" string="Create Store" type="object" class="btn btn-primary" invisible="is_webhook_register"/>
+                    <button name="action_sync_menu" string="Sync Menu" type="object" class="btn btn-secondary" invisible="is_webhook_register"/>
+                    <button name="action_sync_menu" string="Sync Menu" type="object" class="btn btn-primary" invisible="not is_webhook_register"/>
+                    <button name="action_update_store" string="Update Store" type="object" class="btn btn-secondary" invisible="not is_webhook_register"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Test Mode" bg_color="text-bg-warning" invisible="not use_test_mode"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_store_products" class="oe_stat_button" icon="menu" type="object">
+                            <field name="store_product_count" widget="statinfo" string="Menu"/>
+                        </button>
+                        <button name="action_view_store_orders"
+                            class="oe_stat_button"
+                            icon="shopping_basket"
+                            type="object"
+                            invisible="not store_order_count"
+                        >
+                            <field name="store_order_count" widget="statinfo" string="Orders"/>
+                        </button>
+                    </div>
+                    <div class="oe_title mb-2">
+                        <label string="Name" for="name"/>
+                        <h1><field name="name" placeholder="e.g. Odoo Cafe - Ahmedabad" class="oe_inline" /></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="config_id" options="{'no_create': True}"/>
+                            <field name="store_identifier" placeholder="f2d9cdfa227c4296804912e0b31fdce"/>
+                            <field name="preset_id" context="{'default_identification': 'online'}"/>
+                            <label string="Preparation Time" for="minimum_preparation_time"/>
+                            <div class="d-flex">
+                                <field name="minimum_preparation_time" class="w-25" />
+                                <p class="d-flex align-items-center ps-2">minutes</p>
+                            </div>
+                            <field name="order_notification_filename" invisible="1"/>  <!-- Needed in order to save filename for order_notification_sound -->
+                            <label string="Order Notification Sound" for="order_notification_sound"/>
+                            <div class="w-100">
+                                <field
+                                    name="order_notification_sound"
+                                    filename="order_notification_filename"
+                                    options="{'accepted_file_extensions': '.mp3', 'allowed_mime_type' : 'audio/mpeg'}"
+                                    widget="binary"
+                                />
+                                <p class="text-muted">Leave blank to use the default notification sound.</p>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="tax_type" widget="radio" invisible="country_code != 'IN'"/>
+                            <field name="use_test_mode" groups="base.group_no_one"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Aggregators">
+                            <field name="aggregator_lines" widget="one2many" context="{'default_pricelist_id': pricelist_id}">
+                                <list editable="bottom">
+                                    <field
+                                        name="delivery_provider_id"
+                                        widget="many2one_avatar_user"
+                                        options="{'no_create': True, 'no_open': True }"
+                                        domain="[('id', 'not in', parent.delivery_provider_ids), ('available_country_ids', 'in', [parent.country_id])]"
+                                    />
+                                    <field name="pricelist_id"/>
+                                    <field name="use_create_customer" />
+                                    <field name="is_online" widget="boolean_toggle" readonly="not has_active_store_session"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Credentials">
+                            <group>
+                                <group>
+                                    <field name="urbanpiper_username" placeholder="Enter your API access Username"/>
+                                    <field name="urbanpiper_apikey" password="1" placeholder="Enter your API Key"/>
+                                </group>
+                                <div class="w-100">
+                                    <button
+                                        name="action_open_urbanpiper_signup_form"
+                                        icon="east"
+                                        type="object"
+                                        string="Fill this form to get Username and API Key" class="btn-link"
+                                    />
+                                </div>
+                            </group>
+                        </page>
+                        <page id="urban_piper_store_info" string="Store Info">
+                            <group>
+                                <group>
+                                    <field name="city" widget="google_address_autocomplete"/>
+                                </group>
+                                <group groups="base.group_no_one">
+                                    <label string="Refresh Webhook" for="action_refresh_webhooks" class="o_light_label" />
+                                    <button
+                                        name="action_refresh_webhooks"
+                                        title="Refresh webhooks"
+                                        class="oi oe_inline oe_link" data-icon="refresh"
+                                        type="object"
+                                        help="Create or update system webhooks for UrbanPiper event synchronization."
+                                    />
+                                    <label string="Flush and Sync Menu" for="action_flush_and_sync_menu" class="o_light_label" />
+                                    <button
+                                        name="action_flush_and_sync_menu"
+                                        title="Flush and Sync Menu"
+                                        class="oi oe_inline oe_link" data-icon="refresh"
+                                        type="object"
+                                        help="Replace the existing UrbanPiper menu with the latest menu on Atlas."
+                                    />
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_pos_urbanpiper_store_search" model="ir.ui.view">
+        <field name="name">pos.urbanpiper.store.search</field>
+        <field name="model">pos.urbanpiper.store</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="config_id"/>
+                <field name="city"/>
+                <field name="store_identifier"/>
+                <group>
+                    <filter string="City" name="city" domain="[]" context="{'group_by': 'city'}"/>
+                    <filter string="Preset" name="preset_id" domain="[]" context="{'group_by': 'preset_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_pos_urbanpiper_store" model="ir.actions.act_window">
+        <field name="name">Stores</field>
+        <field name="res_model">pos.urbanpiper.store</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_pos_urbanpiper_store_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add an UrbanPiper store
+            </p>
+            <p>
+                Manage UrbanPiper stores for online food delivery configurations.
+            </p>
+        </field>
+    </record>
+
+    <!-- UrbanPiper Menus -->
+    <menuitem id="pos_menu_urbanpiper_configuration"
+        name="UrbanPiper"
+        parent="point_of_sale.menu_point_config_product"
+        sequence="13"
+        groups="point_of_sale.group_pos_manager"/>
+
+    <menuitem id="menu_pos_urban_piper_store"
+        action="pos_urban_piper.action_pos_urbanpiper_store"
+        parent="pos_urban_piper.pos_menu_urbanpiper_configuration"
+        sequence="1"
+        groups="point_of_sale.group_pos_manager"/>
+</odoo>

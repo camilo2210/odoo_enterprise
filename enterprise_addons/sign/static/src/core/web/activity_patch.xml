@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="mail.Activity" t-inherit-mode="extension">
+        <xpath expr="//img[hasclass('o-mail-Activity-avatar')]" position="attributes">
+            <attribute name="t-if">this.activity().user_id?.partner_id and !this.signRequest</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('o-mail-Activity-iconContainer')]" position="attributes">
+            <attribute name="t-if">!this.signRequest</attribute>
+        </xpath>
+        <xpath expr="//button[hasclass('o-mail-Activity-markDone')]" position="attributes">
+            <attribute name="t-if">this.activity().activity_category !== "sign_request"</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('o-mail-Activity-info')]" position="attributes">
+            <attribute name="t-if">!this.signRequest</attribute>
+        </xpath>
+        <xpath expr="//div[contains(@class,'o-mail-Activity-info')]/span[contains(@class,'text-break')]" position="attributes">
+            <attribute name="t-if">!this.signTemplate</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('o-mail-Activity-avatarContainer')]" position="inside">
+            <img t-if="this.signRequest" class="o-mail-Activity-avatar o_avatar rounded"
+                 t-on-click="this.onClickViewSignRequestDocuments" t-attf-src="/sign/static/description/icon.svg"/>
+        </xpath>
+        <xpath expr="//div[hasclass('o-mail-Activity-info')]" position="after">
+            <div t-if="this.signRequest">
+                <div class="o-mail-Activity-info lh-1">
+                    <span class="fw-bolder text-success"><t t-out="this.requestValidity"/>:</span>
+                    <span class="fw-bolder ps-2 pe-1 text-break">Signature Request</span>
+                    <span>from <t t-out="this.signRequest.create_uid.name"/></span>
+                </div>
+                <div class="text-truncate small mt-1" t-att-title="this.signRequest.template_name">
+                    <t t-out="this.signRequest.template_name"/>
+                </div>
+                <div class="text-truncate small text-muted" t-att-title="this.signRequest.signer_names">
+                    <t t-out="this.signRequest.signer_names"/>
+                </div>
+            </div>
+        </xpath>
+        <xpath expr="//div[contains(@class,'o-mail-Activity-info')]/span[contains(@class,'text-break')]" position="after">
+            <span t-if="this.signTemplate"
+                  class="fw-bolder px-2 text-truncate min-w-0 mw-50"
+                  t-att-title="this.signTemplate.name">
+                "<t t-out="this.signTemplate.name"/>"
+            </span>
+        </xpath>
+        <xpath expr="//button[hasclass('o-mail-Activity-markDone')]" position="after">
+            <button
+                t-if="this.signRequest and this.activity().activity_category === 'sign_request'"
+                class="btn btn-link p-0 me-3"
+                t-on-click="this.onClickViewSignRequestDocuments"
+            >
+                <i class="oi" data-icon="visibility"/> View
+            </button>
+            <button
+                t-if="this.signRequest and this.activity().activity_category === 'sign_request'"
+                class="btn btn-link p-0 me-3"
+                t-on-click="this.onClickResendSignRequest"
+            >
+                <i class="oi" data-icon="refresh"/> Resend
+            </button>
+            <button
+                t-if="this.signRequest and this.signRequest.need_my_signature and this.activity().activity_category === 'sign_request'"
+                class="btn btn-link p-0 me-3"
+                t-on-click="this.onClickSignNow"
+            >
+                <i class="oi" data-icon="edit_square"/> Sign Now
+            </button>
+            <button
+                t-if="!this.signRequest and this.activity().activity_category === 'sign_request' and this.activity().res_model !== 'sign.request'"
+                class="btn btn-link p-0 me-3"
+                t-att-data-previous-activity-type-id="this.activity().activity_type_id[0]"
+                t-att-data-activity-id="this.activity().id"
+                t-on-click="this.onClickRequestSign"
+            >
+                <i class="oi" data-icon="edit_square"/> Send
+            </button>
+        </xpath>
+    </t>
+</templates>

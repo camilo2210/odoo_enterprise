@@ -1,0 +1,44 @@
+<odoo>
+    <record id="social_stream_post_view_kanban" model="ir.ui.view">
+        <field name="name">social.stream.post.view.kanban.inherit.instagram</field>
+        <field name="model">social.stream.post</field>
+        <field name="inherit_id" ref="social.social_stream_post_view_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='stream_post_content_json']" position="after">
+                <field name="instagram_facebook_author_id"/>
+                <field name="instagram_likes_count"/>
+                <field name="instagram_saved_count"/>
+                <field name="instagram_views_count"/>
+                <field name="instagram_comments_disabled" invisible="1"/>
+                <field name="account_id"/>
+            </xpath>
+            <xpath expr="//span[hasclass('o_social_stream_post_author_image')]" position="inside">
+                <img t-if="record.instagram_facebook_author_id.raw_value" t-attf-src="https://graph.facebook.com/v17.0/#{record.instagram_facebook_author_id.raw_value}/picture" alt="Author Image" class="rounded"/>
+            </xpath>
+            <xpath expr="//div[hasclass('o_social_stream_post_message')]" position="inside">
+                <div class="o_social_stream_post_instagram_stats d-flex ps-2"
+                    t-att-class="{'border-top pt-2': !has_attachments and (record.instagram_likes_count.raw_value || record.instagram_comments_count.raw_value || record.instagram_saved_count.raw_value || record.instagram_views_count.raw_value)}"
+                    t-if="record.media_type.raw_value === 'instagram'">
+                    <div t-if="record.instagram_likes_count.value !== '0'"
+                         class="o_social_subtle_btn_readonly px-2">
+                        <i class="oi oi-filled me-1" data-icon="favorite" title="Likes"/>
+                        <field name="instagram_likes_count" class="fw-bold"/>
+                    </div>
+                    <div class="o_social_instagram_comments o_social_comments px-2"
+                        invisible="instagram_comments_disabled or not instagram_comments_count">
+                        <field name="instagram_comments_count" class="fw-bold"/>
+                        Comments
+                    </div>
+                    <div class="flex-grow-1 d-flex text-muted justify-content-end me-1">
+                        <div invisible="not instagram_saved_count">
+                            <field name="instagram_saved_count" class="me-1"/>Save
+                        </div>
+                        <div invisible="not instagram_views_count">
+                            <field name="instagram_views_count" class="ms-2 me-1"/>Views
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

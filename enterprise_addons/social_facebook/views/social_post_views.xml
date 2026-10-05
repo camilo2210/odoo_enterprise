@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+    <record id="social_post_view_form" model="ir.ui.view">
+        <field name="name">social.post.view.form.inherit.social_facebook</field>
+        <field name="model">social.post</field>
+        <field name="inherit_id" ref="social.social_post_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='live_post_ids']//*[hasclass('o_live_post_date_text')]" position="attributes">
+                <attribute name="invisible" add="facebook_is_story_expired" separator=" or "/>
+            </xpath>
+            <xpath expr="//field[@name='live_post_ids']//*[hasclass('o_live_post_date_text')]" position="after">
+                <span class="badge rounded-pill text-bg-warning py-1 px-2"
+                    invisible="not facebook_is_story_expired">
+                    Expired
+                </span>
+            </xpath>
+            <xpath expr="//field[@name='live_post_ids']//*[hasclass('o_live_post_content')]" position="attributes">
+                <attribute name="invisible"
+                    add="media_type == 'facebook' and facebook_post_as_story"
+                    separator=" or "/>
+            </xpath>
+            <xpath expr="//field[@name='live_post_ids']//field[@name='image_ids']" position="attributes">
+                <attribute name="invisible"
+                    add="media_type == 'facebook' and facebook_post_as_story"
+                    separator=" or "/>
+            </xpath>
+            <xpath expr="//field[@name='facebook_post_as_story']" position="attributes">
+                <attribute name="readonly">state != 'draft'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='facebook_post_as_story']" position="before">
+                <field name="facebook_scheduled_date" string="Post On" placeholder="Immediately"
+                    readonly="state != 'draft'"/>
+            </xpath>
+            <xpath expr="//field[@name='facebook_message']" position="attributes">
+                <attribute name="readonly">state != 'draft'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='facebook_image_ids']" position="attributes">
+                <attribute name="readonly">state != 'draft'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='facebook_first_comment']" position="attributes">
+                <attribute name="readonly">state != 'draft'</attribute>
+            </xpath>
+            <xpath expr="//div[hasclass('o_social_facebook_label_message')]" position="attributes">
+                <attribute name="invisible" add="state != 'draft' and not facebook_message" separator="or"/>
+            </xpath>
+            <xpath expr="//div[hasclass('o_social_facebook_label_media')]" position="attributes">
+                <attribute name="invisible" add="state != 'draft' and not facebook_image_ids" separator="or"/>
+            </xpath>
+            <xpath expr="//div[hasclass('o_social_facebook_label_first_comment')]" position="attributes">
+                <attribute name="invisible" add="state != 'draft' and not facebook_first_comment" separator="or"/>
+            </xpath>
+            <xpath expr="//field[@name='live_post_ids']//field[hasclass('o_social_live_post_images')]" position="after">
+                <div class="o_social_preview o_social_facebook_preview overflow-hidden o_social_story m-auto rounded d-flex flex-column justify-content-between mt-2"
+                    invisible="media_type != 'facebook' or not facebook_post_as_story">
+                    <!-- Story preview -->
+                    <div class="o_social_preview_progress d-flex flex-row justify-content-around align-items-center text-white">
+                        <hr class="my-1"/>
+                        <hr class="my-1"/>
+                        <hr class="my-1"/>
+                    </div>
+                    <div class="d-flex flex-row align-items-center w-100 justify-content-between flex-grow-1 overflow-hidden">
+                        <field name="image_ids" class="w-100 object-fit-contain" widget="social_many2many_images"/>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</data>
+</odoo>

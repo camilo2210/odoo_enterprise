@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_only_form_view_inherit_pos_urban_piper" model="ir.ui.view">
+        <field name="name">product.template.view.form.inherit.pos_urban_piper</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="model">product.template</field>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='public_description']" position="after">
+                <group name="pos_urban_piper" string="UrbanPiper" invisible="type == 'combo'">
+                    <field name="urbanpiper_store_ids" options="{'no_create': True}" groups="point_of_sale.group_pos_user" widget="many2many_tags" placeholder="Select store for online orders."/>
+                    <field name="urbanpiper_pos_platform_ids" groups="point_of_sale.group_pos_user" widget="many2many_avatar_user" options="{'no_create': True}" placeholder="Select food delivery aggregators." invisible="not urbanpiper_store_ids" />
+                    <field name="urbanpiper_meal_type" groups="point_of_sale.group_pos_user" invisible="not urbanpiper_store_ids"/>
+                    <field name="is_recommended_on_urbanpiper" widget="boolean_toggle"
+                    groups="point_of_sale.group_pos_user" invisible="not urbanpiper_store_ids"/>
+                    <field name="is_alcoholic_on_urbanpiper" widget="boolean_toggle"
+                    groups="point_of_sale.group_pos_user" invisible="not urbanpiper_store_ids"/>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='attribute_line_ids']//list//field[@name='value_ids']" position="after">
+                <field name="urbanpiper_min_qty" invisible="display_type != 'multi'" optional="hide"/>
+                <field name="urbanpiper_max_qty" invisible="display_type != 'multi'" optional="hide"/>
+                <field name="is_urbanpiper_multi_modifiers" invisible="display_type != 'multi'" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_template_tree_view_pos_urban_piper" model="ir.ui.view">
+        <field name="name">product.template.product.list.inherit.pos.urban.piper</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="point_of_sale.product_template_tree_view_point_of_sale"/>
+        <field name="arch" type="xml">
+            <field name="available_in_pos" position="after">
+                <field
+                    name="urbanpiper_store_ids"
+                    options="{'no_create': True}"
+                    widget="many2many_tags"
+                    groups="point_of_sale.group_pos_user"
+                    optional="hide"
+                />
+                <field 
+                    name="urbanpiper_meal_type"
+                    groups="point_of_sale.group_pos_user"
+                    optional="hide"
+                />
+            </field>
+        </field>
+    </record>
+
+    <record id="product_template_search_view_inherit_pos_urban_piper" model="ir.ui.view">
+        <field name="name">product.template.search.view.inherit.pos.urban.piper</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <filter name="group_by_pos_categ_ids" position="after">
+                <filter string="Food Delivery Location" name="group_by_urbanpiper_store_ids" context="{'group_by':'urbanpiper_store_ids'}"/>
+            </filter>
+        </field>
+    </record>
+
+    <record id="urbanpiper_store_product_template_list_view" model="ir.ui.view">
+        <field name="name">product.template.list.urban.piper</field>
+        <field name="model">product.template</field>
+        <field name="arch" type="xml">
+            <list string="Products" multi_edit="1" sample="1" open_form_view="True">
+                <field name="name" string="Product Name"/>
+                <field name="urbanpiper_store_ids" options="{'no_create': True}" widget="many2many_tags" />
+                <field name="urbanpiper_meal_type"/>
+                <field name="is_recommended_on_urbanpiper" widget="boolean_toggle" optional="show"/>
+                <field name="is_alcoholic_on_urbanpiper" widget="boolean_toggle" optional="hide"/>
+                <field name="urbanpiper_pos_platform_ids" widget="many2many_avatar_user" options="{'no_create': True}" placeholder="Not available on any platforms."/>
+                <field name="pos_categ_ids" widget="many2many_tags" />
+                <field name="currency_id" column_invisible="True"/> <!-- Needed because of monetary widget -->
+                <field name="list_price" string="Sales Price" widget='monetary' options="{'currency_field': 'currency_id'}" optional="show"/>
+                <field name="uom_id" readonly="1" optional="show"/>
+                <field name="taxes_id" widget="many2many_tags" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="pos_urbanpiper_store_product_search_view" model="ir.ui.view">
+        <field name="name">product.template.pos.urbanpiper.search</field>
+        <field name="model">product.template</field>
+        <field name="arch" type="xml">
+            <search string="Products">
+                <field name="name" string="Product" filter_domain="['|', '|', '|', '|', ('default_code', 'ilike', self), ('product_variant_ids.default_code', 'ilike', self), ('name', 'ilike', self), ('barcode', 'ilike', self), ('display_name', '=', self)]"/>
+                <field string="POS Product Category" name="pos_categ_ids" filter_domain="[('pos_categ_ids', 'child_of', raw_value)]"/>
+                <field string="UrbanPiper Store" name="urbanpiper_store_ids" />
+                <separator/>
+                <filter string="Available" name="available_on_atlas" domain="[('id', 'in', context.get('synced_products')), ('urbanpiper_store_ids', 'in', context.get('store_id')),]"/>
+                <filter string="Unavailable" name="unavailable_on_atlas" domain="[('id', 'in', context.get('synced_products')), ('urbanpiper_store_ids', 'not in', context.get('store_id')),]"/>
+                <separator/>
+                <filter string="Unsynced Products" name="unsynced_products" domain="[('id', 'not in', context.get('synced_products')), ('urbanpiper_store_ids', 'in', context.get('store_id')),]"/>
+                <group>
+                    <filter string="POS Category" name="pos_categ_ids" context="{'group_by': 'pos_categ_ids'}"/>
+                    <filter string="Aggregators" name="urbanpiper_pos_platform_ids" context="{'group_by': 'urbanpiper_pos_platform_ids'}"/>
+                    <filter string="Meal Type" name="urbanpiper_meal_type" context="{'group_by': 'urbanpiper_meal_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="social.StreamPostCommentsOriginalPost" t-inherit-mode="extension">
+        <xpath expr="//span[hasclass('o_social_original_post_author_image')]" position="inside">
+            <img t-if="this.originalPost.linkedin_author_image_url.raw_value" t-att-src="this.originalPost.linkedin_author_image_url.raw_value" alt="Author Image" class="rounded"/>
+        </xpath>
+        <xpath expr="//div[hasclass('o_social_comments_modal_original_post_content')]" position="inside">
+            <div t-if="this.originalPost.media_type.raw_value === 'linkedin'" class="text-start">
+                <div t-if="this.originalPost.linkedin_likes_count.raw_value !== 0" class="o_social_linkedin_likes px-2"
+                    t-att-data-post-id="this.originalPost.id.raw_value" >
+                    <i class="oi oi-filled" data-icon="thumb_up" title="Likes"/>
+                    <b class="o_social_likes_count mx-1" t-out="this.originalPost.linkedin_likes_count.value"/>
+                </div>
+            </div>
+        </xpath>
+    </t>
+
+    <t t-inherit="social.AddSocialStreamDialog" t-inherit-mode="extension">
+        <xpath expr="//button[hasclass('list-group-item')]" position="attributes">
+            <attribute name="t-att-class">{ 'o_social_account_disabled': socialAccount.media_type === 'linkedin' and socialAccount.linkedin_is_personal_account }</attribute>
+            <attribute name="t-att-title">socialAccount.media_type === 'linkedin' and socialAccount.linkedin_is_personal_account ? this.personalAccountTitle : ''</attribute>
+        </xpath>
+    </t>
+
+    <t t-inherit="social.AddStreamMedia" t-inherit-mode="extension">
+        <!-- Add a LinkedIn page -->
+        <xpath expr="//img" position="after">
+            <div t-if="media.media_type === 'linkedin'"
+                class="position-absolute o_social_account_linkedin_type_icon border px-1">
+                <i class="oi" data-icon="business"/>
+            </div>
+        </xpath>
+        <xpath expr="//h5" position="after">
+            <small t-if="media.media_type === 'linkedin'"
+                class="o_social_account_linkedin_type">
+                Brand Pages
+            </small>
+        </xpath>
+        <!-- Add a LinkedIn personal account -->
+        <xpath expr="//div[hasclass('o_social_media')]" position="after">
+            <div t-if="media.media_type === 'linkedin'"
+                class="o_social_media card text-center align-items-center mb-2 p-1 pt-3"
+                t-att-data-media-id="media.id"
+                t-on-click.prevent="() => this._onClickSocialMedia(media.id, { linkedin_link_personal: true })">
+                <div class="position-relative w-100">
+                    <img width="48" height="48" t-attf-src="/web/image/social.media/{{ media.id }}/image/48x48"
+                        class="mb-2"/>
+                    <div class="position-absolute o_social_account_linkedin_type_icon border px-1">
+                        <i class="oi oi-filled" data-icon="person"/>
+                    </div>
+                </div>
+                <h5 t-out="media.name" class="o_social_media_name mb-0" />
+                <small class="o_social_account_linkedin_type">Personal Account</small>
+            </div>
+        </xpath>
+    </t>
+</templates>

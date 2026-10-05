@@ -1,0 +1,48 @@
+<templates id="template" xml:space="preserve">
+    <t t-name="pos_urban_piper.OrderInfoPopup">
+        <Dialog size="'md'" t-props="{ title: this.title }">
+            <t t-foreach="this.cardsData" t-as="card" t-key="card.title">
+                <t t-if="card.visible">
+                    <div class="card border bg-100 rounded-2 mt-3">
+                        <div class="card-header bg-100 border-0 pt-2 pb-0 px-3">
+                            <div class="position-relative">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <i class="oi" t-att-class="card.iconClass" t-att-data-icon="card.icon" aria-hidden="true"/>
+                                    <h5><t t-out="card.title"/></h5>
+                                    <span class="ms-1 lh-sm" t-if="card.subTitleValue"><t t-out="card.subTitleValue"/></span>
+                                </div>
+                                <t t-if="card.title === this.orderInfo.title">
+                                    <div class="d-flex position-absolute top-0 end-0">
+                                        <span class="o_tag position-relative d-inline-flex align-items-center user-select-none mw-100 o_badge badge lh-1" t-attf-class="o_tag_color_{{this.states[this.order.state].color}}">
+                                            <div class="o_tag_badge_text o_badge_text" t-out="this.states[this.order.state].label"/>
+                                        </span>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                        <div class="card-body px-3 pb-2">
+                            <div class="row g-3">
+                                <t t-foreach="card.fields" t-as="field" t-key="field.label">
+                                    <div t-if="field.value" class="col-sm-6 d-flex flex-column">
+                                        <div class="text-muted small"><t t-out="field.label"/></div>
+                                        <div class="fw-medium">
+                                            <t t-if="field.link">
+                                                <a t-att-href="field.link"><t t-out="field.value"/></a>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-out="field.value"/>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+            <t t-set-slot="footer">
+                <button class="btn btn-secondary" t-on-click="this.onClose">Close</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

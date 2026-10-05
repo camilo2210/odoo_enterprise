@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sale_timesheet_enterprise.TimesheetsAssistant" t-inherit="timesheet_grid.TimesheetsAssistant" t-inherit-mode="extension">
+        <div name="timesheets_section" position="replace">
+            <!-- Billable section -->
+            <div class="mb-4" t-att-class="{'opacity-50': this.state.showCreateForm}">
+                <h2 class="h6 d-flex mt-3 mx-2">
+                    Billable
+                    <b class="ms-auto me-1" t-out="this.formatDuration(this.model.data.billableTime)"/>
+                    (<t t-out="this.model.data.billablePercentage.toFixed(0)"/>%)
+                </h2>
+                <t t-if="this.model.data.billableTimesheets.length === 0">
+                    <p class="text-muted small ms-2 mb-0">No time recorded.</p>
+                </t>
+                <t t-else="">
+                    <div class="list-group">
+                        <t t-foreach="this.model.data.billableTimesheets" t-as="tsh" t-key="tsh.id">
+                            <!-- Show edit form inline if this timesheet is being edited -->
+                            <div t-if="tsh.showEditForm" class="o_activitywatch_sync_timesheet_edition_form list-group-item active p-0 text-reset" t-att-data-timesheet-form="tsh.id">
+                                <t t-call="timesheet_grid.ActivityWatchTimesheetFormWrapper" formClasses="'border border-info'">
+                                    <TimesheetInlineForm
+                                            data="this.selectedData"
+                                            onSaveCallback="(timesheet) => this.onSaveTimesheetForm(timesheet)"
+                                            onWriteTimesheet="(timesheet) => this.onWriteTimesheet(timesheet)"
+                                            onDelete="(timesheetId) => this.onDeleteTimesheet(timesheetId)"
+                                            saveButtonText.translate="Save"
+                                            onDiscard="() => this.dismissAllForms()"
+                                            onRecordReady="(record) => this.currentRecord = record"
+                                            onLinkedRecordSaved="() =&gt; this.onLinkedRecordSaved()"
+                                    />
+                                </t>
+                            </div>
+                            <!-- Show normal timesheet item -->
+                            <a t-else="" href="#" class="list-group-item list-group-item-action d-flex"
+                                t-att-class="{
+                                    'pe-none': this.state.showCreateForm,
+                                    'opacity-75': this.selectedTimesheet != null,
+                                }"
+                                t-on-click.stop="() => this.onClickExistingTimesheet(tsh)"
+                            >
+                                <div class="text-wrap text-break me-3">
+                                    <p t-if="tsh.name" class="mb-0"><t t-out="tsh.name"/></p>
+                                    <em t-else="" class="opacity-50">No description</em>
+                                    <div t-if="tsh.project_id.display_name" class="small opacity-75">
+                                        <t t-out="tsh.project_id.display_name"/>
+                                        <t t-if="tsh.task_id.display_name">
+                                        / <t t-out="tsh.task_id.display_name"/>
+                                        </t>
+                                    </div>
+                                </div>
+                                <span
+                                    class="o_tabular_nums fw-medium ms-auto text-nowrap"
+                                    t-out="this.formatDuration(tsh.unit_amount)"
+                                />
+                            </a>
+                        </t>
+                    </div>
+                </t>
+            </div>
+
+            <!-- Non-Billable section -->
+            <div class="mb-4" t-att-class="{'opacity-50': this.state.showCreateForm}">
+                <h2 class="h6 d-flex mx-2">
+                    Non-Billable
+                    <b class="ms-auto me-1" t-out="this.formatDuration(this.model.data.nonBillableTime)"/>
+                    (<t t-out="this.model.data.nonBillablePercentage.toFixed(0)"/>%)
+                </h2>
+                <t t-if="this.model.data.nonBillableTimesheets.length === 0">
+                    <p class="text-muted small ms-2 mb-0">No time recorded.</p>
+                </t>
+                <t t-else="">
+                    <div class="list-group flex-grow-1" style="min-height: 0;">
+                        <t t-foreach="this.model.data.nonBillableTimesheets" t-as="tsh" t-key="tsh.id">
+                            <!-- Show edit form inline if this timesheet is being edited -->
+                            <div t-if="tsh.showEditForm" class="o_activitywatch_sync_timesheet_edition_form list-group-item active p-0 text-reset" t-att-data-timesheet-form="tsh.id">
+                                <t t-call="timesheet_grid.ActivityWatchTimesheetFormWrapper" formClasses="'border border-info'">
+                                    <TimesheetInlineForm
+                                            data="this.selectedData"
+                                            onSaveCallback="(timesheet) => this.onSaveTimesheetForm(timesheet)"
+                                            onWriteTimesheet="(timesheet) => this.onWriteTimesheet(timesheet)"
+                                            onDelete="(timesheetId) => this.onDeleteTimesheet(timesheetId)"
+                                            saveButtonText.translate="Save"
+                                            onDiscard="() => this.dismissAllForms()"
+                                            onRecordReady="(record) => this.currentRecord = record"
+                                            onLinkedRecordSaved="() =&gt; this.onLinkedRecordSaved()"
+                                    />
+                                </t>
+                            </div>
+                            <!-- Show normal timesheet item -->
+                            <a t-else="" href="#" class="list-group-item list-group-item-action d-flex"
+                                t-att-class="{
+                                    'pe-none': this.state.showCreateForm,
+                                    'opacity-75': this.selectedTimesheet != null,
+                                }"
+                                t-on-click.stop="() => this.onClickExistingTimesheet(tsh)"
+                            >
+                                <div class="text-wrap text-break me-3">
+                                    <p t-if="tsh.name" class="mb-0"><t t-out="tsh.name"/></p>
+                                    <em t-else="" class="opacity-50">No description</em>
+                                    <div t-if="tsh.project_id.display_name" class="small opacity-75">
+                                        <t t-out="tsh.project_id.display_name"/>
+                                        <t t-if="tsh.task_id.display_name">
+                                        / <t t-out="tsh.task_id.display_name"/>
+                                        </t>
+                                    </div>
+                                </div>
+                                <span
+                                    class="o_tabular_nums fw-medium ms-auto text-nowrap"
+                                    t-out="this.formatDuration(tsh.unit_amount)"
+                                />
+                            </a>
+                        </t>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

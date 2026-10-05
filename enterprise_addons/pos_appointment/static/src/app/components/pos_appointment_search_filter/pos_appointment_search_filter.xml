@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates id="template" xml:space="preserve">
+
+    <t t-name="pos_appointment.PosAppointmentSearchFilter">
+        <t t-if="this.ui.isSmall">
+            <div class="d-flex align-items-center mb-1">
+                <t t-call="pos_appointment.FilterButtons"/>
+            </div>
+        </t>
+        <t t-else="">
+            <t t-call="pos_appointment.FilterButtons"/>
+        </t>
+    </t>
+    <t t-name="pos_appointment.FilterButtons">
+        <!-- Date filter button -->
+        <button class="btn text-nowrap me-2 bg-200 px-3 d-flex align-items-center date-filter">
+            <t t-if="this.state.date">
+                <div class="d-flex justify-content-between align-items-center w-100">
+                    <div t-on-click="(ev) => this.onClickDateBtn(ev)">
+                        <span><t t-out="this.state.date.toFormat('ccc')"/>, <t t-out="this.state.date.toFormat('MMM d')"/></span>
+                    </div>
+                    <i class="oi ps-2 pb-1 cursor-pointer" data-icon="close" t-on-click="(ev) => this.onRemove(ev, 'date')"/>
+                </div>
+            </t>
+            <t t-else="">
+                <span t-on-click="(ev) => this.onClickDateBtn(ev)">Select Date</span>
+            </t>
+        </button>
+
+        <!-- Hour filter dropdown -->
+        <Dropdown>
+            <button class="btn bg-200 px-2 dropdown-toggle hour-filter me-1">
+                <t t-if="this.state.period">
+                    <t><t t-out="this.state.period"/></t>
+                    <i class="oi ps-2 pb-1 cursor-pointer" data-icon="close" t-on-click="(ev) => this.onRemove(ev, 'hour')"/>
+                </t>
+                <t t-else="">Select Hour</t>
+            </button>
+            <t t-set-slot="content">
+                <DropdownItem class="'d-flex justify-content-start hour-filter-dropdown'" onSelected="() => this.onClickHourFilter('morning')">
+                    <span class="fw-bolder">Morning:</span> <span class="text-muted ms-1">12am - 11am</span>
+                </DropdownItem>
+                <DropdownItem class="'d-flex justify-content-start hour-filter-dropdown'" onSelected="() => this.onClickHourFilter('afternoon')">
+                    <span class="fw-bolder">Afternoon:</span> <span class="text-muted ms-1">11am - 5pm</span>
+                </DropdownItem>
+                <DropdownItem class="'d-flex justify-content-start hour-filter-dropdown'" onSelected="() => this.onClickHourFilter('evening')">
+                    <span class="fw-bolder">Evening:</span> <span class="text-muted ms-1">5pm - 12am</span>
+                </DropdownItem>
+            </t>
+        </Dropdown>
+    </t>
+</templates>

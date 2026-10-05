@@ -1,0 +1,13 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+{
+    'name': 'Sale Commission: Margin',
+    'category': 'Sales/Commission',
+    'sequence': 105,
+    'summary': "Manage your salespersons' commissions",
+    'description': """
+    """,
+    'depends': ['sale_commission', 'sale_margin'],
+    'auto_install': True,
+    'author': 'Odoo S.A.',
+    'license': 'OEEL-1',
+}

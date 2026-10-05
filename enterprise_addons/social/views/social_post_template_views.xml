@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+    <record id="social_post_template_action" model="ir.actions.act_window">
+        <field name="name">Social Post Templates</field>
+        <field name="res_model">social.post.template</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="social_post_template_view_tree" model="ir.ui.view">
+        <field name="name">social.post.template.view.list</field>
+        <field name="model">social.post.template</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="message"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="social_post_template_view_form" model="ir.ui.view">
+        <field name="name">social.post.template.view.form</field>
+        <field name="model">social.post.template</field>
+        <field name="arch" type="xml">
+            <form string="Social Post Template" class="o_social_post_view_form">
+                <sheet>
+                    <group>
+                        <group name="social_post_global" class="o_social_post_form_content">
+                            <div class="o_horizontal_separator mt-4 mb-3 text-uppercase fw-bolder small o_social_post_on"
+                                colspan="2">Post Info</div>
+                            <field name="has_active_accounts" invisible="1" />
+                            <field name="account_ids" options="{'no_create': True}" string="Accounts" widget="social_account_many2many_field"
+                                 invisible="not has_active_accounts" />
+                            <div class="o_social_label_is_split_per_media" invisible="is_split_per_media"/>  <!-- Align the split button with the accounts -->
+                            <field name="is_split_per_media" widget="social_post_split_per_media" invisible="is_split_per_media"
+                                nolabel="1"/>
+                            <div colspan="2" class="alert alert-info o_social_post_no_accounts_available" role="alert"
+                                invisible="has_active_accounts">
+                                <p><a href="/odoo/action-social.action_social_media">Link social accounts</a> before posting.</p>
+                            </div>
+                            <div invisible="not is_split_per_media or account_ids" class="o_social_label_spacer o_social_post_no_accounts_available_separator"/>
+                            <div invisible="not is_split_per_media or account_ids" class="text-muted o_social_post_no_accounts_available_message">
+                                Select Accounts to start preparing your post...
+                            </div>
+                            <div class="o_horizontal_separator mt-4 mb-3 text-uppercase fw-bolder small o_social_label_message"
+                                colspan="2" invisible="is_split_per_media">Message</div>
+                            <field name="social_post_mentions" invisible="1"/>
+                            <field name="max_post_length_per_media" invisible="1"/>
+                            <!-- Uses the widget so that we can directly split the post per media -->
+                            <field name="message"
+                                widget="social_post_message_field"
+                                class="o_social_post_message_wrapper"
+                                onchange_on_keydown="True"
+                                force_save="1"
+                                default_focus="1"
+                                nolabel="1"
+                                colspan="2"
+                                invisible="is_split_per_media"
+                                readonly="not has_active_accounts"/>
+                            <div class="o_horizontal_separator mt-4 mb-3 text-uppercase fw-bolder small o_social_label_media"
+                                colspan="2" invisible="is_split_per_media">Media</div>
+                            <field name="image_ids"
+                                class="o_social_post_image"
+                                mode="kanban"
+                                add-label="Add Media"
+                                colspan="2"
+                                nolabel="1"
+                                widget="x2_many_media_viewer"
+                                invisible="is_split_per_media"
+                                options="{'force_create': True, 'set_attachment_id': True, 'only_image': True}"/>
+                            <div class="o_horizontal_separator mt-4 mb-3 text-uppercase fw-bolder small o_social_label_first_comment"
+                                colspan="2" invisible="is_split_per_media">Scheduled first comment</div>
+                            <field name="first_comment" invisible="is_split_per_media" nolabel="1" colspan="2"
+                                placeholder="Comment your own post to get the conversation going or share some extra content."
+                                readonly="not has_active_accounts"/>
+                        </group>
+                        <notebook name="media_customization" class="pb-0" invisible="not is_split_per_media"/>
+                        <group name="previews_placeholder" class="o_social_post_preview_group"
+                            invisible="is_split_per_media">
+                            <div colspan="2" class="h-100">
+                                <div class="o_social_post_preview_container bg-200 pt-4 h-100"
+                                    invisible="not account_ids or (not message and not image_ids)">
+                                    <h2 class="w-100 text-center mb-2">Posts Preview</h2>
+                                </div>
+                                <div class="o_social_post_empty_preview overflow-hidden o_view_nocontent bg-100 rounded-end d-block"
+                                    invisible="account_ids and (message or image_ids)">
+                                    <div class="o_nocontent_help">
+                                        <p class="o_view_nocontent_smiling_face mt-3">
+                                            Preview your post
+                                        </p>
+                                        <p>
+                                            Before posting, links will be converted to be trackable.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</data>
+</odoo>

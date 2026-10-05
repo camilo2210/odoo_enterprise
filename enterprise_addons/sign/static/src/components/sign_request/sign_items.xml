@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sign.signItem">
+        <t t-if="readonly">
+            <!-- TEMPLATE EDITION or REQUEST DISPLAY -->
+            <t t-if="type == 'text' || type == 'date'" t-call="sign.textSignItem"/>
+            <t t-if="type == 'textarea' || type == 'stamp'" t-call="sign.textareaSignItem"/>
+            <t t-if="type == 'checkbox'" t-call="sign.checkboxSignItem"/>
+            <t t-if="type == 'radio'" t-call="sign.radioSignItem"/>
+            <t t-if="type == 'selection'" t-call="sign.selectionSignItem"/>
+            <t t-if="type == 'signature' || type == 'initial'" t-call="sign.signatureSignItem"/>
+            <t t-if="type == 'strikethrough'" t-call="sign.strikethroughSignItem"/>
+        </t>
+        <t t-if="!readonly">
+            <!-- SIGN SESSION : filling the signature values  -->
+            <button t-if="type == 'signature' || type == 'initial'" t-att-title="role"  t-attf-class="{{classes}} o_sign_sign_item text-center" style="color:#757575;"  t-att-style="style" t-att-data-signature="value">
+                <span class="o_sign_helper"/>
+                <img t-if="frame_value" t-att-src="frame_value" alt="Frame"/>
+                <img t-if="value" t-att-src="value" alt="Signature"/>
+                <t t-if="!value">
+                    <span class="o_placeholder ps-0">
+                        <t t-out="placeholder"/>
+                    </span>
+                </t>
+            </button>
+            <input t-if="type == 'text' || type == 'date'" t-att-title="role" type="text"  t-attf-class="{{classes}} o_sign_sign_item"  t-att-style="style" t-att-placeholder="constant ? '': placeholder" t-att-value="value" t-att-disabled="constant"/>
+            <input t-if="type == 'checkbox' and value == 'on'" t-att-title="role" type="checkbox" t-attf-class="{{classes}} o_sign_sign_item" t-att-style="style" checked="1"/>
+            <input t-elif="type == 'checkbox'" t-att-title="role" type="checkbox" t-attf-class="{{classes}} o_sign_sign_item" t-att-style="style"/>
+            <input t-if="type == 'radio'" t-att-title="role" type="radio" t-attf-class="{{classes}} o_sign_sign_item" t-att-style="style" t-att-value="value" t-att-name="radio_set_id"/>
+            <textarea
+                t-if="type == 'textarea' || type == 'stamp'"
+                t-att-title="role"
+                t-attf-class="{{classes}} o_sign_sign_item {{type == 'stamp' ? 'o_sign_stamp_field_border' : ''}}"
+                t-att-style="style"
+                t-attf-placeholder="{{constant ? '': placeholder}}"
+                t-att-value="value"
+                t-out="value"
+                t-att-disabled="constant"
+            />
+            <div t-if="type == 'selection'" t-att-title="role" t-attf-class="{{classes}} o_sign_sign_item" t-att-style="style" t-att-value="value">
+                <div class="o_sign_select_options_display o_sign_select_options_display_edit">
+                    <select name="selection" id="selection">
+                        <option class="o_select_empty">
+                            <span class="o_placeholder ps-0">
+                                <t t-out="placeholder"/>
+                            </span>
+                        </option>
+                        <t t-foreach="options" t-key="option.value" t-as="option" t-index="index">
+                            <option value="value" t-att-data-id="option.id">
+                                <t t-out="option.value"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+            </div>
+            <div t-if="type == 'strikethrough'" t-att-title="role" t-attf-class="{{classes}} o_sign_sign_item o_sign_sign_strikethrough" t-att-style="style">
+                <div class="o_sign_strikethrough_line" t-att-class="{'o_sign_strikethrough_line_striked': constant}"/>
+            </div>
+        </t>
+    </t>
+
+    <div t-name="sign.signItemConfiguration" t-attf-class="o_sign_config_area {{ this.isSignItemEditable &amp;&amp; this.type == 'text' ? 'o_sign_editable_config_area' : '' }}">
+        <span t-if="this.isSignItemEditable" class="oi" data-icon="close" role="img" aria-label="Delete sign item" title="Delete sign"/>
+        <div class="o_sign_item_display o_sign_config_handle"/>
+        <div class="o_resize_handler resize_height"/>
+        <div class="o_resize_handler resize_width"/>
+        <div class="o_resize_handler resize_both"/>
+    </div>
+
+    <div t-name="sign.selectionSignItem" t-att-title="this.role" t-attf-class="{{this.classes}} o_sign_sign_item" t-att-data-id="this.id" t-att-style="this.style + 'white-space: normal;text-align: center;'">
+        <div class="sign_item_body px-3">
+            <t t-if="!this.value">
+                <div class="o_sign_selection_item_container">
+                    <t t-out="this.placeholder"/>
+                    <span class="o_select_arrow d-block pe-2 pb-2"/>
+                </div>
+            </t>
+            <t t-else="">
+                <t t-out="this.options.find(opt => opt.id === this.value)?.value"/>
+            </t>
+            <t t-if="this.editMode" t-call="sign.signItemConfiguration"/>
+        </div>
+    </div>
+
+    <div t-name="sign.signatureSignItem" t-att-title="this.role" t-attf-class="{{this.classes}} o_sign_sign_item" t-att-data-id="this.id" t-att-style="this.style" t-att-data-signature="this.value">
+        <div class="sign_item_body">
+            <span t-if="this.value" class="o_sign_helper"/>
+            <img t-if="this.frame_value" t-att-src="this.frame_value" alt="Frame" class="o_sign_frame"/>
+            <img t-if="this.value" t-att-src="this.value" alt="Signature"/>
+            <t t-if="!this.value">
+                <span class="o_sign_signature_item o_placeholder ps-0">
+                    <t t-out="this.placeholder"/>
+                </span>
+            </t>
+            <t t-if="this.editMode" t-call="sign.signItemConfiguration"/>
+        </div>
+    </div>
+
+    <div t-name="sign.textareaSignItem" t-att-title="this.role" t-attf-class="{{this.classes}} o_sign_sign_item o_sign_sign_textarea {{this.type === 'stamp' and this.value ? 'o_sign_stamp_field_border' : ''}}" t-att-style="this.style" t-att-data-id="this.id">
+        <div class="sign_item_body">
+            <t t-if="!this.value">
+                <div class="o_sign_textarea_placeholder">
+                    <div class="w-100"><t t-out="this.placeholder"/></div>
+                </div>
+            </t>
+            <t t-out="this.value"/>
+            <t t-if="this.editMode" t-call="sign.signItemConfiguration"/>
+        </div>
+    </div>
+
+    <div t-name="sign.checkboxSignItem" t-att-title="this.role" t-attf-class="{{this.classes}} o_sign_sign_item o_sign_item_glyph" t-att-data-id="this.id" t-att-style="this.style + 'margin: 2px; padding:2px;'">
+        <div class="sign_item_body">
+            <t t-if="this.value == 'on'">&#9745;</t>
+            <t t-if="this.value == 'off'">&#9744;</t>
+            <t t-if="!this.value">
+                <span class="o_placeholder ps-0 o_sign_field_alignment">
+                    <t t-out="this.placeholder"/>
+                </span>
+            </t>
+            <t t-if="this.editMode" t-call="sign.signItemConfiguration"/>
+        </div>
+    </div>
+
+    <div t-name="sign.radioSignItem" t-att-title="this.role" t-attf-class="{{this.classes}} o_sign_sign_item o_sign_item_glyph" t-att-data-id="this.id" t-att-style="this.style">
+        <div class="sign_item_body">
+            <t t-if="this.value == 'on'">&#9673;</t>
+            <t t-if="this.value == 'off'">&#9711;</t>
+            <t t-if="!this.value">
+                <span class="o_placeholder ps-0 o_sign_field_alignment">
+                    <t t-out="this.placeholder"/>
+                </span>
+            </t>
+            <t t-if="this.editMode" t-call="sign.signItemConfiguration"/>
+        </div>
+    </div>
+
+    <div t-name="sign.textSignItem" t-att-title="this.role" t-attf-class="{{this.classes}} o_sign_sign_item" type="text" t-att-data-id="this.id" t-att-style="this.style">
+        <div class="sign_item_body">
+            <t t-if="this.isSignItemEditable">
+                <input t-att-placeholder="this.placeholder" t-att-value="this.value" class="o_sign_editable_input"/>
+                <t t-call="sign.signItemConfiguration"/>
+            </t>
+            <t t-else="">
+                <t t-if="!this.value">
+                    <p class="o_placeholder_text_item ps-0 o_sign_field_alignment">
+                        <t t-out="this.placeholder"/>
+                    </p>
+                </t>
+                <t t-out="this.value"/>
+                <t t-if="this.editMode" t-call="sign.signItemConfiguration"/>
+            </t>
+        </div>
+    </div>
+    <div t-name="sign.strikethroughSignItem" t-att-title="this.role" t-attf-class="{{this.classes}} o_sign_sign_item o_sign_edit_strikethrough" t-att-data-id="this.id" t-att-style="this.style">
+        <div class="sign_item_body">
+            <t t-if="this.isSignItemEditable or this.value">
+                <div class="o_sign_strikethrough_line o_sign_strikethrough_line_striked"/>
+            </t>
+            <t t-else="">
+                <p class="o_placeholder_text_item ps-0 o_sign_field_alignment">
+                    <t t-out="this.placeholder"/>
+                </p>
+            </t>
+            <t t-if="this.editMode" t-call="sign.signItemConfiguration"/>
+        </div>
+    </div>
+</templates>

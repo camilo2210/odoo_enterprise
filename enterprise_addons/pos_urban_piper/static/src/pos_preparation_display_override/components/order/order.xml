@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="pos_urban_piper.Order" t-inherit="pos_enterprise.Order" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o_pdis_order_card_header_top')]" position="before">
+            <t t-if="this.order.pos_order_id.delivery_identifier">
+                <div class="o_pdis_order_card_header_top_delivery my-2 small d-flex flex-nowrap align-items-center justify-content-between px-2 pb-1 fw-bold">
+                    <div class="w-100 text-truncate flex-shrink-1">
+                        <img class="me-1" t-att-src="'/web/image?model=pos.delivery.provider&amp;field=image_128&amp;id=' + this.order.pos_order_id.delivery_provider_id.id" style="height: 28px"/>
+                        <t t-if="this.order.orderOtp">
+                            #<t t-out="this.order.orderOtp"/>
+                        </t>
+                    </div>
+                    <div t-out="this.order.deliveryStatusStr" />
+                </div>
+                <div t-if="this.order.isFutureOrder" class="px-2 text-center text-info smaller">
+                    <span class="fw-bold">Scheduled At:</span> <t t-out="this.order.deliveryTime"/>
+                </div>
+            </t>
+        </xpath>
+        <xpath expr="//div[hasclass('o_pdis_order_card_header_top')]" position="attributes">
+            <attribute name="t-if">!this.order.pos_order_id.delivery_identifier</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('preset-name')]/span" position="after">
+            <div class="badge rounded text-white px-2 me-1 bg-info smaller" t-if="this.order.isInstantOrder">
+                <span>Quick Order</span>
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('preset-name')]/span" position="attributes">
+            <attribute name="t-if">!this.order.pos_order_id.delivery_identifier</attribute>
+        </xpath>
+    </t>
+</templates>

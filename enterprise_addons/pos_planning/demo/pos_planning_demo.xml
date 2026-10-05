@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Role -->
+        <record id="pos_planning_role_pos_cashier" model="planning.role">
+            <field name="name">PoS Cashier</field>
+            <field name="resource_ids" model="resource.resource" eval="[obj().env.ref('hr.employee_hne').resource_id.id, obj().env.ref('hr.employee_jog').resource_id.id]"/>
+            <field name="pos_config_ids" model="pos.config" eval="[obj().env.ref('point_of_sale.pos_config_main').id]" />
+            <field name="color">2</field>
+        </record>
+
+        <record id="pos_planning_template_management_1" model="planning.slot.template">
+            <field name="role_id" ref="pos_planning_role_pos_cashier"/>
+            <field name="start_time" eval="10"/>
+            <field name="end_time" eval="14"/>
+            <field name="duration_days" eval="1"/>
+            <field name="sequence">14</field>
+        </record>
+
+        <!-- planning slot shift for 3 days -->
+        <record id="pos_planning_slot_1" model="planning.slot">
+            <field name="start_datetime" eval="datetime.today().strftime('%Y-%m-%d 06:00:00')"/>
+            <field name="end_datetime" eval="(datetime.today() + timedelta(days=2)).strftime('%Y-%m-%d 10:00:00')"/>
+            <field name="resource_ids" model="resource.resource" eval="obj().env.ref('hr.employee_hne').resource_id.ids"/>
+            <field name="role_id" ref="pos_planning_role_pos_cashier"/>
+            <field name="publication_warning" eval="False"/>
+            <field name="state">2_published</field>
+        </record>
+
+        <!-- every day shift -->
+        <record id="pos_planning_slot_2" model="planning.slot">
+            <field name="start_datetime" eval="(datetime.today() - timedelta(days=datetime.today().weekday())).strftime('%Y-%m-%d 06:00:00')"/>
+            <field name="end_datetime" eval="(datetime.today() + timedelta(days=(6-datetime.today().weekday()))).strftime('%Y-%m-%d 10:00:00')"/>
+            <field name="resource_ids" model="resource.resource" eval="obj().env.ref('hr.employee_jog').resource_id.ids"/>
+            <field name="role_id" ref="pos_planning_role_pos_cashier"/>
+            <field name="publication_warning" eval="False"/>
+            <field name="state">2_published</field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <template id="pos_urban_piper.pos_order_change_receipt" inherit_id="point_of_sale.pos_order_change_receipt">
+            <div name="preset-info" position="before">
+                <div class="text-huge text-center text-bold" t-if="order.get('delivery_provider_id')">
+                    Delivery/Online
+                </div>
+            </div>
+            <div name="preset-info" position="attributes">
+                <attribute name="t-if">not order.get('delivery_provider_id')</attribute>
+            </div>
+            <div name="employee-info" position="after">
+                <div class="mt-2" t-if="order.get('delivery_provider_id') or extra_data.get('is_instant_order')">
+                    <div t-if="order.get('delivery_provider_id')">
+                        <span class="text-bold text-large" t-out="extra_data.get('delivery_provider_name')"/> #<t t-out="extra_data.get('delivery_otp')"/>
+                    </div>
+                    <div style="margin-top: -7px;" t-if="extra_data.get('is_instant_order')">
+                        <span class="text-normal" >Quick Order</span>
+                    </div>
+                </div>
+            </div>
+            <div name="body" position="after">
+                <div t-if="order.get('delivery_provider_id') and changes.get('title') != 'CANCELLED'" class="text-normal text-italic">
+                    <span>Preparation time: <t t-out="order['prep_time']"/> Min</span>
+                </div>
+            </div>
+        </template>
+    </data>
+</odoo>

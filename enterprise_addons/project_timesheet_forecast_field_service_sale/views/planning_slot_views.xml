@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="planning_slot_view_list" model="ir.ui.view">
+        <field name="name">planning.slot.inherit.view.list</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="project_timesheet_forecast.project_forecast_view_tree_inherit_project_timesheet_forecast"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='project_id']" position="attributes">
+                <attribute name="groups">planning.group_planning_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='task_id']" position="attributes">
+                <attribute name="groups">planning.group_planning_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='effective_hours']" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_slot_view_card" model="ir.ui.view">
+        <field name="name">planning.slot.card.inherit</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="project_forecast.planning_view_card"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='project']" position="attributes">
+                <attribute name="groups">planning.group_planning_manager</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_view_form" model="ir.ui.view">
+        <field name="name">planning.slot.inherit.view.form</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="project_timesheet_forecast.project_forecast_view_form_inherit_project_timesheet_forecast"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_open_timesheets']" position="replace"/>
+            <xpath expr="//div[@name='project_id_div']" position="attributes">
+                <attribute name="groups">planning.group_planning_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='project_id'][2]" position="attributes">
+                <attribute name="context">{'default_allow_billable': bool(sale_order_id), 'default_allow_timesheets': True}</attribute>
+            </xpath>
+            <xpath expr="//div[@name='task_id_div']" position="attributes">
+                <attribute name="groups">planning.group_planning_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='sale_line_id'][2]" position="attributes">
+                <attribute name="context">{'with_planning_remaining_hours': True, 'with_price_unit': True, 'create_for_planning_slot_id': id, 'default_partner_id': partner_id, 'default_project_id': project_id}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_view_pivot" model="ir.ui.view">
+        <field name="name">planning.slot.pivot</field>
+        <field name="inherit_id" ref="project_timesheet_forecast.planning_view_pivot_inherit_timesheet"/>
+        <field name="model">planning.slot</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='effective_hours']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='effective_hours']" position="after">
+                <field name="percentage_hours" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_view_graph" model="ir.ui.view">
+        <field name="name">planning.slot.graph</field>
+        <field name="inherit_id" ref="project_timesheet_forecast.planning_view_graph_inherit_timesheet"/>
+        <field name="model">planning.slot</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='effective_hours']" position="replace">
+               <field name="effective_hours" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='effective_hours']" position="after">
+                <field name="percentage_hours" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_slot_view_search" model="ir.ui.view">
+        <field name="name">planning.slot.search</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="project_forecast.planning_slot_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='project_id']" position="attributes">
+                <attribute name="groups">planning.group_planning_manager</attribute>
+            </xpath>
+            <xpath expr="//filter[@name='group_by_project']" position="attributes">
+                <attribute name="groups">planning.group_planning_manager</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="project_forecast_action_from_project_view_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="42"/>
+        <field name="view_mode">map</field>
+        <field name="act_window_id" ref="project_forecast.project_forecast_action_from_project"/>
+    </record>
+
+    <record id="project_forecast_action_from_project_view_activity" model="ir.actions.act_window.view">
+        <field name="sequence" eval="100"/>
+        <field name="view_mode">activity</field>
+        <field name="act_window_id" ref="project_forecast.project_forecast_action_from_project"/>
+    </record>
+
+    <record id="project_forecast_action_schedule_by_employee_view_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="5"/>
+        <field name="view_mode">map</field>
+        <field name="act_window_id" ref="project_forecast.project_forecast_action_schedule_by_employee"/>
+    </record>
+
+    <record id="project_forecast_action_schedule_by_employee_view_activity" model="ir.actions.act_window.view">
+        <field name="sequence" eval="100"/>
+        <field name="view_mode">activity</field>
+        <field name="act_window_id" ref="project_forecast.project_forecast_action_schedule_by_employee"/>
+    </record>
+
+    <record id="project_timesheet_action_schedule_by_role_view_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="5"/>
+        <field name="view_mode">map</field>
+        <field name="act_window_id" ref="project_timesheet_forecast.project_timesheet_action_schedule_by_role"/>
+    </record>
+
+    <record id="project_timesheet_action_schedule_by_role_view_activity" model="ir.actions.act_window.view">
+        <field name="sequence" eval="100"/>
+        <field name="view_mode">activity</field>
+        <field name="act_window_id" ref="project_timesheet_forecast.project_timesheet_action_schedule_by_role"/>
+    </record>
+
+    <record id="planning_action_schedule_by_project_view_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="5"/>
+        <field name="view_mode">map</field>
+        <field name="act_window_id" ref="project_forecast.planning_action_schedule_by_project"/>
+    </record>
+
+    <record id="planning_action_schedule_by_project_view_activity" model="ir.actions.act_window.view">
+        <field name="sequence" eval="100"/>
+        <field name="view_mode">activity</field>
+        <field name="act_window_id" ref="project_forecast.planning_action_schedule_by_project"/>
+    </record>
+</odoo>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sign.SignRequestDocumentsDropdown">
+        <t t-if="this.signInfo.get('signRequestState') != 'signed' and !this.signInfo.get('is_partially_signed') and (this.signInfo.get('original_documents') || []).length === 1">
+            <button type="button" class="btn btn-primary o_sign_download_documents_dropdown"
+                    t-on-click="() => this.downloadDocument('origin', this.signInfo.get('original_documents')[0].id)">
+                Download
+            </button>
+        </t>
+        <t t-else="">
+            <Dropdown>
+                <button type="button" class="btn btn-primary o_sign_download_documents_dropdown o-dropdown-caret" data-hotkey="c">
+                    Download
+                </button>
+                <t t-set-slot="content">
+                    <t t-if="this.signInfo.get('signRequestState') == 'signed'">
+                        <t t-if="(this.signInfo.get('completed_documents')||[]).length > 1">
+                            <DropdownItem class="'o_sign_download_all_completed_documents_dropdown_item'" 
+                                          onSelected="() => this.downloadDocument('completed')">
+                                All Documents (zip)
+                            </DropdownItem>
+                            <div role="separator" class="dropdown-divider"/>
+                        </t>
+                        <t t-foreach="this.signInfo.get('completed_documents') || []" t-as="doc" t-key="doc.id">
+                            <DropdownItem class="'o_sign_download_single_document_dropdown_item'" 
+                                          onSelected="() => this.downloadDocument('completed', doc.id)">
+                                <t t-out="doc.name"/>
+                            </DropdownItem>
+                        </t>
+                        <div role="separator" class="dropdown-divider"/>
+                        <DropdownItem class="'o_sign_download_certificate_dropdown_item'" 
+                                      onSelected="() => this.downloadDocument('log')">
+                            Certificate
+                        </DropdownItem>
+                    </t>
+                    <t t-else="">
+                        <t t-if="this.signInfo.get('is_partially_signed')">
+                            <div class="dropdown-header">Partially signed</div>
+                            <t t-if="(this.signInfo.get('original_documents')||[]).length > 1">
+                                <DropdownItem class="'o_sign_download_all_partial_documents_dropdown_item'"
+                                              onSelected="() => this.downloadDocument('partial')">
+                                    All Documents (zip)
+                                </DropdownItem>
+                            </t>
+                            <t t-foreach="this.signInfo.get('original_documents') || []" t-as="doc" t-key="doc.id">
+                                <DropdownItem class="'o_sign_download_partial_documents_dropdown_item'"
+                                              onSelected="() => this.downloadDocument('partial', doc.id)">
+                                    <t t-out="doc.name"/>
+                                </DropdownItem>
+                            </t>
+                            <div role="separator" class="dropdown-divider"/>
+                            <div class="dropdown-header">Original</div>
+                        </t>
+                        <t t-if="(this.signInfo.get('original_documents')||[]).length > 1">
+                            <DropdownItem class="'o_sign_download_all_original_documents_dropdown_item'"
+                                          onSelected="() => this.downloadDocument('origin')">
+                                All Documents (zip)
+                            </DropdownItem>
+                        </t>
+                        <t t-foreach="this.signInfo.get('original_documents') || []" t-as="doc" t-key="doc.id">
+                            <DropdownItem class="'o_sign_download_original_documents_dropdown_item'"
+                                          onSelected="() => this.downloadDocument('origin', doc.id)">
+                                <t t-out="doc.name"/>
+                            </DropdownItem>
+                        </t>
+                    </t>
+                </t>
+            </Dropdown>
+        </t>
+    </t>
+</templates>

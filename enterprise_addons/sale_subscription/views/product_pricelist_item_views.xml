@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="product_pricelist_item_view_search_inherit" model="ir.ui.view">
+        <field name="name">product.pricelist.item.search.remove_active_filter</field>
+        <field name="model">product.pricelist.item</field>
+        <field name="inherit_id" ref="product.product_pricelist_item_view_search"/>
+        <field name="priority">250</field>
+        <field name="arch" type="xml">
+            <filter name="filter_to_sell" position="after">
+                <filter name="recurring" string="Subscriptions" domain="[('plan_id', '!=', False)]"/>
+            </filter>
+        </field>
+    </record>
+
+    <!-- Product pricelist edition -> enforce plan & recurring for recurring rules -->
+    <record id="product_pricelist_item_form_view_recurring" model="ir.ui.view">
+        <field name="name">sale.subscription.product.pricelist.item.form</field>
+        <field name="model">product.pricelist.item</field>
+        <field name="inherit_id" ref="product.product_pricelist_item_form_view"/>
+        <field name="arch" type="xml">
+            <field name="product_tmpl_id" position="attributes">
+                <attribute name="domain">['|', ('recurring_invoice', '=', bool(plan_id)), ('allow_one_time_sale', '=', True)]</attribute>
+            </field>
+            <label for="min_quantity" position="before">
+                <field name="plan_id"/>
+            </label>
+        </field>
+    </record>
+
+    <record id="product_pricelist_item_list_multi_edit" model="ir.ui.view">
+        <field name="name">product.pricelist.item.list.multi.edit.inherit.sale_subscription</field>
+        <field name="model">product.pricelist.item</field>
+        <field name="inherit_id" ref="product.product_pricelist_item_tree_view"/>
+        <field name="arch" type="xml">
+            <field name="min_quantity" position="before">
+                <field name="plan_id" string="Plan" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="pos_sale_planning.PlanningSlotSelectionPopup">
+        <Dialog bodyClass="'p-0 mt-3'" modalRef="this.modalRef" contentClass="'o_planning_slot_selection_popup'" size="'lg'">
+            <t t-set-slot="header">
+                <h4 class="modal-title flex-shrink-0 text-nowrap">Choose a slot</h4>
+                <div class="header-search-group d-flex align-items-center ms-auto">
+                    <Input tModel="[this.state, 'query']"
+                        class="'search-input'"
+                        isSmall="this.ui.isSmall"
+                        placeholder.translate="Search Slot..."
+                        icon="'search'"
+                        autofocus="true"
+                        debounceMillis="300" />
+                </div>
+            </t>
+            <t t-set="nbrSlots" t-value="this.slotsToDisplay.length"/>
+            <div class="h-100" t-att-class="{'d-flex justify-content-center align-items-center text-center': !nbrSlots}">
+                <table t-if="nbrSlots" class="table table-hover">
+                    <tbody class="h-100">
+                        <t t-foreach="this.slotsToDisplay" t-as="slot" t-key="slot.id">
+                            <t t-if="this.ui.isSmall">
+                                <div class="planning-info d-flex p-1 border-bottom align-items-center justify-content-between" role="button"
+                                    t-on-click="() => this.confirm(slot)">
+                                    <div class="p-1">
+                                        <b t-out="slot.resource_ids[0].name" />
+                                    </div>
+                                    <div class="p-1" t-out="slot.display_name" />
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <tr class="slot-line" role="button"
+                                    t-on-click="() => this.confirm(slot)">
+                                    <td class="text-break">
+                                        <b t-out="slot.resource_ids[0].name" />
+                                    </td>
+                                    <td class="text-break">
+                                        <div t-out="slot.display_name" />
+                                    </td>
+                                    <td class="text-break">
+                                        <div t-out="this.pos.getDate(slot.start_datetime)" /><div t-out="this.pos.getTime(slot.start_datetime)" />
+                                    </td>
+                                    <td class="text-break">
+                                        <div t-out="this.pos.getDate(slot.end_datetime)" /><div t-out="this.pos.getTime(slot.end_datetime)" />
+                                    </td>
+                                </tr>
+                            </t>
+                        </t>
+                    </tbody>
+                </table>
+                <div t-else="" t-att-class="{'p-4': this.ui.isSmall}">
+                    <div class="text-muted">
+                        <i class="oi oi-2x" data-icon="book"></i>
+                        <p class="mt-3 fs-4 text-dark">No open slot found.</p>
+                    </div>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <div class="d-flex flex-row gap-2 w-100">
+                    <button class="btn btn-secondary btn-lg lh-lg flex-fill" t-on-click="this.props.close">Discard</button>
+                </div>
+            </t>
+        </Dialog>
+    </t>
+</templates>

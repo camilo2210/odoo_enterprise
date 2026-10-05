@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="pos_urban_piper.TicketScreen" t-inherit="point_of_sale.TicketScreen" t-inherit-mode="extension">
+        <xpath expr="//OrderDisplay" position="before">
+            <div t-if="this.getSelectedOrder()?.isFutureOrder and !this.isOrderSynced" class="py-2 px-3 rounded-3 bg-info text-center text-white">
+                <i class="oi pe-1" data-icon="schedule" aria-hidden="true"/>Scheduled time: <t t-out="this.getSelectedOrder()?.deliveryTime"/>
+            </div>
+        </xpath>
+        <xpath expr="//ProgressBar" position="attributes">
+            <attribute name="t-if">order.isDeliveryOrder ? order.isFutureOrder : order.preset_id?.use_timing</attribute>
+            <attribute name="addressNeeded" separator=" or " add="order.preset_id?.identification === 'online'"/>
+        </xpath>
+        <xpath expr="//tr//td[5]" position="after">
+            <td class="align-middle">
+                <t t-if="order.delivery_provider_id">
+                    <t t-set="order_otp" t-value="order.providerOrderId"/>
+                    <div class="d-flex">
+                        <t t-out="order.delivery_provider_id.name"/>
+                        <t t-if="order_otp"> - <t t-out="order_otp"/></t>
+                    </div>
+                    <div class="fw-bold">
+                        <t t-if="order.deliveryStatusStr" t-out="order.deliveryStatusStr"/>
+                    </div>
+                </t>
+            </td>
+        </xpath>
+        <xpath expr="//div[hasclass('pads')]//t[@t-if='this.isOrderSynced']//div[hasclass('control-buttons')]" position="attributes">
+            <attribute name="t-attf-class" add="{{this.pos.router.currentScreen() == 'TicketScreen' and this.getSelectedOrder().delivery_provider_id and this.getSelectedOrder().state === 'draft' ? 'mx-2' : ''}}"></attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('pads')]//t[@t-if='this.isOrderSynced']//InvoiceButton" position="before">
+            <button t-if="!this.isOrderSynced" class="validation control-button btn btn-secondary btn-lg lh-lg flex-grow-1 flex-shrink-1" t-on-click="() => this.setOrder(this.getSelectedOrder())">
+                <span><i class="oi me-1" data-icon="format_list_bulleted"></i>Review</span>
+            </button>
+        </xpath>
+        <xpath expr="//div[hasclass('pads')]//t[@t-if='this.isOrderSynced']" position="attributes">
+            <attribute name="t-if" add="this.getSelectedOrder()?.delivery_status and this.getSelectedOrder()?.state !== 'paid'" separator=" or "/>
+        </xpath>
+        <xpath expr="//button[hasclass('send-button')]" position="attributes">
+            <attribute name="t-if" separator=" and " add="(!_selectedSyncedOrder.isDeliveryOrder or _selectedSyncedOrder.state == 'paid')"/>
+        </xpath>
+        <xpath expr="//div[hasclass('pads')]//div[hasclass('pads')]" position="after">
+            <t t-set="order" t-value="this.getSelectedOrder()"/>
+            <t t-if="order.delivery_status and order.state !== 'paid'">
+                <div class="pads d-flex gap-2 m-2 mt-0" >
+                    <BackButton t-if="this.ui.isSmall" onClick="() => this.pos.onClickBackButton()"/>
+                    <div class="d-flex gap-2 flex-grow-1">
+                        <button t-if="!['completed', 'food_ready'].includes(order.delivery_status)" class="validation btn btn-secondary lh-lg btn-lg flex-fill w-50" t-on-click="() => this._rejectOrder(order)">
+                            <span class="fs-5">Reject</span>
+                        </button>
+                        <button t-if="order.delivery_status == 'acknowledged'" class="validation btn btn-primary lh-lg btn-lg flex-fill w-50" t-on-click="() => this._doneOrder(order)">
+                            <span class="fs-5">Mark as ready</span>
+                        </button>
+                        <button t-if="order.delivery_status == 'placed'" class="validation btn btn-primary lh-lg btn-lg flex-fill w-50" t-on-click="() => this._acceptOrder(order)">
+                            <span class="fs-5">Accept</span>
+                        </button>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+        <xpath expr="//div[hasclass('pads')]//div[hasclass('pads')]" position="attributes">
+            <attribute name="t-if">!this.isOrderSynced</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('pads')]//div[hasclass('pads')]//button[hasclass('load-order-button')]" position="attributes">
+            <attribute name="t-if">!_selectedSyncedOrder.delivery_identifier</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('switchpane')]" position="attributes">
+            <attribute name="t-if">!order?.delivery_identifier and this.ui.isSmall</attribute>
+        </xpath>
+        <xpath expr="//ActionpadWidget" position="after">
+            <button t-if="order?.deliveryOrderType == 'self' and order.delivery_status == 'food_ready'" class="btn-switchpane w-100 btn btn-primary rounded secondary fw-bold review-button mt-2" t-on-click="() => this._dispatchOrder(order)">
+                <span class="fs-3">Dispatch Order</span>
+            </button>
+            <button t-if="order?.deliveryOrderType == 'self' and order.delivery_status == 'dispatched'" class="btn-switchpane w-100 btn btn-primary rounded secondary fw-bold review-button mt-2" t-on-click="() => this._completeOrder(order)">
+                <span class="fs-3">Complete Order</span>
+            </button>
+        </xpath>
+        <xpath expr="//ActionpadWidget" position="attributes">
+            <attribute name="t-if">(order?.deliveryOrderType != 'self' or order.delivery_status == 'completed')</attribute>
+        </xpath>
+        <xpath expr="//OrderDisplay" position="attributes">
+            <attribute name="orderAcceptTime">_selectedSyncedOrder?.uiState?.orderAcceptTime</attribute>
+            <attribute name="orderPrepTime">_selectedSyncedOrder?.prep_time</attribute>
+        </xpath>
+    </t>
+</templates>

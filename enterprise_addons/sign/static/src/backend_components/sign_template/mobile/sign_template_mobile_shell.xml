@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sign.SignTemplateMobileShell">
+        <div t-ref="this.rootRef" t-attf-class="o_sign_mobile_shell d-flex flex-column o_sign_mobile_snap_{{ this.state.snap }}">
+            <div class="o_sign_mobile_sheet d-flex flex-column flex-grow-1 overflow-hidden">
+                <div class="o_sign_mobile_sheet_handle d-flex justify-content-center flex-shrink-0 py-2"
+                    t-on-pointerdown="this.onHandlePointerDown">
+                    <div class="o_sign_mobile_sheet_handle_bar rounded-pill"/>
+                </div>
+                <div t-ref="this.contentRef" class="o_sign_mobile_sheet_content flex-grow-1 overflow-auto"
+                    t-on-focusin="this.onContentFocusIn"
+                    t-on-focusout="this.onContentFocusOut">
+                    <SignTemplateMobileFieldsPanel t-if="this.state.activeTab === 'fields'" t-props="this.fieldsPanelProps"/>
+                    <SignTemplateMobileSignersPanel t-if="this.state.activeTab === 'signers'" t-props="this.signersPanelProps"/>
+                    <SignTemplateMobileDocumentsPanel t-if="this.state.activeTab === 'documents'" t-props="this.documentsPanelProps"/>
+                </div>
+                <div t-if="this.props.hasSignRequests" class="text-center p-2 border-top flex-shrink-0">
+                    <p class="text-info mb-1">View only mode</p>
+                    <button class="btn btn-secondary" t-on-click="this.props.onEditTemplate">
+                        <i class="oi oi-filled mx-1" data-icon="edit"/> Duplicate &amp; Edit
+                    </button>
+                </div>
+            </div>
+            <nav class="o_sign_mobile_tabbar d-flex flex-shrink-0 border-top">
+                <t t-foreach="this.tabs" t-as="tab" t-key="tab.id">
+                    <button type="button"
+                        t-attf-class="o_sign_mobile_tab btn d-flex flex-column align-items-center justify-content-center rounded-0 {{ this.state.activeTab === tab.id ? 'active text-primary' : 'text-muted' }}"
+                        t-on-click="() => this.onTabClick(tab.id)">
+                        <i class="oi oi-fw" t-att-data-icon="tab.icon"/>
+                        <span class="small" t-out="tab.label"/>
+                    </button>
+                </t>
+            </nav>
+        </div>
+    </t>
+</templates>

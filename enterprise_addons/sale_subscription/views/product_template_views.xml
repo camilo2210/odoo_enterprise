@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_search_view_inherit_sale_subscription" model="ir.ui.view">
+        <field name="name">product.template.search.inherit</field>
+        <field name="model">product.template</field>
+        <field name="mode">extension</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <filter name="filter_to_purchase" position="after">
+                <filter name="filter_recurring" string="Subscriptions"
+                        domain="[('recurring_invoice', '=', True)]"/>
+            </filter>
+        </field>
+    </record>
+
+    <record id="product_template_view_form_recurring" model="ir.ui.view">
+        <field name="name">sale.subscription.product.template.form.inherit</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="sale.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <page name="sales" position="attributes">
+                <attribute name="invisible">not sale_ok and not recurring_invoice</attribute>
+                <attribute name="class">page_sales</attribute>
+            </page>
+            <span name="purchase_option" position="after">
+                <span class="d-inline-flex">
+                    <field name="recurring_invoice" widget="boolean_checkbox" class="w-auto"/>
+                    <label for="recurring_invoice" string="Subscriptions"/>
+                </span>
+            </span>
+        </field>
+    </record>
+
+    <record id="product_template_only_view_form_recurring" model="ir.ui.view">
+        <field name="name">sale.subscription.product.template.only.form.inherit</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="priority">500</field>  <!-- Ensure "Rental" group comes before "Subscriptions" -->
+        <field name="arch" type="xml">
+            <xpath
+                expr="//field[@name='fixed_pricelist_rule_ids']"
+                position="attributes"
+            >
+                <attribute name="context">{
+                    'default_compute_price': 'fixed',
+                    'form_view_ref': 'product.product_pricelist_item_product_template_form_view',
+                    'default_pricelist_id': False,
+                }</attribute>
+            </xpath>
+            <xpath
+                expr="//field[@name='fixed_pricelist_rule_ids']/list/field[@name='product_id']"
+                position="after"
+            >
+                <field
+                    name="plan_id"
+                    string="Plan"
+                    column_invisible="not parent.recurring_invoice"
+                    required="parent.recurring_invoice and not parent.allow_one_time_sale"
+                />
+            </xpath>
+            <group name="sale" position="inside">
+                <group string="Subscriptions" invisible="not recurring_invoice">
+                    <field name="allow_one_time_sale" invisible="not recurring_invoice"/>
+                    <field name="allow_prorated_price" invisible="not recurring_invoice or type == 'consu' or invoice_policy == 'delivery'"/>
+                </group>
+            </group>
+        </field>
+    </record>
+
+    <record id="product_template_kanban_view_inherit_sale_subscription" model="ir.ui.view">
+        <field name="name">product.template.kanban.inherit</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_kanban_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='list_price']" position="replace">
+                <group groups="sales_team.group_sale_salesman">
+                    <field name="display_subscription_pricing" invisible="not display_subscription_pricing"/>
+                </group>
+                <group>
+                    <field name="list_price" widget="monetary" invisible="display_subscription_pricing" options="{'currency_field': 'currency_id', 'field_digits': True}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_action_subscription" model="ir.actions.act_window">
+        <field name="name">Products</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">kanban,list,form,activity</field>
+        <field name="context">{
+            'default_recurring_invoice': True, 'search_default_filter_recurring': True, 'default_type': 'service'
+        }</field>
+        <field name="search_view_id" ref="product_template_search_view_inherit_sale_subscription"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new product
+            </p>
+            <p>
+                You must define a product for everything you sell or purchase,
+                whether it's a storable product, a consumable or a service.
+            </p>
+        </field>
+    </record>
+
+</odoo>

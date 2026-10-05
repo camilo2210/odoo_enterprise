@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="portal_my_home_menu_sign" name="Portal layout : sign menu entries" inherit_id="portal.portal_breadcrumbs" priority="60">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'signatures' or my_sign_item" t-attf-class="breadcrumb-item #{'active ' if not sign_requests else ''}">
+                <a t-if="my_sign_item" t-attf-href="/my/signatures?{{ keep_query() }}">Signature requests</a>
+                <t t-else="">Signature requests</t>
+            </li>
+            <li t-if="my_sign_item" class="breadcrumb-item active">
+                <span t-field="my_sign_item.reference"/>
+            </li>
+        </xpath>
+    </template>
+
+    <template id="sign_portal_my_requests" name="My Signatures">
+        <t t-call="portal.portal_layout" breadcrumbs_searchbar="True">
+            <t t-call="portal.portal_searchbar" breadcrumbs_searchbar="True" title.translate="Signatures"/>
+                <div t-if="not grouped_signatures" class="alert alert-warning" role="alert">
+                    There are no signatures request.
+                </div>
+            <t t-if="grouped_signatures" t-call="portal.portal_table">
+                <thead>
+                    <tr>
+                        <th>Document</th>
+                        <th>Sent on</th>
+                        <th>Due Date</th>
+                        <th>Signature Date</th>
+                        <th>Status</th>
+                        <th/>
+                    </tr>
+                </thead>
+                <t t-foreach="grouped_signatures" t-as="signature_requests">
+                    <tbody>
+                        <tr t-if="not groupby =='none'" class="table-light">
+                            <th t-if="groupby != 'none'" colspan="5">
+                                <span t-field="signature_requests[0].sudo().state"/>
+                            </th>
+                        </tr>
+                    </tbody>
+                    <tbody>
+                        <tr t-foreach="signature_requests" t-as="sign_request_item">
+                            <td>
+                                <a t-attf-href="/my/signature/#{sign_request_item.id}?{{ keep_query() }}">
+                                    <t t-out="sign_request_item.reference"/>
+                                </a>
+                            </td>
+                            <td>
+                                <span t-field="sign_request_item.sign_request_id.create_date" t-options='{"widget": "date"}'/>
+                            </td>
+                            <td>
+                                <span t-field="sign_request_item.sign_request_id.validity" t-options='{"widget": "date"}'/>
+                            </td>
+                            <td>
+                                <span t-field="sign_request_item.signing_date"/>
+                            </td>
+                            <td class="lh-1">
+                                <span t-attf-class="badge rounded-pill
+                                    {{ 'text-bg-success' if sign_request_item.sign_request_id.sudo().state == 'signed'
+                                       else 'text-bg-success' if sign_request_item.sudo().state == 'completed'
+                                       else 'text-bg-danger' if sign_request_item.sudo().state == 'canceled'
+                                       else 'text-bg-info' }}" >
+                                    <t t-if="sign_request_item.sign_request_id.sudo().state == 'signed'">
+                                        <i class="oi me-1" data-icon="check"/>Fully Signed
+                                    </t>
+                                    <t t-else="">
+                                        <i t-if="sign_request_item.state == 'sent'" class="oi me-1" data-icon="schedule"/>
+                                        <t t-out="dict(sign_request_item.fields_get(allfields=['state'])['state']['selection']).get(sign_request_item.state)"/>
+                                    </t>
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <t t-if="sign_request_item.state != 'canceled'">
+                                    <t t-set="fully_signed" t-value="sign_request_item.state  == 'completed' "/>
+                                    <a class="btn btn-sm btn-primary"
+                                       t-attf-href="/sign/document/{{sign_request_item.sign_request_id.id}}/{{sign_request_item.access_token}}?portal=1">
+                                        <div t-if="fully_signed"><i class="oi me-1" data-icon="visibility"/>View</div>
+                                        <div t-else=""><i class="oi oi-filled me-1" data-icon="edit"/>Sign</div>
+                                    </a>
+                                </t>
+                            </td>
+                        </tr>
+                    </tbody>
+                </t>
+            </t>
+        </t>
+    </template>
+    <template id="sign_portal_my_request" name="My Signature">
+        <t t-set="sign_request" t-value="my_sign_item.sign_request_id"/>
+        <t t-set="is_signed" t-value="sign_request.state == 'signed'"/>
+        <t t-call="portal.portal_layout">
+            <div class="container o_portal_sidebar">
+                <t t-set="entries">
+                    <div class="d-flex flex-wrap flex-column gap-4">
+                        <div class="d-flex flex-column gap-2">
+                            <t t-if="not is_signed">
+                                <a t-att-href="url" class="btn btn-primary w-100"><i class="oi oi-filled me-1" data-icon="edit"/>Sign Now</a>
+                                <a t-att-href="url" target="_blank" class="btn btn-secondary w-100"><i class="oi me-1" data-icon="visibility"/>Preview</a>
+                            </t>
+                            <t t-else="">
+                                <a t-att-href="url" target="_blank" class="btn btn-primary w-100"><i class="oi me-1" data-icon="visibility"/>View</a>
+                                <a class="btn btn-secondary w-100" t-attf-href="/sign/download/{{sign_request.id}}/{{sign_request.access_token}}/completed" target="_blank" role="button">
+                                    <i class="oi me-1" data-icon="download"/>Download
+                                </a>
+                            </t>
+                        </div>
+
+                        <div t-if="sign_request.create_uid">
+                            <h6 class="flex-basis-100">
+                                <small class="text-muted">Sender</small>
+                            </h6>
+                            <t t-call="portal.portal_my_contact" _contact_no_card="True" _contact_avatar="image_data_uri(sign_request.create_uid.avatar_128)" _contact_name="sign_request.create_uid.name">
+                                <div t-out="sign_request.create_uid.partner_id" t-options='{"widget": "contact", "fields": ["email"]}'/>
+                            </t>
+                        </div>
+
+                        <div t-if="sign_request.request_item_ids">
+                            <h6 class="flex-basis-100">
+                                <small class="text-muted">Signers</small>
+                            </h6>
+                            <t t-foreach="sign_request.request_item_ids" t-as="signer">
+                                <t t-if="signer.partner_id">
+                                    <t t-call="portal.portal_my_contact" _contact_no_card="True" _spacing_class="'mb-3' if len(sign_request.request_item_ids) > 1 else ''" _contact_avatar="image_data_uri(signer.partner_id.avatar_128)" _contact_name="signer.partner_id.name"></t>
+                                </t>
+                            </t>
+                        </div>
+                    </div>
+                </t>
+
+                <div class="row o_sign_portal_sidebar">
+                    <t t-call="portal.portal_record_sidebar" classes.f="col-lg-4 col-xxl-3 d-print-none" entries="entries"/>
+                    <div id="sign_request_content" class="o_portal_content col-12 col-lg-8 col-xxl-9">
+                        <div id="card">
+                            <div id="card_header" data-anchor="true">
+                                <div class="row justify-content-between mb-3">
+                                    <div class="col-12 col-md-9">
+                                        <h3 class="my-0"><span t-field="sign_request.reference"/></h3>
+                                    </div>
+                                    <div class="col-auto">
+                                        <small class="text-end">Status</small>
+                                        <span t-field="sign_request.state" class="badge rounded-pill text-bg-info fs-6" title="Current status of the signature request"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="card_body">
+                                <div class="row mb-4 container">
+                                    <div class="col-12">
+                                        <div t-if="sign_documents" class="mb-2">
+                                            <strong>Documents:</strong>
+                                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                                <t t-foreach="sign_documents" t-as="doc">
+                                                    <span t-attf-class="badge rounded-pill o_tag o_badge_color_#{(doc_index % 11) + 2}"><t t-out="doc.name"/></span>
+                                                </t>
+                                            </div>
+                                        </div>
+                                        <div t-if="sign_request.validity" class="mb-2">
+                                            <strong>Validity date:</strong>
+                                            <span t-field="sign_request.validity" t-options='{"widget": "date"}'/>
+                                        </div>
+                                        <div t-if="not is_html_empty(sign_request.message)" class="mb-2">
+                                            <strong>Message:</strong>
+                                            <div t-field="sign_request.message" class="mt-1"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr/>
+                        <div id="sign_chat" data-anchor="true">
+                            <t t-call="portal.message_thread" object="sign_request" token="sign_request.access_token" pid="pid" hash="hash"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>

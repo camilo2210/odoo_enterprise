@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sign.SignItemCustomPopover">
+        <div style="max-width: 25rem;">
+            <div class="popover-header d-flex align-items-center justify-content-between gap-2">
+                <span class="fw-bold text-capitalize" t-out="this.props.header_title"/>
+                <button type="button" title="Close" class="btn btn-secondary oi p-0" data-icon="close_small" t-on-click="this.props.onClose"/>
+            </div>
+            <div class="popover-body">
+                <div t-if="!['strikethrough', 'radio', 'checkbox'].includes(this.props.type)" class="clearfix o_popover_placeholder mb-3">
+                    <label for="o_sign_name" class="form-label">
+                        <t t-if="this.state.constant">Value</t>
+                        <t t-else="">Placeholder</t>
+                    </label>
+                    <textarea type="text" class="form-control o_input rounded-0" id="o_sign_name" t-att-value="this.state.placeholder" t-on-change="(e) => this.onChange('placeholder', e.target.value)" />
+                </div>
+                <div t-if="this.props.type === 'selection'" class="mb-3">
+                    <label for="o_sign_select_options_input" class="label">Options</label>
+                    <div class="o_sign_selection_input_option" id="o_sign_select_options_input">
+                        <textarea
+                            placeholder="Enter options separated by Enter."
+                            t-att-value="this.state.selectionOptionsText"
+                            t-on-change="(ev) => this.onChangeSelectionOptions(ev.target.value)"
+                            class="form-control"
+                            rows="4"
+                        />
+                    </div>
+                </div>
+                <div t-if="this.props.type === 'radio'" class="mb-3">
+                    <div class="o_field_widget" id="o_sign_select_radio_qty_input">
+                        <label for="o_sign_select_radio_qty_input" class="form-label">Options</label>
+                        <input type="number" inputmode="numeric" class="o_input form-control" t-att-value="this.state.num_options" t-att-min="2"
+                        t-on-change="(e) => this.handleNumOptionsChange(e.target.value)"/>
+                    </div>
+                </div>
+                <div t-if="this.showAlignment" class="o_sign_field_align_group mb-3">
+                    <label class="form-label">Alignment</label>
+                    <div class="btn-group w-100" role="group">
+                        <button t-foreach="this.alignmentOptions" t-as="alignment" t-key="alignment.key" type="button" t-att-title="alignment.title" t-on-click="(e) => this.onChange('alignment', alignment.key)"
+                        t-attf-class="btn btn-secondary {{alignment.key === this.state.alignment ? 'active': ''}}">
+                            <i class="oi" t-attf-data-icon="format_align_{{alignment.key}}"/>
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <!-- 
+                        This variable is used to determine if the read-only option should be shown.
+                    -->
+                    <t t-set="canBeReadonly" t-value="!['signature', 'initial', 'selection', 'checkbox', 'radio', 'stamp'].includes(this.props.type)"/>
+                    <div class="form-check">
+                        <input type="checkbox" id="o_sign_required_field" t-att-checked="this.state.required" t-on-change="(e) => this.onChange('required', e.target.checked)" class="form-check-input" />
+                        <label class="form-check-label" for="o_sign_required_field">
+                            Mandatory field
+                        </label>
+                    </div>
+                    <div t-if="canBeReadonly" class="form-check">
+                        <input id="o_sign_constant_field" type="checkbox" name="constraint" class="form-check-input" t-att-checked="this.state.constant" t-on-change="(e) => this.onChange('constant', e.target.checked)" />
+                        <label class="form-check-label" for="o_sign_constant_field">
+                            Read-only
+                        </label>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center justify-content-between gap-2">
+                    <button class="btn o_sign_validate_field_button btn-primary" t-on-click="this.onValidate">Save</button>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-secondary" t-on-click="this.props.onDuplicate">
+                            <i class="oi" data-icon="content_copy"/>
+                        </button>
+                        <button class="btn btn-secondary" t-on-click="this.props.onDelete">
+                            <i class="oi oi-filled" data-icon="delete"/>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

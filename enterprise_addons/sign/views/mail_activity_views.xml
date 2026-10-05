@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="mail_activity_type_view_form" model="ir.ui.view">
+        <field name="name">mail.activity.type.view.form.inherit.sign</field>
+        <field name="model">mail.activity.type</field>
+        <field name="inherit_id" ref="mail.mail_activity_type_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='category']" position="after">
+                <field name="default_sign_template_id" invisible="category != 'sign_request'" options="{'no_quick_create': True, 'no_create_edit': True}"/>
+            </xpath>
+            <xpath expr="//group[@name='activity_planning']" position="attributes">
+                <attribute name="invisible">category in ('upload_file', 'sign_request') and not res_model</attribute>
+            </xpath>
+            <xpath expr="//field[@name='suggested_next_type_id']" position="attributes">
+                <attribute name="invisible">category in ('upload_file', 'sign_request')</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="mail_activity_view_form_popup" model="ir.ui.view">
+        <field name="name">mail.activity.view.form.popup.inherit.sign</field>
+        <field name="model">mail.activity</field>
+        <field name="inherit_id" ref="mail.mail_activity_view_form_popup"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='activity_details']" position="after">
+                <div invisible="activity_category != 'sign_request'" role="alert" class="alert alert-warning">
+                    To request a signature, create a new activity.
+                </div>
+            </xpath>
+            <!-- Hide fields -->
+            <xpath expr="//div[@name='activity_details']" position="attributes">
+                <attribute name="invisible" add="activity_category == 'sign_request'" separator="or"/>
+            </xpath>
+            <!-- Hide saving buttons -->
+            <xpath expr="//button[@id='mail_activity_save']" position="attributes">
+                <attribute name="invisible" add="activity_category == 'sign_request'" separator="or"/>
+            </xpath>
+            <xpath expr="//button[@name='action_done']" position="attributes">
+                <attribute name="invisible" add="activity_category == 'sign_request'" separator="or"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
