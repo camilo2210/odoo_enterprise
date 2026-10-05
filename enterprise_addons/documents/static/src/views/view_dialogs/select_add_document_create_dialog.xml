@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="documents.SelectAddDocumentCreateDialog"
+        t-inherit="web.SelectCreateDialog" t-inherit-mode="primary">
+
+        <xpath expr="//t[@t-if='this.props.multiSelect']" position="replace"/>
+        <xpath expr="//Dialog" position="attributes">
+            <attribute name="size">"xl"</attribute>
+            <attribute name="contentClass">'o_select_create_dialog_content o_documents_select_add_dialog'</attribute>
+        </xpath>
+
+        <xpath expr="//View" position="replace">
+            <div t-ref="this.viewRef" class="h-100">
+                <View t-props="this.viewProps" t-key="this.viewState.type"/>
+            </div>
+        </xpath>
+
+        <!-- Add custom buttons for document actions -->
+        <xpath expr="//button[hasclass('o_form_button_cancel')]" position="replace">
+            <t t-set="pluginArgs" t-value="this.isPlugin ? [this.props.close] : []"/>
+            <t t-if="this.state.resIds.length > 0">
+                <button class="btn btn-primary"
+                    data-hotkey="l"
+                    t-on-click="() => this.pasteDocumentsLinkMethod(this.state.resIds, ...pluginArgs)" name="addLinks">
+                    Add as link(s)
+                </button>
+                <button t-if="!this.isNewRecord" class="btn btn-secondary"
+                    data-hotkey="a"
+                    t-on-click="() => this.addDocumentsAttachmentMethod(this.state.resIds, ...pluginArgs)">
+                    Add as attachment(s)
+                </button>
+            </t>
+        </xpath>
+    </t>
+</templates>

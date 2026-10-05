@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_users_form_databases_inherit" model="ir.ui.view">
+        <field name="name">res.users.form.databases.inherit</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Databases" name="databases" groups="databases.group_databases_user">
+                    <div class="d-flex my-1" groups="databases.group_databases_manager">
+                        <div class="col-7 col-sm-6 col-lg-3 d-flex flex-column">
+                            <span class="o_form_label">
+                                Manage access:
+                            </span>
+                            <span class="text-muted">
+                                useful to cut all access at once
+                            </span>
+                        </div>
+                        <button name="action_remove_from_all_database"
+                                type="object"
+                                groups="databases.group_databases_manager"
+                                string="Revoke all access"
+                                class="btn btn-danger h-100 my-auto"
+                                invisible="id == uid"/>
+                        <span title="You can't revoke your own access. You wouldn't want to lock yourself out!" class="h-100" invisible="id != uid">
+                            <button name="action_remove_from_all_database"
+                                    type="object"
+                                    groups="databases.group_databases_manager"
+                                    string="Revoke all access"
+                                    class="btn btn-danger h-100 my-auto"
+                                    disabled="1"
+                                    />
+                        </span>
+                    </div>
+                    <field name="database_user_ids">
+                        <list string="remote user" create="0" delete="0" edit="0" editable="bottom">
+                            <field name="project_id"/>
+                            <button name="action_remove_users"
+                                    type="object"
+                                    groups="databases.group_databases_manager"
+                                    icon="delete"
+                                    class="ms-auto"
+                                    title="Remove User"
+                                    invisible="parent.id == uid"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

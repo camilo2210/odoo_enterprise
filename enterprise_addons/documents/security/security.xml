@@ -1,0 +1,37 @@
+<odoo>
+
+        <record model="res.groups.privilege" id="res_groups_privilege_documents">
+            <field name="name">Documents</field>
+            <field name="sequence">20</field>
+            <field name="placeholder">Basic</field>
+            <field name="description">- Basic: Can view or edit, upload, and share their own or shared documents.</field>
+            <field name="category_id" ref="base.module_category_productivity"/>
+        </record>
+
+        <record id="group_documents_user" model="res.groups">
+            <field name="name">User</field>
+            <field name="sequence">10</field>
+            <field name="comment">Can embed actions on folders, insert in Spreadsheet, and import in Sign.</field>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+            <field name="privilege_id" ref="res_groups_privilege_documents"/>
+        </record>
+
+        <record id="group_documents_manager" model="res.groups">
+            <field name="name">Administrator</field>
+            <field name="sequence">20</field>
+            <field name="comment">Can configure folders, manage access rights, and oversee all documents within their areas.</field>
+            <field name="privilege_id" ref="res_groups_privilege_documents"/>
+            <field name="implied_ids" eval="[(4, ref('group_documents_user'))]"/>
+            <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+
+        <record id="group_documents_system" model="res.groups">
+            <field name="name">System Administrator</field>
+            <field name="sequence">30</field>
+            <field name="comment">Has full control over all document settings, folders, and user rights across the application.</field>
+            <field name="privilege_id" ref="res_groups_privilege_documents"/>
+            <field name="implied_ids" eval="[(4, ref('group_documents_manager'))]"/>
+            <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+
+        </odoo>

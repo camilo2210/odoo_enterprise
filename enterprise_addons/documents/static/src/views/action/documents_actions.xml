@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="documents.DocumentsAction">
+        <div t-if="this.props.targetRecords.length" class="d-flex gap-1 d-empty-none">
+            <ActionMenus t-if="this.props.isPreview and this.actionMenuProps()" t-props="this.actionMenuProps()"/>
+            <div t-if="!this.uiService.isSmall and this.topBarActions().length" class="d-flex flex-row flex-wrap btn-group d-none d-md-inline">
+                <t t-set="firstEmbeddedActions"
+                   t-value="this.topBarActions().slice(0, this.visibleTopbarActions())"/>
+                <t t-set="lastEmbeddedActions"
+                   t-value="this.topBarActions().slice(this.visibleTopbarActions())"/>
+                <button t-foreach="firstEmbeddedActions" t-as="action" t-key="action_index" class="btn btn-secondary"
+                    t-on-click="action.callback" t-out="action.description" />
+                <div class="dropdown btn-group" t-if="lastEmbeddedActions.length">
+                    <button class="btn btn-secondary o_dropdown_title dropdown-toggle" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        More
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li t-foreach="lastEmbeddedActions" t-as="action" t-key="action_index"
+                            class="d-flex flex-row">
+                            <button type="button" class="dropdown-item btn btn-secondary mx-1" t-out="action.description"
+                                t-on-click="action.callback"/>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

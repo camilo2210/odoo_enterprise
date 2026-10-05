@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="esg_report_actions_table">
+        <h4>Actions</h4>
+        <table class="table table-bordered o_table">
+            <tr>
+                <td class="bg-100"><p><strong>Name</strong></p></td>
+                <td class="bg-100"><p><strong>Metric</strong></p></td>
+                <td class="bg-100"><p><strong>ESRS</strong></p></td>
+                <td class="bg-100"><p><strong>Description</strong></p></td>
+                <td class="bg-100"><p><strong>Baseline</strong></p></td>
+                <td class="bg-100"><p><strong>Current</strong></p></td>
+                <td class="bg-100"><p><strong>Target</strong></p></td>
+            </tr>
+            <tr t-foreach="actions" t-as="action">
+                <td><p t-out="action['name']"/></td>
+                <td><p t-out="action['code']"/></td>
+                <td><p t-out="action['esrs']"/></td>
+                <td><div t-out="action['description']"/></td>
+                <td t-if="action['has_values']">
+                    <p><t t-out="action['baseline_value']"/> <t t-out="action['unit_name']"/></p>
+                    <p t-if="action['baseline_period']" t-out="action['baseline_period']"/>
+                </td>
+                <td t-else=""/>
+                <td t-if="action['has_values']">
+                    <p><t t-out="action['current_value']"/> <t t-out="action['unit_name']"/></p>
+                    <p t-if="action['current_value_date']" t-out="action['current_value_date']"/>
+                </td>
+                <td t-else=""/>
+                <td t-if="action['has_values']">
+                    <p><t t-out="action['target_value']"/> <t t-out="action['unit_name']"/></p>
+                    <p t-if="action['target_period']" t-out="action['target_period']"/>
+                </td>
+                <td t-else=""/>
+            </tr>
+        </table>
+
+        <t t-if="attachments">
+            <h4>Attachments</h4>
+            <table class="table table-bordered o_table">
+                <tr>
+                    <td class="bg-100"><p><strong>Name</strong></p></td>
+                    <td class="bg-100"><p><strong>Files</strong></p></td>
+                </tr>
+                <tr t-foreach="attachments" t-as="entry">
+                    <td><p t-out="entry['name']"/></td>
+                    <td>
+                        <ul class="list-unstyled mb-0">
+                            <li t-foreach="entry['files']" t-as="file">
+                                <a t-att-href="file['url']" t-out="file['name']"/>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </table>
+        </t>
+    </template>
+</odoo>

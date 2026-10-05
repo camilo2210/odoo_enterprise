@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <record id="view_delivery_carrier_form" model="ir.ui.view">
+        <field name="name">delivery.carrier.form.inherit.delivery.shipstation</field>
+        <field name="model">delivery.carrier</field>
+        <field name="inherit_id" ref="delivery.view_delivery_carrier_form"/>
+        <field name="arch" type="xml">
+            <div name='title' position="after">
+                <div colspan="2" class="alert alert-warning" invisible="delivery_type != 'shipstation' or prod_environment" role="status">
+                    <p class="mb-0">
+                        <i class="oi" data-icon="warning"/> In <b>Test Environment</b>, your shippings are automatically <b>archived</b> after the label creation. <br/>
+                        Please note that charges can still occur for label creations and some shipping carriers may automatically validate the shipment when printing labels.
+                    </p>
+                </div>
+            </div>
+            <page name="destination" position="before">
+                <page string="ShipStation Configuration" name="shipstation_configuration" invisible="delivery_type != 'shipstation'">
+                    <group>
+                        <group>
+                            <field name="shipstation_production_api_key" string="ShipStation API Key" widget="char" password="1" required="delivery_type == 'shipstation'"/>
+                            <field name="shipstation_label_layout" required="delivery_type == 'shipstation'" widget="radio" options="{'horizontal': true}"/>
+                            <field name="shipstation_label_file_type" required="delivery_type == 'shipstation'"/>
+                            <field name="shipstation_insurance_provider"/>
+                            <field name="shipstation_confirmation_type"/>
+                            <field name="shipstation_additional_handling"/>
+                        </group>
+                        <group>
+                            <label for="shipstation_service_name"/>
+                            <div>
+                                <field name="shipstation_service_name" readonly="1" class="oe_inline" />
+                                <button name="action_open_shipstation_wizard" title="Sync Carriers/Services from ShipStation" icon="refresh" class="oe_link" type="object" groups="base.group_system"/>
+                            </div>
+                            <field name="shipstation_default_package_type_id" context="{'default_package_carrier_type': 'shipstation'}" required="delivery_type == 'shipstation'"/>
+                            <field name="return_label_on_delivery" invisible="not can_generate_return"/>
+                            <field name="get_return_label_from_portal" invisible="not (can_generate_return and return_label_on_delivery)"/>
+                        </group>
+                    </group>
+                    <group string="ShipStation Set Up">
+                        <ul>
+                            <li>Go to <a href="https://www.shipstation.com/start-a-free-trial/" target="_blank">ShipStation</a> to create an account.<br/>
+                                <img class="img-fluid my-2 border rounded" style="max-width: 720px;" src="/delivery_shipstation/static/src/img/create_account.png" alt="Create a ShipStation Account" title="Create a ShipStation Account"/>
+                            </li>
+                            <li>Once your account is created, go to <b>Settings &gt; Account &gt; API Settings</b>, select the <b>V2 API</b> and click <b>Generate API Key</b>.<br/>
+                                <img class="img-fluid my-2 border rounded" style="max-width: 720px;" src="/delivery_shipstation/static/src/img/api_settings.png" alt="Generate a V2 API Key" title="Generate a V2 API Key"/>
+                            </li>
+                            <li>Once generated, copy the <b>Production Key</b>, as it is required on the delivery method configuration in Odoo.<br/>
+                                <img class="img-fluid my-2 border rounded" style="max-width: 720px;" src="/delivery_shipstation/static/src/img/copy_api_key.png" alt="Copy the Production Key" title="Copy the Production Key"/>
+                            </li>
+                        </ul>
+                    </group>
+                    <group string="Enabling Carriers in ShipStation">
+                        <ul>
+                            <li>In your ShipStation account, go to <b>Settings &gt; Account &gt; Shipping &gt; Carriers</b> and use the On/Off toggle on the carrier list to enable the ones you need.<br/>
+                                <img class="img-fluid my-2 border rounded" style="max-width: 720px;" src="/delivery_shipstation/static/src/img/enable_carriers.png" alt="Enable Carriers in ShipStation" title="Enable Carriers in ShipStation"/>
+                            </li>
+                        </ul>
+                    </group>
+                    <group string="Set up in Odoo">
+                        <ul>
+                            <li>Create one delivery method for each carrier and service you want to enable for ShipStation.</li>
+                            <li>Paste the Production Key copied from your ShipStation account, making sure you are using the V2 API.</li>
+                            <li>Select the carrier and service using the sync button <i class="oi" data-icon="refresh"/>.<br/>
+                                <img class="img-fluid my-2 border rounded" style="max-width: 720px;" src="/delivery_shipstation/static/src/img/sync_button.png" alt="Sync Carriers/Services from ShipStation" title="Sync Carriers/Services from ShipStation"/><br/>
+                                <img class="img-fluid my-2 border rounded" style="max-width: 720px;" src="/delivery_shipstation/static/src/img/carrier_selector.png" alt="Select a Carrier and Service" title="Select a Carrier and Service"/>
+                            </li>
+                            <li>Define a default package.</li>
+                            <li>Set up your additional ShipStation preferences: label format and layout, confirmation type, and insurance provider. When selecting an insurance provider, make sure an <b>Insurance Percentage</b> is set.</li>
+                        </ul>
+                    </group>
+                </page>
+            </page>
+        </field>
+    </record>
+</odoo>

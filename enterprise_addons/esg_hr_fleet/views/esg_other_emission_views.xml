@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="other_emission_form_view" model="ir.ui.view">
+        <field name="name">other.emission.form</field>
+        <field name="model">esg.other.emission</field>
+        <field name="inherit_id" ref="esg.other_emission_form_view"/>
+        <field name="arch" type="xml">
+            <h1 position="before">
+                <div role="alert" class="alert alert-warning text-center py-2 mb-2 w-100" invisible="not conflicting_emission_ids">
+                    <field name="conflicting_emission_ids" widget="conflicting_emission_ids"/>
+                </div>
+            </h1>
+            <field name="date" position="attributes">
+                <attribute name="invisible">has_fleet_factor</attribute>
+            </field>
+            <field name="date" position="after">
+                <field name="date" widget="daterange" required="1" invisible="not has_fleet_factor"
+                    options="{'end_date_field': 'date_end', 'always_range': True, 'warning': 'future'}"
+                />
+            </field>
+            <field name="esg_emission_factor_id" position="after">
+                <div invisible="not has_fleet_factor"/>
+                <div class="fst-italic text-muted" invisible="not has_fleet_factor">
+                    Commuting emissions reflect home-office distance, weekly attendance,
+                    and vehicle CO₂ emissions for all employees, using data from the Employee
+                    and Fleet apps.
+                </div>
+            </field>
+            <field name="uom_id" position="attributes">
+                <attribute name="invisible">has_fleet_factor or not esg_emission_factor_id or compute_method == 'monetary'</attribute>
+            </field>
+            <field name="currency_id" position="attributes">
+                <attribute name="invisible">has_fleet_factor or not esg_emission_factor_id or compute_method == 'physically'</attribute>
+            </field>
+        </field>
+    </record>
+</odoo>

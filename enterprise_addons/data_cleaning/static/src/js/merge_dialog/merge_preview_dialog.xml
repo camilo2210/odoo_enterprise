@@ -1,0 +1,227 @@
+<templates xml:space="preserve">
+    <t t-name="data_cleaning.MergeDetailsDialog">
+        <Dialog title.translate='Merge Details' withBodyPadding="false" contentClass="'o_merge_details_dialog'">
+            <!-- Header -->
+            <div t-if="this.previewData" class="accordion" id="mergeAccordion">
+                <t t-call="data_cleaning.AccordionItem"
+                    title.translate="Duplicates Match Reasons"
+                    target.translate="collapseRuleValues"
+                    contentTemplate.translate="data_cleaning.RuleValuesData"
+                    show="true"
+                    is_first="true"/>
+
+                <t t-call="data_cleaning.AccordionItem"
+                    title.translate="Retained and Removed Fields"
+                    target.translate="collapseMaster"
+                    contentTemplate.translate="data_cleaning.MasterExclusiveData"/>
+
+                <t t-call="data_cleaning.AccordionItem"
+                    title.translate="Moved Related Records"
+                    target.translate="collapseRelations"
+                    contentTemplate.translate="data_cleaning.RelationsMergedData"
+                    is_last="true"/>
+            </div>
+            <div t-else="" class="p-2 text-center">Preview data unavailable for this record.</div>
+        </Dialog>
+    </t>
+
+    <!-- Header -->
+    <t t-name="data_cleaning.Header">
+        <div t-attf-class="g-col-4 g-col-lg-5 #{is_master ? 'border-end' : ''}">
+            <div class="d-flex flex-column-reverse flex-lg-row justify-content-between p-3">
+                <div class="d-flex flex-column flex-lg-row align-items-center gap-2">
+                    <img t-if="record_image_url"
+                        t-att-src="record_image_url"
+                        t-att-alt="record_name"
+                        class="o_avatar rounded-circle"/>
+                    <div class="d-flex flex-column text-center text-lg-start">
+                        <h4 class="mb-0" t-out="record_primary_name or record_name"/>
+                        <span t-if="record_company_name" class="text-muted" t-out="record_company_name"/>
+                    </div>
+                </div>
+                <span t-if="is_master" class="badge align-self-center mb-2 mb-lg-0 rounded-pill text-bg-info">Master</span>
+                <span t-if="match_ratio" class="badge align-self-center mb-2 mb-lg-0 rounded-pill text-bg-dark">
+                    <t t-out="match_ratio.matching"/>/<t t-out="match_ratio.total"/> matching fields
+                </span>
+                <span t-if="total_source_records" class="badge align-self-center mb-2 mb-lg-0 rounded-pill text-bg-dark">
+                    + <t t-out="total_source_records"/> records to Master
+                </span>
+                <span t-if="total_fields_deleted" class="badge align-self-center mb-2 mb-lg-0 rounded-pill text-bg-dark">
+                    <t t-out="total_fields_deleted"/> fields deleted
+                </span>
+            </div>
+        </div>
+    </t>
+
+    <!-- Accordion Item -->
+    <t t-name="data_cleaning.AccordionItem">
+        <div t-attf-class="accordion-item border-start-0 border-end-0 #{is_last ? 'border-bottom-0' : ''} #{is_first ? 'border-top-0' : ''}">
+            <h2 class="accordion-header">
+                <button class="accordion-button"
+                        t-att-class="!show ? 'collapsed' : ''"
+                        data-bs-toggle="collapse"
+                        t-att-data-bs-target="'#' + target">
+                    <span class="d-flex flex-column align-items-start">
+                        <span class="d-block" t-out="title"/>
+                        <span class="d-block mt-1 text-muted" t-out="description"/>
+                    </span>
+                </button>
+            </h2>
+            <div t-att-id="target" class="accordion-collapse collapse overflow-x-auto"
+                t-att-class="show ? 'show' : ''"
+                data-bs-parent="#mergeAccordion">
+
+                <div class="accordion-body p-0">
+                    <t t-call="{{ contentTemplate }}"/>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <!-- Field Mapping Logic -->
+    <t t-name="data_cleaning.RuleValuesData">
+        <div class="grid gap-0 border-top">
+            <div class="g-col-4 g-col-lg-2 d-flex align-items-center border-end p-3 bg-view"/>
+            <!-- Master -->
+            <t t-call="data_cleaning.Header"
+                record_name="this.previewData.master_name"
+                record_primary_name="this.previewData.master_name"
+                record_company_name="this.previewData.master_company_name"
+                record_image_url="this.previewData.master_image_url"
+                is_master="true"/>
+            <!-- Source -->
+            <t t-call="data_cleaning.Header"
+                record_name="this.previewData.source_name"
+                record_primary_name="this.previewData.source_name"
+                record_company_name="this.previewData.source_company_name"
+                record_image_url="this.previewData.source_image_url"
+                match_ratio="this.matchRatio"/>
+        </div>
+        <div class="grid gap-0 border-top text-break">
+            <t t-foreach="this.previewData.deduplication_rule_mapping" t-as="field" t-key="field_index">
+                <t t-set="data" t-value="this.previewData.deduplication_rule_mapping[field]"/>
+                <div t-attf-class="g-col-4 g-col-lg-2 d-flex align-items-center #{!field_last ? 'border-bottom' : ''} border-end px-3 py-2">
+                    <span t-out="field"/>
+                </div>
+                <div t-attf-class="g-col-4 g-col-lg-5 #{!field_last ? 'border-bottom' : ''} border-end #{data.is_match ? 'text-info' : 'px-3 py-2'} bg-view">
+                    <div t-attf-class="#{data.is_match ? 'h-100 border-start border-info border-2 px-3 py-2 fw-medium' : ''}">
+                        <span t-out="data.master_value or '-'"/>
+                    </div>
+                </div>
+                <div t-attf-class="g-col-4 g-col-lg-5 #{!field_last ? 'border-bottom' : ''} #{data.is_match ? 'text-info' : 'px-3 py-2'} bg-view">
+                    <div t-attf-class="#{data.is_match ? 'h-100 border-start border-info border-2 px-3 py-2 fw-medium' : ''}">
+                        <span t-out="data.source_value or '-'"/>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <!-- Displays field mapping values for master and source -->
+    <t t-name="data_cleaning.RecordBlock">
+        <div class="flex-fill">
+            <div class="mt-2 border rounded p-3 overflow-auto">
+                <t t-foreach="this.previewData.deduplication_rule_mapping" t-as="field" t-key="field_index">
+                    <t t-set="data" t-value="this.previewData.deduplication_rule_mapping[field]"/>
+                    <div class="mb-2">
+                        <h4 class="small" t-out="field"/>
+                        <div t-attf-class="fw-semibold #{data.is_match ? '' : 'text-muted'}">
+                            <span t-if="is_master" t-out="data.master_value or '-'"/>
+                            <span t-else="" t-out="data.source_value or '-'"/>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <!-- Master-Exclusive Field -->
+    <t t-name="data_cleaning.MasterExclusiveData">
+        <div t-if="!this.previewData.master_exclusive.length" class="border-top py-4 bg-view text-muted text-center">
+            No master exclusive fields
+        </div>
+        <t t-else="">
+            <div class="grid gap-0 border-top">
+                <div class="g-col-4 g-col-lg-2 d-flex align-items-center border-end p-3 bg-view"/>
+                <!-- Master -->
+                <t t-call="data_cleaning.Header"
+                    record_name="this.previewData.master_name"
+                    record_primary_name="this.previewData.master_primary_name or this.previewData.master_name"
+                    record_company_name="this.previewData.master_company_name"
+                    record_image_url="this.previewData.master_image_url"
+                    is_master="true"/>
+                <!-- Source -->
+                <t t-call="data_cleaning.Header"
+                    record_name="this.previewData.source_name"
+                    record_primary_name="this.previewData.source_primary_name or this.previewData.source_name"
+                    record_company_name="this.previewData.source_company_name"
+                    record_image_url="this.previewData.source_image_url"
+                    total_fields_deleted="this.totalFieldsDeleted"/>
+            </div>
+            <div class="grid gap-0 border-top text-break">
+                <t t-foreach="this.previewData.master_exclusive" t-as="field" t-key="field_index">
+                    <div t-attf-class="g-col-4 g-col-lg-2 d-flex align-items-center #{!field_last ? 'border-bottom' : ''} border-end px-3 py-2">
+                        <span t-out="field.field_label"/>
+                    </div>
+                    <div t-attf-class="g-col-4 g-col-lg-5 #{!field_last ? 'border-bottom' : ''} border-end px-3 py-2 bg-view">
+                        <span t-att-class="(field.master_value and field.will_update_master ? 'text-muted text-decoration-line-through' : '')">
+                            <t t-if="field.master_value">
+                                <i t-if="!field.will_update_master" class="oi d-none d-lg-inline me-1 text-info" data-icon="check"/><t t-out="field.master_value"/>
+                            </t>
+                            <t t-else="">-</t>
+                        </span>
+                    </div>
+                    <div t-attf-class="g-col-4 g-col-lg-5 #{!field_last ? 'border-bottom' : ''} px-3 py-2 bg-view">
+                        <span t-att-class="(field.source_value and !field.will_update_master ? 'text-muted text-decoration-line-through' : '')">
+                            <t t-if="field.source_value">
+                                <i t-if="field.will_update_master" class="oi d-none d-sm-inline me-1 text-info" data-icon="check"/><t t-out="field.source_value"/>
+                            </t>
+                            <t t-else="">-</t>
+                        </span>
+                    </div>
+                </t>
+            </div>
+        </t>
+    </t>
+
+    <!-- Master Record Update -->
+    <t t-name="data_cleaning.RelationsMergedData">
+        <div t-if="!this.previewData.merged_relations.length" class="border-top py-4 bg-view text-muted text-center">
+            No relations will be merged
+        </div>
+        <t t-else="">
+            <div class="grid gap-0 border-top">
+                <div class="g-col-4 g-col-lg-2 d-flex align-items-center border-end p-3 bg-view"/>
+                <!-- Master -->
+                <t t-call="data_cleaning.Header"
+                    record_name="this.previewData.master_name"
+                    record_primary_name="this.previewData.master_primary_name or this.previewData.master_name"
+                    record_company_name="this.previewData.master_company_name"
+                    record_image_url="this.previewData.master_image_url"
+                    is_master="true"/>
+                <!-- Source -->
+                <t t-call="data_cleaning.Header"
+                    record_name="this.previewData.source_name"
+                    record_primary_name="this.previewData.source_primary_name or this.previewData.source_name"
+                    record_company_name="this.previewData.source_company_name"
+                    record_image_url="this.previewData.source_image_url"
+                    total_source_records="this.totalSourceRecords"/>
+            </div>
+            <div class="grid gap-0 border-top text-break">
+                <t t-foreach="this.previewData.merged_relations" t-as="field" t-key="field_index">
+                    <div t-attf-class="g-col-4 g-col-lg-2 d-flex align-items-center #{!field_last ? 'border-bottom' : ''} border-end px-3 py-2"
+                    t-att-data-tooltip="field.field_name">
+                        <span t-out="field.model_label"/>
+                    </div>
+                    <div t-attf-class="g-col-4 g-col-lg-5 #{!field_last ? 'border-bottom' : ''} border-end">
+                        <button class="btn btn-light position-relative w-100 h-100 rounded-0 px-3 py-2 text-start fw-normal" t-on-click="() => this.openRecords(field, this.previewData.master_id)" t-out="field.master_count"/>
+                    </div>
+                    <div t-attf-class="g-col-4 g-col-lg-5 #{!field_last ? 'border-bottom' : ''}">
+                        <button class="btn btn-light position-relative w-100 h-100 rounded-0 px-3 py-2 text-start text-info fw-normal" t-on-click="() => this.openRecords(field, this.previewData.master_id)" t-out="'+ ' + field.source_count"/>
+                    </div>
+                </t>
+            </div>
+        </t>
+    </t>
+
+</templates>

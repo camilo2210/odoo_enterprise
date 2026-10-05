@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="esg_action_form_view" model="ir.ui.view">
+        <field name="name">esg.action.form</field>
+        <field name="model">esg.action</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" name="action_view_esg_metric" icon="book" type="object" invisible="not metric_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Metric</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="e.g. Diversity Training" widget="text" class="o_text_overflow" options="{'line_breaks': False}"/>
+                            </h1>
+                        </div>
+                        <div class="d-flex justify-content-end align-items-center px-1">
+                            <field name="priority" class="h3 pe-2" widget="priority"/>
+                        </div>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                            <field name="responsible_user_id"/>
+                        </group>
+                        <group>
+                            <field name="measure_type"/>
+                            <field name="uom_id" required="measure_type == 'physically' and has_target" invisible="measure_type == 'monetary'" options="{'no_open': True}"/>
+                            <field name="currency_id" required="measure_type == 'monetary' and has_target" invisible="measure_type == 'physically'" options="{'no_open': True}"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Baseline">
+                            <field name="baseline_value" widget="float"/>
+                            <field name="baseline_start_date" widget="daterange" string="Period" options="{'always_range': 1, 'end_date_field': 'baseline_end_date'}"/>
+                        </group>
+                        <group string="Target">
+                            <field name="target_value" widget="float"/>
+                            <field name="target_start_date" widget="daterange" string="Period" options="{'always_range': 1, 'end_date_field': 'target_end_date'}"/>
+                        </group>
+                        <group string="Current">
+                            <field name="current_value" widget="float" readonly="1"/>
+                            <field name="is_reached"/>
+                        </group>
+                        <group string="Description">
+                            <field name="description" nolabel="1" colspan="2" placeholder="This description will be included in the report" class="o_html_field"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="value_history" string="Value History">
+                            <field name="value_history_ids">
+                                <list editable="bottom">
+                                    <field name="date"/>
+                                    <field name="value"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="other_info" string="Other Info">
+                            <group>
+                                <field name="metric_id" groups="esg.group_esg_csrd_reporting"/>
+                                <field name="esrs_id" invisible="not metric_id" groups="esg.group_esg_csrd_reporting"/>
+                                <field name="company_id" placeholder="All companies"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter reload_on_follower="True"/>
+            </form>
+        </field>
+    </record>
+
+    <record id="esg_action_list_view" model="ir.ui.view">
+        <field name="name">esg.action.list</field>
+        <field name="model">esg.action</field>
+        <field name="arch" type="xml">
+            <list multi_edit="1">
+                <field name="name"/>
+                <field name="metric_id" optional="hide" groups="esg.group_esg_csrd_reporting"/>
+                <field name="esrs_id" optional="hide" groups="esg.group_esg_csrd_reporting"/>
+                <field name="tag_ids" widget="many2many_tags" optional="hide" options="{'color_field': 'color'}"/>
+                <field name="responsible_user_id" optional="hide"/>
+                <field name="priority" widget="priority" optional="hide"/>
+                <field name="baseline_value" optional="show"/>
+                <field name="baseline_start_date" widget="daterange" string="Baseline Period" optional="hide" options="{'always_range': 1, 'end_date_field': 'baseline_end_date'}"/>
+                <field name="baseline_end_date" column_invisible="1"/>  <!-- used as end_date field for daterange widget -->
+                <field name="current_value" optional="show"/>
+                <field name="current_value_date" optional="hide"/>
+                <field name="target_value" optional="show"/>
+                <field name="target_start_date" widget="daterange" string="Target Period" optional="hide" options="{'always_range': 1, 'end_date_field': 'target_end_date'}"/>
+                <field name="target_end_date" column_invisible="1"/>  <!-- used as end_date field for daterange widget -->
+                <field name="uom_id" optional="show" required="measure_type == 'physically' and has_target" invisible="measure_type == 'monetary'"/>
+                <field name="currency_id" optional="show" required="measure_type == 'monetary' and has_target" invisible="measure_type == 'physically'"/>
+                <field name="measure_type" optional="hide"/>
+                <field name="is_reached"/>
+                <field name="company_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="esg_action_pivot_view" model="ir.ui.view">
+        <field name="name">esg.action.pivot</field>
+        <field name="model">esg.action</field>
+        <field name="arch" type="xml">
+            <pivot string="Actions" sample="1">
+                <field name="baseline_value" type="measure"/>
+                <field name="target_value" type="measure"/>
+                <field name="current_value" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="esg_action_search_view" model="ir.ui.view">
+        <field name="name">esg.action.search</field>
+        <field name="model">esg.action</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="tag_ids"/>
+                <field name="metric_id" groups="esg.group_esg_csrd_reporting"/>
+                <field name="esrs_id" groups="esg.group_esg_csrd_reporting"/>
+                <field name="uom_id"/>
+                <field name="responsible_user_id"/>
+                <field name="company_id"/>
+                <filter name="my_actions_filter" string="My Actions" domain="[('responsible_user_id', '=', uid)]"/>
+                <separator/>
+                <filter name="reached_filter" string="Reached" domain="[('is_reached', '=', True)]"/>
+                <filter name="not_reached_filter" string="Not Reached" domain="[('is_reached', '=', False), ('has_target', '=', True)]"/>
+                <filter name="target_undefined_filter" string="No Target Set" domain="[('has_target', '=', False)]"/>
+                <separator/>
+                <filter name="medium_priority_filter" string="Medium Priority" domain="[('priority', '=', '1')]"/>
+                <filter name="high_priority_filter" string="High Priority" domain="[('priority', 'in', ['2', '3'])]"/>
+                <filter name="urgent_priority_filter" string="Urgent" domain="[('priority', '=', '3')]"/>
+                <separator/>
+                <filter name="csrd_filter" string="CSRD" domain="[('metric_id', '!=', False)]" groups="esg.group_esg_csrd_reporting"/>
+                <separator/>
+                <filter name="baseline_period_filter" string="Baseline Period" date="baseline_start_date"/>
+                <filter name="target_period_filter" string="Target Period" date="target_start_date"/>
+                <filter name="current_value_date_filter" string="Current Value Date" date="current_value_date"/>
+                <separator/>
+                <filter name="physically_filter" string="Physically" domain="[('measure_type', '=', 'physically')]"/>
+                <filter name="monetary_filter" string="Monetary" domain="[('measure_type', '=', 'monetary')]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="is_reached_groupby" string="Reached" context="{'group_by': 'is_reached'}"/>
+                    <filter name="priority_groupby" string="Priority" context="{'group_by': 'priority'}"/>
+                    <filter name="metric_groupby" string="Metric" context="{'group_by': 'metric_id'}" groups="esg.group_esg_csrd_reporting"/>
+                    <filter name="esrs_id_groupby" string="ESRS" context="{'group_by': 'esrs_id'}" groups="esg.group_esg_csrd_reporting"/>
+                    <filter name="measure_type_groupby" string="Measure Type" context="{'group_by': 'measure_type'}"/>
+                    <filter name="uom_id_groupby" string="Unit of Measure" context="{'group_by': 'uom_id'}"/>
+                    <filter name="tag_groupby" string="Tags" context="{'group_by': 'tag_ids'}"/>
+                    <filter name="responsible_user_groupby" string="Responsible" context="{'group_by': 'responsible_user_id'}"/>
+                    <filter name="company_groupby" string="Company" context="{'group_by': 'company_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_view_esg_action" model="ir.actions.act_window">
+        <field name="name">Actions</field>
+        <field name="path">esg-actions</field>
+        <field name="res_model">esg.action</field>
+        <field name="view_mode">list,pivot,form</field>
+        <field name="context">{'search_default_metric_groupby': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create actions.
+            </p>
+            <p>
+                Actions are the specific steps or measures that an organization takes to implement its ESG strategy.
+                They are the actionable items that help achieve its ESG goals, including the targets set to track progress over time.
+            </p>
+        </field>
+    </record>
+</odoo>

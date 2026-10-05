@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="esg_metric_form_view" model="ir.ui.view">
+        <field name="name">esg.metric.form</field>
+        <field name="model">esg.metric</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_ask_stakeholder_review" string="Stakeholder Review" type="object" class="btn-primary" groups="esg.esg_group_manager,survey.group_survey_user"/>
+                </header>
+                <div
+                    class="alert alert-warning d-flex align-items-center" role="alert"
+                    invisible="not score_gap_warning_message"
+                >
+                    <i class="oi me-2" data-icon="warning" role="img" aria-label="Warning" title="Warning"/>
+                    <field name="score_gap_warning_message" nolabel="1" readonly="1"/>
+                </div>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" name="action_open_metric_survey_input_lines" icon="edit_square" type="object" invisible="not survey_ids" groups="esg.esg_group_manager,survey.group_survey_user">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="survey_answer_done_count"/>
+                                    <span> / </span>
+                                    <field name="survey_answer_count"/>
+                                </span>
+                                <span class="o_stat_text">Stakeholder Reviews</span>
+                            </div>
+                        </button>
+                        <button class="oe_stat_button" name="action_view_esg_actions" icon="checklist" type="object">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text d-flex align-items-baseline gap-1">
+                                    <field name="action_count" widget="statinfo" nolabel="1" class="oe_inline"/>
+                                    <span>Actions</span>
+                                </span>
+                                <span class="o_stat_text d-flex align-items-baseline gap-1">
+                                    <field name="reached_action_count" widget="statinfo" nolabel="1" class="oe_inline"/>
+                                    <span>Reached</span>
+                                </span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="e.g. Carbon Footprint" widget="text" class="o_text_overflow" options="{'line_breaks': False}"/>
+                            </h1>
+                        </div>
+                        <div class="d-flex justify-content-end align-items-center px-1">
+                            <field name="priority" class="h3 pe-2" widget="priority"/>
+                        </div>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="esrs_id"/>
+                            <field name="category"/>
+                            <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                            <separator string="Impact, Risk, and Opportunity (IRO) Assessment"/>
+                            <field name="type"/>
+                            <field name="status" widget="radio" options="{'horizontal': True}"/>
+                        </group>
+                        <group>
+                            <field name="date_start" widget="daterange" options="{'end_date_field': 'date_end', 'always_range': 1}"/>
+                            <field name="date_end" invisible="1"/>  <!-- used as end_date field for daterange widget -->
+                            <field name="materiality_type" widget="badge"  options="{'color_field': 'materiality_type_color'}"/>
+                            <field name="materiality_type_color" invisible="1"/>  <!-- used as color field for materiality_type field -->
+                            <field name="gap_analysis" widget="radio" options="{'horizontal': True}"/>
+                            <separator string="Description"/>
+                            <field name="notes" nolabel="1" colspan="2" placeholder="Enter description here..." class="o_html_field"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="materiality" string="Materiality">
+                            <group>
+                                <group>
+                                    <label for="impact_severity_score"/>
+                                    <div class="d-flex flex-column">
+                                        <field name="impact_severity_score" nolabel="1"/>
+                                        <a type="object" icon="arrow_forward" icon_class="pe-1" name="action_open_impact_severity_score">Compute Impact Severity</a>
+                                    </div>
+                                    <label for="financial_severity_score"/>
+                                    <div class="d-flex flex-column">
+                                        <field name="financial_severity_score" nolabel="1"/>
+                                        <a type="object" icon="arrow_forward" icon_class="pe-1" name="action_open_financial_severity_score">Compute Financial Severity</a>
+                                    </div>
+                                </group>
+                                <group>
+                                    <field name="is_stakeholder_impact_score_manually_edited" invisible="1"/>  <!-- Needed for stakeholder_score_selection widget -->
+                                    <label for="stakeholder_impact_severity_score"/>
+                                    <div class="d-inline-flex align-items-center">
+                                        <field name="stakeholder_impact_severity_score" widget="stakeholder_score_selection" options="{'related_field_name': 'is_stakeholder_impact_score_manually_edited'}"/>
+                                        <button
+                                            class="ps-2 btn btn-link"
+                                            name="action_apply_stakeholder_impact_score"
+                                            type="object"
+                                            icon="refresh"
+                                            title="Apply Stakeholder Review Impact Score"
+                                            invisible="not is_stakeholder_impact_score_manually_edited"
+                                        />
+                                    </div>
+                                    <field name="is_stakeholder_financial_score_manually_edited" invisible="1"/>  <!-- Needed for stakeholder_score_selection widget -->
+                                    <label for="stakeholder_financial_severity_score"/>
+                                    <div class="d-inline-flex align-items-center">
+                                        <field name="stakeholder_financial_severity_score" widget="stakeholder_score_selection" options="{'related_field_name': 'is_stakeholder_financial_score_manually_edited'}"/>
+                                        <button
+                                            class="ps-2 btn btn-link"
+                                            name="action_apply_stakeholder_financial_score"
+                                            type="object"
+                                            icon="refresh"
+                                            title="Apply Stakeholder Review Financial Score"
+                                            invisible="not is_stakeholder_financial_score_manually_edited"
+                                        />
+                                    </div>
+                                </group>
+                                <label for="justification" string="Justification" class="fw-bold"/>
+                                <field name="justification" placeholder="This topic is considered non-material as our operations produce minimal GHG emissions and our suppliers' strong carbon policies further limit any significant negative impact."/>
+                            </group>
+                        </page>
+                        <page name="other_info" string="Other Info">
+                            <group>
+                                <field name="company_id" placeholder="All companies"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter reload_on_follower="True"/>
+            </form>
+        </field>
+    </record>
+
+    <record id="esg_metric_list_view" model="ir.ui.view">
+        <field name="name">esg.metric.list</field>
+        <field name="model">esg.metric</field>
+        <field name="arch" type="xml">
+            <list multi_edit="1">
+                <header>
+                    <button name="action_ask_stakeholder_review" string="Stakeholder Review" type="object" display="always" class="btn-primary" groups="esg.esg_group_manager,survey.group_survey_user"/>
+                </header>
+                <field name="priority" widget="priority"/>
+                <field name="name"/>
+                <field name="type"/>
+                <field name="status" optional="hide"/>
+                <field name="esrs_id" optional="show"/>
+                <field name="category" optional="show"/>
+                <field name="tag_ids" widget="many2many_tags" optional="hide" options="{'color_field': 'color'}"/>
+                <field name="impact_severity_score" optional="hide"/>
+                <field name="financial_severity_score" optional="hide"/>
+                <field name="materiality_type" widget="badge"  options="{'color_field': 'materiality_type_color'}"/>
+                <field name="materiality_type_color" column_invisible="1"/>  <!-- used as color field for materiality_type field -->
+                <field name="gap_analysis"/>
+                <field name="date_start" widget="daterange" string="Reporting Period" options="{'end_date_field': 'date_end', 'always_range': 1}"/>
+                <field name="date_end" column_invisible="1"/>  <!-- used as end_date field for daterange widget -->
+                <field name="company_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="esg_metric_kanban_view" model="ir.ui.view">
+        <field name="name">esg.metric.kanban</field>
+        <field name="model">esg.metric</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="category">
+                <field name="name"/>
+                <field name="type"/>
+                <templates>
+                    <t t-name="card" class="flex-row">
+                        <main>
+                            <span class="d-flex fw-bold fs-5">
+                                <t t-out="record.name.value"/> <t t-out="record.type.value"/>
+                            </span>
+                            <field name="esrs_id"/>
+                            <footer>
+                                <field name="priority" widget="priority"/>
+                            </footer>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="esg_metric_search_view" model="ir.ui.view">
+        <field name="name">esg.metric.search</field>
+        <field name="model">esg.metric</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="tag_ids"/>
+                <filter name="high_priority_filter" string="High Priority" domain="[('priority', 'in', ['2', '3'])]"/>
+                <filter name="urgent_priority_filter" string="Urgent Priority" domain="[('priority', '=', '3')]"/>
+                <separator/>
+                <filter name="impact_material_filter" string="Impact Material" domain="[('materiality_type', '=', 'impact')]"/>
+                <filter name="financial_material_filter" string="Financial Material" domain="[('materiality_type', '=', 'financial')]"/>
+                <filter name="double_material_filter" string="Double Material" domain="[('materiality_type', '=', 'double')]"/>
+                <separator/>
+                <filter name="available_data_filter" string="Available Data" domain="[('gap_analysis', '=', 'available')]"/>
+                <filter name="missing_data_filter" string="Missing Data" domain="[('gap_analysis', '=', 'missing')]"/>
+                <separator/>
+                <filter name="environment_filter" string="Environment" domain="[('category', '=', '1_environment')]"/>
+                <filter name="social_filter" string="Social" domain="[('category', '=', '2_social')]"/>
+                <filter name="governance_filter" string="Governance" domain="[('category', '=', '3_governance')]"/>
+                <separator/>
+                <filter name="reporting_period_filter" string="Reporting Period" date="date_start"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="priority_groupby" string="Priority" context="{'group_by': 'priority'}"/>
+                    <filter name="materiality_groupby" string="Materiality" context="{'group_by': 'materiality_type'}"/>
+                    <filter name="gap_analysis_groupby" string="Gap Analysis" context="{'group_by': 'gap_analysis'}"/>
+                    <filter name="category_groupby" string="Category" context="{'group_by': 'category'}"/>
+                    <filter name="esrs_section_groupby" string="ESRS Code" context="{'group_by': 'esrs_section'}"/>
+                    <filter name="esrs_id_groupby" string="ESRS" context="{'group_by': 'esrs_id'}"/>
+                    <filter name="type_groupby" string="Type" context="{'group_by': 'type'}"/>
+                    <filter name="reporting_period_groupby" string="Reporting Period" context="{'group_by': 'date_start'}"/>
+                    <filter name="company_groupby" string="Company" context="{'group_by': 'company_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="esg_metric_impact_severity_score_form_view" model="ir.ui.view">
+        <field name="name">esg.metric.impact.severity.score.form</field>
+        <field name="model">esg.metric</field>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="display_impact_severity_score" string="Impact Severity"/>
+                        <field name="scale_value"/>
+                        <field name="scope_value"/>
+                        <field name="remediability_value" invisible="type in ['positive_impact', 'opportunity']"/>
+                        <field name="likelihood_value" invisible="status == 'actual'"/>
+                    </group>
+                    <footer>
+                        <button name="action_save_impact_scores" type="object" string="Save" class="btn-primary" data-hotkey="q"/>
+                        <button string="Discard" special="cancel" data-hotkey="x"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="esg_metric_financial_severity_score_form_view" model="ir.ui.view">
+        <field name="name">esg.metric.financial.severity.score.form</field>
+        <field name="model">esg.metric</field>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="display_financial_severity_score" string="Financial Severity"/>
+                        <field name="financial_impacts_value"/>
+                        <field name="likelihood_value" invisible="status == 'actual'"/>
+                    </group>
+                    <footer>
+                        <button name="action_save_financial_scores" type="object" string="Save" class="btn-primary" data-hotkey="q"/>
+                        <button string="Discard" special="cancel" data-hotkey="x"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_create_metric" model="ir.actions.act_window">
+        <field name="name">Create a Metric</field>
+        <field name="res_model">esg.metric</field>
+        <field name="view_mode">form</field>
+    </record>
+
+    <record id="action_view_metrics" model="ir.actions.act_window">
+        <field name="name">Metrics</field>
+        <field name="path">esg-metrics</field>
+        <field name="res_model">esg.metric</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="esg_metric_search_view"/>
+        <field name="context">{'search_default_esrs_id_groupby': 1}</field>
+        <field name="help" type="html">
+
+        <div class="o_nocontent_esg d-flex flex-column-reverse flex-lg-column gap-4 p-3">
+            <div class="grid row-gap-5 column-gap-0 column-gap-md-3 pt-4">
+                <div class="g-col-12 g-col-md-6 g-col-lg-3 position-relative d-flex flex-column flex-grow-1 rounded px-3 pb-3 bg-info-subtle text-info-emphasis text-center">
+                    <i class="oi oi-stack position-absolute start-50 top-0 translate-middle rounded-circle bg-info-subtle fs-2 text-info" data-icon="business"/>
+                    <h3 class="text-reset mt-4">General</h3>
+                    <ul class="list-unstyled mb-0">
+                        <li class="border-top border-info-subtle p-3">
+                            <span class="text-uppercase opacity-50">ESRS 1</span>
+                            <h6 class="mb-0 text-reset">General Requirements</h6>
+                        </li>
+                        <li class="p-3">
+                            <span class="text-uppercase opacity-50">ESRS 2</span>
+                            <h6 class="mb-0 text-reset">General Disclosure</h6>
+                        </li>
+                    </ul>
+                </div>
+                <div class="g-col-12 g-col-md-6 g-col-lg-3 position-relative d-flex flex-column flex-grow-1 rounded px-3 pb-3 bg-success-subtle text-success-emphasis text-center">
+                    <i class="oi oi-stack position-absolute start-50 top-0 translate-middle rounded-circle bg-success-subtle fs-2 text-success" data-icon="eco"/>
+                    <h3 class="text-reset mt-4">Environment</h3>
+                    <ul class="list-unstyled mb-0">
+                        <li class="border-top border-success-subtle p-3">
+                            <span class="text-uppercase opacity-50">ESRS E1</span>
+                            <h6 class="mb-0 text-reset">Climate Change</h6>
+                        </li>
+                        <li class="p-3">
+                            <span class="text-uppercase opacity-50">ESRS E2</span>
+                            <h6 class="mb-0 text-reset">Pollution</h6>
+                        </li>
+                        <li class="p-3">
+                            <span class="text-uppercase opacity-50">ESRS E3</span>
+                            <h6 class="mb-0 text-reset">Water and marine resources</h6>
+                        </li>
+                        <li class="p-3">
+                            <span class="text-uppercase opacity-50">ESRS E4</span>
+                            <h6 class="mb-0 text-reset">Biodiversity and ecosystems</h6>
+                        </li>
+                        <li class="p-3">
+                            <span class="text-uppercase opacity-50">ESRS E5</span>
+                            <h6 class="mb-0 text-reset">Circular economy</h6>
+                        </li>
+                    </ul>
+                </div>
+                <div class="g-col-12 g-col-md-6 g-col-lg-3 position-relative d-flex flex-column flex-grow-1 rounded px-3 pb-3 bg-warning-subtle text-warning-emphasis text-center">
+                    <i class="oi oi-filled oi-stack position-absolute start-50 top-0 translate-middle rounded-circle bg-warning-subtle fs-2 text-warning lh-lg" data-icon="group"/>
+                    <h3 class="text-reset mt-4">Social</h3>
+                    <ul class="list-unstyled mb-0">
+                        <li class="border-top border-warning-subtle p-3">
+                            <span class="text-uppercase opacity-50">ESRS S1</span>
+                            <h6 class="mb-0 text-reset">Own Workforce</h6>
+                        </li>
+                        <li class="p-3">
+                            <span class="text-uppercase opacity-50">ESRS S2</span>
+                            <h6 class="mb-0 text-reset">Workers in the value chain</h6>
+                        </li>
+                        <li class="p-3">
+                            <span class="text-uppercase opacity-50">ESRS S3</span>
+                            <h6 class="mb-0 text-reset">Affected communities</h6>
+                        </li>
+                        <li class="p-3">
+                            <span class="text-uppercase opacity-50">ESRS S4</span>
+                            <h6 class="mb-0 text-reset">Consumers and end-Users</h6>
+                        </li>
+                    </ul>
+                </div>
+                <div class="g-col-12 g-col-md-6 g-col-lg-3 position-relative d-flex flex-column flex-grow-1 rounded px-3 pb-3 bg-primary-subtle text-primary-emphasis text-center">
+                    <i class="oi oi-stack position-absolute start-50 top-0 translate-middle rounded-circle bg-primary-subtle fs-2 text-primary" data-icon="account_balance"/>
+                    <h3 class="text-reset mt-4">Governance</h3>
+                    <ul class="list-unstyled mb-0">
+                        <li class="border-top border-primary-subtle p-3">
+                            <span class="text-uppercase opacity-50">ESRS G1</span>
+                            <h6 class="mb-0 text-reset">Business Conduct</h6>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="text-center">
+                <h3 class="mb-0">No ESG Metrics found</h3>
+                <p>Let's create one!</p>
+                <a type="action" class="btn btn-primary btn-lg" name="esg.action_create_metric">Create ESG Metric</a>
+            </div>
+        </div>
+        </field>
+    </record>
+</odoo>

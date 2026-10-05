@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <template id="folder_notification_move_in" technical_usage="mail_post_source">
+            <p t-if="len(documents) == 1">
+                <span t-out="documents[0].display_name"/> was moved inside this folder.
+            </p>
+            <t t-else="">
+                <p>The following documents were moved inside this folder:</p>
+                <ul>
+                    <li t-foreach="documents" t-as="document">
+                        <span t-out="document.display_name"/>
+                    </li>
+                </ul>
+            </t>
+        </template>
+
+        <template id="folder_notification_move_out" technical_usage="mail_post_source">
+            <p t-if="len(documents) == 1">
+                <span t-out="documents[0].display_name"/> has been moved outside this folder.
+            </p>
+            <t t-else="">
+                <p>The following documents were moved outside this folder:</p>
+                <ul>
+                    <li t-foreach="documents" t-as="document">
+                        <span t-out="document.display_name"/>
+                    </li>
+                </ul>
+            </t>
+        </template>
+
+        <template id="tracking_access_members_change" technical_usage="mail_post_source">
+            <t t-if="created_access">
+                <span>The following members/groups gained access:</span>
+                <ul class="mb-1">
+                    <t t-foreach="['groups', 'members']" t-as="access_type" t-if="created_access.get(access_type)">
+                        <t t-set="record_map" t-value="partner_map if access_type == 'members' else group_map"/>
+                        <li t-foreach="created_access[access_type].items()" t-as="access">
+                            <t t-out="record_map.get(access[0]).name"/> has gained access as
+                            <t t-if="access[1]['role'] == 'view'">Viewer</t>
+                            <t t-else="">Editor</t>
+                        </li>
+                    </t>
+                </ul>
+            </t>
+            <t t-if="updated_access">
+                <span>The following members/groups had their rights changed:</span>
+                <ul class="mb-1">
+                    <t t-foreach="['groups', 'members']" t-as="access_type" t-if="updated_access.get(access_type)">
+                        <t t-set="record_map" t-value="partner_map if access_type == 'members' else group_map"/>
+                        <li t-foreach="updated_access[access_type].items()" t-as="access">
+                            <t t-if="access[1]['role'][0] != access[1]['role'][1]">
+                                <span t-out="record_map.get(access[0]).name"/> rights changed from
+                                <t t-if="access[1]['role'][0] == 'view'">Viewer</t>
+                                <t t-else="">Editor</t>
+                                to
+                                <t t-if="access[1]['role'][1] == 'view'">Viewer</t>
+                                <t t-else="">Editor</t>
+                                <span t-if="access[1]['expiration_date'][0] != access[1]['expiration_date'][1]">
+                                     and its expiration date changed from <t t-out="access[1]['expiration_date'][0]"/> to <t t-out="access[1]['expiration_date'][1]"/>
+                                </span>
+                            </t>
+                            <t t-elif="access[1]['expiration_date'][0] != access[1]['expiration_date'][1]">
+                                <span t-out="record_map.get(access[0]).name"/> expiration date changed from <t t-out="access[1]['expiration_date'][0]"/> to <t t-out="access[1]['expiration_date'][1]"/>
+                            </t>
+                        </li>
+                    </t>
+                </ul>
+            </t>
+            <t t-if="removed_access">
+                <span>The following members/groups accesses were removed:</span>
+                <ul class="mb-1">
+                    <t t-foreach="['groups', 'members']" t-as="access_type" t-if="removed_access.get(access_type)">
+                        <t t-set="record_map" t-value="partner_map if access_type == 'members' else group_map"/>
+                        <li t-foreach="removed_access[access_type]" t-as="access">
+                            <span t-out="record_map.get(access).name"/>
+                        </li>
+                    </t>
+                </ul>
+            </t>
+        </template>
+
+        <template id="tracking_auto_archive_by_dependency" technical_usage="mail_post_source">
+            Document archived because its reference record was deleted.
+        </template>
+
+        <template id="requested_document_uploaded" technical_usage="mail_post_source">
+            Hello <t t-out="document.create_uid.name or ''">Mitchell Admin</t>,
+            <p>
+                <t t-out="user.name or ''">Marc Demo</t> has uploaded the requested document <b><t t-out="document.name or ''">Document</t></b>
+                <span t-if="document.requestee_partner_id != user.partner_id"> (originally requested from <t t-out="document.requestee_partner_id.name"/>)</span>.
+            </p>
+        </template>
+    </data>
+</odoo>

@@ -1,0 +1,84 @@
+<odoo>
+    <record id="view_delivery_carrier_form_with_provider_fedex" model="ir.ui.view">
+        <field name="name">delivery.carrier.form.provider.fedex</field>
+        <field name="model">delivery.carrier</field>
+        <field name="inherit_id" ref="delivery.view_delivery_carrier_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@icon='play_arrow']" position="attributes">
+                <attribute name="invisible">not prod_environment or not support_test_environment</attribute>
+            </xpath>
+
+            <xpath expr="//button[@icon='stop']" position="attributes">
+                <attribute name="invisible">prod_environment or not support_test_environment</attribute>
+            </xpath>
+            <!-- §2 — "Insurance Percentage" is not allowed for FedEx (Additional
+                 Guidance §3: "Use of the term 'insurance'"). Hide the base label
+                 + field for FedEx carriers and re-render them as
+                 "Declared Value Percentage" inside the FedEx tab. -->
+            <xpath expr="//label[@for='shipping_insurance']" position="attributes">
+                <attribute name="invisible">not supports_shipping_insurance or delivery_type == 'fedex_certified'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='shipping_insurance']/.." position="attributes">
+                <attribute name="invisible">not supports_shipping_insurance or delivery_type == 'fedex_certified'</attribute>
+            </xpath>
+
+            <!-- §3 + §4 — FedEx Unified Logo + disclaimer at the top of the
+                 carrier form, above the title. Scoped to FedEx carriers only. -->
+            <xpath expr="//div[@name='title']" position="before">
+                <div invisible="delivery_type != 'fedex_certified'">
+                    <widget name="fedex_brand_header"/>
+                </div>
+            </xpath>
+
+            <xpath expr="//page[@name='destination']" position='before'>
+                <page string="FedEx Configuration" name="fedex_configuration" invisible="delivery_type != 'fedex_certified'">
+                    <group>
+                        <group>
+                            <div colspan="2">
+                                <button name="action_open_account_registration_wizard" type="object" string="Register FedEx Account" class="oe_highlight" groups="stock.group_stock_manager"/>
+                            </div>
+                            <field name="fedex_certified_account_id" required="delivery_type == 'fedex_certified' and id and fedex_certified_account_number" string="FedEx Account"/>
+                            <field name="fedex_certified_account_number" string="Account Number"/>
+                            <field name="fedex_certified_service_type" string="FedEx Service Type" required="delivery_type == 'fedex_certified'"/>
+                            <field name="fedex_certified_droppoff_type" required="delivery_type == 'fedex_certified'" string="Drop-off Type"/>
+                        </group>
+                        <group>
+                            <field name="fedex_certified_default_package_type_id" required="delivery_type == 'fedex_certified'" domain="[('package_carrier_type', '=', 'fedex_certified')]" string="Package Type"/>
+                            <field name="fedex_certified_weight_unit" string="Package Weight Unit" required="delivery_type == 'fedex_certified'"/>
+                            <div class="o_td_label">
+                                <span class="o_form_label">Package Length Unit</span>
+                            </div>
+                            <div class="o_field_widget">
+                                <span invisible="fedex_certified_weight_unit != 'KG'">Centimeters</span>
+                                <span invisible="fedex_certified_weight_unit != 'LB'">Inches</span>
+                            </div>
+                            <field name="fedex_certified_label_stock_type" string="Label Size" required="delivery_type == 'fedex_certified'"/>
+                            <field name="fedex_certified_label_file_type" string="Label Format" required="delivery_type == 'fedex_certified'"/>
+                        </group>
+                        <group string="Options">
+                            <field name="return_label_on_delivery" invisible="not can_generate_return"/>
+                            <field name="get_return_label_from_portal" invisible="not return_label_on_delivery"/>
+                            <field name="fedex_certified_email_notifications" string="Email Notifications"/>
+                            <field name="fedex_certified_duty_payment" string="Duties paid by" required="delivery_type == 'fedex_certified'"/>
+                            <field name="fedex_certified_residential_address" string="Residential delivery"/>
+                            <field name="fedex_certified_documentation_type" string="Generate invoice"/>
+                            <field name="fedex_certified_override_shipper_vat" string="Union tax id (EORI/IOSS)"/>
+                        </group>
+                        <group string="Declared Value" invisible="not supports_shipping_insurance">
+                            <label for="shipping_insurance" string="Declared Value Percentage"/>
+                            <div>
+                                <field name="shipping_insurance" class="oe_inline" nolabel="1"
+                                       help="Percentage of declared value used when sending shipments via FedEx. Note: declared value is not insurance and no insurance coverage is provided by FedEx."/>%
+                            </div>
+                        </group>
+                        <group string="Extra Data" name="fedex_extra_data" groups="base.group_no_one">
+                            <field name="fedex_certified_extra_data_rate_request" string="Extra data for rate"/>
+                            <field name="fedex_certified_extra_data_ship_request" string="Extra data for ship"/>
+                            <field name="fedex_certified_extra_data_return_request" string="Extra data for request"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

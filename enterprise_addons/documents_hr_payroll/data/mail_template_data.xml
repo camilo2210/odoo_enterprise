@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Override to include document link of the payslip into the mail -->
+        <record id="mail_template_new_payslip" model="mail.template">
+            <field name="name">Payroll: New Payslip Document</field>
+            <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
+            <field name="subject">{{ object.employee_id.name }}, a new payslip is available for you</field>
+            <field name="email_from">{{ user.email_formatted }}</field>
+            <field name="email_to">{{ object.employee_id.private_email or object.employee_id.work_email }}</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="description">Sent to employee to notify them about their new payslip</field>
+            <field name="email_layout_xmlid">mail.mail_notification_light</field>
+            <field name="body_html" type="html">
+    <table border="0" cellpadding="0" cellspacing="0" style="width:100%; margin:0px auto;"><tbody>
+        <t t-set="document_access_link" t-value="object.document_access_url"/>
+        <tr><td valign="top" style="text-align: left; font-size: 14px;">
+            Dear <t t-out="object.employee_id.name"></t>, a new payslip is available for you.<br/><br/>
+            <t t-if="object.employee_id.user_id">Please find the PDF in your employee portal.<br/><br/></t>
+            <div t-if="document_access_link" style="text-align: center; padding: 16px 0px 16px 0px; font-size: 14px;">
+                <a t-attf-href="{{ document_access_link }}"
+                    target="_blank"
+                    style="background-color: #875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;">
+                    Your Payslip
+                </a>
+            </div>
+            Have a nice day,<br/>
+            The HR Team
+        </td></tr>
+    </tbody></table>
+                </field>
+                <field name="lang">{{ object.employee_id.lang }}</field>
+                <field name="auto_delete" eval="True"/>
+        </record>
+
+        <record id="mail_template_new_declaration" model="mail.template">
+        <field name="name">Payroll: New Declaration</field>
+        <field name="model_id" ref="model_hr_payroll_employee_declaration"/>
+        <field name="subject">{{ object.employee_id.name }}, a new declaration file is available for you</field>
+        <field name="email_from">{{ user.email_formatted }}</field>
+        <field name="email_to">{{ object.employee_id.private_email or object.employee_id.work_email }}</field>
+        <field name="partner_to" eval="False"/>
+        <field name="use_default_to" eval="False"/> <!-- Important: Send to private address not user partner -->
+        <field name="description">Sent to employee to notify them about their new declaration file</field>
+        <field name="email_layout_xmlid">mail.mail_notification_light</field>
+        <field name="body_html" type="html">
+            <table border="0" cellpadding="0" cellspacing="0" style="width:100%; margin:0px auto;">
+                <tbody>
+                        <t t-set="document_access_link" t-value="object.document_id.access_url"/>
+                    <tr>
+                        <td valign="top" style="text-align: left; font-size: 14px;">
+                            Dear <t t-out="object.employee_id.name"/>, a new declaration file is available for you.<br/><br/>
+                                <t t-if="object.employee_id.user_id">Please find the PDF in your employee portal.<br/><br/></t>
+                                <div t-if="document_access_link" style="text-align: center; padding: 16px 0px 16px 0px; font-size: 14px;">
+                                    <a t-attf-href="{{ document_access_link }}"
+                                    target="_blank"
+                                    style="background-color: #875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;">
+                                    View Declaration
+                                </a>
+                            </div>
+                            Have a nice day,<br/>
+                            The HR Team
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </field>
+            <field name="lang">{{ object.employee_id.lang }}</field>
+            <field name="auto_delete" eval="True"/>
+    </record>
+    </data>
+
+    <template id="documents_hr_payroll_resend_payslip_template">
+        <table border="0" cellpadding="0" cellspacing="0" style="width:100%; margin:0px auto;"><tbody>
+             <tr><td valign="top" style="text-align: left; font-size: 14px;">
+            Dear <t t-out="partner.name"></t>, <br/><br/>Please find the following payslip(s):<br/><br/>
+            <div t-if="len(payslips) == 1">
+                <t t-set="document_access_link" t-value="payslips._origin.document_access_url"/>
+                <div t-if="document_access_link" style="text-align: center; padding: 16px 0px 16px 0px; font-size: 14px;">
+                    <a t-attf-href="{{ document_access_link }}"
+                        target="_blank"
+                        style="background-color: #875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;">
+                        <t t-out="period_by_payslip_id[payslips.id]"/>
+                    </a>
+                </div>
+            </div>
+             <ul t-else="">
+                 <li t-foreach="payslips" t-as="payslip">
+                     <t t-set="document_access_link" t-value="payslip._origin.document_access_url"/>
+                     <a t-if="document_access_link" t-attf-href="{{ document_access_link }}" target="_blank">
+                         <t t-out="period_by_payslip_id[payslip.id]"/></a>
+                 </li>
+             </ul>
+            <div t-if="custom_comment" t-out="custom_comment"/><br/>
+            Have a nice day,<br/>
+            The HR Team
+        </td></tr>
+    </tbody></table>
+    </template>
+</odoo>
