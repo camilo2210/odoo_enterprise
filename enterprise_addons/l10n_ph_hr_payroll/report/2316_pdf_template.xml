@@ -1,0 +1,796 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="l10n_ph_hr_payroll_section_title">
+        <div class="border-bottom border-2 border-dark d-flex align-items-center justify-content-center fw-bold bg-bir-gray"
+             style="height: 15px; font-size: 10px; padding-bottom: 2px;">
+            <span t-out="title" class="lh-1"/>
+        </div>
+    </template>
+
+    <template id="l10n_ph_hr_payroll_segmented_inner">
+        <t t-foreach="box_widths" t-as="box_width">
+            <div class="d-flex overflow-hidden h-100" t-attf-style="width: {{box_width}}%;">
+                <t t-set="p_val" t-value="parts[box_width_index] if len(parts) > box_width_index else ''"/>
+                <t t-set="cap"
+                   t-value="box_capacities[box_width_index] if box_capacities else (len(p_val) if len(p_val) > 0 else 1)"/>
+                <div class="bir-table m-0">
+                    <t t-foreach="range(cap)" t-as="s_idx">
+                        <div class="bir-cell">
+                            <div class="position-relative w-100 h-100 d-flex align-items-center justify-content-center">
+                                <span t-out="p_val[s_idx] if s_idx &lt; len(p_val) else ''"/>
+                                <div t-if="not s_idx_last" class="bir-notch"/>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+            <t t-if="not box_width_last">
+                <div t-if="separator_type == 'hyphen'"
+                     class="d-flex align-items-center justify-content-center fw-bold border-start border-end border-dark bg-bir-gray"
+                     style="width: 4%;">-
+                </div>
+                <div t-elif="separator_type == 'border'" class="border-end border-dark w-0 h-100"/>
+            </t>
+        </t>
+    </template>
+
+    <template id="l10n_ph_hr_payroll_field">
+        <t t-set="l_col" t-value="int(label_col) if label_col else 8"/>
+        <t t-set="r_col" t-value="12 - l_col"/>
+        <t t-set="is_vert" t-value="orientation == 'vertical'"/>
+
+        <div t-attf-class="{{ 'w-100' if is_vert else f'd-flex align-items-center lh-sm h-100 col-{l_col}' }}"
+             t-att-style="'height: 40%; margin-bottom: 1px;' if is_vert else ''">
+            <div t-attf-class="row g-0 w-100 {{indent or ''}}">
+                <div class="col-auto pe-1">
+                    <span class="fw-bold" t-out="case_number"/>
+                </div>
+                <div class="col pe-3">
+                    <span t-out="case_label"/>
+                    <span t-out="case_sub_label" t-if="case_sub_label" class="fst-italic ms-1" style="font-size: 10px;"/>
+                </div>
+            </div>
+        </div>
+
+        <t t-if="not skip_input">
+            <t t-if="is_segmented">
+                <t t-set="val_str" t-value="str(case_value) if case_value else ''"/>
+                <!--
+                In some cases, we know the box sizes but the string won't have a separator (e.g. TIN that we clean beforehand).
+                In these cases, we'll split the string based on the box capacities dynamically.
+                -->
+                <t t-if="split_char and split_char in val_str">
+                    <t t-set="parts" t-value="val_str.split(split_char)"/>
+                </t>
+                <t t-else="">
+                    <t t-set="parts" t-value="[val_str[sum(box_capacities[:i]) : sum(box_capacities[:i]) + box_capacities[i]] for i in range(len(box_capacities))]"/>
+                </t>
+                <t t-if="not is_vert">
+                    <div t-attf-class="h-100 d-flex align-items-center pe-1 col-{{r_col}}">
+                        <div class="d-flex w-100 border border-dark bg-white" style="height: 22px;">
+                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_segmented_inner"/>
+                        </div>
+                    </div>
+                </t>
+                <t t-else="">
+                    <div class="d-flex w-100 border border-dark bg-white" style="height: 60%;">
+                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_segmented_inner"/>
+                    </div>
+                </t>
+            </t>
+
+            <t t-else="">
+                <div t-attf-class="o_field_box bg-white overflow-hidden border border-dark d-flex align-items-center ps-1 text-nowrap {{ 'w-100' if is_vert else f'h-100 col-{r_col}' }}"
+                     t-att-style="'height: 60%;' if is_vert else ''">
+                    <t t-if="is_numeric">
+                        <div class="flex-grow-1 text-end pe-1">
+                            <span t-out="case_value" t-if="case_value is not None"/>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <span class="w-100 text-wrap lh-sm" style="font-size: 9px;" t-out="case_value"/>
+                    </t>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <template id="l10n_ph_hr_payroll_case_custom_label">
+        <div class="col-2 h-100 d-flex align-items-center">
+            <span class="fw-bold ms-4" t-out="case_number"/>
+        </div>
+        <div class="col-10 h-100 d-flex flex-nowrap">
+            <div class="flex-grow-1 border border-dark bg-white h-100 d-flex align-items-center ps-1 me-1 text-truncate">
+                <span t-out="case_label"/>
+            </div>
+            <div class="border border-dark bg-white h-100 d-flex align-items-center justify-content-end pe-1"
+                 style="width: 40%;">
+                <span t-out="case_value" t-if="case_value"/>
+            </div>
+        </div>
+    </template>
+
+    <!-- Note: some monetary values are purposedly left empty instead of using 0.0 as they are not required in the BIR software -->
+    <template id="l10n_ph_hr_payroll_report_2316">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="employee">
+                <t t-call="web.basic_layout">
+                    <t t-set="report_data" t-value="report_data or {}"/>
+                    <style>
+                        .bg-bir-gray { background-color: #bfbfbf !important; }
+                        .o_field_box { line-height: 1.1; }
+                        .checkbox-box { width: 16px; height: 16px; font-size: 8pt; }
+                        .w-0 { width: 0px; }
+                        .bir-table { display: table; table-layout: fixed; width: 100%; height: 100%; }
+                        .bir-cell { display: table-cell; height: 100%; padding: 0; }
+                        .bir-notch { position: absolute; bottom: 0; right: 0; border-right: 1px solid #212529; height: 8px; width: 0px; }
+                        .h-29px { height: 29px !important; }
+                        .h-25px { height: 25px !important; }
+                        .h-40px { height: 40px !important; }
+                    </style>
+
+                    <div class="page m-2" style="font-family: Arial, sans-serif;font-size: 11px;">
+                        <div class="row g-0 align-items-end flex-nowrap" style="min-height: 40px;">
+                            <div class="col-3 p-1">
+                                <div class="row g-0">
+                                    <div class="col-3" style="background-color: #d9d9d9;">For BIR Use Only</div>
+                                    <div class="col-2 ps-1">BCS/ Item:</div>
+                                </div>
+                            </div>
+                            <div class="col-6 d-flex align-items-center justify-content-center fw-bold lh-2"
+                                 style="font-size: 12px;">
+                                <img src="/l10n_ph_reports/static/img/logo.png" alt="Logo" class="me-2 h-40px"/>
+                                <div class="text-center text-nowrap">
+                                    <div>Republic of the Philippines</div>
+                                    <div>Department of Finance</div>
+                                    <div>Bureau of Internal Revenue</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border border-2 border-dark w-100">
+                            <div class="row g-0 border-bottom border-2 border-dark flex-nowrap" style="height: 60px;">
+                                <div class="col-3 border-end border-2 border-dark p-1 text-center lh-1 d-flex flex-column justify-content-center">
+                                    <div>BIR Form No.</div>
+                                    <div class="fw-bold fs-3">2316</div>
+                                    <div>September 2021 (ENCS)</div>
+                                </div>
+                                <div class="col-6 border-end border-2 border-dark p-1 text-center lh-1 d-flex flex-column justify-content-center ps-5 pe-5"
+                                     style="font-size: 12px;">
+                                    <div class="fw-bold fs-5">Certificate of Compensation Payment/Tax Withheld</div>
+                                    <div>For Compensation Payment With or Without Tax Withheld</div>
+                                </div>
+                                <div class="col-3 text-end" style="padding: 2px">
+                                    <img src="/l10n_ph_hr_payroll/static/img/barcode_2316.png" alt="2316 Barcode"
+                                         class="w-100 d-block" style="height:44px;"/>
+                                    <div style="font-size: 10px; line-height: 1; margin-top: 2px;">2316 9/21ENCS</div>
+                                </div>
+                            </div>
+
+                            <div class="row g-0" style="height: 15px; padding-left: 1px;">
+                                <div class="col-12">Fill in all applicable spaces. Mark all appropriate boxes with an
+                                    "X".
+                                </div>
+                            </div>
+
+                            <div class="row g-0 border-top border-2 border-dark flex-nowrap bg-bir-gray">
+
+                                <div class="col-6 border-end border-2 border-dark d-flex flex-column">
+                                    <div class="row g-0 border-bottom border-2 border-dark flex-nowrap ps-1"
+                                         style="height: 30px;">
+                                        <div class="col-6">
+                                            <div class="row" style="height: 26px;">
+                                                <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" is_segmented="1"
+                                                   case_number="'1'" case_label="'For the Year'"
+                                                   case_sub_label="' (YYYY)'" case_value="report_data.get('year')"
+                                                   label_col="6" split_char="False" separator_type="'none'"
+                                                   box_widths="[100]" box_capacities="[4]"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_section_title"
+                                       title="'Part I - Employee Information'"/>
+
+                                    <div class="row g-0 border-bottom border-2 border-dark flex-nowrap p-1"
+                                         style="height: 30px;">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" is_segmented="1"
+                                           case_number="'3'" case_label="'TIN'"
+                                           case_value="report_data.get('employee_tin')" label_col="4" split_char="False"
+                                           separator_type="'hyphen'" box_widths="[20, 20, 20, 28]"
+                                           box_capacities="[3, 3, 3, 5]"/>
+                                    </div>
+                                    <div class="row g-0 border-bottom border-2 border-dark flex-nowrap h-40px">
+                                        <div class="col-9 p-1 h-100">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field"
+                                               orientation="'vertical'" case_number="'4'"
+                                               case_label="'Employee\'s Name'"
+                                               case_sub_label="'(Last Name, First Name, Middle Name)'"
+                                               case_value="report_data.get('employee_formatted_name')"/>
+                                        </div>
+                                        <div class="col-3 p-1 h-100">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field"
+                                               orientation="'vertical'" is_segmented="1" case_number="'5'"
+                                               case_label="'RDO Code'" case_value="report_data.get('employee_rdo_code')"
+                                               split_char="False" separator_type="'none'" box_widths="[100]"
+                                               box_capacities="[3]"/>
+                                        </div>
+                                    </div>
+                                    <div class="row g-0 border-bottom border-2 border-dark flex-nowrap h-40px">
+                                        <div class="col-9 p-1 h-100">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field"
+                                               orientation="'vertical'" case_number="'6'"
+                                               case_label="'Registered Address'"
+                                               case_value="report_data.get('employee_registered_address')"/>
+                                        </div>
+                                        <div class="col-3 p-1 h-100">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field"
+                                               orientation="'vertical'" is_segmented="1" case_number="'6A'"
+                                               case_label="'ZIP Code'"
+                                               case_value="report_data.get('employee_registered_zip')"
+                                               split_char="False" separator_type="'none'" box_widths="[100]"
+                                               box_capacities="[4]"/>
+                                        </div>
+                                    </div>
+                                    <div class="row g-0 border-bottom border-2 border-dark flex-nowrap h-40px">
+                                        <div class="col-9 p-1 h-100">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field"
+                                               orientation="'vertical'" case_number="'6B'"
+                                               case_label="'Local Home Address'"
+                                               case_value="report_data.get('employee_local_home_address')"/>
+                                        </div>
+                                        <div class="col-3 p-1 h-100">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field"
+                                               orientation="'vertical'" is_segmented="1" case_number="'6C'"
+                                               case_label="'ZIP Code'"
+                                               case_value="report_data.get('employee_local_home_zip')"
+                                               split_char="False" separator_type="'none'" box_widths="[100]"
+                                               box_capacities="[4]"/>
+                                        </div>
+                                    </div>
+                                    <div class="row g-0 border-bottom border-2 border-dark flex-nowrap h-40px">
+                                        <div class="col-12 p-1 h-100">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field"
+                                               orientation="'vertical'" case_number="'6D'"
+                                               case_label="'Foreign Address'"
+                                               case_value="report_data.get('employee_foreign_address')"/>
+                                        </div>
+                                    </div>
+                                    <div class="row g-0 border-bottom border-2 border-dark flex-nowrap h-40px">
+                                        <div class="col-6 p-1 h-100 border-end border-2 border-dark">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" is_segmented="1"
+                                               orientation="'vertical'" case_number="'7'" case_label="'Date of Birth'"
+                                               case_sub_label="'(MM/DD/YYYY)'" split_char="'/'"
+                                               case_value="report_data.get('employee_dob')" separator_type="'border'"
+                                               box_widths="[25, 25, 50]" box_capacities="[2, 2, 4]"/>
+                                        </div>
+                                        <div class="col-6 p-1 h-100">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" is_segmented="1"
+                                               orientation="'vertical'" case_number="'8'" case_label="'Contact Number'"
+                                               split_char="'/'" case_value="report_data.get('employee_contact_number')"
+                                               separator_type="'none'" box_widths="[100]" box_capacities="[11]"/>
+                                        </div>
+                                    </div>
+                                    <div class="row g-0 border-bottom border-2 border-dark flex-nowrap p-1 h-25px">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'9'"
+                                           case_label="'Statutory Minimum Wage rate per day'"
+                                           case_value="report_data.get('employee_stat_min_wage_day')" label_col="7"
+                                           is_numeric="True"/>
+                                    </div>
+                                    <div class="row g-0 border-bottom border-2 border-dark flex-nowrap p-1 h-25px">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'10'"
+                                           case_label="'Statutory Minimum Wage rate per month'"
+                                           case_value="report_data.get('employee_stat_min_wage_month')" label_col="7"
+                                           is_numeric="True"/>
+                                    </div>
+
+                                    <div class="row g-0 border-bottom border-2 border-dark flex-nowrap ps-1 align-items-center h-25px">
+                                        <div class="col-1 d-flex align-items-center" style="width: 12.5%;">
+                                            <span class="fw-bold me-2 mb-0">11</span>
+                                            <div class="checkbox-box border border-dark bg-white fw-bold d-flex align-items-center justify-content-center">
+                                                <t t-if="report_data.get('employee_is_mwe') == 'True'">X</t>
+                                            </div>
+                                        </div>
+                                        <div class="col-11 ps-1 d-flex align-items-center lh-1" style="width: 87.5%;">
+                                            <span class="mb-0">Minimum Wage Earner (MWE) whose compensation is exempt
+                                                from withholding tax and not subject to income tax
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_section_title"
+                                       title="'Part II - Employer Information (Present)'"/>
+
+                                    <div class="row g-0 border-bottom border-2 border-dark flex-nowrap p-1"
+                                         style="height: 30px;">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" is_segmented="1"
+                                           case_number="'12'" case_label="'TIN'"
+                                           case_value="report_data.get('employer_tin')" label_col="4" split_char="False"
+                                           separator_type="'hyphen'" box_widths="[20, 20, 20, 28]"
+                                           box_capacities="[3, 3, 3, 5]"/>
+                                    </div>
+                                    <div class="row g-0 border-bottom border-2 border-dark flex-nowrap h-40px">
+                                        <div class="col-12 p-1 h-100">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field"
+                                               orientation="'vertical'" case_number="'13'"
+                                               case_label="'Employer\'s Name'"
+                                               case_value="report_data.get('employer_name')"/>
+                                        </div>
+                                    </div>
+                                    <div class="row g-0 border-bottom border-2 border-dark flex-nowrap h-40px">
+                                        <div class="col-9 p-1 h-100">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field"
+                                               orientation="'vertical'" case_number="'14'"
+                                               case_label="'Registered Address'"
+                                               case_value="report_data.get('employer_registered_address')"/>
+                                        </div>
+                                        <div class="col-3 p-1 h-100">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field"
+                                               orientation="'vertical'" is_segmented="1" case_number="'14A'"
+                                               case_label="'ZIP Code'" case_value="report_data.get('employer_zip')"
+                                               split_char="False" separator_type="'none'" box_widths="[100]"
+                                               box_capacities="[4]"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-0 border-bottom border-2 border-dark flex-nowrap ps-1 align-items-center h-25px">
+                                        <div class="col-4 d-flex align-items-center">
+                                            <span class="fw-bold me-1 mb-0">15</span>
+                                            <div class="col-11 d-flex align-items-center lh-1">
+                                                <span class="mb-0">Type of Employer</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 ps-1 d-flex align-items-center lh-1">
+                                            <div class="checkbox-box border border-dark bg-white fw-bold d-flex align-items-center justify-content-center">
+                                                <t t-if="report_data.get('employer_is_main') == 'True'">X</t>
+                                            </div>
+                                            <span class="mb-0 ps-1">Main Employer</span>
+                                        </div>
+                                        <div class="col-4 ps-1 d-flex align-items-center lh-1">
+                                            <div class="checkbox-box border border-dark bg-white fw-bold d-flex align-items-center justify-content-center">
+                                                <t t-if="not report_data.get('employer_is_main') == 'True'">X</t>
+                                            </div>
+                                            <span class="mb-0 ps-1">Secondary Employer</span>
+                                        </div>
+                                    </div>
+
+                                    <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_section_title"
+                                       title="'Part III - Employer Information (Previous)'"/>
+
+                                    <div class="row g-0 border-bottom border-2 border-dark flex-nowrap p-1"
+                                         style="height: 30px;">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" is_segmented="1"
+                                           box_capacities="[3, 3, 3, 5]" case_number="'16'" case_label="'TIN'"
+                                           case_value="report_data.get('employer_previous_tin')" label_col="4"
+                                           split_char="False" separator_type="'hyphen'" box_widths="[20, 20, 20, 28]"/>
+                                    </div>
+                                    <div class="row g-0 border-bottom border-2 border-dark flex-nowrap h-40px">
+                                        <div class="col-12 p-1 h-100">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field"
+                                               orientation="'vertical'" case_number="'17'"
+                                               case_label="'Employer\'s Name'"
+                                               case_value="report_data.get('employer_previous_name')"/>
+                                        </div>
+                                    </div>
+                                    <div class="row g-0 border-bottom border-2 border-dark flex-nowrap h-40px">
+                                        <div class="col-9 p-1 h-100">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field"
+                                               orientation="'vertical'" case_number="'18'"
+                                               case_label="'Registered Address'"
+                                               case_value="report_data.get('employer_previous_address')"/>
+                                        </div>
+                                        <div class="col-3 p-1 h-100">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field"
+                                               orientation="'vertical'" case_number="'18A'" case_label="'ZIP Code'"
+                                               case_value="report_data.get('employer_previous_zip')"/>
+                                        </div>
+                                    </div>
+
+                                    <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_section_title"
+                                       title="'Part IVA - Summary'"/>
+
+                                    <div class="row g-0 flex-nowrap p-1 h-29px">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'19'"
+                                           case_label="'Gross Compensation Income from Present Employer'"
+                                           case_sub_label="'(Sum of Items 38 and 52)'"
+                                           case_value="report_data.get('item_19')" label_col="8" is_numeric="True"/>
+                                    </div>
+                                    <div class="row g-0 flex-nowrap p-1 h-29px">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'20'"
+                                           case_label="'Less: Total Non-Taxable/Exempt Compensation Income from Present Employer'"
+                                           case_sub_label="'(From Item 38)'" case_value="report_data.get('item_20')"
+                                           label_col="8" is_numeric="True"/>
+                                    </div>
+                                    <div class="row g-0 flex-nowrap p-1 h-29px">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'21'"
+                                           case_label="'Taxable Compensation Income from Present Employer'"
+                                           case_sub_label="'(Item 19 Less Item 20) (From Item 52)'"
+                                           case_value="report_data.get('item_21')" label_col="8" is_numeric="True"/>
+                                    </div>
+                                    <div class="row g-0 flex-nowrap p-1 h-29px">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'22'"
+                                           case_label="'Add: Taxable Compensation Income from Previous Employer, if applicable'"
+                                           case_value="report_data.get('item_22')" label_col="8" is_numeric="True"/>
+                                    </div>
+                                    <div class="row g-0 flex-nowrap p-1 h-29px">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'23'"
+                                           case_label="'Gross Taxable Compensation Income'"
+                                           case_sub_label="'(Sum of Items 21 and 22)'"
+                                           case_value="report_data.get('item_23')" label_col="8" is_numeric="True"/>
+                                    </div>
+                                    <div class="row g-0 flex-nowrap p-1 h-29px">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'24'"
+                                           case_label="'Tax Due'" case_value="report_data.get('item_24')" label_col="8"
+                                           is_numeric="True"/>
+                                    </div>
+                                    <div class="row g-0 flex-nowrap ps-1" style="height: 10px;">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'25'"
+                                           case_label="'Amount of Taxes Withheld'"
+                                           case_value="report_data.get('item_25')" label_col="8" skip_input="True"/>
+                                    </div>
+                                    <div class="row g-0 flex-nowrap p-1 h-29px">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'25A'"
+                                           case_label="'Present Employer'" case_value="report_data.get('item_25a')"
+                                           label_col="8" is_numeric="True" indent="'ms-3'"/>
+                                    </div>
+                                    <div class="row g-0 flex-nowrap p-1 h-29px">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'25B'"
+                                           case_label="'Previous Employer, if applicable'"
+                                           case_value="report_data.get('item_25b')" label_col="8" is_numeric="True"
+                                           indent="'ms-3'"/>
+                                    </div>
+                                    <div class="row g-0 flex-nowrap p-1 h-29px">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'26'"
+                                           case_label="'Total Amount of Taxes Withheld as adjusted'"
+                                           case_sub_label="'(Sum of Items 25A and 25B)'"
+                                           case_value="report_data.get('item_26')" label_col="8" is_numeric="True"/>
+                                    </div>
+                                    <div class="row g-0 flex-nowrap p-1 h-29px">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'27'"
+                                           case_label="'5% Tax Credit (PERA Act of 2008)'"
+                                           case_value="report_data.get('item_27')" label_col="8" is_numeric="True"/>
+                                    </div>
+                                    <div class="row g-0 flex-nowrap p-1 h-29px">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'28'"
+                                           case_label="'Total Taxes Withheld (Sum of Items 26 and 27)'"
+                                           case_value="report_data.get('item_28')" label_col="8" is_numeric="True"/>
+                                    </div>
+                                </div>
+
+                                <div class="col-6 d-flex flex-column">
+                                    <div class="row g-0 border-bottom border-2 border-dark" style="height: 30px;">
+                                        <div class="col-6">
+                                            <div class="row g-0 flex-nowrap ps-1" style="height: 26px;">
+                                                <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" is_segmented="1"
+                                                   case_number="'2'" case_label="'For the Period From'"
+                                                   case_sub_label="' (MM/DD)'"
+                                                   case_value="report_data.get('period_from')" label_col="6"
+                                                   split_char="'/'" separator_type="'border'" box_widths="[50, 50]"
+                                                   box_capacities="[2, 2]"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="row g-0 flex-nowrap ps-1" style="height: 26px;">
+                                                <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" is_segmented="1"
+                                                   case_number="''" case_label="'To'" case_sub_label="' (MM/DD)'"
+                                                   case_value="report_data.get('period_to')" label_col="6"
+                                                   split_char="'/'" separator_type="'border'" box_widths="[50, 50]"
+                                                   box_capacities="[2, 2]"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_section_title"
+                                       title="'Part IV-B Details of Compensation Income &amp; Tax Withheld from Present Employer'"/>
+
+                                    <div style="font-size: 10px;">
+                                        <div class="row g-0 align-items-center p-1 mb-1">
+                                            <div class="col-8 lh-1 fw-bold">A. NON-TAXABLE/EXEMPT COMPENSATION INCOME
+                                            </div>
+                                            <div class="col-4 text-center fw-bold">Amount</div>
+                                        </div>
+
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'29'"
+                                               case_label="'Basic Salary (including the exempt P250,000 &amp; below) or the Statutory Minimum Wage of the MWE'"
+                                               case_value="report_data.get('item_29')" label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'30'"
+                                               case_label="'Holiday Pay (MWE)'" case_value="report_data.get('item_30')"
+                                               label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'31'"
+                                               case_label="'Overtime Pay (MWE)'" case_value="report_data.get('item_31')"
+                                               label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'32'"
+                                               case_label="'Night Shift Differential (MWE)'"
+                                               case_value="report_data.get('item_32')" label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'33'"
+                                               case_label="'Hazard Pay (MWE)'" case_value="report_data.get('item_33')"
+                                               label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'34'"
+                                               case_label="'13th Month Pay and Other Benefits'"
+                                               case_sub_label="'(maximum of P90,000)'"
+                                               case_value="report_data.get('item_34')" label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'35'"
+                                               case_label="'De Minimis Benefits'"
+                                               case_value="report_data.get('item_35')" label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'36'"
+                                               case_label="'SSS, GSIS, PHIC &amp; PAG-IBIG Contributions and Union Dues'"
+                                               case_sub_label="'(Employee share only)'"
+                                               case_value="report_data.get('item_36')" label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'37'"
+                                               case_label="'Salaries and Other Forms of Compensation'"
+                                               case_value="report_data.get('item_37')" label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'38'"
+                                               case_label="'Total Non-Taxable/Exempt Compensation Income'"
+                                               case_sub_label="'(Sum of Items 29 to 37)'"
+                                               case_value="report_data.get('item_38')" label_col="8" is_numeric="True"/>
+                                        </div>
+
+                                        <div class="row g-0 align-items-center p-1 mt-2 mb-1">
+                                            <div class="col-8 lh-1 fw-bold">B. TAXABLE COMPENSATION INCOME REGULAR</div>
+                                        </div>
+
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'39'"
+                                               case_label="'Basic Salary'" case_value="report_data.get('item_39')"
+                                               label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'40'"
+                                               case_label="'Representation'" case_value="report_data.get('item_40')"
+                                               label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'41'"
+                                               case_label="'Transportation'" case_value="report_data.get('item_41')"
+                                               label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'42'"
+                                               case_label="'Cost of Living Allowance (COLA)'" case_value="report_data.get('item_42')"
+                                               label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'43'"
+                                               case_label="'Fixed Housing Allowance'" case_value="report_data.get('item_43')"
+                                               label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap ps-1" style="height: 10px;">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'44'"
+                                               case_label="'Others'" case_sub_label="'(specify)'"
+                                               case_value="report_data.get('item_44')" label_col="8" skip_input="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_case_custom_label"
+                                               case_number="'44A'" case_label="report_data.get('item_44a_label')"
+                                               case_value="report_data.get('item_44a')"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_case_custom_label"
+                                               case_number="'44B'" case_label="report_data.get('item_44b_label')"
+                                               case_value="report_data.get('item_44b')"/>
+                                        </div>
+
+                                        <div class="row g-0 align-items-center ps-4 mb-1">
+                                            <div class="col-8 lh-1 fw-bold">SUPPLEMENTARY</div>
+                                        </div>
+
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'45'"
+                                               case_label="'Commission'" case_value="report_data.get('item_45')"
+                                               label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'46'"
+                                               case_label="'Profit Sharing'" case_value="report_data.get('item_46')"
+                                               label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'47'"
+                                               case_label="'Fees including Director\'s Fees'"
+                                               case_value="report_data.get('item_47')" label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'48'"
+                                               case_label="'Taxable 13th Month Benefits'"
+                                               case_value="report_data.get('item_48')" label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'49'"
+                                               case_label="'Hazard Pay'" case_value="report_data.get('item_49')"
+                                               label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'50'"
+                                               case_label="'Overtime Pay'" case_value="report_data.get('item_50')"
+                                               label_col="8" is_numeric="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap ps-1" style="height: 10px;">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'51'"
+                                               case_label="'Others'" case_sub_label="'(specify)'"
+                                               case_value="report_data.get('item_51')" label_col="8" skip_input="True"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_case_custom_label"
+                                               case_number="'51A'" case_label="report_data.get('item_51a_label')"
+                                               case_value="report_data.get('item_51a')"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_case_custom_label"
+                                               case_number="'51B'" case_label="report_data.get('item_51b_label')"
+                                               case_value="report_data.get('item_51b')"/>
+                                        </div>
+                                        <div class="row g-0 flex-nowrap p-1 h-29px">
+                                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="'52'"
+                                               case_label="'Total Taxable Compensation Income'"
+                                               case_sub_label="'(Sum of Items 39 to 51B)'"
+                                               case_value="report_data.get('item_52')" label_col="8" is_numeric="True"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-0 border-top border-2 border-dark border-bottom border-2 border-dark bg-bir-gray">
+                                <div class="col-12 ps-2 lh-1" style="height: 30px; font-size: 9px;">
+                                    I/We declare, under the penalties of perjury that this certificate has been made in
+                                    good faith, verified by me/us, and to the best of my/our knowledge and belief, is
+                                    true and correct, pursuant to the provisions of the National Internal Revenue Code,
+                                    as amended, and the regulations issued under authority thereof. Further, I/we give
+                                    my/our consent to the processing of my/our information as contemplated under the
+                                    "Data Privacy Act of 2012 (R.A. No. 10173) for legitimate and lawful purposes.
+                                </div>
+                            </div>
+
+                            <div class="row g-0 flex-nowrap bg-white" style="height: 45px;">
+                                <div class="col-6 p-1 d-flex flex-nowrap">
+                                    <div class="fw-bold pe-2 d-flex align-items-end h-25px">53</div>
+                                    <div class="flex-grow-1 text-center">
+                                        <div class="w-100 h-25px d-flex align-items-end justify-content-center" style="border-bottom: 2px solid black;">
+                                            <t t-out="report_data.get('employer_signatory_name')"/>
+                                        </div>
+                                        <div class="lh-1 pt-1" style="font-size: 11px;">Present Employer/Authorized
+                                            Agent Signature over Printed Name
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-3 p-1 offset-1">
+                                    <div class="row g-0 flex-nowrap h-25px">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" is_segmented="1"
+                                           case_number="''" case_label="'Date Signed'"
+                                           case_value="report_data.get('date_signed_employer')" label_col="5"
+                                           split_char="'/'" separator_type="'border'" box_widths="[25, 25, 50]"
+                                           box_capacities="[2, 2, 4]"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-0 flex-nowrap bg-white" style="height: 55px;">
+                                <div class="col-6 p-1 d-flex flex-column">
+                                    <div class="fw-bold lh-1 pb-1">CONFORME:</div>
+                                    <div class="d-flex flex-nowrap w-100">
+                                        <div class="fw-bold pe-2 ms-3 d-flex align-items-end" style="height: 15px;">54</div>
+                                        <div class="flex-grow-1 text-center">
+                                            <div class="w-100 d-flex align-items-end justify-content-center" style="height: 15px; border-bottom: 2px solid black;">
+                                                <t t-out="report_data.get('employee_legal_name')"/>
+                                            </div>
+                                            <div class="lh-1 pt-1" style="font-size: 11px;">Employee Signature over Printed Name</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-3 p-1 offset-1">
+                                    <div class="row g-0 flex-nowrap h-25px">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" is_segmented="1"
+                                           case_number="''" case_label="'Date Signed'"
+                                           case_value="report_data.get('date_signed_employee')" label_col="5"
+                                           split_char="'/'" separator_type="'border'" box_widths="[25, 25, 50]"
+                                           box_capacities="[2, 2, 4]"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-0 border-bottom border-2 border-dark flex-nowrap bg-white"
+                                 style="height: 30px;">
+                                <div class="col-4">
+                                    <div class="row g-0 flex-nowrap h-25px">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="''"
+                                           case_label="'CTC/Valid ID No. of Employee'" label_col="5"/>
+                                    </div>
+                                </div>
+                                <div class="col-3 ps-3">
+                                    <div class="row g-0 flex-nowrap h-25px">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="''"
+                                           case_label="'Place of Issue'" label_col="4"/>
+                                    </div>
+                                </div>
+                                <div class="col-3 ps-1">
+                                    <div class="row g-0 flex-nowrap h-25px">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" is_segmented="1"
+                                           case_number="''" case_label="'Date Issued'"
+                                           case_value="report_data.get('date_issued')" label_col="5" split_char="'/'"
+                                           separator_type="'border'" box_widths="[25, 25, 50]"
+                                           box_capacities="[2, 2, 4]"/>
+                                    </div>
+                                </div>
+                                <div class="col-2 ps-1">
+                                    <div class="row g-0 flex-nowrap h-25px">
+                                        <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_field" case_number="''"
+                                           case_label="'Amount paid, if CTC'" label_col="7"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <t t-call="l10n_ph_hr_payroll.l10n_ph_hr_payroll_section_title"
+                               title="'To be accomplished under substituted filing'"/>
+
+                            <div class="row g-0 flex-nowrap bg-white" style="height: 110px;">
+                                <div class="col-6 border-end border-2 border-dark d-flex flex-column justify-content-between position-relative lh-1">
+                                    <div class="ps-4 pe-4" style="font-size: 10px;">
+                                        I declare, under the penalties of perjury that the information herein stated are
+                                        reported under BIR Form No. 1604-C which has been filed with the Bureau of
+                                        Internal Revenue.
+                                    </div>
+                                    <div class="d-flex flex-nowrap ps-5 pe-5">
+                                        <div class="fw-bold pe-2 d-flex align-items-end h-25px">55</div>
+                                        <div class="flex-grow-1 text-center">
+                                            <div class="w-100 h-25px d-flex align-items-end justify-content-center" style="border-bottom: 2px solid black;">
+                                                <t t-out="report_data.get('employer_signatory_name')"/>
+                                            </div>
+                                            <div style="font-size: 10px;">
+                                                <div>Present Employer/Authorized Agent Signature over Printed Name</div>
+                                                <div>(Head of Accounting/Human Resource or Authorized Representative)</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 d-flex flex-column justify-content-between position-relative lh-1">
+                                    <div class="ps-4 pe-4 lh-1" style="font-size: 10px;">
+                                        I declare, under the penalties of perjury that I am qualified under substituted
+                                        filing of Income Tax Return (BIR Form No. 1700), since I received purely
+                                        compensation income from only one employer in the Philippines for the calendar
+                                        year; that taxes have been correctly withheld by my employer (tax due equals tax
+                                        withheld); that the BIR Form No. 1604-C filed by my employer to the BIR shall
+                                        constitute as my income tax return; and that BIR Form No. 2316 shall serve the
+                                        same purpose as if BIR Form No. 1700 has been filed pursuant to the provisions
+                                        of Revenue Regulations (RR) No. 3-2002, as amended.
+                                    </div>
+                                    <div class="d-flex flex-nowrap ps-5 pe-5">
+                                        <div class="fw-bold pe-2 d-flex align-items-end" style="height: 20px;">56</div>
+                                        <div class="flex-grow-1 text-center">
+                                            <div class="w-100 d-flex align-items-end justify-content-center" style="height: 20px; border-bottom: 2px solid black;">
+                                                <t t-out="report_data.get('employee_legal_name')"/>
+                                            </div>
+                                            <div style="font-size: 10px;">
+                                                <div>Employee Signature over Printed Name</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-1 fw-bold" style="font-size: 8px;">
+                            *NOTE: The BIR Data Privacy is in the BIR website (www.bir.gov.ph)
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

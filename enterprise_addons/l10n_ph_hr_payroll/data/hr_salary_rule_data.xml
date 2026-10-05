@@ -1,0 +1,829 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="l10n_ph_hr_payroll_basic_rule" model="hr.salary.rule">
+        <field name="name">Basic Salary</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.PH_BASIC')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="sequence">1</field>
+        <field name="code">BASIC</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = sum(
+    payslip.worked_days_line_ids
+    .filtered(lambda wdl: wdl.work_entry_type_id.code != 'TARD')
+    .mapped('l10n_ph_hr_payroll_basic_amount')
+)
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_holiday_pay_rule" model="hr.salary.rule">
+        <field name="name">Holiday Pay</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.HP')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="code">HP</field>
+        <field name="sequence">2</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+result = sum(payslip.worked_days_line_ids.mapped(lambda wd: wd.l10n_ph_hr_payroll_holiday_amount))
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = sum(payslip.worked_days_line_ids.mapped(lambda wd: wd.l10n_ph_hr_payroll_holiday_amount))
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_overtime_pay_rule" model="hr.salary.rule">
+        <field name="name">Overtime Pay</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.OP')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="code">OP</field>
+        <field name="sequence">3</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+result = sum(payslip.worked_days_line_ids.mapped(lambda wd: wd.l10n_ph_hr_payroll_overtime_amount))
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = sum(payslip.worked_days_line_ids.mapped(lambda wd: wd.l10n_ph_hr_payroll_overtime_amount))
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_night_shift_differential_rule" model="hr.salary.rule">
+        <field name="name">Night Shift Differential</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.NSD')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="code">NSD</field>
+        <field name="sequence">4</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+result = sum(payslip.worked_days_line_ids.mapped(lambda wd: wd.l10n_ph_hr_payroll_shift_amount))
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = sum(payslip.worked_days_line_ids.mapped(lambda wd: wd.l10n_ph_hr_payroll_shift_amount))
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_ecola_rule" model="hr.salary.rule">
+        <field name="name">Emergency Cost of Living Allowance</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.ECOLA')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="code">ECOLA</field>
+        <field name="sequence">5</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_13th_month_rule" model="hr.salary.rule">
+        <field name="name">13th month</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.BENEFITS')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="code">13THMONTH</field>
+        <field name="sequence">6</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = payslip.l10n_ph_hr_payroll_includes_13th_month</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+last_13th_month_payslip = payslip.search([
+    ('employee_id', '=', payslip.employee_id.id),
+    ('date_to', '&lt;', payslip.date_from),
+    ('l10n_ph_hr_payroll_includes_13th_month', '=', True),
+    ('state', 'in', ['validated', 'paid']),
+], order="date_from desc", limit=1)
+if last_13th_month_payslip:
+    date_from = last_13th_month_payslip.date_to + relativedelta(days=1)
+else:
+    date_from = payslip.employee_id._get_first_version_date()
+provision_payslips = payslip.search([
+    ('employee_id', '=', payslip.employee_id.id),
+    ('date_from', '&gt;=', date_from),
+    ('date_to', '&lt;=', payslip.date_to),
+    ('state', 'in', ['validated', 'paid']),
+])
+if not provision_payslips:
+    # Employee having worked less than a month are not entitled to 13th month.
+    result = 0
+provision_amount = provision_payslips._get_line_values(['13THMONTHPROVISION'], compute_sum=True)['13THMONTHPROVISION']['sum']['total']
+total_basic = sum(payslip.worked_days_line_ids.mapped('l10n_ph_hr_payroll_basic_amount'))
+provision_amount += total_basic / 12  # We recalculate the current month, since the provision is calculated later
+result = provision_amount
+        </field>
+    </record>
+
+    <!-- De Minimis, see their own file -->
+
+    <record id="l10n_ph_hr_payroll_de_minimis_excess_rule" model="hr.salary.rule">
+        <field name="name">Excess De Minimis</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.BENEFITS')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="code">DM_EXCESS</field>
+        <field name="sequence">17</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+de_minimis_codes = payslip.struct_id.rule_ids.filtered(lambda l: 'DE_MINIMIS' in l.category_ids.mapped('code')).mapped('code')
+code_values = payslip._l10n_ph_hr_payroll_get_property_inputs_value(de_minimis_codes)
+daily_wage = version._l10n_ph_hr_payroll_from_to_schedule(to_schedule='daily')
+# Calculates the uncapped total. Leave monetization have extra steps to get the amount so we do separately.
+total_uncapped = sum(value for code, value in code_values.items() if code in de_minimis_codes and code != 'DM_LEAVE_MONETIZATION')
+total_uncapped += code_values.get('DM_LEAVE_MONETIZATION', 0) * daily_wage
+
+total_capped = sum(result_rules.get(code, {}).get('total', 0.0) for code in de_minimis_codes)
+
+# We don't want to show it IF there are excess, but it's difficult to know. So we compute the value, and save its result.
+# This way, we can hide it when not required while at the same time avoiding recalculating twice.
+result_rules["DM_EXCESS"]['total'] = total_uncapped - total_capped
+result = result_rules["DM_EXCESS"]['total']
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = result_rules["DM_EXCESS"]['total']
+        </field>
+        <field name="appears_on_payslip">non_zero</field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_cash_allowance_rule" model="hr.salary.rule">
+        <field name="name">Cash Allowance</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.TA')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="code">CA</field>
+        <field name="sequence">18</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_other_benefits_rule" model="hr.salary.rule">
+        <field name="name">Other Benefits</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.NT_BEN')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="code">OB</field>
+        <field name="sequence">19</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = min(categories['BENE'] + ytd_other_benefits, 90000) - ytd_other_benefits
+        </field>
+        <field name="appears_on_payslip">never</field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_taxable_other_benefits_rule" model="hr.salary.rule">
+        <field name="name">Taxable Other Benefits</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.TA')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="code">TOB</field>
+        <field name="sequence">20</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+ob_total = result_rules.get('OB', {}).get('total', 0.0)
+result = (categories['BENE'] - ob_total) > 0
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+ob_total = result_rules.get('OB', {}).get('total', 0.0)
+result = categories['BENE'] - ob_total
+        </field>
+        <field name="appears_on_payslip">never</field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_leave_conversion_rule" model="hr.salary.rule">
+        <field name="name">Leave Conversions</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.TA')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="code">LEAVECON</field>
+        <field name="sequence">21</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = payslip.l10n_ph_hr_payroll_is_final_slip and unused_leaves</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+daily_wage = version._l10n_ph_hr_payroll_from_to_schedule(to_schedule='daily')
+result = daily_wage * unused_leaves
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_separation_pay_rule" model="hr.salary.rule">
+        <field name="name">Separation Pay</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.NT_ALW')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="code">SEPARATION</field>
+        <field name="sequence">22</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = payslip.l10n_ph_hr_payroll_includes_separation_pay</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+start_date = payslip.employee_id._get_first_version_date()
+end_date = payslip.date_to
+months = end_date.month - start_date.month + 12 * (end_date.year - start_date.year)
+extra_months = months % 12
+years_of_services = (months - extra_months) / 12 + (1 if extra_months >= 6 else 0)
+monthly_base_wage = version._l10n_ph_hr_payroll_from_to_schedule(to_schedule='monthly')
+
+terminal_pay_type = payslip.version_id.departure_reason_id.l10n_ph_hr_payroll_terminal_pay_type
+if terminal_pay_type == 'severance_full':
+    # One month’s pay or one month’s pay for every year of service, whichever is higher.
+    result = max(monthly_base_wage, monthly_base_wage * years_of_services)
+else:
+    # One-half (1/2) month’s pay for every year of service.
+    result = (monthly_base_wage / 2) * years_of_services
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_retirement_pay_rule" model="hr.salary.rule">
+        <field name="name">Retirement Pay</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.NT_ALW')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="code">RETIREMENT</field>
+        <field name="sequence">23</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = payslip.l10n_ph_hr_payroll_includes_retirement_pay</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+start_date = payslip.employee_id._get_first_version_date()
+end_date = payslip.date_to
+months = end_date.month - start_date.month + 12 * (end_date.year - start_date.year)
+extra_months = months % 12
+years_of_services = (months - extra_months) / 12 + (1 if extra_months >= 6 else 0)
+daily_wage = version._l10n_ph_hr_payroll_from_to_schedule(to_schedule='daily')
+result = daily_wage * 22.5 * years_of_services
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_expense_refund_pay_rule" model="hr.salary.rule">
+        <field name="name">Expenses Reimbursement</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.NT_ALW')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="code">EXPENSES</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="sequence" eval="24"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = inputs['EXPENSES'].amount > 0.0 if 'EXPENSES' in inputs else False</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = inputs['EXPENSES'].amount
+result_name = inputs['EXPENSES'].name
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_cash_fringe_benefits_rule" model="hr.salary.rule">
+        <field name="name">Fringe Benefits - Cash</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.CASH_FRINGE_BENEFITS')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="code">CFB</field>
+        <field name="sequence">25</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_non_cash_fringe_benefits_rule" model="hr.salary.rule">
+        <field name="name">Fringe Benefits - Non Cash</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.NON_CASH_FRINGE_BENEFITS')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="code">NCFB</field>
+        <field name="sequence">26</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+    </record>
+
+    <!-- Salary Deductions -->
+
+    <record id="l10n_ph_hr_payroll_sss_contribution_rule" model="hr.salary.rule">
+        <field name="name">SSS Contribution</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.MANDATORY_SSS_CONTRIBUTIONS')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="code">SSS_CONTRIB</field>
+        <field name="sequence">27</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+sss_contrib_table = payslip._rule_parameter('l10n_ph_hr_payroll_monthly_sss_contributions')
+monthly_base_amount = version._l10n_ph_hr_payroll_from_to_schedule(amount=categories['TAX_CASH_EARNINGS'], to_schedule='monthly')
+# Find the correct contribution rate in the table
+for ceiling, er_contrib, ec, ee_contrib in sss_contrib_table:
+    if ceiling is None or monthly_base_amount &lt;= ceiling:
+        result = -version._l10n_ph_hr_payroll_from_to_schedule(amount=ee_contrib, from_schedule='monthly')
+        break
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_philhealth_contribution_rule" model="hr.salary.rule">
+        <field name="name">PhilHealth Contribution</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.MANDATORY_PHILHEALTH_CONTRIBUTIONS')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="code">PHILHEALTH_CONTRIB</field>
+        <field name="sequence">28</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+philhealth_contrib_table = payslip._rule_parameter('l10n_ph_hr_payroll_monthly_philhealth_contributions')
+ee_contrib_pct = philhealth_contrib_table['contributions'][1] / 100.0
+monthly_wage = version._l10n_ph_hr_payroll_from_to_schedule(to_schedule='monthly')
+monthly_amount = min(
+    max(monthly_wage * ee_contrib_pct, philhealth_contrib_table['minimum']),
+    philhealth_contrib_table['maximum']
+)
+result = -version._l10n_ph_hr_payroll_from_to_schedule(amount=monthly_amount, from_schedule='monthly')
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_pag_ibig_contribution_rule" model="hr.salary.rule">
+        <field name="name">Pag-IBIG Contribution</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.MANDATORY_PAG_IBIG_CONTRIBUTIONS')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="code">PAG_IBIG_CONTRIB</field>
+        <field name="sequence">29</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+pag_ibig_contrib_info = payslip._rule_parameter('l10n_ph_hr_payroll_monthly_pag_ibig_contributions')
+pag_ibig_contrib_table = pag_ibig_contrib_info['contributions']['standard']
+max_contrib = pag_ibig_contrib_info['maximum']
+
+base_amount = categories['PH_BASIC'] + categories['ECOLA']
+monthly_base_amount = version._l10n_ph_hr_payroll_from_to_schedule(amount=base_amount, to_schedule='monthly')
+
+for ceiling, ee_rate, er_rate in pag_ibig_contrib_table:
+    if ceiling is None or monthly_base_amount &lt;= ceiling:
+        computed = (monthly_base_amount * (ee_rate / 100.0))
+        final_contrib = min(computed, max_contrib)
+        result = -version._l10n_ph_hr_payroll_from_to_schedule(amount=final_contrib, from_schedule='monthly')
+        break
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_tardiness_rule" model="hr.salary.rule">
+        <field name="name">Tardiness</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.PRE_TAX_DEDUCTIONS')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="code">TARD</field>
+        <field name="sequence">30</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+result = sum(
+    payslip.worked_days_line_ids
+    .filtered(lambda wdl: wdl.work_entry_type_id.code == 'TARD')
+    .mapped('l10n_ph_hr_payroll_basic_amount')
+)
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = sum(
+    payslip.worked_days_line_ids
+    .filtered(lambda wdl: wdl.work_entry_type_id.code == 'TARD')
+    .mapped('l10n_ph_hr_payroll_basic_amount')
+)
+        </field>
+    </record>
+
+    <!-- Gross -->
+    <record id="l10n_ph_hr_payroll_gross_rule" model="hr.salary.rule">
+        <field name="name">Taxable Salary</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.GROSS')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="sequence">100</field>
+        <field name="code">GROSS</field>
+        <field name="appears_on_payslip">never</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+taxable_salary = categories['TA'] + categories['TAX_NON_CASH_EARNINGS'] + categories['PRE_TAX_DEDUCTIONS']
+
+if not version.l10n_ph_hr_payroll_minimum_wage_earner:
+    # Minimum wage earners are exempt of taxes on their basic salary, ECOLA and differentials.
+    taxable_salary += categories['PH_BASIC'] + categories['OT'] + categories['ECOLA']
+
+if version.l10n_ph_hr_payroll_employee_rank in (False, 'rank_and_file'):
+    taxable_salary += categories['CASH_FRINGE_BENEFITS'] + categories['NON_CASH_FRINGE_BENEFITS']
+
+result = max(taxable_salary, 0)
+        </field>
+    </record>
+
+    <!-- Taxes -->
+    <record id="l10n_ph_hr_payroll_tax_rule" model="hr.salary.rule">
+        <field name="name">Withholding Tax</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.WTH_TAX')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="code">WITHH_TAX</field>
+        <field name="sequence">150</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+tax_tables = payslip._rule_parameter('l10n_ph_hr_payroll_tax_rates')
+tax_table = tax_tables.get(version.schedule_pay)
+needs_conversion = False
+if not tax_table:  # Bi-weekly doesn't have its own table; so we use the monthly table and do conversion to get the tax.
+    tax_table = tax_tables['monthly']
+    needs_conversion = True
+
+gross_wages = result_rules['GROSS']['total']
+if needs_conversion:
+    gross_wages = version._l10n_ph_hr_payroll_from_to_schedule(amount=gross_wages, to_schedule='monthly')
+
+# Find the correct contribution rate in the table
+tax_amount = previous_ceiling = 0
+for ceiling, tax_rate, fixed_amount in tax_table:
+    if ceiling is None or gross_wages &lt;= ceiling:
+        excess = gross_wages - previous_ceiling
+        tax_amount = fixed_amount + (excess * (tax_rate / 100.0))
+        break
+    previous_ceiling = ceiling
+
+if needs_conversion:
+    result = -version._l10n_ph_hr_payroll_from_to_schedule(amount=tax_amount, from_schedule='monthly')
+else:
+    result = -tax_amount
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_tax_annualization_rule" model="hr.salary.rule">
+        <field name="name">Tax Annualization</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.TAX_ANN')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="code">TAX_ANNUALIZATION</field>
+        <field name="sequence">160</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+result = payslip.l10n_ph_hr_payroll_includes_tax_annualization
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+total_gross = ytd_gross + result_rules['GROSS']['total']
+total_tax_withheld = ytd_wthh_tax + result_rules['WITHH_TAX']['total']
+yearly_tax_table = payslip._rule_parameter('l10n_ph_hr_payroll_tax_rates').get('yearly')
+
+# In the first year of employment, we count the amounts from the previous employer as well.
+if prev_employment := payslip.employee_id._l10n_ph_get_previous_employment(payslip.date_to):
+    total_gross += prev_employment.taxable_income
+    total_tax_withheld -= prev_employment.tax_withheld
+
+total_tax_due = previous_ceiling = 0
+for ceiling, tax_rate, fixed_amount in yearly_tax_table:
+    if ceiling is None or total_gross &lt;= ceiling:
+        excess = total_gross - previous_ceiling
+        total_tax_due = fixed_amount + (excess * (tax_rate / 100.0))
+        break
+    previous_ceiling = ceiling
+
+calculated_adjustment = -(total_tax_due + total_tax_withheld)
+
+if calculated_adjustment > 0:
+    # Cap refunds to the total amount of tax withheld by the employer themselves
+    max_refundable = abs(ytd_wthh_tax + result_rules['WITHH_TAX']['total'])
+    result = min(calculated_adjustment, max_refundable)
+else:
+    result = calculated_adjustment
+        </field>
+    </record>
+
+    <!-- Loan Deductions -->
+    <record id="l10n_ph_hr_payroll_sss_salary_loan_rule" model="hr.salary.rule">
+        <field name="name">SSS Salary Loan</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.LOAN_DEDUCTIONS')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="code">SSS_SALARY_LOAN</field>
+        <field name="sequence">170</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'SSS_SALARY_LOAN' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -inputs['SSS_SALARY_LOAN'].amount
+result_name = inputs['SSS_SALARY_LOAN'].name
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_sss_calamity_loan_rule" model="hr.salary.rule">
+        <field name="name">SSS Calamity Loan</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.LOAN_DEDUCTIONS')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="code">SSS_CALAMITY_LOAN</field>
+        <field name="sequence">171</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'SSS_CALAMITY_LOAN' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -inputs['SSS_CALAMITY_LOAN'].amount
+result_name = inputs['SSS_CALAMITY_LOAN'].name
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_pag_ibig_mpl_rule" model="hr.salary.rule">
+        <field name="name">Pag-IBIG Multi-Purpose Loan</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.LOAN_DEDUCTIONS')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="code">PAGIBIG_MPL</field>
+        <field name="sequence">172</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'PAGIBIG_MPL' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -inputs['PAGIBIG_MPL'].amount
+result_name = inputs['PAGIBIG_MPL'].name
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_pag_ibig_calamity_loan_rule" model="hr.salary.rule">
+        <field name="name">Pag-IBIG Calamity Loan</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.LOAN_DEDUCTIONS')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="code">PAGIBIG_CALAMITY_LOAN</field>
+        <field name="sequence">173</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'PAGIBIG_CALAMITY_LOAN' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -inputs['PAGIBIG_CALAMITY_LOAN'].amount
+result_name = inputs['PAGIBIG_CALAMITY_LOAN'].name
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_pag_ibig_housing_loan_rule" model="hr.salary.rule">
+        <field name="name">Pag-IBIG Housing Loan</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.LOAN_DEDUCTIONS')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="code">PAGIBIG_HOUSING_LOAN</field>
+        <field name="sequence">174</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'PAGIBIG_HOUSING_LOAN' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -inputs['PAGIBIG_HOUSING_LOAN'].amount
+result_name = inputs['PAGIBIG_HOUSING_LOAN'].name
+        </field>
+    </record>
+
+    <!-- Net -->
+    <record id="l10n_ph_hr_payroll_net_rule" model="hr.salary.rule">
+        <field name="name">Net Salary</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.NET')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="sequence">210</field>
+        <field name="code">NET</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['CASH_EARNINGS'] + categories['DED']
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_er_sss_contribution_rule" model="hr.salary.rule">
+        <field name="name">Employer's SSS Contribution</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.EMPLOYER_SSS_CONTRIBUTIONS')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="code">SSS_ER_CONTRIB</field>
+        <field name="sequence">215</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+sss_contrib_table = payslip._rule_parameter('l10n_ph_hr_payroll_monthly_sss_contributions')
+monthly_base_amount = version._l10n_ph_hr_payroll_from_to_schedule(amount=categories['TAX_CASH_EARNINGS'], to_schedule='monthly')
+# Find the correct contribution rate in the table
+for ceiling, er_contrib, ec, ee_contrib in sss_contrib_table:
+    if ceiling is None or monthly_base_amount &lt;= ceiling:
+        result = version._l10n_ph_hr_payroll_from_to_schedule(amount=er_contrib, from_schedule='monthly')
+        break
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_ec_sss_contribution_rule" model="hr.salary.rule">
+        <field name="name">Employer's EC Contribution</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.EMPLOYEE_SSS_COMPENSATIONS')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="code">SSS_EC_CONTRIB</field>
+        <field name="sequence">216</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+sss_contrib_table = payslip._rule_parameter('l10n_ph_hr_payroll_monthly_sss_contributions')
+monthly_base_amount = version._l10n_ph_hr_payroll_from_to_schedule(amount=categories['TAX_CASH_EARNINGS'], to_schedule='monthly')
+# Find the correct contribution rate in the table
+for ceiling, er_contrib, ec, ee_contrib in sss_contrib_table:
+    if ceiling is None or monthly_base_amount &lt;= ceiling:
+        result = version._l10n_ph_hr_payroll_from_to_schedule(amount=ec, from_schedule='monthly')
+        break
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_er_philhealth_contribution_rule" model="hr.salary.rule">
+        <field name="name">Employer's PhilHealth Contribution</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.EMPLOYER_PHILHEALTH_CONTRIBUTIONS')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="code">PHILHEALTH_ER_CONTRIB</field>
+        <field name="sequence">217</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+philhealth_contrib_table = payslip._rule_parameter('l10n_ph_hr_payroll_monthly_philhealth_contributions')
+er_contrib_pct = philhealth_contrib_table['contributions'][0] / 100.0
+monthly_wage = version._l10n_ph_hr_payroll_from_to_schedule(to_schedule='monthly')
+monthly_amount = min(
+    max(monthly_wage * er_contrib_pct, philhealth_contrib_table['minimum']),
+    philhealth_contrib_table['maximum']
+)
+result = version._l10n_ph_hr_payroll_from_to_schedule(amount=monthly_amount, from_schedule='monthly')
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_pag_er_ibig_contribution_rule" model="hr.salary.rule">
+        <field name="name">Employer's Pag-IBIG Contribution</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.EMPLOYER_PAG_IBIG_CONTRIBUTIONS')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="code">PAG_IBIG_ER_CONTRIB</field>
+        <field name="sequence">218</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+pag_ibig_contrib_info = payslip._rule_parameter('l10n_ph_hr_payroll_monthly_pag_ibig_contributions')
+pag_ibig_contrib_table = pag_ibig_contrib_info['contributions']['standard']
+max_contrib = pag_ibig_contrib_info['maximum']
+
+base_amount = categories['PH_BASIC'] + categories['ECOLA']
+monthly_base_amount = version._l10n_ph_hr_payroll_from_to_schedule(amount=base_amount, to_schedule='monthly')
+
+for ceiling, ee_rate, er_rate in pag_ibig_contrib_table:
+    if ceiling is None or monthly_base_amount &lt;= ceiling:
+        computed = (monthly_base_amount * (er_rate / 100.0))
+        final_contrib = min(computed, max_contrib)
+        result = version._l10n_ph_hr_payroll_from_to_schedule(amount=final_contrib, from_schedule='monthly')
+        break
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_13th_month_provision_rule" model="hr.salary.rule">
+        <field name="name">13th month provision</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.13THMONTHPROVISION')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="code">13THMONTHPROVISION</field>
+        <field name="sequence">220</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+# Holds the amount in this payslip that will contribute to the 13th month.
+# Using a provisional rule allow to easily account for possible raise and changes in the basic salary.
+# This would also allow to make two (or more) partial 13th month payslip for companies wanting to, as allowed by law.
+result = (result_rules['BASIC']['total'] + result_rules.get('TARD', {}).get('total', 0)) / 12
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_fbt_rule" model="hr.salary.rule">
+        <field name="name">Fringe Benefit Tax</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_ph_hr_payroll.FRINGE_BENEFITS_TAX')])]"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_ph_hr_payroll.hr_payroll_structure_ph_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.ph"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="code">FBT</field>
+        <field name="sequence">230</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = (categories['CASH_FRINGE_BENEFITS'] + categories['NON_CASH_FRINGE_BENEFITS']) and version.l10n_ph_hr_payroll_employee_rank not in (False, 'rank_and_file')</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+employee_type = 'non-residents' if version.is_non_resident else 'residents'
+tax_rate = payslip._rule_parameter('l10n_ph_hr_payroll_fringe_benefits_tax_rates')[employee_type] / 100.0
+divisor = 1.0 - tax_rate
+result = ((categories['CASH_FRINGE_BENEFITS'] + categories['NON_CASH_FRINGE_BENEFITS']) / divisor) * tax_rate
+        </field>
+        <field name="appears_on_payslip">never</field>
+    </record>
+</odoo>

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- display ec sales list report menu item -->
+        <record model="ir.ui.menu" id="account_reports.menu_action_account_report_sales">
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- Add the report variant -->
+        <record id="dutch_icp_report" model="account.report">
+            <field name="name">Dutch EC sales Report (ICP)</field>
+            <field name="name@nl">Nederlandse ICP-aangifte</field>
+            <field name="name@de">Niederländischer EG-Verkaufsbericht (ICP)</field>
+            <field name="country_id" ref="base.nl"/>
+            <field name="integer_rounding">DOWN</field>
+            <field name="root_report_id" ref="account_reports.generic_ec_sales_report"/>
+            <field name="groupby">partner_id</field>
+            <field name="load_more_limit" eval="80"/>
+            <field name="search_bar" eval="True"/>
+            <field name="filter_journals" eval="True"/>
+            <field name="custom_handler_model_id" ref="model_l10n_nl_reports_ec_sales_report_handler"/>
+            <field name="column_ids">
+                <record id="account_financial_report_ec_sales_country_code" model="account.report.column">
+                    <field name="name">Country Code</field>
+                    <field name="name@nl">Landcode</field>
+                    <field name="name@de">Ländercode</field>
+                    <field name="expression_label">country_code</field>
+                    <field name="figure_type">string</field>
+                    <field name="sortable" eval="True"/>
+                </record>
+                <record id="account_financial_report_ec_sales_vat" model="account.report.column">
+                    <field name="name">VAT</field>
+                    <field name="name@nl">Btw</field>
+                    <field name="name@de">MwSt.</field>
+                    <field name="expression_label">vat_number</field>
+                    <field name="figure_type">string</field>
+                    <field name="sortable" eval="True"/>
+                </record>
+                <record id="account_financial_report_ec_sales_amount_product" model="account.report.column">
+                    <field name="name">Amount Product</field>
+                    <field name="name@nl">Bedrag leveringen</field>
+                    <field name="name@de">Betrag Waren</field>
+                    <field name="expression_label">goods</field>
+                    <field name="sortable" eval="True"/>
+                </record>
+                <record id="account_financial_report_ec_sales_amount_service" model="account.report.column">
+                    <field name="name">Amount Service</field>
+                    <field name="name@nl">Bedrag diensten</field>
+                    <field name="name@de">Betrag Dienstleistungen</field>
+                    <field name="expression_label">services</field>
+                    <field name="sortable" eval="True"/>
+                </record>
+                <record id="account_financial_report_ec_sales_amount_triangular" model="account.report.column">
+                    <field name="name">Amount Triangular</field>
+                    <field name="name@nl">Bedrag driehoeksverkeer</field>
+                    <field name="name@de">Betrag Dreiecksgeschäft</field>
+                    <field name="expression_label">triangular</field>
+                    <field name="sortable" eval="True"/>
+                </record>
+                <record id="account_financial_report_ec_sales_total" model="account.report.column">
+                    <field name="name">Total</field>
+                    <field name="name@nl">Totaal</field>
+                    <field name="name@de">Gesamt</field>
+                    <field name="expression_label">balance</field>
+                    <field name="sortable" eval="True"/>
+                </record>
+            </field>
+            <field name="line_ids">
+                <record id="nl_ec_sales_report_line" model="account.report.line">
+                    <field name="name">EC Sales Report</field>
+                    <field name="code">NL_EC</field>
+                    <field name="foldability">always_unfolded</field>
+                    <field name="expression_ids">
+                        <record id="nl_ec_sales_report_line_country_code" model="account.report.expression">
+                            <field name="label">country_code</field>
+                            <field name="engine">custom</field>
+                            <field name="auditable">True</field>
+                            <field name="formula">_report_engine_ec_sales_report</field>
+                            <field name="subformula">country_code</field>
+                        </record>
+                        <record id="nl_ec_sales_report_line_vat_number" model="account.report.expression">
+                            <field name="label">vat_number</field>
+                            <field name="engine">custom</field>
+                            <field name="auditable">True</field>
+                            <field name="formula">_report_engine_ec_sales_report</field>
+                            <field name="subformula">vat_number</field>
+                        </record>
+                        <record id="nl_ec_sales_report_line_goods" model="account.report.expression">
+                            <field name="label">goods</field>
+                            <field name="engine">custom</field>
+                            <field name="auditable">True</field>
+                            <field name="formula">_report_engine_ec_sales_report</field>
+                            <field name="subformula">goods</field>
+                        </record>
+                        <record id="nl_ec_sales_report_line_services" model="account.report.expression">
+                            <field name="label">services</field>
+                            <field name="engine">custom</field>
+                            <field name="auditable">True</field>
+                            <field name="formula">_report_engine_ec_sales_report</field>
+                            <field name="subformula">services</field>
+                        </record>
+                        <record id="nl_ec_sales_report_line_triangular" model="account.report.expression">
+                            <field name="label">triangular</field>
+                            <field name="engine">custom</field>
+                            <field name="auditable">True</field>
+                            <field name="formula">_report_engine_ec_sales_report</field>
+                            <field name="subformula">triangular</field>
+                        </record>
+                        <record id="nl_ec_sales_report_line_balance" model="account.report.expression">
+                            <field name="label">balance</field>
+                            <field name="engine">custom</field>
+                            <field name="auditable">True</field>
+                            <field name="formula">_report_engine_ec_sales_report</field>
+                            <field name="subformula">balance</field>
+                        </record>
+                    </field>
+                </record>
+            </field>
+        </record>
+    </data>
+</odoo>

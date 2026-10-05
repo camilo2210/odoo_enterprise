@@ -1,0 +1,30 @@
+import { registry } from "@web/core/registry";
+import * as tourUtils from "@website_sale/js/tours/tour_utils";
+
+registry.category("web_tour.tours").add("test_validate_additional_fields", {
+    steps: () => [
+        ...tourUtils.addToCart({ productName: "Test Product", expectUnloadPage: true }),
+        tourUtils.goToCart({ quantity: 1 }),
+        tourUtils.goToCheckout(),
+        {
+            content: "Confirm Address",
+            trigger: "a:contains('Continue checkout')",
+            run: "click",
+            expectUnloadPage: true,
+        },
+        {
+            content: "Check that the additional field page is open",
+            trigger: "h3:contains('Invoicing')",
+        },
+        {
+            content: "Select 'I don't need an invoice'",
+            trigger: 'button[data-need-invoice="0"]',
+            run: "click",
+            expectUnloadPage: true,
+        },
+        {
+            content: "Check we are on confirm order page",
+            trigger: "#address_on_payment",
+        },
+    ],
+});

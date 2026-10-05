@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_lu_seculine_returns_view_list" model="ir.ui.view">
+        <field name="name">l10n_lu_seculine_returns_list</field>
+        <field name="model">l10n.lu.seculine.returns</field>
+        <field name="arch" type="xml">
+            <list string="SECULine Returns" type="object">
+                <field name="report_type"/>
+                <field name="year"/>
+                <field name="month"/>
+                <field name="number_of_errors"/>
+                <field name="create_date" string="Upload date" optional="hide"/>
+                <field name="create_uid" string="Uploaded By" widget="many2one_avatar_user" optional="hide"/>
+                <field name="report_file" widget="binary" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_lu_seculine_returns_view_form" model="ir.ui.view">
+        <field name="name">l10n.lu.seculine.returns.form</field>
+        <field name="model">l10n.lu.seculine.returns</field>
+        <field name="arch" type="xml">
+            <form string="SECULine Return">
+                <header>
+                    <button name="action_l10n_lu_analyze_return_file"
+                        type="object"
+                        class="btn-primary"
+                        string="Analyze"/>
+                </header>
+                <sheet>
+                    <group>
+                        <label for="report_file" string="Report File"/>
+                        <div class="o_row">
+                            <field name="report_file"
+                                widget="binary"
+                                options="{'accepted_file_extensions': '.dta'}"
+                                required="1"/>
+                        </div>
+                        <field name="report_type" string="Report Type" invisible="not report_type" readonly="1"/>
+                        <label for="details" string="Details"/>
+                        <field name="details" nolabel='1' colspan="2" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_lu_seculine_returns_view_search" model="ir.ui.view">
+        <field name="name">l10n.lu.seculine.returns.search</field>
+        <field name="model">l10n.lu.seculine.returns</field>
+        <field name="arch" type="xml">
+            <search>
+               <filter name="filter_report_type_salman" string="SALMAN" domain="[('report_type', '=', 'salman')]"/>
+               <filter name="filter_report_type_salret" string="SALRET" domain="[('report_type', '=', 'salret')]"/>
+               <group>
+                    <filter name="group_by_report_type" string="Report Type" context="{'group_by':'report_type'}"/>
+                    <filter name="group_by_year" string="Year" context="{'group_by':'year'}"/>
+               </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_lu_seculine_returns_action" model="ir.actions.act_window">
+        <field name="name">SECULine Returns</field>
+        <field name="res_model">l10n.lu.seculine.returns</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_l10n_lu_hr_payroll_seculine_returns"
+        parent="menu_l10n_lu_hr_payroll_report"
+        action="l10n_lu_seculine_returns_action"
+        sequence="10"
+        groups="hr_payroll.group_hr_payroll_user"/>
+</odoo>

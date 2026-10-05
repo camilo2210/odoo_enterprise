@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_return_kanban_view" model="ir.ui.view">
+        <field name="name">l10n_nl_reports.account.return.kanban</field>
+        <field name="model">account.return</field>
+        <field name="inherit_id" ref="account_reports.account_return_kanban_view"/>
+        <field name="arch" type="xml">
+            <field name="state" position="after">
+                <field name="l10n_nl_sbr_status" invisible="1"/>
+            </field>
+            <button name="action_pay" position="attributes">
+                <attribute
+                    name="invisible"
+                    separator="or"
+                    add="type_external_id == 'l10n_nl_reports.nl_tax_return_type' and l10n_nl_sbr_status != 'accepted'"/>
+            </button>
+            <button name="action_validate" position="after">
+                <button
+                    invisible="type_external_id not in ('l10n_nl_reports.nl_tax_return_type', 'l10n_nl_reports.nl_ec_sales_list_return_type') or l10n_nl_sbr_status != 'pending'"
+                    class="btn btn-primary"
+                    type="object"
+                    name="action_refresh_sbr_status">Refresh</button>
+            </button>
+            <xpath expr="//div[hasclass('state-bubble')]" position="attributes">
+                <attribute name="t-attf-class" separator=" " add="#{state.custom_class}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

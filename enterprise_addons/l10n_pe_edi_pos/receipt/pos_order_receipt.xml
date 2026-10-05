@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <template id="l10n_pe_edi_pos.pos_order_receipt_header" inherit_id="point_of_sale.pos_order_receipt_header">
+            <div name="logo" position="after">
+                <t t-if="conditions.get('code_pe')">
+                    <div class="text-center fw-bold my-3">
+                        <div t-out="company['name']" />
+                        <div t-out="extra_data['report_name']"/>
+                        <div t-out="extra_data['invoice_name']"/>
+                    </div>
+                </t>
+            </div>
+        </template>
+
+        <template id="l10n_pe_edi_pos.pos_order_receipt" inherit_id="point_of_sale.pos_order_receipt">
+            <xpath expr="//div[@name='prices']" position="inside">
+                <t t-if="conditions.get('code_pe') and conditions.get('has_pe_edi_data')">
+                    <div class="mt-2 text-center">
+                        <b>Amount In Word:</b> <t t-out="extra_data['amount_in_word']"/>
+                    </div>
+                    <table class="w-100 mb-2">
+                        <tbody>
+                            <tr>
+                                <td class="w-25">
+                                    <img class="edi-qr-code" t-att-src="image['l10n_pe_edi_pos_qrsrc']" />
+                                </td>
+                                <td class="text-start top w-75 ps-1">
+                                    <p class="text-bold text-normal">Summary:</p>
+                                    <div class="text-small" t-out="extra_data['summary']" />
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </t>
+            </xpath>
+        </template>
+    </data>
+</odoo>

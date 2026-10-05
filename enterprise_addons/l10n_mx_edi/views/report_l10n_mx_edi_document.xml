@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_mx_cancel_ack" model="ir.actions.report">
+        <field name="name">Acknowledgement of CFDI cancellation request</field>
+        <field name="model">l10n_mx_edi.document</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_mx_edi.report_mx_cancel_ack</field>
+    </record>
+
+    <template id="report_mx_cancel_ack_document">
+        <div class="page">
+            <h2 style="text-align:center;">
+                Acknowledgement of CFDI cancellation request
+            </h2>
+
+            <div class="row" name="document">
+                <div class="col-6">
+                    <strong>Document code:</strong>
+                    <span t-out="doc.move_id.name" />
+                </div>
+                <div class="col-6">
+                    <strong>Document type:</strong>
+                    <t t-if="doc.move_id.origin_payment_id">
+                        <span>Payment</span>
+                    </t>
+                    <t t-else="">
+                        <span t-field="doc.move_id.move_type" />
+                    </t>
+                </div>
+            </div>
+
+            <div class="row" name="recipient">
+                <div class="col-6">
+                    <strong>Recipient Name:</strong>
+                    <span
+                        t-out="(doc.move_id.partner_id and doc.move_id.partner_id.display_name) or ''" />
+                </div>
+            </div>
+
+            <div class="row" name="tax">
+                <div class="col-6">
+                    <strong>Recipient's Tax ID</strong>
+                    <span t-out="(doc.move_id.partner_id and doc.move_id.partner_id.vat) or ''" />
+                </div>
+            </div>
+
+            <div class="row" name="date">
+                <div class="col-6">
+                    <strong>Date and time of cancellation request:</strong>
+                    <span t-out="doc.datetime" />
+                </div>
+            </div>
+
+            <hr />
+
+            <table class="o_has_total_table table o_main_table table-borderless mb-0"
+                name="description">
+                <thead class="fw-bold">
+                    <tr>
+                        <th name="th_tax_id_number">
+                            <span>Tax ID Number</span>
+                        </th>
+                        <th name="th_status">
+                            <span>Cancellation process status</span>
+                        </th>
+                        <th name="th_reason">
+                            <span>Reason for cancellation</span>
+                        </th>
+                        <th name="th_replace" t-if="doc.cancellation_reason == '01'">
+                            <span>CFDI Replaces</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td name="td_tax_id_number">
+                            <span t-out="doc.attachment_uuid or ''" />
+                        </td>
+                        <td name="td_status">
+                            <span t-field="doc.sat_state" />
+                        </td>
+                        <td name="td_reason">
+                            <span t-field="doc.cancellation_reason" />
+                        </td>
+                        <td name="th_replace" t-if="doc.cancellation_reason == '01'">
+                            <span t-if="doc.move_id.l10n_mx_edi_cfdi_cancel_id"
+                                t-out="doc.move_id.l10n_mx_edi_cfdi_cancel_id.l10n_mx_edi_cfdi_uuid" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+
+            <div name="stamp">
+                <t t-if="doc.move_id">
+                    <t t-set="cfdi_values"
+                        t-value="doc.move_id._l10n_mx_edi_get_extra_invoice_report_values()" />
+                </t>
+                <t t-else="">
+                    <t t-set="cfdi_values"
+                        t-value="doc.invoice_ids[0]._l10n_mx_edi_get_extra_invoice_report_values()" />
+                </t>
+                <strong>SAT digital stamp:</strong>
+                <div style="word-break:break-all; font-size: 11px; line-height: 1.4;">
+                    <span t-out="cfdi_values.get('sello_sat')" />
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="report_mx_cancel_ack">
+        <t t-call="web.external_layout">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="doc">
+                    <t t-set="lang" t-value="doc.move_id.partner_id.lang" />
+                    <t t-call="l10n_mx_edi.report_mx_cancel_ack_document" t-lang="lang" />
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

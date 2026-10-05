@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="vat_eu_export">
+        <Deklaracja xmlns="http://crd.gov.pl/wzor/2021/01/12/10293/"
+                    xmlns:etd="http://crd.gov.pl/xml/schematy/dziedzinowe/mf/2020/03/11/eD/DefinicjeTypy/">
+            <Naglowek>
+                <KodFormularza kodSystemowy="VAT-UE (5)" wersjaSchemy="2-0E">VAT-UE</KodFormularza>
+                <WariantFormularza>5</WariantFormularza>
+                <Rok t-out="year"/>
+                <Miesiac t-out="month"/>
+                <CelZlozenia>1</CelZlozenia>
+                <KodUrzedu t-out="tax_office_code"/>
+            </Naglowek>
+            <Podmiot1 rola="Podatnik">
+                <etd:OsobaNiefizyczna>
+                    <etd:NIP t-out="taxpayer_nip"/>
+                    <etd:PelnaNazwa t-out="taxpayer_name"/>
+                </etd:OsobaNiefizyczna>
+            </Podmiot1>
+            <PozycjeSzczegolowe>
+                <t t-foreach="rows" t-as="row">
+                    <Grupa1 t-if="row['goods']">
+                        <P_Da t-out="row['country_code']"/>
+                        <P_Db t-out="row['vat_number']"/>
+                        <P_Dc t-out="int(float_round(row['goods'], precision_digits=0))"/>
+                        <P_Dd>1</P_Dd>
+                    </Grupa1>
+                    <Grupa1 t-if="row['triangular']">
+                        <P_Da t-out="row['country_code']"/>
+                        <P_Db t-out="row['vat_number']"/>
+                        <P_Dc t-out="int(float_round(row['triangular'], precision_digits=0))"/>
+                        <P_Dd>2</P_Dd>
+                    </Grupa1>
+                </t>
+                <t t-foreach="rows" t-as="row">
+                    <Grupa2 t-if="row['acquisitions']">
+                        <P_Na t-out="row['country_code']"/>
+                        <P_Nb t-out="row['vat_number']"/>
+                        <P_Nc t-out="int(float_round(row['acquisitions'], precision_digits=0))"/>
+                        <P_Nd>1</P_Nd>
+                    </Grupa2>
+                    <Grupa2 t-if="row['triangular_acquisitions']">
+                        <P_Na t-out="row['country_code']"/>
+                        <P_Nb t-out="row['vat_number']"/>
+                        <P_Nc t-out="int(float_round(row['triangular_acquisitions'], precision_digits=0))"/>
+                        <P_Nd>2</P_Nd>
+                    </Grupa2>
+                </t>
+                <t t-foreach="rows" t-as="row">
+                    <Grupa3 t-if="row['services']">
+                        <P_Ua t-out="row['country_code']"/>
+                        <P_Ub t-out="row['vat_number']"/>
+                        <P_Uc t-out="int(float_round(row['services'], precision_digits=0))"/>
+                    </Grupa3>
+                </t>
+            </PozycjeSzczegolowe>
+            <Pouczenie>1</Pouczenie>
+        </Deklaracja>
+    </template>
+</odoo>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="l10n_mx_edi_cfdi_request_form_view" model="ir.ui.view">
+        <field name="name">l10n_mx_edi_cfdi.request.form.view</field>
+        <field name="model">l10n_mx_edi.cfdi.request</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_verify_request" type="object" string="Verify Request Status" groups="account.group_account_user" invisible="state != 'in_process_at_sat'"/>
+                    <button name="action_download_package" type="object" string="Download Package" groups="account.group_account_user" invisible="state != 'in_download'"/>
+                    <button name="action_unpack_package" type="object" string="Unpack Documents" groups="account.group_account_user" invisible="state != 'unpacking'"/>
+                    <button name="action_retry_request" type="object" string="Retry Request" groups="account.group_account_user" invisible="state not in ('rejected', 'expired')"/>
+                </header>
+                <sheet string="SAT Package">
+                    <div class="oe_button_box" name="button_box">
+                            <button name="action_open_documents" type="object" class="oe_stat_button" invisible="not l10n_mx_edi_document_ids">
+                                <div class="o_field_widget o_stat_info">
+                                    <span class="o_stat_text">Imported Documents</span>
+                                </div>
+                            </button>
+                        </div>
+                    <group>
+                        <group>
+                            <field name="request_type" readonly="state not in ('rejected', 'expired')"/>
+                            <field name="cfdi_uuid"
+                                readonly="state not in ('rejected', 'expired')"
+                                required="request_type == 'folio'"
+                                invisible="request_type != 'folio'"/>
+                            <field name="receipt_type"
+                                readonly="state not in ('rejected', 'expired')"
+                                invisible="request_type == 'folio'"/>
+                            <field name="emission_date_from" widget="daterange" options="{'end_date_field': 'emission_date_to', 'always_range': True}"
+                                string="From - To"
+                                required="request_type != 'folio'"
+                                readonly="state not in ('rejected', 'expired')"
+                                invisible="request_type == 'folio'"/>
+                        </group>
+                        <group>
+                            <field name="state"/>
+                            <field name="is_retryable"/>
+                            <field name="last_cron_attempt" invisible="state not in ('in_process_at_sat', 'in_download', 'unpacking')"/>
+                            <field name="unpacked_count" invisible="state != 'unpacking'"/>
+                            <field name="request_uuid"/>
+                            <field name="package_uuid"/>
+                            <field name="message"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_mx_edi_cfdi_request_list_view" model="ir.ui.view">
+        <field name="name">l10n_mx_edi_cfdi_request.list.view</field>
+        <field name="model">l10n_mx_edi.cfdi.request</field>
+        <field name="arch" type="xml">
+            <list edit="0" delete="0" create="0">
+                <field name="request_type"/>
+                <field name="state" widget="label_selection"
+                    options="{'classes': {
+                    'in_process_at_sat': 'primary',
+                    'in_download': 'primary',
+                    'unpacking': 'primary',
+                    'done': 'success',
+                    'rejected': 'danger',
+                    'expired': 'warning',
+                }}"/>
+                <field name="is_retryable" optional="show"/>
+                <field name="message" optional="hidden"/>
+                <field name="cfdi_uuid"/>
+                <field name="receipt_type"/>
+                <field name="emission_date_from" widget="daterange" options="{'end_date_field': 'emission_date_to'}" string="From - To"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_mx_edi_cfdi_request_search_view" model="ir.ui.view">
+        <field name="name">l10n_mx_edi_cfdi_request.search.view</field>
+        <field name="model">l10n_mx_edi.cfdi.request</field>
+        <field name="arch" type="xml">
+            <search>
+                <filter name="needs_attention" string="Needs Attention" domain="['|', ('is_retryable', '=', False), ('state', 'in', ('rejected', 'expired'))]"/>
+                <filter name="rejected_expired" string="Rejected/Expired" domain="[('state', 'in', ('rejected', 'expired'))]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_l10n_mx_edi_cfdi_request_list_view" model="ir.actions.act_window">
+        <field name="name">CFDI Requests</field>
+        <field name="res_model">l10n_mx_edi.cfdi.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="l10n_mx_edi_cfdi_request_search_view"/>
+        <field name="domain">[('company_id', 'in', allowed_company_ids)]</field>
+    </record>
+
+    <menuitem id="l10n_mx_edi_cfdi_request_menu"
+        parent="l10n_mx_edi.l10n_mx_audit_menu"
+        name="CFDI Requests"
+        action="action_l10n_mx_edi_cfdi_request_list_view"
+        groups="account.group_account_readonly"/>
+</odoo>

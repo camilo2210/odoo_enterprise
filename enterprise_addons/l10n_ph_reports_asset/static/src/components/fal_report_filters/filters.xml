@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="l10n_ph_reports_asset.FalReportFilters" t-inherit="account_reports.AccountReportFiltersCustomizable">
+        <xpath expr="//div[@id='filter_extra_options']" position="before">
+            <div class="o_account_reports_filter_asset_status">
+                <Dropdown>
+                    <button class="btn btn-secondary">
+                        <i class="oi oi-filled me-1" data-icon="filter_alt"/><t t-out="this.assetStatusHeader"/>
+                    </button>
+                    <t t-set-slot="content">
+                        <t t-foreach="this.controller.cachedFilterOptions().asset_states" t-as="state" t-key="state_index">
+                            <DropdownItem
+                                class="{ 'selected': state.selected }"
+                                onSelected="() => this.toggleStatus(state)"
+                                closingMode="'none'"
+                                t-out="state.name"
+                            />
+                        </t>
+                    </t>
+                </Dropdown>
+            </div>
+            <div class="o_account_reports_filter_asset_group" t-if="this.controller.cachedFilterOptions().asset_groups?.length > 0">
+                <Dropdown>
+                    <button class="btn btn-secondary">
+                        <i class="oi me-1" data-icon="deployed_code"/>
+                        <t t-out="this.controller.cachedFilterOptions().name_asset_groups_group"/>
+                    </button>
+
+                    <t t-set-slot="content">
+                        <t t-foreach="this.controller.cachedFilterOptions().asset_groups" t-as="assetGroup" t-key="assetGroup_index">
+                            <t t-if="assetGroup.id === 'divider'">
+                                <div class="d-flex dropdown-header w-100 align-items-center pt-0 ps-0 mx-0 my-1">
+                                    <button class="btn btn_foldable d-flex align-items-center w-100 border-0"
+                                            t-on-click="() => this.unfoldCompanyAssetGroups(assetGroup)">
+                                        <i class="oi" t-att-data-icon="assetGroup.unfolded ? 'arrow_drop_down' : 'arrow_right'"/>
+                                        <span class="pt-0 mt-0 ps-2 dropdown-header" t-out="assetGroup.name"/>
+                                    </button>
+                                </div>
+                            </t>
+                            <t t-elif="assetGroup.model === 'account.asset.group'">
+                                <DropdownItem
+                                    class="{ 'selected': assetGroup.selected, 'ps-4': true, 'd-none': !assetGroup.visible }"
+                                    onSelected="() => this.selectAssetGroup(assetGroup)"
+                                    closingMode="'none'"
+                                    t-out="assetGroup.name"
+                                />
+                            </t>
+                        </t>
+                    </t>
+                </Dropdown>
+            </div>
+        </xpath>
+    </t>
+</templates>

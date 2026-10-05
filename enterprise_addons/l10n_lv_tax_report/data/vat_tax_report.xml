@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="l10n_lv.l10n_lv_vat_main_tax_report" model="account.report">
+            <!-- Hide the report only including the main tax report
+                 It will be a section of the new report that includes the attachments too
+                 (`l10n_lv_vat_main_tax_report_attachments`). -->
+            <field name="root_report_id" eval="False"/>
+            <field name="custom_handler_model_id" ref="model_l10n_lv_tax_report_handler"/>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="l10n_lv_vat_main_tax_report_with_attachments" model="account.report">
+            <field name="name">VAT Report</field>
+            <field name="name@lv">PVN Pārskats</field>
+            <field name="root_report_id" ref="account.generic_tax_report"/>
+            <field name="custom_handler_model_id" ref="model_l10n_lv_tax_report_handler"/>
+            <field name="country_id" ref="base.lv"/>
+            <field name="availability_condition">country</field>
+            <field name="allow_foreign_vat" eval="True"/>
+            <field name="filter_multi_company">tax_units</field>
+            <field name="filter_hierarchy">never</field>
+            <field name="use_sections" eval="True"/>
+            <field name="section_report_ids" eval="[Command.set([
+                ref('l10n_lv.l10n_lv_vat_main_tax_report'),
+                ref('l10n_lv_tax_report.l10n_lv_vat_main_tax_report_attachment_1i'),
+                ref('l10n_lv_tax_report.l10n_lv_vat_main_tax_report_attachment_1ii'),
+                ref('l10n_lv_tax_report.l10n_lv_vat_main_tax_report_attachment_1iii'),
+                ref('l10n_lv_tax_report.l10n_lv_vat_main_tax_report_attachment_2'),
+            ])]"/>
+        </record>
+    </data>
+</odoo>

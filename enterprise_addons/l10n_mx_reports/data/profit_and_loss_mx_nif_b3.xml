@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="l10n_mx_pl_nif_b3" model="account.report">
+        <field name="name">Profit and Loss NIF B-3</field>
+        <field name="name@es_419">NIF B-3 Estado de resultado Integral</field>
+        <field name="root_report_id" ref="account_reports.profit_and_loss"/>
+        <field name="availability_condition">coa</field>
+        <field name="chart_template">mx</field>
+        <field name="filter_unfold_all" eval="True"/>
+        <field name="filter_analytic_groupby" eval="True"/>
+        <field name="filter_journals" eval="True"/>
+        <field name="country_id" ref="base.mx"/>
+        <field name="filter_multi_company">selector</field>
+        <field name="allow_account_audit_status_on_lines" eval="True"/>
+        <field name="default_opening_date_filter">this_year</field>
+        <field name="column_ids">
+            <record id="l10n_mx_pl_nif_b3_column" model="account.report.column">
+                <field name="name">Balance</field>
+                <field name="name@es_419">Balance</field>
+                <field name="expression_label">balance</field>
+            </record>
+        </field>
+        <field name="line_ids">
+            <record id="l10n_mx_pl_nif_b3_income" model="account.report.line">
+                <field name="name">Income</field>
+                <field name="name@es_419">Ingreso</field>
+                <field name="hierarchy_level">0</field>
+                <field name="children_ids">
+                    <record id="l10n_mx_pl_nif_b3_revenue" model="account.report.line">
+                        <field name="name">Revenue</field>
+                        <field name="name@es_419">Ventas</field>
+                        <field name="code">REV</field>
+                        <field name="hierarchy_level">2</field>
+                        <field name="groupby">account_id</field>
+                        <field name="account_codes_formula">-4\(403)</field>
+                    </record>
+                    <record id="l10n_mx_pl_nif_b3_less_costs_of_revenue" model="account.report.line">
+                        <field name="name">Less Costs of Revenue</field>
+                        <field name="name@es_419">Menos Costo de Ventas</field>
+                        <field name="code">COS</field>
+                        <field name="hierarchy_level">2</field>
+                        <field name="groupby">account_id</field>
+                        <field name="account_codes_formula">5</field>
+                    </record>
+                    <record id="l10n_mx_pl_nif_b3_gross_profit" model="account.report.line">
+                        <field name="name">Gross Profit</field>
+                        <field name="name@es_419">Utilidad Bruta</field>
+                        <field name="code">GRP</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="aggregation_formula">REV.balance - COS.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_mx_pl_nif_b3_operating_expenses" model="account.report.line">
+                <field name="name">Operating Expenses</field>
+                <field name="name@es_419">Gastos de Operación</field>
+                <field name="hierarchy_level">0</field>
+                <field name="children_ids">
+                    <record id="l10n_mx_pl_nif_b3_less_operating_expenses" model="account.report.line">
+                        <field name="name">Less Operating Expenses</field>
+                        <field name="name@es_419">Menos Gastos de Operación</field>
+                        <field name="code">EXP</field>
+                        <field name="hierarchy_level">2</field>
+                        <field name="groupby">account_id</field>
+                        <field name="account_codes_formula">6\(611, 601.21, 602.21, 603.21, 604.21, 605.22)</field>
+                    </record>
+                    <record id="l10n_mx_pl_nif_b3_plus_other_income" model="account.report.line">
+                        <field name="name">Plus Other Income</field>
+                        <field name="name@es_419">Más Otros Ingresos</field>
+                        <field name="code">OIN</field>
+                        <field name="hierarchy_level">2</field>
+                        <field name="hide_if_zero" eval="True"/>
+                        <field name="groupby">account_id</field>
+                        <field name="account_codes_formula">-403</field>
+                    </record>
+                    <record id="l10n_mx_pl_nif_b3_ebit" model="account.report.line">
+                        <field name="name">Operating Result (EBIT)</field>
+                        <field name="name@es_419">Resultado Operacional</field>
+                        <field name="code">INC</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="aggregation_formula">GRP.balance - EXP.balance + OIN.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_mx_pl_nif_b3_rif" model="account.report.line">
+                <field name="name">Comprehensive Financing Results (RIF)</field>
+                <field name="name@es_419">Resultado Integral de Financiamiento (RIF)</field>
+                <field name="hierarchy_level">0</field>
+                <field name="children_ids">
+                    <record id="l10n_mx_pl_nif_b3_financial_products" model="account.report.line">
+                        <field name="name">Financial Products</field>
+                        <field name="name@es_419">Productos Financieros</field>
+                        <field name="code">FINPRO</field>
+                        <field name="hierarchy_level">2</field>
+                        <field name="groupby">account_id</field>
+                        <field name="account_codes_formula">-702</field>
+                    </record>
+                    <record id="l10n_mx_pl_nif_b3_financial_expenses" model="account.report.line">
+                        <field name="name">Financial Expenses</field>
+                        <field name="name@es_419">Gastos Financieros</field>
+                        <field name="code">FINEXP</field>
+                        <field name="hierarchy_level">2</field>
+                        <field name="groupby">account_id</field>
+                        <field name="account_codes_formula">701</field>
+                    </record>
+                    <record id="l10n_mx_pl_nif_b3_other_financial_operations" model="account.report.line">
+                        <field name="name">Other Financial Operations</field>
+                        <field name="name@es_419">Otras Operaciones Financieras</field>
+                        <field name="code">FINOTH</field>
+                        <field name="hierarchy_level">2</field>
+                        <field name="groupby">account_id</field>
+                        <field name="account_codes_formula">7\(701, 702)</field>
+                    </record>
+                    <record id="l10n_mx_pl_nif_b3_profit_before_taxes" model="account.report.line">
+                        <field name="name">Profit Before Taxes</field>
+                        <field name="name@es_419">Utilidad Antes de Impuestos</field>
+                        <field name="code">NEP</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="aggregation_formula">INC.balance + FINPRO.balance - FINEXP.balance + FINOTH.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_mx_pl_nif_b3_taxes" model="account.report.line">
+                <field name="name">Taxes (ISR &amp; PTU)</field>
+                <field name="name@es_419">Impuestos (ISR &amp; PTU)</field>
+                <field name="hierarchy_level">0</field>
+                <field name="children_ids">
+                    <record id="l10n_mx_pl_nif_b3_isr_paid" model="account.report.line">
+                        <field name="name">ISR paid</field>
+                        <field name="name@es_419">ISR Pagado</field>
+                        <field name="code">ISR</field>
+                        <field name="hierarchy_level">2</field>
+                        <field name="groupby">account_id</field>
+                        <field name="account_codes_formula">611</field>
+                    </record>
+                    <record id="l10n_mx_pl_nif_b3_determined_ptu" model="account.report.line">
+                        <field name="name">Determined PTU</field>
+                        <field name="name@es_419">PTU Determinada</field>
+                        <field name="code">PTU</field>
+                        <field name="hierarchy_level">2</field>
+                        <field name="groupby">account_id</field>
+                        <field name="account_codes_formula">601.21 + 602.21 + 603.21 + 604.21 + 605.22</field>
+                    </record>
+                    <record id="l10n_mx_pl_nif_b3_net_profit" model="account.report.line">
+                        <field name="name">Net Profit</field>
+                        <field name="name@es_419">Utilidad Neta</field>
+                        <field name="code">NPAT</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="aggregation_formula">NEP.balance - ISR.balance - PTU.balance</field>
+                    </record>
+                </field>
+            </record>
+        </field>
+    </record>
+</odoo>

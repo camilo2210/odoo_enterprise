@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="l10n_mx_fiscal_regime_receptor" inherit_id="l10n_mx_edi.l10n_mx_fiscal_regime_receptor">
+        <xpath expr="//div[@name='cfdi_receptor_fiscal_regime']" position="after">
+            <div name="cfdi_tax_registration_id_number"  t-if="o.l10n_mx_edi_external_trade and cfdi_values['tax_registration_id_number']">
+                <span>NumRegIdTrib:</span>
+                <span t-out="cfdi_values['tax_registration_id_number']"/>
+            </div>
+        </xpath>
+      </template>
+
+    <template id="report_invoice_document" inherit_id="l10n_mx_edi.report_invoice_document">
+        <!-- External Trade stuff -->
+        <xpath expr="//div[@name='comment']" position="before">
+            <div t-if="o.l10n_mx_edi_external_trade" class="avoid-page-break-inside">
+                <div class="row">
+                    <div class="col-12">
+                        <div align="center">
+                            <span>
+                                <strong>External Trade</strong>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <table class="table table-borderless table-sm text-center mt4 mb4" align="center" style="font-size:10px">
+                            <thead>
+                                <tr style="background-color:grey; color:white;">
+                                    <th class="text-center">Certificate Key</th>
+                                    <th class="text-center">Certificate Source</th>
+                                    <th class="text-center"
+                                        t-if="cfdi_values['ext_trade_nb_certificate_origin'] == '1'">Number
+                                        Certificate Source
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <span t-out="cfdi_values['ext_trade_certificate_key']"/>
+                                    </td>
+                                    <td>
+                                        <span t-out="cfdi_values['ext_trade_certificate_source']"/>
+                                    </td>
+                                    <td t-if="cfdi_values['ext_trade_nb_certificate_origin'] == '1'">
+                                        <span t-out="cfdi_values['ext_trade_certificate_origin']"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table class="table table-borderless table-sm text-center mt4 mb4" align="center" style="font-size:10px">
+                            <thead>
+                                <tr style="background-color:grey; color:white;">
+                                    <th class="text-center" t-if="cfdi_values['ext_trade_nb_reliable_exporter']">
+                                        Number of Reliable Exporter
+                                    </th>
+                                    <th class="text-center">Incoterm</th>
+                                    <th class="text-center">Rate USD</th>
+                                    <th class="text-center">Total USD</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td t-if="cfdi_values['ext_trade_nb_reliable_exporter']">
+                                        <span t-out="cfdi_values['ext_trade_nb_reliable_exporter']"/>
+                                    </td>
+                                    <td>
+                                        <span t-out="cfdi_values['ext_trade_incoterm']"/>
+                                    </td>
+                                    <td>
+                                        <span t-out="cfdi_values['ext_trade_rate_usd']"/>
+                                    </td>
+                                    <td>
+                                        <span t-out="cfdi_values['ext_trade_total_usd']"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+
+        <xpath expr="//t[@t-set='has_totals_table_class']" position="after">
+            <t t-set="original_has_totals_table_class" t-value="has_totals_table_class" />
+            <t t-set="has_totals_table_class" t-value="has_totals_table_class if not o.l10n_mx_edi_external_trade else ''" />
+        </xpath>
+
+        <!-- Add new column customs numbers in conceptos table -->
+        <xpath expr="//th[@name='th_concepto_tax_object']" position="after">
+            <th t-if="cfdi_values['has_customs']" name="th_concepto_customs_numbers"><span>Customs Numbers</span></th>
+        </xpath>
+        <xpath expr="//td[@name='td_concepto_tax_object']" position="after">
+            <td t-if="cfdi_values['has_customs']" name="td_concepto_customs_numbers">
+                <span t-out="concepto['customs_numbers']" />
+            </td>
+        </xpath>
+
+        <xpath expr="//table[@name='conceptos_table']" position="after">
+            <t t-if="o.l10n_mx_edi_external_trade">
+                <div class="mt16">
+                    <table t-att-class="original_has_totals_table_class + 'table table-borderless w-100 table-responsive'" name="mercancias_table">
+                        <thead>
+                            <tr>
+                                <th name="th_identification_number" class="text-start">Identification No.</th>
+                                <th name="th_tariff_fraction" class="text-start">Tariff Fraction</th>
+                                <th name="th_customs_quantity" class="text-start">Quantity</th>
+                                <th name="th_customs_unit" class="text-start">Unit</th>
+                                <th name="th_customs_unit_value" class="text-start">Unit Value</th>
+                                <th name="th_dollar_value" class="text-start">Dollar Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="cfdi_values['mercancias_list']" t-as="mercancia">
+                                <td name="td_identification_number">
+                                    <span t-out="mercancia['identification_no']"/>
+                                </td>
+                                <td name="td_tariff_fraction">
+                                    <span t-out="mercancia['fraccion_arancelaria']"/>
+                                </td>
+                                <td name="td_customs_quantity" class="text-end">
+                                    <span t-out="mercancia['customs_quantity']" t-options="{'widget': 'float', 'precision': 2}"/>
+                                </td>
+                                <td name="td_customs_unit">
+                                    <t t-out="mercancia['customs_unit']"/>
+                                </td>
+                                <td name="td_customs_unit_value" class="text-end">
+                                    <span t-out="mercancia['customs_unit_value']" t-options="{'widget': 'float', 'precision': 2}"/>
+                                </td>
+                                <td name="td_dollar_value" class="text-end">
+                                    <span t-out="mercancia['dollar_value']" t-options="{'widget': 'float', 'precision': 2}"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </xpath>
+    </template>
+</odoo>

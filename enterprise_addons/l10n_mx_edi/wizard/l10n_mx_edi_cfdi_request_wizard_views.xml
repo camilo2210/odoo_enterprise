@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="l10n_mx_edi_cfdi_request_wizard_form_view" model="ir.ui.view">
+        <field name="name">l10n_mx_edi.cfdi.request.wizard.form.view</field>
+        <field name="model">l10n_mx_edi.cfdi.request.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <div class="alert alert-info" role="alert">
+                        Request will be processed in the background. You can come back later to check what documents
+                        have arrived or go to <i class="fw-bold">Review &gt;&gt; Mexico &gt;&gt; Review CFDI Requests</i>
+                        to see the state of existing requests.
+                    </div>
+                    <div>
+                        <field name="date_options"
+                            widget="badges_selection"
+                            invisible="request_type == 'folio'"
+                            required="request_type != 'folio'"/>
+                    </div>
+                </header>
+                <sheet string="CFDI Request">
+                    <group>
+                        <field name="request_type"/>
+                        <field name="cfdi_uuid" invisible="request_type != 'folio'" required="request_type == 'folio'"/>
+                        <field name="receipt_type" invisible="request_type == 'folio'" required="request_type != 'folio'"/>
+                        <field name="emission_date_from" widget="daterange" options="{'end_date_field': 'emission_date_to', 'always_range': True}" string="From - To"
+                            required="request_type != 'folio'"
+                            invisible="request_type == 'folio'"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button string="Send Request" name="action_create_cfdi_request" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="z"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

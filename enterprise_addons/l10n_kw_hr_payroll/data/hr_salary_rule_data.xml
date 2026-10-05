@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_kw_monthly_pay_basic_salary" model="hr.salary.rule">
+        <field name="name">Basic Salary</field>
+        <field name="code">BASIC</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_kw_category_pension_base'),
+        ])]"/>
+        <field name="sequence">1</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['BASIC']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_kw_monthly_pay')])]"/>
+        <field name="country_id" ref="base.kw"/>
+    </record>
+
+    <record id="l10n_kw_monthly_pay_gross" model="hr.salary.rule">
+        <field name="name">Taxable Salary</field>
+        <field name="code">GROSS</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.GROSS')])]"/>
+        <field name="sequence">100</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['BASIC'] + categories['ALW']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_kw_monthly_pay')])]"/>
+        <field name="country_id" ref="base.kw"/>
+    </record>
+
+    <record id="l10n_kw_monthly_pay_basic_pension_emp" model="hr.salary.rule">
+        <field name="name">Basic Pension (Employee)</field>
+        <field name="code">KW_SS_BASIC_EMP</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+        <field name="sequence">105</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -categories['PENSION_BASE']
+result_rate = payslip._rule_parameter('l10n_kw_basic_pension_emp')
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_kw_monthly_pay')])]"/>
+        <field name="country_id" ref="base.kw"/>
+    </record>
+
+    <record id="l10n_kw_monthly_pay_basic_pension_comp" model="hr.salary.rule">
+        <field name="name">Basic Pension (Company)</field>
+        <field name="code">KW_SS_BASIC_COMP</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+        <field name="sequence">106</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['PENSION_BASE']
+result_rate = payslip._rule_parameter('l10n_kw_basic_pension_comp')
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_kw_monthly_pay')])]"/>
+        <field name="country_id" ref="base.kw"/>
+    </record>
+
+    <record id="l10n_kw_monthly_pay_unemp_emp" model="hr.salary.rule">
+        <field name="name">Unemployment Pension (Employee)</field>
+        <field name="code">KW_SS_UNEMP_EMP</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+        <field name="sequence">107</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -categories['PENSION_BASE']
+result_rate = payslip._rule_parameter('l10n_kw_unemp_emp')
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_kw_monthly_pay')])]"/>
+        <field name="country_id" ref="base.kw"/>
+    </record>
+
+    <record id="l10n_kw_monthly_pay_unemp_comp" model="hr.salary.rule">
+        <field name="name">Unemployment Pension (Company)</field>
+        <field name="code">KW_SS_UNEMP_COMP</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+        <field name="sequence">108</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['PENSION_BASE']
+result_rate = payslip._rule_parameter('l10n_kw_unemp_comp')
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_kw_monthly_pay')])]"/>
+        <field name="country_id" ref="base.kw"/>
+    </record>
+
+    <record id="l10n_kw_monthly_pay_eos_provision" model="hr.salary.rule">
+        <field name="name">End of Service Provision</field>
+        <field name="code">EOS_PROV</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_kw_hr_payroll.l10n_kw_category_provisions')])]"/>
+        <field name="sequence">115</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+start_date = employee._get_first_contract_date()
+end_date = payslip.date_to
+difference = relativedelta(end_date, start_date)
+years_of_service = difference.years + difference.months / 12.0 + difference.days / 365.25
+
+if years_of_service &lt; 5:
+    result = (categories['PENSION_BASE'] / 2.0) / 12.0
+else:
+    result = categories['PENSION_BASE'] / 12.0
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_kw_monthly_pay')])]"/>
+        <field name="country_id" ref="base.kw"/>
+    </record>
+
+    <record id="l10n_kw_monthly_pay_annual_leave_provision" model="hr.salary.rule">
+        <field name="name">Annual Leave Provision</field>
+        <field name="code">LEAVE_PROV</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_kw_hr_payroll.l10n_kw_category_provisions')])]"/>
+        <field name="sequence">120</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+yearly_eligibility = version.l10n_kw_annual_leave_eligibility or 30.0
+monthly_accrual = yearly_eligibility / 12.0
+
+count_worked_days = sum(worked_days[wd].number_of_days for wd in worked_days if worked_days[wd].code != '040.00') or 1.0
+daily_wage = categories['PENSION_BASE'] / count_worked_days
+
+result = daily_wage * monthly_accrual
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_kw_monthly_pay')])]"/>
+        <field name="country_id" ref="base.kw"/>
+    </record>
+
+    <record id="l10n_kw_monthly_pay_attach_salary" model="hr.salary.rule">
+        <field name="name">Attachment of Salary</field>
+        <field name="code">ATTACH_SALARY</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+        <field name="sequence">110</field>
+        <field name="condition_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value">0.0</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_kw_monthly_pay')])]"/>
+        <field name="country_id" ref="base.kw"/>
+    </record>
+
+    <record id="l10n_kw_monthly_pay_assign_salary" model="hr.salary.rule">
+        <field name="name">Assignment of Salary</field>
+        <field name="code">ASSIG_SALARY</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+        <field name="sequence">110</field>
+        <field name="condition_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value">0.0</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_kw_monthly_pay')])]"/>
+        <field name="country_id" ref="base.kw"/>
+    </record>
+
+    <record id="l10n_kw_monthly_pay_child_support" model="hr.salary.rule">
+        <field name="name">Child Support</field>
+        <field name="code">CHILD_SUPPORT</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+        <field name="sequence">110</field>
+        <field name="condition_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value">0.0</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_kw_monthly_pay')])]"/>
+        <field name="country_id" ref="base.kw"/>
+    </record>
+
+    <record id="l10n_kw_monthly_pay_deduction" model="hr.salary.rule">
+        <field name="name">Deduction</field>
+        <field name="code">DEDUCTION</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+        <field name="sequence">190</field>
+        <field name="condition_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value">0.0</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -(inputs['DEDUCTION'].amount if 'DEDUCTION' in inputs else 0.0)
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_kw_monthly_pay')])]"/>
+        <field name="country_id" ref="base.kw"/>
+    </record>
+
+    <record id="l10n_kw_monthly_pay_eos_benefit" model="hr.salary.rule">
+        <field name="name">End of Service Benefit</field>
+        <field name="code">EOS_BENEFIT</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+        <field name="sequence">160</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+result = employee.departure_date and employee.departure_reason_id and (payslip.date_from &lt;= employee.departure_date &lt;= payslip.date_to)
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+start_date = employee._get_first_contract_date()
+end_date = employee.departure_date
+difference = relativedelta(end_date, start_date)
+total_years = difference.years + difference.months / 12.0 + difference.days / 365.25
+
+if total_years &lt;= 5:
+    indemnity = total_years * (version.wage / 2.0)
+else:
+    first_five_amount = 5.0 * (version.wage / 2.0)
+    remaining_years_amount = (total_years - 5.0) * version.wage
+    indemnity = first_five_amount + remaining_years_amount
+
+if employee.departure_reason_id == payslip.env.ref('hr.departure_fired', raise_if_not_found=False):
+    result = 0.0
+elif employee.departure_reason_id == payslip.env.ref('hr.departure_resigned', raise_if_not_found=False):
+    if total_years &lt; 3:
+        result = 0.0
+    elif 3 &lt;= total_years &lt; 5:
+        result = indemnity * 0.5
+    elif 5 &lt;= total_years &lt; 10:
+        result = indemnity * (2/3.0)
+    else:
+        result = indemnity
+else:
+    # End of Contract or other reasons -> 100%
+    result = indemnity
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_kw_monthly_pay')])]"/>
+        <field name="country_id" ref="base.kw"/>
+    </record>
+
+    <record id="l10n_kw_monthly_pay_sick_leave" model="hr.salary.rule">
+        <field name="name">Sick Leave Pay</field>
+        <field name="code">SICK_PAY</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+        <field name="sequence">105</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+result = '013.00' in worked_days and worked_days['013.00'].number_of_days &gt; 0
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+current_sick_days = worked_days['013.00'].number_of_days
+year_start = payslip.date_from.replace(month=1, day=1)
+
+past_payslips = payslip.env['hr.payslip'].search([
+    ('employee_id', '=', employee.id),
+    ('state', 'in', ['validated', 'paid']),
+    ('date_from', '&gt;=', year_start),
+    ('date_from', '&lt;', payslip.date_from),
+    ('company_id', '=', payslip.company_id.id),
+])
+
+past_sick_days = past_payslips._get_worked_days_line_values(['013.00'], ['number_of_days'], compute_sum=True)['013.00']['sum']['number_of_days']
+
+count_worked_days = sum(worked_days[wd].number_of_days for wd in worked_days if worked_days[wd].code != '040.00') or 1.0
+daily_wage = version.wage / count_worked_days
+
+total_amount = 0.0
+
+days_left = current_sick_days
+current_used = past_sick_days
+
+while days_left &gt; 0:
+    if current_used &lt; 15:
+        rate = 1.0
+        tier_limit = 15 - current_used
+    elif current_used &lt; 25:
+        rate = 0.75
+        tier_limit = 25 - current_used
+    elif current_used &lt; 35:
+        rate = 0.50
+        tier_limit = 35 - current_used
+    elif current_used &lt; 45:
+        rate = 0.25
+        tier_limit = 45 - current_used
+    else:
+        rate = 0.0
+        tier_limit = days_left
+
+    step = min(days_left, tier_limit)
+    total_amount += (daily_wage * step * rate)
+    current_used += step
+    days_left -= step
+
+result = total_amount
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_kw_monthly_pay')])]"/>
+        <field name="country_id" ref="base.kw"/>
+    </record>
+
+    <record id="l10n_kw_monthly_pay_remaining_leaves_compensation" model="hr.salary.rule">
+        <field name="name">Remaining Leaves Compensation</field>
+        <field name="code">REM_LEAVE</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+        <field name="sequence">170</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+result = employee.departure_date and employee.departure_reason_id and (payslip.date_from &lt;= employee.departure_date &lt;= payslip.date_to)
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+leave_type = payslip.company_id.l10n_kw_annual_work_entry_type_id
+
+if leave_type:
+    allocations = payslip.env['hr.leave.allocation'].search([
+        ('employee_id', '=', employee.id),
+        ('work_entry_type_id', '=', leave_type.id),
+        ('state', '=', 'validate'),
+        ('employee_company_id', '=', payslip.company_id.id),
+        '|', ('date_to', '=', False), ('date_to', '&gt;=', employee.departure_date),
+    ])
+    leaves = payslip.env['hr.leave'].search([
+        ('employee_id', '=', employee.id),
+        ('work_entry_type_id', '=', leave_type.id),
+        ('state', '=', 'validate'),
+        ('employee_company_id', '=', payslip.company_id.id),
+    ])
+
+    allocated_days = sum(allocations.mapped('number_of_days'))
+    taken_days = sum(leaves.mapped('number_of_days'))
+    remaining_days = allocated_days - taken_days
+
+    count_worked_days = sum(worked_days[wd].number_of_days for wd in worked_days if worked_days[wd].code != '040.00') or 1.0
+    daily_wage = (version.wage / count_worked_days) if version else 0.0
+
+    result = max(remaining_days, 0.0) * daily_wage
+else:
+    result = 0.0
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_kw_monthly_pay')])]"/>
+        <field name="country_id" ref="base.kw"/>
+    </record>
+
+    <record id="l10n_kw_monthly_pay_reimbursement" model="hr.salary.rule">
+        <field name="name">Reimbursement</field>
+        <field name="code">REIMBURSEMENT</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+        <field name="sequence">199</field>
+        <field name="condition_select">property_input</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value">0.0</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = (inputs['REIMBURSEMENT'].amount if 'REIMBURSEMENT' in inputs else 0.0)
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_kw_monthly_pay')])]"/>
+        <field name="country_id" ref="base.kw"/>
+    </record>
+
+    <record id="l10n_kw_monthly_pay_net" model="hr.salary.rule">
+        <field name="name">Net Salary</field>
+        <field name="code">NET</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.NET')])]"/>
+        <field name="sequence">200</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['BASIC'] + categories['ALW'] + categories['DED']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_kw_monthly_pay')])]"/>
+        <field name="country_id" ref="base.kw"/>
+    </record>
+
+    <record id="l10n_kw_monthly_pay_net_cost" model="hr.salary.rule">
+        <field name="name">Net Cost</field>
+        <field name="code">NET_COST</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_kw_hr_payroll.l10n_kw_category_employer_costs')])]"/>
+        <field name="sequence">300</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = abs(categories['COMP']) + result_rules['NET']['total'] + abs(result_rules['KW_SS_BASIC_EMP']['total']) + abs(result_rules['KW_SS_UNEMP_EMP']['total'])
+        </field>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="struct_ids" eval="[(6, 0, [ref('l10n_kw_monthly_pay')])]"/>
+        <field name="country_id" ref="base.kw"/>
+    </record>
+</odoo>

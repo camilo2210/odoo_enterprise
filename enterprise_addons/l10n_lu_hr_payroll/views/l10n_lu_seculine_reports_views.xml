@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_lu_seculine_reports_view_list" model="ir.ui.view">
+        <field name="name">l10n_lu_seculine_reports_list</field>
+        <field name="model">l10n.lu.seculine.reports</field>
+        <field name="arch" type="xml">
+            <list string="SECULine Reports">
+                <field name="report_type"/>
+                <field name="year"/>
+                <field name="month"/>
+                <field name="report_action"/>
+                <field name="employee_ids" widget="many2many_avatar_employee"/>
+                <field name="create_date" string="Creation Date"/>
+                <field name="create_uid" string="Created By" widget="many2one_avatar_user"/>
+                <field name="report_file" widget="binary" />
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_lu_seculine_reports_view_search" model="ir.ui.view">
+        <field name="name">l10n.lu.seculine.reports.search</field>
+        <field name="model">l10n.lu.seculine.reports</field>
+        <field name="arch" type="xml">
+            <search>
+                <filter name="filter_report_type_decmal" string="DECMAL" domain="[('report_type', '=', 'decmal')]"/>
+                <filter name="filter_report_type_decsal" string="DECSAL" domain="[('report_type', '=', 'decsal')]"/>
+                <group>
+                    <filter name="group_by_report_type" string="Report Type" context="{'group_by': 'report_type'}"/>
+                    <filter name="group_by_month" string="Month" context="{'group_by': 'month'}"/>
+                    <filter name="group_by_year" string="Year" context="{'group_by': 'year'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_l10n_lu_seculine_reports_form" model="ir.ui.view">
+        <field name="name">l10n.lu.seculine.reports.form</field>
+        <field name="model">l10n.lu.seculine.reports</field>
+        <field name="arch" type="xml">
+            <form string="SECULine Reports">
+                <header>
+                    <button name="action_generate_report" string="Generate Report" type="object"
+                        class="oe_highlight"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="report_type" widget="radio" string="Report Type"/>
+                        <label for="year" string="Period"/>
+                        <div class="o_row mw-75 mw-sm-50">
+                            <field name="year" required="1" string="Year"/>
+                            <field name="month" required="1" string="Month"/>
+                        </div>
+                        <field name="report_action" widget="radio" invisible="report_type != 'decmal'"
+                            string="Report Action"/>
+                        <field name="employee_ids"
+                            widget="many2many_avatar_employee"
+                            string="Employees"
+                            options="{'no_create': True}"
+                            placeholder="Select employees where DECMAL info needs to be corrected"
+                            invisible="not (report_action == 'correction' and report_type == 'decmal')"
+                            required="1"/>
+                        <notebook invisible="not situational_unemployment_ids or report_type == 'decmal'" colspan="2">
+                            <page string="Situational Unemployment" name="page_situational_unemployment" colspan="2">
+                                <field name="situational_unemployment_ids" string="Situational Unemployment Entries">
+                                    <list editable="bottom" create="0" delete="0">
+                                        <field name="currency_id" column_invisible="True"/>
+                                        <field name="payslip_id" column_invisible="True"/>
+                                        <field name="employee_id" force_save="1" string="Employee"/>
+                                        <field name="hours" widget="float_time" force_save="1" string="Hours"/>
+                                        <field name="amount" force_save="1" string="Amount"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
+                        <field name="report_file" string="Report"
+                            invisible="not report_file" readonly="1"/>
+                    </group>
+                    <p class="alert alert-warning" role="alert" invisible="batch_ids or report_type != 'decsal'">
+                        There are no payslip batches for the selected period.
+                    </p>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_lu_seculine_reports_action" model="ir.actions.act_window">
+        <field name="name">Seculine Reports</field>
+        <field name="res_model">l10n.lu.seculine.reports</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_l10n_lu_hr_payroll_seculine_reports"
+        parent="menu_l10n_lu_hr_payroll_report"
+        action="l10n_lu_seculine_reports_action"
+        sequence="10"
+        groups="hr_payroll.group_hr_payroll_user"/>
+</odoo>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="l10n_mx_edi_document_list_view" model="ir.ui.view">
+        <field name="name">l10n_mx_edi_document.list</field>
+        <field name="model">l10n_mx_edi.document</field>
+        <field name="arch" type="xml">
+            <list string="CFDI Documents" create="false" delete="false" edit="false">
+                <header>
+                    <button name="action_open_cfdi_request_wizard" string="Create CFDI Request"
+                        type="object"
+                        class="btn btn-primary"
+                        display="always"
+                        groups="account.group_account_user"/>
+                    <button name="action_create_records_from_documents" string="Import Documents"
+                        type="object"
+                        groups="account.group_account_user"/>
+                </header>
+                <field name="datetime"/>
+                <field name="attachment_uuid"/>
+                <field name="receipt_type"/>
+                <field name="customer_rfc"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="sat_state"/>
+                <field name="attachment_origin" optional="hide"/>
+                <field name="cancellation_reason" optional="hide"/>
+                <field name="message" optional="hide"/>
+
+                <button name="action_show_document"
+                        type="object"
+                        string="Show"
+                        groups="account.group_account_readonly"
+                        invisible="not show_button_needed"
+                        icon="visibility"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_mx_edi_document_search_view" model="ir.ui.view">
+        <field name="name">l10n_mx_edi.document.search</field>
+        <field name="model">l10n_mx_edi.document</field>
+        <field name="arch" type="xml">
+            <search string="CFDI Documents">
+                <field name="attachment_uuid" string="Fiscal Folio"/>
+                <field name="message"/>
+                <separator/>
+                <filter name="valid" string="Validated" domain="[('sat_state', '=', 'valid')]"/>
+                <filter name="cancelled" string="Cancelled" domain="[('sat_state', '=', 'cancelled')]"/>
+                <filter name="not_found" string="Not Found" domain="[('sat_state', '=', 'not_found')]"/>
+                <filter name="not_defined" string="Not Defined" domain="[('sat_state', '=', 'not_defined')]"/>
+                <filter name="error" string="Error" domain="[('sat_state', '=', 'error')]"/>
+                <group>
+                    <filter name="sat_state" string="SAT Status" context="{'group_by': 'sat_state'}"/>
+                    <filter name="customer_rfc" string="RFC" context="{'group_by': 'customer_rfc'}"/>
+                    <filter name="company" string="Company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_l10n_mx_edi_document" model="ir.actions.act_window">
+        <field name="name">CFDI Documents</field>
+        <field name="res_model">l10n_mx_edi.document</field>
+        <field name="view_mode">list</field>
+        <field name="search_view_id" ref="l10n_mx_edi_document_search_view"/>
+        <field name="domain" model="l10n_mx_edi.document" eval="obj()._get_action_l10n_mx_edi_document_domain()"></field>
+        <field name="context">{'create': False, 'from_list_view': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No CFDI document found
+            </p>
+            <p>
+                You can see here all the generated CFDI documents.
+            </p>
+        </field>
+    </record>
+    <menuitem id="l10n_mx_audit_menu" parent="account.account_audit_menu" name="Mexico" sequence="60" groups="account.group_account_readonly">
+        <menuitem id="l10n_mx_edi_document_menu"
+            name="CFDI Documents (MX)"
+            action="action_l10n_mx_edi_document"
+            groups="account.group_account_readonly"/>
+    </menuitem>
+
+</odoo>

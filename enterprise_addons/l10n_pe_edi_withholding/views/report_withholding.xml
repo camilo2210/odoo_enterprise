@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_payment_withholding_certificate" model="ir.actions.report">
+        <field name="name">Withholding</field>
+        <field name="model">account.payment</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_pe_edi_withholding.report_payment_withholding</field>
+        <field name="print_report_name">object.l10n_pe_edi_retention_number or "Rentention"</field>
+        <field name="binding_model_id" ref="account.model_account_payment"/>
+        <field name="binding_type">report</field>
+        <field name="domain" eval="[('withhold', '!=', 'payment'), ('company_id.partner_id.fiscal_country_codes', 'in', ['PE'])]"/>
+    </record>
+
+    <template id="report_payment_withholding_document">
+        <t t-call="web.external_layout">
+            <t t-set="o" t-value="o.with_context(lang=lang)"/>
+            <div class="page">
+                <!-- Vendor info -->
+                <div class="row">
+                    <div class="col-6 offset-6" t-if="o.partner_type">
+                        <div t-field="o.partner_id"
+                            t-options='{"widget": "contact", "fields": ["address", "name", "phone", "vat"], "no_marker": True, "phone_icons": True}'/>
+                    </div>
+                </div>
+
+                <!-- Title -->
+                <h3 class="mt-4">
+                    <strong>Comprobante de Retenci&#243;n Electronica&amp;nbsp;
+                        <span t-out="o.l10n_pe_edi_retention_number or ''"/>
+                    </strong>
+                </h3>
+
+                <!-- Dates -->
+                <div class="mb-4 mt-3">
+                    <div class="row">
+                        <div class="col-6" t-if="o.date">
+                            <strong>Date</strong><br/>
+                            <span t-field="o.date"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Referenced documents table -->
+                <table class="table table-sm table-borderless border-bottom pt-2 mb-4">
+                    <thead>
+                        <tr>
+                            <th>Doc Type</th>
+                            <th>Doc Number</th>
+                            <th>Issue Date</th>
+                            <th class="text-end">Total Amount</th>
+                            <th class="text-end">Payment Amount</th>
+                            <th class="text-end">Rate</th>
+                            <th class="text-end">Withholding</th>
+                            <th class="text-end">Net Payment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-set="company_currency" t-value="o.company_id.currency_id"/>
+                        <t t-set="breakdown" t-value="o._l10n_pe_edi_get_retention_breakdown()"/>
+                        <t t-set="total_retention" t-value="sum(entry['bill_retention_pen'] for entry in breakdown)"/>
+                        <t t-set="tax_rate" t-value="abs(o.withholding_line_ids[:1].tax_id.amount)"/>
+                        <t t-foreach="breakdown" t-as="entry">
+                            <t t-set="bill" t-value="entry['bill']"/>
+                            <tr>
+                                <td>
+                                    <span t-out="bill.l10n_latam_document_type_id.name or 'Factura'"/>
+                                </td>
+                                <td>
+                                    <span t-out="bill.name"/>
+                                </td>
+                                <td>
+                                    <span t-field="bill.invoice_date"/>
+                                </td>
+                                <td class="text-end">
+                                    <span t-out="bill.amount_total"
+                                        t-options="{'widget': 'monetary', 'display_currency': bill.currency_id}"/>
+                                </td>
+                                <td class="text-end">
+                                    <span t-out="entry['bill_paid_pen']"
+                                        t-options="{'widget': 'monetary', 'display_currency': company_currency}"/>
+                                </td>
+                                <td class="text-end">
+                                    <span t-out="'%.2f' % tax_rate"/>%
+                                </td>
+                                <td class="text-end">
+                                    <span t-out="entry['bill_retention_pen']"
+                                        t-options="{'widget': 'monetary', 'display_currency': company_currency}"/>
+                                </td>
+                                <td class="text-end">
+                                    <span t-out="entry['net_total_paid_pen']"
+                                        t-options="{'widget': 'monetary', 'display_currency': company_currency}"/>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+
+                <!-- Totals -->
+                <div class="row mt-4">
+                    <div class="col-6 offset-6">
+                        <table class="table table-sm table-borderless border-bottom pt-2 mb-5">
+                            <tr>
+                                <td><strong>Withholding</strong></td>
+                                <td class="text-end">
+                                    <span t-out="total_retention"
+                                        t-options="{'widget': 'monetary', 'display_currency': company_currency}"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Net Payment</strong></td>
+                                <td class="text-end">
+                                    <span t-out="o.currency_id._convert(o.amount, company_currency, o.company_id, o.date) - total_retention"
+                                        t-options="{'widget': 'monetary', 'display_currency': company_currency}"/>
+                                </td>
+                            </tr>
+                            <tr class="border-top">
+                                <td><strong>Total</strong></td>
+                                <td class="text-end">
+                                    <strong>
+                                        <span t-field="o.amount"
+                                            t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                    </strong>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_payment_withholding">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="lang" t-value="o.partner_id.lang or o.company_id.partner_id.lang"/>
+                <t t-call="l10n_pe_edi_withholding.report_payment_withholding_document" t-lang="lang"/>
+            </t>
+        </t>
+    </template>
+</odoo>

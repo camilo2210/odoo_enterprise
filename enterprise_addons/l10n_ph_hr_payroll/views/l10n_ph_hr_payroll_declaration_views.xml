@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_ph_hr_payroll_declaration_view_form" model="ir.ui.view">
+        <field name="name">l10n_ph_hr_payroll.declaration.view.form</field>
+        <field name="model">l10n_ph_hr_payroll.declaration</field>
+        <field name="inherit_id" ref="hr_payroll.hr_payroll_declaration_mixin_view_form"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_generate_declarations'][hasclass('btn-primary')]" position="after">
+                <button name="action_confirm_declaration" string="Confirm" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                <button name="action_draft_declaration" string="Reset" type="object" class="btn-secondary" invisible="state != 'done'"/>
+            </xpath>
+            <xpath expr="//button[@name='action_generate_declarations'][hasclass('btn-secondary')]" position="attributes">
+                <attribute name="invisible" separator=" or " add="state == 'done'" />
+            </xpath>
+            <header position="inside">
+                <field name="state" widget="statusbar"/>
+            </header>
+            <group name="first_group" position="before">
+                <div class="oe_title">
+                    <h1>
+                        <field name="name" readonly="state == 'done'"/>
+                    </h1>
+                </div>
+            </group>
+            <xpath expr="//group[@name='first_group']/group" position="replace">
+                <group>
+                    <field name="period_end_date" invisible="1"/>  <!-- for the daterange -->
+                    <field name="currency_id" invisible="1"/>  <!-- for the amounts in child declarations -->
+                    <field name="period_start_date" string="Period" widget="daterange" options="{'end_date_field': 'period_end_date', 'always_range': True}" readonly="state == 'done'"/>
+                </group>
+            </xpath>
+            <p name="save_warning" position="attributes">
+                <attribute name="invisible">state != 'done'</attribute>
+            </p>
+            <sheet position="after">
+                <chatter reload_on_post="True"/>
+            </sheet>
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_declaration_view_list" model="ir.ui.view">
+        <field name="name">l10n_ph_hr_payroll.declaration.view.list</field>
+        <field name="model">l10n_ph_hr_payroll.declaration</field>
+        <field name="inherit_id" ref="hr_payroll.hr_payroll_declaration_mixin_view_list"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <field name="year" position="after">
+                <field name="period_end_date" column_invisible="1"/>  <!-- For the date range -->
+                <field name="period_start_date" string="Period" widget="daterange" options="{'end_date_field': 'period_end_date', 'always_range': True}"/>
+                <field name="state" widget="badge"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </field>
+            <field name="year" position="replace">
+                <field name="name"/>
+            </field>
+        </field>
+    </record>
+</odoo>

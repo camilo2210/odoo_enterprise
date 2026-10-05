@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="l10n_om_monthly_pay_basic_salary" model="hr.salary.rule">
+            <field name="name">Basic Salary</field>
+            <field name="category_ids" eval="[(5, 0, 0)]"/>
+            <field name="code">BASIC</field>
+            <field name="sequence">1</field>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = categories['BASIC']
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_om_hr_payroll.l10n_om_monthly_pay'),
+            ])]"/>
+            <field name="country_id" ref="base.om"/>
+        </record>
+
+        <record id="l10n_om_monthly_pay_bonus" model="hr.salary.rule">
+            <field name="name">Bonus</field>
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_om_category_allowance')])]"/>
+            <field name="code">BONUSOM</field>
+            <field name="sequence">10</field>
+            <field name="condition_select">property_input</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="input_section" ref="hr_payroll.default_salary_rule_section"/>
+            <field name="amount_select">fix</field>
+            <field name="amount_fix" eval="0"/>
+            <field name="quantity">1.0</field>
+            <field name="input_usage_employee" eval="False"/>
+            <field name="input_default_value" eval="0.0"/>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_om_hr_payroll.l10n_om_monthly_pay'),
+            ])]"/>
+            <field name="country_id" ref="base.om"/>
+        </record>
+
+        <record id="l10n_om_monthly_pay_other_allowance" model="hr.salary.rule">
+            <field name="name">Other Allowance</field>
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_om_category_allowance')])]"/>
+            <field name="code">OTHER_ALLOW</field>
+            <field name="input_usage_payslip" eval="False"/>
+            <field name="sequence">30</field>
+            <field name="condition_select">property_input</field>
+            <field name="input_usage_employee" eval="True"/>
+            <field name="input_section" ref="hr_payroll.default_salary_rule_section"/>
+            <field name="amount_select">fix</field>
+            <field name="amount_fix" eval="0"/>
+            <field name="quantity">1.0</field>
+            <field name="input_default_value" eval="0.0"/>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_om_hr_payroll.l10n_om_monthly_pay'),
+            ])]"/>
+            <field name="country_id" ref="base.om"/>
+        </record>
+
+        <record id="l10n_om_monthly_pay_gross" model="hr.salary.rule">
+            <field name="name">Gross</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.GROSS')])]"/>
+            <field name="code">GROSSOM</field>
+            <field name="sequence">100</field>
+            <field name="condition_select">property_input</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="input_usage_employee" eval="False"/>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_om_hr_payroll.l10n_om_monthly_pay'),
+            ])]"/>
+            <field name="country_id" ref="base.om"/>
+        </record>
+
+        <record id="l10n_om_monthly_pay_expenses_reimbursement" model="hr.salary.rule">
+            <field name="name">Expenses Reimbursement</field>
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_om_category_allowance')])]"/>
+            <field name="code">EXP_REIMB</field>
+            <field name="sequence">150</field>
+            <field name="condition_select">property_input</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="input_section" ref="hr_payroll.default_salary_rule_section"/>
+            <field name="amount_select">fix</field>
+            <field name="amount_fix" eval="0"/>
+            <field name="quantity">1.0</field>
+            <field name="input_usage_employee" eval="False"/>
+            <field name="input_default_value" eval="0.0"/>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_om_hr_payroll.l10n_om_monthly_pay'),
+            ])]"/>
+            <field name="country_id" ref="base.om"/>
+        </record>
+
+        <record id="l10n_om_monthly_pay_deduction" model="hr.salary.rule">
+            <field name="name">Deduction</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+            <field name="code">DEDUCTION</field>
+            <field name="sequence">190</field>
+            <field name="condition_select">property_input</field>
+            <field name="input_usage_payslip" eval="True"/>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = -(inputs['DEDUCTION'].amount if 'DEDUCTION' in inputs else 0.0)
+            </field>
+            <field name="input_usage_employee" eval="False"/>
+            <field name="input_default_value" eval="0.0"/>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_om_hr_payroll.l10n_om_monthly_pay'),
+            ])]"/>
+            <field name="country_id" ref="base.om"/>
+        </record>
+
+        <record id="l10n_om_monthly_pay_net" model="hr.salary.rule">
+            <field name="name">Net Salary</field>
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_om_category_basic')])]"/>
+            <field name="sequence">200</field>
+            <field name="code">NET</field>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = categories['BASIC'] + categories['ALW'] + categories['DED']
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_om_hr_payroll.l10n_om_monthly_pay'),
+            ])]"/>
+            <field name="country_id" ref="base.om"/>
+        </record>
+
+        <record id="l10n_om_spf_company_contribution" model="hr.salary.rule">
+            <field name="name">SPF Employer Contribution</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+            <field name="code">SPF_COMP</field>
+            <field name="appears_on_payslip">never</field>
+            <field name="sequence">20</field>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result_rate = -((version.l10n_om_company_old_age_disability_death_insurance_percentage if employee.country_id.code == 'OM' else 0.0)
+                + version.l10n_om_company_work_injury_insurance_percentage
+                + version.l10n_om_company_unemployment_insurance_percentage
+                + version.l10n_om_company_sick_leave_insurance_percentage
+                + version.l10n_om_company_maternity_leave_insurance_percentage) * 100
+result = categories['BASIC']
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_om_hr_payroll.l10n_om_monthly_pay'),
+            ])]"/>
+            <field name="country_id" ref="base.om"/>
+        </record>
+
+        <record id="l10n_om_spf_employee_contribution" model="hr.salary.rule">
+            <field name="name">SPF Employee Contribution</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+            <field name="code">SPF_EMP</field>
+            <field name="code">SPF_EMP</field>
+            <field name="sequence">25</field>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result_rate = -((version.l10n_om_employee_old_age_disability_death_insurance_percentage if employee.country_id.code == 'OM' else 0.0)
+                + version.l10n_om_employee_work_injury_insurance_percentage
+                + version.l10n_om_employee_unemployment_insurance_percentage
+                + version.l10n_om_employee_sick_leave_insurance_percentage
+                + version.l10n_om_employee_maternity_leave_insurance_percentage) * 100
+result = categories['BASIC']
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_om_hr_payroll.l10n_om_monthly_pay'),
+            ])]"/>
+            <field name="country_id" ref="base.om"/>
+        </record>
+
+        <record id="l10n_om_end_of_service_provision" model="hr.salary.rule">
+            <field name="name">End of Service Provision</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+            <field name="code">EOSP</field>
+            <field name="appears_on_payslip">never</field>
+            <field name="sequence">45</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">
+result = employee.l10n_om_employee_is_eos_eligible and not employee.departure_date and not employee.departure_reason_id
+            </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = payslip.company_id.currency_id.round(categories['BASIC'] / 12)
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_om_hr_payroll.l10n_om_monthly_pay'),
+            ])]"/>
+            <field name="country_id" ref="base.om"/>
+        </record>
+
+        <record id="l10n_om_annual_leaves_provision" model="hr.salary.rule">
+            <field name="name">Annual leave Provision</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+            <field name="code">ANNUALPROV</field>
+            <field name="appears_on_payslip">never</field>
+            <field name="sequence">56</field>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = (categories['BASIC'] / payslip._l10n_om_calculate_working_days_of_payslip_period()) * 30 /12
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_om_hr_payroll.l10n_om_monthly_pay'),
+            ])]"/>
+            <field name="country_id" ref="base.om"/>
+        </record>
+
+        <record id="l10n_om_annual_leaves_provision_payout" model="hr.salary.rule">
+            <field name="name">Annual leave Provision Payout</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+            <field name="code">ANNUALPROVPAY</field>
+            <field name="sequence">56</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">
+result =  '016.00' in worked_days
+            </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = (categories['BASIC'] / payslip._l10n_om_calculate_working_days_of_payslip_period()) * worked_days['016.00'].number_of_days
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_om_hr_payroll.l10n_om_monthly_pay'),
+            ])]"/>
+            <field name="country_id" ref="base.om"/>
+        </record>
+
+        <record id="l10n_om_end_of_service_benefit" model="hr.salary.rule">
+            <field name="name">End of Service Benefit</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+            <field name="code">EOSB</field>
+            <field name="sequence">60</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">
+result = employee.l10n_om_employee_is_eos_eligible and employee.departure_date
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+years = relativedelta(employee.departure_date, employee.contract_date_start).years
+compensation = version.wage
+result = 0
+if years &gt;= 1:
+    result = payslip.company_id.currency_id.round(ceil(compensation * years))
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_om_hr_payroll.l10n_om_monthly_pay'),
+            ])]"/>
+            <field name="country_id" ref="base.om"/>
+        </record>
+
+        <record id="l10n_om_remaining_leave_days_compensation" model="hr.salary.rule">
+            <field name="name">Remaining Leaves Compensation</field>
+            <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+            <field name="code">ANNUALCOMP</field>
+            <field name="sequence">55</field>
+            <field name="condition_select">python</field>
+            <field name="condition_python">
+result =employee.l10n_om_remaining_annual_leave_balance &gt; 0 and employee.departure_date
+            </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = (payslip._get_contract_wage() / payslip._l10n_om_calculate_working_days_of_payslip_period()) * employee.l10n_om_remaining_annual_leave_balance
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_om_hr_payroll.l10n_om_monthly_pay'),
+            ])]"/>
+            <field name="country_id" ref="base.om"/>
+        </record>
+
+        <record id="l10n_om_hr_payroll_oman_employee_payroll_structure_net_cost" model="hr.salary.rule">
+            <field name="category_ids" eval="[(6, 0, [ref('l10n_om_category_net_cost')])]"/>
+            <field name="name">Net Cost</field>
+            <field name="sequence">500</field>
+            <field name="code">NETCOST</field>
+            <field name="appears_on_payslip">never</field>
+            <field name="appears_on_employee_cost_dashboard" eval="True"/>
+            <field name="condition_select">none</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">
+result = abs(categories['COMP']) + NET + abs(SPF_EMP)
+            </field>
+            <field name="struct_ids" eval="[(6, 0, [
+                ref('l10n_om_hr_payroll.l10n_om_monthly_pay'),
+            ])]"/>
+            <field name="country_id" ref="base.om"/>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="boa_general_ledger_report" model="account.report">
+        <field name="name">General Ledger Report</field>
+        <field name="country_id" ref="base.ph"/>
+        <!-- Fake variant, it's just for grouping under BoA -->
+        <field name="root_report_id" ref="l10n_ph_reports.boa_general_journal_report"/>
+        <field name="groupby">account_id, id_with_accumulated_balance</field>
+        <field name="filter_journals" eval="True"/>
+        <field name="filter_analytic_groupby" eval="True"/>
+        <field name="filter_cash_basis" eval="True"/>
+        <field name="filter_period_comparison" eval="False"/>
+        <field name="filter_unfold_all" eval="True"/>
+        <field name="filter_hide_0_lines">never</field>
+        <field name="default_opening_date_filter">this_month</field>
+        <field name="load_more_limit" eval="80"/>
+        <field name="search_bar" eval="True"/>
+        <field name="custom_handler_model_id" ref="model_l10n_ph_boa_general_ledger_report_handler"/>
+        <field name="column_ids">
+            <record id="boa_general_ledger_report_date" model="account.report.column">
+                <field name="name">Date</field>
+                <field name="expression_label">date</field>
+                <field name="figure_type">date</field>
+            </record>
+            <record id="boa_general_ledger_report_debit" model="account.report.column">
+                <field name="name">Debit</field>
+                <field name="expression_label">debit</field>
+                <field name="figure_type">monetary</field>
+            </record>
+            <record id="boa_general_ledger_report_credit" model="account.report.column">
+                <field name="name">Credit</field>
+                <field name="expression_label">credit</field>
+                <field name="figure_type">monetary</field>
+            </record>
+            <record id="boa_general_ledger_report_balance" model="account.report.column">
+                <field name="name">Balance</field>
+                <field name="expression_label">balance</field>
+                <field name="figure_type">monetary</field>
+            </record>
+        </field>
+        <field name="line_ids">
+            <record id="boa_general_ledger_custom_engine_line" model="account.report.line">
+                <field name="name">General Ledger Report</field>
+                <field name="foldability">always_unfolded</field>
+                <field name="expression_ids">
+                    <record id="boa_general_ledger_line_date" model="account.report.expression">
+                        <field name="label">date</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_general_ledger</field>
+                        <field name="subformula">date</field>
+                    </record>
+                    <record id="boa_general_ledger_line_debit" model="account.report.expression">
+                        <field name="label">debit</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_general_ledger</field>
+                        <field name="subformula">debit</field>
+                    </record>
+                    <record id="boa_general_ledger_line_credit" model="account.report.expression">
+                        <field name="label">credit</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_general_ledger</field>
+                        <field name="subformula">credit</field>
+                    </record>
+                    <record id="boa_general_ledger_line_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_general_ledger</field>
+                        <field name="subformula">balance</field>
+                    </record>
+                </field>
+            </record>
+        </field>
+    </record>
+</odoo>

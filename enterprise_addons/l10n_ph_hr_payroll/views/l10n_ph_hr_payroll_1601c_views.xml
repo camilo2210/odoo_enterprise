@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_ph_hr_payroll_1601c_view_form" model="ir.ui.view">
+        <field name="name">l10n_ph_hr_payroll.form_1601c.view.form</field>
+        <field name="model">l10n_ph_hr_payroll.form_1601c</field>
+        <field name="inherit_id" ref="l10n_ph_hr_payroll.l10n_ph_hr_payroll_declaration_view_form"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <button name="action_confirm_declaration" position="before">
+                <button name="action_process_declaration" string="Process" type="object" class="btn-primary" invisible="not lines_count or state != 'draft' or is_processed"/>
+            </button>
+            <button name="action_confirm_declaration" position="attributes">
+                <attribute name="invisible" separator=" or " add="not is_processed" />
+            </button>
+            <button name="action_confirm_declaration" position="after">
+                <button name="action_process_declaration" string="Process" type="object" class="btn-secondary" invisible="not lines_count or state != 'draft' or not is_processed"/>
+            </button>
+            <p name="save_warning" position="attributes">
+                <attribute name="invisible">1</attribute>  <!-- As we don't print PDF files for this report, this warning is irrelevant -->
+            </p>
+            <field name="period_start_date" position="after">
+                <field name="remittance_date" invisible="state != 'confirmed'"/>  <!-- We keep it editable in all case (but tracked) to ease yearly adjustment for reporting if needed -->
+            </field>
+            <sheet position="inside">
+                <div class="row mb-4 mt-2">
+                    <div class="col-6">
+                        <div class="row border-bottom fs-5">
+                            <label for="grand_total_compensation" class="o_form_label fs-5 col-7"/>
+                            <div class="col-5">
+                                <field name="grand_total_compensation" nolabel="1"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 px-3">
+                        <h4 class="mb-3 border-bottom pb-2">Non-Taxable Compensation</h4>
+
+                        <div class="row mb-1">
+                            <label for="mwe_basic" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="mwe_basic" nolabel="1"/>
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <label for="mwe_holiday_ot" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="mwe_holiday_ot" nolabel="1"/>
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <label for="non_taxable_benefits" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="non_taxable_benefits" nolabel="1"/>
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <label for="de_minimis" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="de_minimis" nolabel="1"/>
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <label for="mandatory_contributions" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="mandatory_contributions" nolabel="1"/>
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <label for="other_non_taxable" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="other_non_taxable" nolabel="1"/>
+                            </div>
+                        </div>
+
+                        <div class="row fw-bold">
+                            <label for="total_non_taxable" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="total_non_taxable" nolabel="1"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 px-3">
+                        <h4 class="mb-3 border-bottom pb-2">Taxable Compensation &amp; Withholding</h4>
+
+                        <div class="row mb-1">
+                            <label for="total_taxable" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="total_taxable" nolabel="1"/>
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <label for="taxable_exempt" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="taxable_exempt" nolabel="1"/>
+                            </div>
+                        </div>
+
+                        <div class="row mb-1 fw-bold">
+                            <label for="taxable_taxed" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="taxable_taxed" nolabel="1"/>
+                            </div>
+                        </div>
+
+                        <div class="row mb-1">
+                            <label for="total_tax_withheld" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="total_tax_withheld" nolabel="1"/>
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <label for="total_tax_adjustment" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="total_tax_adjustment" nolabel="1"/>
+                            </div>
+                        </div>
+
+                        <div class="row fw-bold">
+                            <label for="total_tax_withheld_for_rem" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="total_tax_withheld_for_rem" nolabel="1"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6 px-3">
+                        <h4 class="mb-3 border-bottom pb-2">Remittances</h4>
+
+                        <div class="row mb-1">
+                            <label for="tax_previously_remitted" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="tax_previously_remitted" nolabel="1" readonly="state == 'done'"/>
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <label for="other_remittances" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="other_remittances" nolabel="1" readonly="state == 'done'"/>
+                            </div>
+                        </div>
+
+                        <div class="row mb-1 fw-bold">
+                            <label for="total_tax_remittances" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="total_tax_remittances" nolabel="1"/>
+                            </div>
+                        </div>
+
+                        <div class="row mb-1 fw-bold">
+                            <label for="tax_still_due" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="tax_still_due" nolabel="1"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 px-3">
+                        <h4 class="mb-3 border-bottom pb-2">Penalties</h4>
+
+                        <div class="row mb-1">
+                            <label for="surcharge" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="surcharge" nolabel="1" readonly="state == 'done'"/>
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <label for="interest" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="interest" nolabel="1" readonly="state == 'done'"/>
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <label for="compromise" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="compromise" nolabel="1" readonly="state == 'done'"/>
+                            </div>
+                        </div>
+
+                        <div class="row fw-bold">
+                            <label for="penalties" class="o_form_label col-7"/>
+                            <div class="col-5">
+                                <field name="penalties" nolabel="1"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-md-6 offset-md-6 px-3">
+                        <div class="row pt-3 border-top fw-bold fs-5">
+                            <label for="total_still_due" class="o_form_label fs-5 col-7"/>
+                            <div class="col-5">
+                                <field name="total_still_due" nolabel="1"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </sheet>
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_1601c_view_tree" model="ir.ui.view">
+        <field name="name">l10n_ph_hr_payroll.form_1601c.view.list</field>
+        <field name="model">l10n_ph_hr_payroll.form_1601c</field>
+        <field name="inherit_id" ref="l10n_ph_hr_payroll.l10n_ph_hr_payroll_declaration_view_list"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <field name="state" position="before">
+                <field name="currency_id" column_invisible="1"/>  <!-- for the amounts in child declarations -->
+                <field name="grand_total_compensation" optional="show" string="Total Compensation"/>
+                <field name="total_tax_withheld_for_rem" optional="show" string="Tax Withheld"/>
+                <field name="penalties" optional="hide" string="Penalties"/>
+                <field name="total_still_due" string="Total Due"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="l10n_ph_hr_payroll_1601c_action" model="ir.actions.act_window">
+        <field name="name">Form 1601-C</field>
+        <field name="res_model">l10n_ph_hr_payroll.form_1601c</field>
+        <field name="view_mode">list,form</field>
+        <field name="target">current</field>
+    </record>
+</odoo>

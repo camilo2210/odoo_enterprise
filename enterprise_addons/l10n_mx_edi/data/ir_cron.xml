@@ -1,0 +1,81 @@
+<?xml version="1.0" ?>
+<odoo>
+    <data>
+
+        <record id="ir_cron_update_pac_status_invoice" model="ir.cron">
+            <field name="name">Automatic update of state on the SAT (for invoices)</field>
+            <field name="model_id" ref="account.model_account_move"/>
+            <field name="state">code</field>
+            <field name="code">
+    env['l10n_mx_edi.document']._fetch_and_update_sat_status()
+            </field>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d 22:00:00')"/>
+        </record>
+     </data>
+
+    <data noupdate="1">
+
+        <record id="ir_cron_l10n_mx_edi_create_company_request" model="ir.cron">
+            <field name="name">MX EDI: Sync Documents from SAT</field>
+            <field name="priority">1</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="model_id" ref="base.model_res_company"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="code">model._cron_l10n_mx_edi_create_company_requests()</field>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d 08:00:00')"/>
+            <field name="state">code</field>
+        </record>
+
+        <record id="ir_cron_l10n_mx_edi_verify_requests" model="ir.cron">
+            <field name="name">MX EDI: Verify CFDI Requests</field>
+            <field name="priority">2</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="model_id" ref="l10n_mx_edi.model_l10n_mx_edi_cfdi_request"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="code">model._cron_verify_requests()</field>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d 09:00:00')"/>
+            <field name="state">code</field>
+        </record>
+
+        <record id="ir_cron_l10n_mx_edi_download_packages" model="ir.cron">
+            <field name="name">MX EDI: Download CFDI Packages</field>
+            <field name="priority">3</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="model_id" ref="l10n_mx_edi.model_l10n_mx_edi_cfdi_request"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="code">model._cron_download_packages()</field>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d 10:00:00')"/>
+            <field name="state">code</field>
+        </record>
+
+        <record id="ir_cron_l10n_mx_edi_unpack_packages" model="ir.cron">
+            <field name="name">MX EDI: Unpack CFDI Packages</field>
+            <field name="priority">4</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="model_id" ref="l10n_mx_edi.model_l10n_mx_edi_cfdi_request"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="code">model._cron_unpack_packages()</field>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d 11:00:00')"/>
+            <field name="state">code</field>
+        </record>
+
+        <record id="ir_cron_l10n_mx_edi_create_records_from_documents" model="ir.cron">
+            <field name="name">MX EDI: Create Records From Documents</field>
+            <field name="priority">5</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="model_id" ref="l10n_mx_edi.model_l10n_mx_edi_document"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="code">model._cron_l10n_mx_edi_create_records_from_documents()</field>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d 12:00:00')"/>
+            <field name="state">code</field>
+        </record>
+    </data>
+</odoo>

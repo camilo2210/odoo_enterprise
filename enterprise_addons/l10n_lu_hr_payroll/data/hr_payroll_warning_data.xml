@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="hr_payroll_warning_work_entry_type_change_lu" model="hr.payroll.warning">
+        <field name="name">Work Entry Type Change Warning (Timeoff - LU)</field>
+        <field name="description">Work entry type change warning</field>
+        <field name="warning_color_class">warning</field>
+        <field name="country_id" ref="base.lu"/>
+        <field name="display_on_model" eval="True"/>
+        <field name="display_on_dashboard" eval="False"/>
+        <field name="model_id" ref="hr_holidays.model_hr_leave"/>
+        <field name="warning_type">python</field>
+        <field name="evaluation_code">
+lu_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'LU')
+leaves = self.env['hr.leave'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', lu_companies.ids),
+    ('employee_id', '!=', False),
+    ('date_from', '!=', False),
+    ('date_to', '!=', False),
+    ('work_entry_type_id.code', 'in', ['013.00']),
+])
+warning_records = self.env['hr.leave']
+warning_details = defaultdict(list)
+for leave in leaves:
+    leave_split = leave._get_l10n_lu_sick_leave_split()
+    if len(leave_split) &gt; 1:
+        lines = [
+            _get_payroll_translation(
+                "- %(code)s - %(name)s: %(nbr_days)s days",
+                code=work_entry_type.code,
+                name=work_entry_type.name,
+                nbr_days=nbr_days
+            )
+            for work_entry_type, nbr_days in leave_split
+        ]
+        warning_records |= leave
+        warning_details[leave].append({
+            'message': _get_payroll_translation("This time off will be split into:\n%(lines)s", lines="\n".join(lines)),
+            'level': 'warning',
+        })
+    elif (len(leave_split) == 1 and leave_split[0][0] != leave.work_entry_type_id):
+        work_entry_type = leave_split[0][0]
+        warning_records |= leave
+        warning_details[leave].append({
+            'message': _get_payroll_translation("This time off will be entirely replaced with %(code)s - %(name)s", code=work_entry_type.code, name=work_entry_type.name),
+            'level': 'warning',
+        })
+            </field>
+        </record>
+    </data>
+</odoo>

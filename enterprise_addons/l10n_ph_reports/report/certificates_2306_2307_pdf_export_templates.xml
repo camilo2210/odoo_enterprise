@@ -1,0 +1,592 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="date_format">
+        <!-- Date Format (MM-DD-YYYY) -->
+        <t t-foreach="range(8)" t-as="i">
+            <div class="o_box border">
+                <t t-if="date">
+                    <t t-out="date[i]"/>
+                </t>
+            </div>
+            <t t-if="i in [1,3]">
+                <span class="o_separator fw-bold">-</span>
+            </t>
+        </t>
+    </template>
+
+    <template id="tin_format">
+        <t t-set="tin_length" t-value="len(tin)"/>
+        <!--
+            A full Philippine TIN consists of 14 digits (9-digit base number + 5-digit branch code).
+            If only 9 digits are provided, it represents a head office TIN, and the branch code must be shown as '00000'.
+        -->
+        <t t-foreach="range(14)" t-as="i">
+            <div class="o_box border">
+                <t t-if="tin_length > i">
+                    <t t-out="tin[i]"/>
+                </t>
+                <t t-elif="i > 8 and tin_length == 9 and not is_foreign_country">
+                    <t t-out="'0'"/>
+                </t>
+            </div>
+            <t t-if="i in [2,5,8]">
+                <span class="o_separator fw-bold">-</span>
+            </t>
+        </t>
+    </template>
+
+    <template id="zip_format">
+        <t t-set="zip_code_length" t-value="len(zip_code)"/>
+        <t t-foreach="range(4)" t-as="i">
+            <div class="o_field_box border text-center w-25">
+                <t t-if="zip_code and zip_code_length > i">
+                    <t t-out="zip_code[i]"/>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <template id="payee_payor_information">
+        <!-- Date Range Section -->
+        <div class="row border border-top-0 px-2 py-1">
+            <div class="col-2">
+                <span class="fw-bolder me-3">1</span>
+                For the Period
+            </div>
+            <div class="col-5 d-flex">
+                <span class="me-1">From</span>
+                <t t-set="date" t-value="date_from"/>
+                <t t-call="l10n_ph_reports.date_format"/>
+                <span class="ms-1">(MM/DD/YYYY)</span>
+            </div>
+            <div class="col-5 d-flex">
+                <span class="me-1">To</span>
+                <t t-set="date" t-value="date_to"/>
+                <t t-call="l10n_ph_reports.date_format"/>
+                <span class="ms-1">(MM/DD/YYYY)</span>
+            </div>
+        </div>
+
+        <!-- Payee Information -->
+        <div class="border fw-bold text-center">
+            <t t-if="is_2307_report">
+                Part I – Payee Information
+            </t>
+            <t t-else="">
+                Part I – Income Recipient/Payee Information
+            </t>
+        </div>
+
+        <div class="row border px-2 py-1">
+            <div class="col-4">
+                <span class="fw-bolder me-3">2</span>
+                Taxpayer Identification Number (TIN)
+            </div>
+            <div class="col-8 d-flex">
+                <t t-set="tin" t-value="payee_info['tin']"/>
+                <t t-set="is_foreign_country" t-value="not payee_info['registered_address']"/>
+                <t t-call="l10n_ph_reports.tin_format"/>
+            </div>
+        </div>
+
+        <div class="border border-top-0 px-2 py-1">
+            <div>
+                <span class="fw-bolder me-3">3</span>
+                Payee’s Name (Last Name, First Name, Middle Name for Individual OR Registered Name for Non-Individual)
+            </div>
+            <div class="o_field_box px-2 border ms-4">
+                <t t-out="payee_info['name']"/>
+            </div>
+            <div class="row mt-2">
+                <div class="col-10">
+                    <span class="fw-bolder me-3">4</span>Registered Address
+                </div>
+                <div class="col-2 ms-1">
+                    <span class="fw-bolder me-2">4A</span>ZIP Code
+                </div>
+            </div>
+            <div class="row ms-4 mb-2">
+                <div class="col-10 o_field_box px-2 border">
+                    <t t-out="payee_info['registered_address']"/>
+                </div>
+                <div class="col-2 ms-1">
+                    <div class="d-flex">
+                        <t t-set="zip_code" t-value="payee_info['zip']"/>
+                        <t t-call="l10n_ph_reports.zip_format"/>
+                    </div>
+                </div>
+            </div>
+            <span>
+                <span class="fw-bolder me-3">5</span>
+                Foreign Address, if applicable
+            </span>
+            <div class="o_field_box px-2 border ms-4">
+                <t t-out="payee_info['foreign_address']"/>
+            </div>
+        </div>
+
+        <!-- Payor Information -->
+        <div class="border fw-bold text-center">
+            <t t-if="is_2307_report">
+                Part II – Payor Information
+            </t>
+            <t t-else="">
+                Part II – Withholding Agent/Payor Information
+            </t>
+        </div>
+
+        <div class="row border px-2 py-1">
+            <div class="col-4">
+                <span class="fw-bolder me-3">6</span>
+                Taxpayer Identification Number (TIN)
+            </div>
+            <div class="col-8 d-flex">
+                <t t-set="tin" t-value="payor_info['tin']"/>
+                <t t-set="is_foreign_country" t-value="not payor_info['registered_address']"/>
+                <t t-call="l10n_ph_reports.tin_format"/>
+            </div>
+        </div>
+
+        <div class="border border-top-0 px-2 py-1">
+            <div>
+                <span class="fw-bolder me-3">7</span>
+                Payor’s Name (Last Name, First Name, Middle Name for Individual OR Registered Name for Non-Individual)
+            </div>
+            <div class="o_field_box px-2 ms-4 border">
+                <t t-out="payor_info['name']"/>
+            </div>
+            <div class="row mt-2">
+                <div class="col-10">
+                    <span class="fw-bolder me-3">8</span>Registered Address
+                </div>
+                <div class="col-2 ms-1">
+                    <span class="fw-bolder me-2">8A</span>ZIP Code
+                </div>
+            </div>
+            <div class="row ms-4 mb-2">
+                <div class="col-10 o_field_box px-2 border">
+                    <t t-out="payor_info['registered_address']"/>
+                </div>
+                <div class="col-2 d-flex ms-1">
+                    <t t-set="zip_code" t-value="payor_info['zip']"/>
+                    <t t-call="l10n_ph_reports.zip_format"/>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="2306_withheld_table">
+        <div class="border fw-bold text-center o_secondary_bg">
+            Part III – Details of Income Payment and Tax Withheld (Attach additional sheet if necessary)
+        </div>
+        <table class="o_withheld_table o_withheld_table_2306">
+            <thead class="o_secondary_bg">
+                <tr class="border">
+                    <th class="o_income_description_col">Nature of Income Payment</th>
+                    <th class="w-12">ATC</th>
+                    <th class="w-25">Amount of Payment</th>
+                    <th class="w-25">Tax Withheld</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data rows -->
+                <t t-foreach="lines" t-as="line">
+                    <tr class="o_data_row">
+                        <td class="text-start">
+                            <t t-out="line.name"/>
+                        </td>
+                        <td>
+                            <t t-out="line.custom['atc']"/>
+                        </td>
+                        <td>
+                            <t t-out="line.columns[0].no_format" t-options='{"widget": "float", "precision": 2}'/>
+                        </td>
+                        <td>
+                            <t t-out="line.columns[1].no_format" t-options='{"widget": "float", "precision": 2}'/>
+                        </td>
+                    </tr>
+                </t>
+                <t t-foreach="range(9-len(lines))" t-as="i">
+                    <tr class="o_data_row">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </t>
+
+                <!-- Total row -->
+                <tr class="fw-bold">
+                    <td class="o_secondary_bg text-center">Total</td>
+                    <td></td>
+                    <td>
+                        <t t-out="total_line.columns[0].no_format" t-options='{"widget": "float", "precision": 2}'/>
+                    </td>
+                    <td>
+                        <t t-out="total_line.columns[1].no_format" t-options='{"widget": "float", "precision": 2}'/>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </template>
+
+    <template id="2307_withheld_table">
+        <div class="border fw-bold text-center o_secondary_bg">
+            Part III – Details of Monthly Income Payments and Taxes Withheld
+        </div>
+        <table class="o_withheld_table o_withheld_table_2307">
+            <thead class="o_secondary_bg">
+                <tr>
+                    <th rowspan="2" class="w-25">
+                        Income Payments Subject to Expanded<br/>Withholding Tax
+                    </th>
+                    <th rowspan="2" class="w-12">ATC</th>
+                    <th colspan="4">AMOUNT OF INCOME PAYMENTS</th>
+                    <th rowspan="2" class="w-12">
+                        Tax Withheld for the<br/>Quarter
+                    </th>
+                </tr>
+                <tr>
+                    <th class="w-12">1st Month of the<br/>Quarter</th>
+                    <th class="w-12">2nd Month of the<br/>Quarter</th>
+                    <th class="w-12">3rd Month of the<br/>Quarter</th>
+                    <th class="w-12">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data rows -->
+                <t t-foreach="lines" t-as="line">
+                    <tr class="o_data_row">
+                        <td class="text-start">
+                            <t t-out="line.name"/>
+                        </td>
+                        <td>
+                            <t t-out="line.custom['atc']"/>
+                        </td>
+                        <td>
+                            <t t-out="line.custom['first_month_base']" t-options='{"widget": "float", "precision": 2}'/>
+                        </td>
+                        <td>
+                            <t t-out="line.custom['second_month_base']" t-options='{"widget": "float", "precision": 2}'/>
+                        </td>
+                        <td>
+                            <t t-out="line.custom['third_month_base']" t-options='{"widget": "float", "precision": 2}'/>
+                        </td>
+                        <td>
+                            <t t-out="line.columns[0].no_format" t-options='{"widget": "float", "precision": 2}'/>
+                        </td>
+                        <td>
+                            <t t-out="line.columns[1].no_format" t-options='{"widget": "float", "precision": 2}'/>
+                        </td>
+                    </tr>
+                </t>
+                <t t-foreach="range(10-len(lines))" t-as="i">
+                    <tr class="o_data_row">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </t>
+
+                <!-- Total row -->
+                <tr class="fw-bold">
+                    <td class="o_secondary_bg text-center">Total</td>
+                    <td></td>
+                    <td>
+                        <t t-out="total_line.custom['first_month_base_total']" t-options='{"widget": "float", "precision": 2}'/>
+                    </td>
+                    <td>
+                        <t t-out="total_line.custom['second_month_base_total']" t-options='{"widget": "float", "precision": 2}'/>
+                    </td>
+                    <td>
+                        <t t-out="total_line.custom['third_month_base_total']" t-options='{"widget": "float", "precision": 2}'/>
+                    </td>
+                    <td>
+                        <t t-out="total_line.columns[0].no_format" t-options='{"widget": "float", "precision": 2}'/>
+                    </td>
+                    <td>
+                        <t t-out="total_line.columns[1].no_format" t-options='{"widget": "float", "precision": 2}'/>
+                    </td>
+                </tr>
+
+                <!-- Business tax section -->
+                <tr class="o_secondary_bg fw-bold">
+                    <td class="text-center">
+                        Money Payments Subject to Withholding of<br/>Business Tax (Government &amp; Private)
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+
+                <!-- More data rows -->
+                <t t-foreach="range(5)" t-as="i">
+                    <tr class="o_data_row">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </t>
+
+                <!-- Final total -->
+                <tr class="fw-bold">
+                    <td class="o_secondary_bg text-center">Total</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </template>
+
+    <template id="declaration" name="declaration">
+        <div class="border border-top-0 o_secondary_bg">
+            <p class="mb-0 text-indent-50">We declare under the penalties of perjury that this certificate has been made in good faith, verified by us, and to the best of our knowledge and belief, is true and correct, pursuant to the provisions of the National Internal Revenue Code, as amended, and the regulations issued under authority thereof. Further, we give our consent to the processing of our information as contemplated under the *Data Privacy Act of 2012 (R.A. No. 10173) for legitimate and lawful purposes.</p>
+        </div>
+        <div class="border border-top-0 d-flex justify-content-end">
+            <t t-if="not is_2307_report">
+                <div class="border o_secondary_bg py-1">
+                    <div class="text-center">Date Signed (MM/DD/YYYY)</div>
+                    <div class="d-flex px-3 pt-1">
+                        <t t-call="l10n_ph_reports.date_format"/>
+                    </div>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="border py-3"></div>
+            </t>
+        </div>
+        <div class="border border-top-0 o_secondary_bg text-center">
+            Signature over Printed Name of Payor/Payor’s Authorized Representative/Tax Agent<br/>
+            (Indicate Title/Designation and TIN)
+        </div>
+        <div class="o_accreditation d-flex border border-top-0 o_secondary_bg">
+            <div class="o_accreditation_label">
+                Tax Agent Accreditation No./<br/>Attorney’s Roll No. (if applicable)
+            </div>
+            <div class="o_accreditation_no border"></div>
+            <div class="o_date_label ms-2">
+                Date of Issue/<br/>(MM/DD/YYYY)
+            </div>
+            <div class="o_date">
+                <t t-call="l10n_ph_reports.date_format"/>
+            </div>
+            <div class="o_date_label">
+                Date of Expiry/<br/>(MM/DD/YYYY)
+            </div>
+            <div class="o_date">
+                <t t-call="l10n_ph_reports.date_format"/>
+            </div>
+        </div>
+        <div class="border border-top-0 o_secondary_bg text-center fw-bold">
+            CONFORME:
+        </div>
+        <div class="border border-top-0 d-flex justify-content-end">
+            <t t-if="not is_2307_report">
+                <div class="border o_secondary_bg py-1">
+                    <div class="text-center">Date Signed (MM/DD/YYYY)</div>
+                    <div class="d-flex px-3 pt-1">
+                        <t t-call="l10n_ph_reports.date_format"/>
+                    </div>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="border py-3"></div>
+            </t>
+        </div>
+        <div class="border border-top-0 o_secondary_bg text-center">
+            Signature over Printed Name of Payee/Payee’s Authorized Representative/Tax Agent<br/>
+            (Indicate Title/Designation and TIN)
+        </div>
+        <div class="o_accreditation d-flex border border-top-0 o_secondary_bg">
+            <div class="o_accreditation_label">
+                Tax Agent Accreditation No./<br/>Attorney’s Roll No. (if applicable)
+            </div>
+            <div class="o_accreditation_no border"></div>
+            <div class="o_date_label ms-2">
+                Date of Issue/<br/>(MM/DD/YYYY)
+            </div>
+            <div class="o_date">
+                <t t-call="l10n_ph_reports.date_format"/>
+            </div>
+            <div class="o_date_label">
+                Date of Expiry/<br/>(MM/DD/YYYY)
+            </div>
+            <div class="o_date">
+                <t t-call="l10n_ph_reports.date_format"/>
+            </div>
+        </div>
+        <t t-if="not is_2307_report">
+            <div class="border border-top-0 o_secondary_bg text-center fw-bold">
+                To be accomplished for Value-Added Tax/Percentage Tax Withholding (substituted filing)
+            </div>
+            <div class="border border-top-0 o_secondary_bg">
+                <p class="mb-0 text-indent-50">I declare, under the penalties of perjury, that the information herein stated are reported under BIR Form No. 1600 which have been filed with the Bureau of Internal Revenue.</p>
+            </div>
+            <div class="border border-top-0 py-3"></div>
+            <div class="border border-top-0 o_secondary_bg text-center">
+                Signature over Printed Name of Payor/Payor's Authorized Representative/Tax Agent<br/>(Indicate Title/Designation and TIN)
+            </div>
+            <div class="o_accreditation d-flex border border-top-0 o_secondary_bg">
+                <div class="o_accreditation_label">
+                    Tax Agent Accreditation No./<br/>Attorney’s Roll No. (if applicable)
+                </div>
+                <div class="o_accreditation_no border"></div>
+                <div class="o_date_label ms-2">
+                    Date of Issue/<br/>(MM/DD/YYYY)
+                </div>
+                <div class="o_date">
+                    <t t-call="l10n_ph_reports.date_format"/>
+                </div>
+                <div class="o_date_label">
+                    Date of Expiry/<br/>(MM/DD/YYYY)
+                </div>
+                <div class="o_date">
+                    <t t-call="l10n_ph_reports.date_format"/>
+                </div>
+            </div>
+            <div class="border border-top-0 o_secondary_bg">
+                <p class="mb-0 text-indent-50">I declare under the penalties of perjury that I am qualified under substituted filing of Percentage Tax/Value-Added Tax Returns (BIR Form 2551Q/2550M/Q), since I have only one payor from whom I earn our income; that, in accordance with RR 14-2003, I have availed of the Optional Registration under the 3% Final Percentage Tax Withholding/12% Final VAT Withholding in lieu of the 3% Percentage Tax/12% VAT in order to be entitled to the privileges accorded by the Substituted Percentage Tax Return/Substituted VAT Return System prescribed in the aforesaid Regulations; that, this Declaration is sufficient authority of the withholding agent to withhold 3% Final Percentage Tax/12% Final VAT from myr sale of goods and/or services.</p>
+            </div>
+            <div class="border border-top-0 py-3"></div>
+            <div class="border border-top-0 o_secondary_bg text-center">
+                Signature over Printed Name of Payee/Payee's Authorized Representative/Tax Agent<br/>(Indicate Title/Designation and TIN)
+            </div>
+            <div class="o_accreditation d-flex border border-top-0 o_secondary_bg">
+                <div class="o_accreditation_label">
+                    Tax Agent Accreditation No./<br/>Attorney’s Roll No. (if applicable)
+                </div>
+                <div class="o_accreditation_no border"></div>
+                <div class="o_date_label ms-2">
+                    Date of Issue/<br/>(MM/DD/YYYY)
+                </div>
+                <div class="o_date">
+                    <t t-call="l10n_ph_reports.date_format"/>
+                </div>
+                <div class="o_date_label">
+                    Date of Expiry/<br/>(MM/DD/YYYY)
+                </div>
+                <div class="o_date">
+                    <t t-call="l10n_ph_reports.date_format"/>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="pdf_export_main">
+        <html>
+            <head>
+                <base t-att-href="base_url"/>
+                <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+                <t t-call-assets="account_reports.assets_pdf_export" t-js="False" t-autoprefix="true"/>
+            </head>
+            <body>
+                <div t-att-class="'o_certificates_2306_2307'">
+                    <header>
+                        <div class="position-absolute d-flex">
+                            <div class="o_secondary_bg me-1">
+                                For BIR<br/>Use Only
+                            </div>
+                            BCS/<br/>Item:
+                        </div>
+                        <div class="d-flex">
+                            <!-- Government Logo -->
+                            <div class="text-end" style="width: 40%">
+                                <img src="/l10n_ph_reports/static/img/logo.png" alt="Logo" style="height: 40px;"/>
+                            </div>
+                            <div class="text-center fw-bolder">
+                                    Republic of the Philippines <br/>
+                                    Department of Finance <br/>
+                                    Bureau of Internal Revenue
+                            </div>
+                        </div>
+                    </header>
+
+                    <div class="main_section border">
+                        <!-- Determine report (2307 or 2306) -->
+                        <t t-set="is_2307_report" t-value="report_title == '2307'"/>
+
+                        <!-- Certificate title and barcode section -->
+                        <div class="d-flex">
+                            <div class="o_certificate text-center border">
+                                BIR Form No.<br/>
+                                <span class="fw-bolder" style="font-size: 31px;">
+                                    <t t-out="report_title"/>
+                                </span>
+                                <br/>January 2018 (ENCS)
+                            </div>
+                            <div class="o_title_container fw-bold w-50 border text-center">
+                                <t t-if="is_2307_report">
+                                    Certificate of Creditable Tax<br/>Withheld at Source
+                                </t>
+                                <t t-else="">
+                                    Certificate of Final Tax<br/>Withheld at Source
+                                </t>
+                            </div>
+                            <div class="o_barcode text-center border pt-1">
+                                <t t-if="is_2307_report">
+                                    <img src="/l10n_ph_reports/static/img/barcode_2307.png" alt="Barcode" class="o_barcode_img"/>
+                                    <p class="text-end me-2 mb-0">2307 01/18ENCS</p>
+                                </t>
+                                <t t-else="">
+                                    <img src="/l10n_ph_reports/static/img/barcode_2306.png" alt="Barcode" class="o_barcode_img"/>
+                                    <p class="text-end me-2 mb-0">2306 01/18ENCS</p>
+                                </t>
+                            </div>
+                        </div>
+
+                        <div class="border border-top-0">
+                            Fill in all applicable spaces. Mark all appropriate boxes with an "X".
+                        </div>
+
+                        <!-- Payee and Payor Information -->
+                        <div class="o_secondary_bg container-fluid">
+                            <t t-if="payee_info or payor_info">
+                                <t t-call="l10n_ph_reports.payee_payor_information">
+                                    <t t-set="payee_info" t-value="payee_info"/>
+                                    <t t-set="payor_info" t-value="payor_info"/>
+                                    <t t-set="date_from" t-value="date_from"/>
+                                    <t t-set="date_to" t-value="date_to"/>
+                                </t>
+                            </t>
+                        </div>
+
+                        <!-- 2306 or 2307 Withheld Tax Table -->
+                        <div class="container-fluid">
+                            <!-- Filter total line for table footer and Lines to show in table -->
+                            <t t-set="total_line" t-value="[l for l in lines if l.unfoldable and l.groupby == 'tax_line_id,move_id'][0]"/>
+                            <t t-set="lines" t-value="[l for l in lines if l.unfoldable and l.groupby == 'move_id']"/>
+                            <t t-if="is_2307_report">
+                                <t t-call="l10n_ph_reports.2307_withheld_table"/>
+                            </t>
+                            <t t-else="">
+                                <t t-call="l10n_ph_reports.2306_withheld_table"/>
+                            </t>
+                        </div>
+
+                        <!-- Declaration & signature section -->
+                        <div class="container-fluid">
+                            <t t-call="l10n_ph_reports.declaration"/>
+                        </div>
+                    </div>
+                    <p class="mb-0 text-indent-50">*NOTE: The BIR Data Privacy is in the BIR website (www.bir.gov.ph)</p>
+                </div>
+            </body>
+        </html>
+    </template>
+</odoo>
