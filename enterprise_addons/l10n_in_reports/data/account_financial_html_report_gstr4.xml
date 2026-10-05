@@ -1,0 +1,529 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo auto_sequence="1">
+    <record id="account_report_gstr4" model="account.report">
+        <field name="name">GSTR-4</field>
+        <field name="country_id" ref="base.in"/>
+        <field name="filter_multi_company">tax_units</field>
+        <field name="root_report_id" ref="account.generic_tax_report"/>
+        <field name="custom_handler_model_id" ref="model_l10n_in_report_handler"/>
+        <field name="column_ids">
+            <record id="account_report_gstr4_base_column" model="account.report.column">
+                <field name="name">Base</field>
+                <field name="expression_label">tax_base</field>
+            </record>
+            <record id="account_report_gstr4_igst_column" model="account.report.column">
+                <field name="name">IGST</field>
+                <field name="expression_label">tax_igst</field>
+            </record>
+            <record id="account_report_gstr4_cgst_column" model="account.report.column">
+                <field name="name">CGST</field>
+                <field name="expression_label">tax_cgst</field>
+            </record>
+            <record id="account_report_gstr4_sgst_column" model="account.report.column">
+                <field name="name">SGST/UTGST</field>
+                <field name="expression_label">tax_sgst</field>
+            </record>
+            <record id="account_report_gstr4_cess_column" model="account.report.column">
+                <field name="name">CESS</field>
+                <field name="expression_label">tax_cess</field>
+            </record>
+        </field>
+        <field name="line_ids">
+            <record id="account_report_gstr4_4_inward_supplies" model="account.report.line">
+                <field name="name">4. Inward Supplies</field>
+                <field name="code">IS</field>
+                <field name="expression_ids">
+                    <record id="account_report_gstr4_4_inward_supplies_taxable_amount_balance" model="account.report.expression">
+                        <field name="label">tax_base</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">B2B_REGULAR.tax_base + B2B_RCM.tax_base + B2C.tax_base + IOS.tax_base</field>
+                    </record>
+                    <record id="account_report_gstr4_4_inward_supplies_igst_balance" model="account.report.expression">
+                        <field name="label">tax_igst</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">B2B_REGULAR.tax_igst + B2B_RCM.tax_igst + B2C.tax_igst + IOS.tax_igst</field>
+                    </record>
+                    <record id="account_report_gstr4_4_inward_supplies_cgst_balance" model="account.report.expression">
+                        <field name="label">tax_cgst</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">B2B_REGULAR.tax_cgst + B2B_RCM.tax_cgst + B2C.tax_cgst + IOS.tax_cgst</field>
+                    </record>
+                    <record id="account_report_gstr4_4_inward_supplies_sgst_balance" model="account.report.expression">
+                        <field name="label">tax_sgst</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">B2B_REGULAR.tax_sgst + B2B_RCM.tax_sgst + B2C.tax_sgst + IOS.tax_sgst</field>
+                    </record>
+                    <record id="account_report_gstr4_4_inward_supplies_cess_balance" model="account.report.expression">
+                        <field name="label">tax_cess</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">B2B_REGULAR.tax_cess + B2B_RCM.tax_cess + B2C.tax_cess + IOS.tax_cess</field>
+                    </record>
+                </field>
+                <field name="hierarchy_level">0</field>
+                <field name="children_ids">
+                    <record id="account_report_gstr4_4a_b2b_regular" model="account.report.line">
+                        <field name="name">4A. Inward Supplies from Registered Person (Other than Reverse Charge)</field>
+                        <field name="code">B2B_REGULAR</field>
+                        <field name="expression_ids">
+                            <record id="account_report_gstr4_4a_b2b_regular_taxable_amount_balance" model="account.report.expression">
+                                <field name="label">tax_base</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', '=', 'purchase_b2b_regular'), ('display_type', '=', 'product')]"/>
+                                <field name="subformula">sum</field>
+                            </record>
+                            <record id="account_report_gstr4_4a_b2b_regular_igst_balance" model="account.report.expression">
+                                <field name="label">tax_igst</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', '=', 'purchase_b2b_regular'), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_igst'))]"/>
+                                <field name="subformula">sum</field>
+                            </record>
+                            <record id="account_report_gstr4_4a_b2b_regular_cgst_balance" model="account.report.expression">
+                                <field name="label">tax_cgst</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', '=', 'purchase_b2b_regular'), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_cgst'))]"/>
+                                <field name="subformula">sum</field>
+                            </record>
+                            <record id="account_report_gstr4_4a_b2b_regular_sgst_balance" model="account.report.expression">
+                                <field name="label">tax_sgst</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', '=', 'purchase_b2b_regular'), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_sgst'))]"/>
+                                <field name="subformula">sum</field>
+                            </record>
+                            <record id="account_report_gstr4_4a_b2b_regular_cess_balance" model="account.report.expression">
+                                <field name="label">tax_cess</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', '=', 'purchase_b2b_regular'), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_cess'))]"/>
+                                <field name="subformula">sum</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_report_gstr4_4b_b2b_rcm" model="account.report.line">
+                        <field name="name">4B. Inward Supplies from Registered Person (Reverse Charge)</field>
+                        <field name="code">B2B_RCM</field>
+                        <field name="expression_ids">
+                            <record id="account_report_gstr4_4b_b2b_rcm_taxable_amount_balance" model="account.report.expression">
+                                <field name="label">tax_base</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', '=', 'purchase_b2b_rcm'), ('display_type', '=', 'product')]"/>
+                                <field name="subformula">sum</field>
+                            </record>
+                            <record id="account_report_gstr4_4b_b2b_rcm_igst_balance" model="account.report.expression">
+                                <field name="label">tax_igst</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', '=', 'purchase_b2b_rcm'), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_igst'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                            <record id="account_report_gstr4_4b_b2b_rcm_cgst_balance" model="account.report.expression">
+                                <field name="label">tax_cgst</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', '=', 'purchase_b2b_rcm'), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_cgst'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                            <record id="account_report_gstr4_4b_b2b_rcm_sgst_balance" model="account.report.expression">
+                                <field name="label">tax_sgst</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', '=', 'purchase_b2b_rcm'), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_sgst'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                            <record id="account_report_gstr4_4b_b2b_rcm_cess_balance" model="account.report.expression">
+                                <field name="label">tax_cess</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', '=', 'purchase_b2b_rcm'), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_cess'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_report_gstr4_4c_b2c" model="account.report.line">
+                        <field name="name">4C. Inward Supplies (Unregistered)</field>
+                        <field name="code">B2C</field>
+                        <field name="expression_ids">
+                            <record id="account_report_gstr4_4c_b2c_rcm_taxable_amount_balance" model="account.report.expression">
+                                <field name="label">tax_base</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', '=', 'purchase_b2c_rcm'), ('display_type', '=', 'product')]"/>
+                                <field name="subformula">sum</field>
+                            </record>
+                            <record id="account_report_gstr4_4c_b2c_rcm_igst_balance" model="account.report.expression">
+                                <field name="label">tax_igst</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', '=', 'purchase_b2c_rcm'), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_igst'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                            <record id="account_report_gstr4_4c_b2c_rcm_cgst_balance" model="account.report.expression">
+                                <field name="label">tax_cgst</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', '=', 'purchase_b2c_rcm'), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_cgst'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                            <record id="account_report_gstr4_4c_b2c_rcm_sgst_balance" model="account.report.expression">
+                                <field name="label">tax_sgst</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', '=', 'purchase_b2c_rcm'), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_sgst'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                            <record id="account_report_gstr4_4c_b2c_rcm_cess_balance" model="account.report.expression">
+                                <field name="label">tax_cess</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', '=', 'purchase_b2c_rcm'), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_cess'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_report_gstr4_4d_imp_service" model="account.report.line">
+                        <field name="name">4D. Import of Services</field>
+                        <field name="code">IOS</field>
+                        <field name="expression_ids">
+                            <record id="account_report_gstr4_4d_imp_service_taxable_amount_balance" model="account.report.expression">
+                                <field name="label">tax_base</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', 'in', ['purchase_imp_services', 'purchase_imp_services_rcm']), ('display_type', '=', 'product')]"/>
+                                <field name="subformula">sum</field>
+                            </record>
+                            <record id="account_report_gstr4_4d_imp_service_igst_balance" model="account.report.expression">
+                                <field name="label">tax_igst</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', 'in', ['purchase_imp_services', 'purchase_imp_services_rcm']), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_igst'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                            <record id="account_report_gstr4_4d_imp_service_cgst_balance" model="account.report.expression">
+                                <field name="label">tax_cgst</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', 'in', ['purchase_imp_services', 'purchase_imp_services_rcm']), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_cgst'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                            <record id="account_report_gstr4_4d_imp_service_sgst_balance" model="account.report.expression">
+                                <field name="label">tax_sgst</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', 'in', ['purchase_imp_services', 'purchase_imp_services_rcm']), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_sgst'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                            <record id="account_report_gstr4_4d_imp_service_cess_balance" model="account.report.expression">
+                                <field name="label">tax_cess</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', 'in', ['purchase_imp_services', 'purchase_imp_services_rcm']), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_cess'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_report_gstr4_5_inward_credit_debit_notes" model="account.report.line">
+                <field name="name">5. Debit/Credit Notes (Inward Supplies)</field>
+                <field name="code">DCNIS</field>
+                <field name="expression_ids">
+                    <record id="account_report_gstr4_5_inward_credit_debit_notes_taxable_amount_balance" model="account.report.expression">
+                        <field name="label">tax_base</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">CDNR.tax_base + CDNUR.tax_base</field>
+                    </record>
+                    <record id="account_report_gstr4_5_inward_credit_debit_notes_igst_balance" model="account.report.expression">
+                        <field name="label">tax_igst</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">CDNR.tax_igst + CDNUR.tax_igst</field>
+                    </record>
+                    <record id="account_report_gstr4_5_inward_credit_debit_notes_cgst_balance" model="account.report.expression">
+                        <field name="label">tax_cgst</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">CDNR.tax_cgst + CDNUR.tax_cgst</field>
+                    </record>
+                    <record id="account_report_gstr4_5_inward_credit_debit_notes_sgst_balance" model="account.report.expression">
+                        <field name="label">tax_sgst</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">CDNR.tax_sgst + CDNUR.tax_sgst</field>
+                    </record>
+                    <record id="account_report_gstr4_5_inward_credit_debit_notes_cess_balance" model="account.report.expression">
+                        <field name="label">tax_cess</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">CDNR.tax_cess + CDNUR.tax_cess</field>
+                    </record>
+                </field>
+                <field name="hierarchy_level">0</field>
+                <field name="children_ids">
+                    <record id="account_report_gstr4_5a_inward_cdnr" model="account.report.line">
+                        <field name="name">Debit/Credit Notes (Registered)</field>
+                        <field name="code">CDNR</field>
+                        <field name="expression_ids">
+                            <record id="account_report_gstr4_5a_inward_cdnr_taxable_amount_balance" model="account.report.expression">
+                                <field name="label">tax_base</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', 'in', ['purchase_cdnr_regular', 'purchase_cdnr_rcm']), ('display_type', '=', 'product')]"/>
+                                <field name="subformula">sum</field>
+                            </record>
+                            <record id="account_report_gstr4_5a_inward_cdnr_igst_balance" model="account.report.expression">
+                                <field name="label">tax_igst</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', 'in', ['purchase_cdnr_regular', 'purchase_cdnr_rcm']), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_igst'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                            <record id="account_report_gstr4_5a_inward_cdnr_cgst_balance" model="account.report.expression">
+                                <field name="label">tax_cgst</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', 'in', ['purchase_cdnr_regular', 'purchase_cdnr_rcm']), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_cgst'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                            <record id="account_report_gstr4_5a_inward_cdnr_sgst_balance" model="account.report.expression">
+                                <field name="label">tax_sgst</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', 'in', ['purchase_cdnr_regular', 'purchase_cdnr_rcm']), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_sgst'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                            <record id="account_report_gstr4_5a_inward_cdnr_cess_balance" model="account.report.expression">
+                                <field name="label">tax_cess</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', 'in', ['purchase_cdnr_regular', 'purchase_cdnr_rcm']), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_cess'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_report_gstr4_5b_inward_cdnur" model="account.report.line">
+                        <field name="name">Debit/Credit Notes (Unregistered)</field>
+                        <field name="code">CDNUR</field>
+                        <field name="expression_ids">
+                            <record id="account_report_gstr4_5b_inward_cdnur_taxable_amount_balance" model="account.report.expression">
+                                <field name="label">tax_base</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', 'in', ['purchase_cdnur_overseas', 'purchase_cdnur_rcm']), ('display_type', '=', 'product')]"/>
+                                <field name="subformula">sum</field>
+                            </record>
+                            <record id="account_report_gstr4_5b_inward_cdnur_igst_balance" model="account.report.expression">
+                                <field name="label">tax_igst</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', 'in', ['purchase_cdnur_overseas', 'purchase_cdnur_rcm']), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_igst'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                            <record id="account_report_gstr4_5b_inward_cdnur_cgst_balance" model="account.report.expression">
+                                <field name="label">tax_cgst</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', 'in', ['purchase_cdnur_overseas', 'purchase_cdnur_rcm']), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_cgst'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                            <record id="account_report_gstr4_5b_inward_cdnur_sgst_balance" model="account.report.expression">
+                                <field name="label">tax_sgst</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', 'in', ['purchase_cdnur_overseas', 'purchase_cdnur_rcm']), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_sgst'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                            <record id="account_report_gstr4_5b_inward_cdnur_cess_balance" model="account.report.expression">
+                                <field name="label">tax_cess</field>
+                                <field name="engine">domain</field>
+                                <field name="formula" eval="[('l10n_in_gstr_section', 'in', ['purchase_cdnur_overseas', 'purchase_cdnur_rcm']), ('tax_tag_ids', '=', ref('l10n_in.tax_tag_cess'))]"/>
+                                <field name="subformula">-sum</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_report_gstr4_6_outward_supplies" model="account.report.line">
+                <field name="name">6. Tax on Outward Supplies</field>
+                <field name="code">TOS</field>
+                <field name="expression_ids">
+                    <record id="account_report_gstr4_6_outward_supplies_taxable_amount_balance" model="account.report.expression">
+                        <field name="label">tax_base</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('l10n_in_gstr_section', '=', 'sale_composition_supplies'), ('display_type', '=', 'product')]"/>
+                        <field name="subformula">-sum</field>
+                    </record>
+                    <record id="account_report_gstr4_6_outward_supplies_cgst_balance" model="account.report.expression">
+                        <field name="label">tax_cgst</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_outward_supplies_tax_amounts</field>
+                        <field name="subformula">tax_amount</field>
+                    </record>
+                    <record id="account_report_gstr4_6_outward_supplies_sgst_balance" model="account.report.expression">
+                        <field name="label">tax_sgst</field>
+                        <field name="engine">custom</field>
+                        <field name="formula">_report_engine_outward_supplies_tax_amounts</field>
+                        <field name="subformula">tax_amount</field>
+                    </record>
+                </field>
+                <field name="hierarchy_level">0</field>
+            </record>
+            <record id="account_report_gstr4_8_advance_paid_adjusted" model="account.report.line">
+                <field name="name">8. Advance Paid/Adjusted</field>
+                <field name="code">APA</field>
+                <field name="expression_ids">
+                    <record id="account_report_gstr4_8_advance_paid_adjusted_igst_balance" model="account.report.expression">
+                        <field name="label">tax_igst</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">AAP.tax_igst + ADAP.tax_igst</field>
+                    </record>
+                    <record id="account_report_gstr4_8_advance_paid_adjusted_cgst_balance" model="account.report.expression">
+                        <field name="label">tax_cgst</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">AAP.tax_cgst + ADAP.tax_cgst</field>
+                    </record>
+                    <record id="account_report_gstr4_8_advance_paid_adjusted_sgst_balance" model="account.report.expression">
+                        <field name="label">tax_sgst</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">AAP.tax_sgst + ADAP.tax_sgst</field>
+                    </record>
+                    <record id="account_report_gstr4_8_advance_paid_adjusted_cess_balance" model="account.report.expression">
+                        <field name="label">tax_cess</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">AAP.tax_cess + ADAP.tax_cess</field>
+                    </record>
+                </field>
+                <field name="hierarchy_level">0</field>
+                <field name="children_ids">
+                    <record id="account_report_gstr4_8a_advance_paid" model="account.report.line">
+                        <field name="name">8A. Advance Amount Paid (Manual)</field>
+                        <field name="code">AAP</field>
+                        <field name="expression_ids">
+                            <record id="account_report_gstr4_8a_advance_paid_igst_balance" model="account.report.expression">
+                                <field name="label">tax_igst</field>
+                                <field name="engine">external</field>
+                                <field name="formula">sum</field>
+                                <field name="subformula">editable</field>
+                            </record>
+                            <record id="account_report_gstr4_8a_advance_paid_cgst_balance" model="account.report.expression">
+                                <field name="label">tax_cgst</field>
+                                <field name="engine">external</field>
+                                <field name="formula">sum</field>
+                                <field name="subformula">editable</field>
+                            </record>
+                            <record id="account_report_gstr4_8a_advance_paid_sgst_balance" model="account.report.expression">
+                                <field name="label">tax_sgst</field>
+                                <field name="engine">external</field>
+                                <field name="formula">sum</field>
+                                <field name="subformula">editable</field>
+                            </record>
+                            <record id="account_report_gstr4_8a_advance_paid_cess_balance" model="account.report.expression">
+                                <field name="label">tax_cess</field>
+                                <field name="engine">external</field>
+                                <field name="formula">sum</field>
+                                <field name="subformula">editable</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_report_gstr4_8b_advance_adjustment" model="account.report.line">
+                        <field name="name">8B. Adjustment of Advance Paid (Manual)</field>
+                        <field name="code">ADAP</field>
+                        <field name="expression_ids">
+                            <record id="account_report_gstr4_8b_advance_adjustment_igst_balance" model="account.report.expression">
+                                <field name="label">tax_igst</field>
+                                <field name="engine">external</field>
+                                <field name="formula">sum</field>
+                                <field name="subformula">editable</field>
+                            </record>
+                            <record id="account_report_gstr4_8b_advance_adjustment_cgst_balance" model="account.report.expression">
+                                <field name="label">tax_cgst</field>
+                                <field name="engine">external</field>
+                                <field name="formula">sum</field>
+                                <field name="subformula">editable</field>
+                            </record>
+                            <record id="account_report_gstr4_8b_advance_adjustment_sgst_balance" model="account.report.expression">
+                                <field name="label">tax_sgst</field>
+                                <field name="engine">external</field>
+                                <field name="formula">sum</field>
+                                <field name="subformula">editable</field>
+                            </record>
+                            <record id="account_report_gstr4_8b_advance_adjustment_cess_balance" model="account.report.expression">
+                                <field name="label">tax_cess</field>
+                                <field name="engine">external</field>
+                                <field name="formula">sum</field>
+                                <field name="subformula">editable</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_report_gstr4_11_interest_late_fee" model="account.report.line">
+                <field name="name">11. Interest, Late fee, Penalty and Others</field>
+                <field name="code">ILPO</field>
+                <field name="expression_ids">
+                    <record id="account_report_gstr4_11_interest_late_fee_igst_balance" model="account.report.expression">
+                        <field name="label">tax_igst</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">INT.tax_igst + LFEE.tax_igst</field>
+                    </record>
+                    <record id="account_report_gstr4_11_interest_late_fee_cgst_balance" model="account.report.expression">
+                        <field name="label">tax_cgst</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">INT.tax_cgst + LFEE.tax_cgst</field>
+                    </record>
+                    <record id="account_report_gstr4_11_interest_late_fee_sgst_balance" model="account.report.expression">
+                        <field name="label">tax_sgst</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">INT.tax_sgst + LFEE.tax_sgst</field>
+                    </record>
+                    <record id="account_report_gstr4_11_interest_late_fee_cess_balance" model="account.report.expression">
+                        <field name="label">tax_cess</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">INT.tax_cess + LFEE.tax_cess</field>
+                    </record>
+                </field>
+                <field name="hierarchy_level">0</field>
+                <field name="children_ids">
+                    <record id="account_report_gstr4_11_interest" model="account.report.line">
+                        <field name="name">Interest (Manual)</field>
+                        <field name="code">INT</field>
+                        <field name="expression_ids">
+                            <record id="account_report_gstr4_11_interest_igst_balance" model="account.report.expression">
+                                <field name="label">tax_igst</field>
+                                <field name="engine">external</field>
+                                <field name="formula">sum</field>
+                                <field name="subformula">editable</field>
+                            </record>
+                            <record id="account_report_gstr4_11_interest_cgst_balance" model="account.report.expression">
+                                <field name="label">tax_cgst</field>
+                                <field name="engine">external</field>
+                                <field name="formula">sum</field>
+                                <field name="subformula">editable</field>
+                            </record>
+                            <record id="account_report_gstr4_11_interest_sgst_balance" model="account.report.expression">
+                                <field name="label">tax_sgst</field>
+                                <field name="engine">external</field>
+                                <field name="formula">sum</field>
+                                <field name="subformula">editable</field>
+                            </record>
+                            <record id="account_report_gstr4_11_interest_cess_balance" model="account.report.expression">
+                                <field name="label">tax_cess</field>
+                                <field name="engine">external</field>
+                                <field name="formula">sum</field>
+                                <field name="subformula">editable</field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="account_report_gstr4_11_late_fees" model="account.report.line">
+                        <field name="name">Late Fees (Manual)</field>
+                        <field name="code">LFEE</field>
+                        <field name="expression_ids">
+                            <record id="account_report_gstr4_11_late_fees_igst_balance" model="account.report.expression">
+                                <field name="label">tax_igst</field>
+                                <field name="engine">external</field>
+                                <field name="formula">sum</field>
+                                <field name="subformula">editable</field>
+                            </record>
+                            <record id="account_report_gstr4_11_late_fees_cgst_balance" model="account.report.expression">
+                                <field name="label">tax_cgst</field>
+                                <field name="engine">external</field>
+                                <field name="formula">sum</field>
+                                <field name="subformula">editable</field>
+                            </record>
+                            <record id="account_report_gstr4_11_late_fees_sgst_balance" model="account.report.expression">
+                                <field name="label">tax_sgst</field>
+                                <field name="engine">external</field>
+                                <field name="formula">sum</field>
+                                <field name="subformula">editable</field>
+                            </record>
+                            <record id="account_report_gstr4_11_late_fees_cess_balance" model="account.report.expression">
+                                <field name="label">tax_cess</field>
+                                <field name="engine">external</field>
+                                <field name="formula">sum</field>
+                                <field name="subformula">editable</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+        </field>
+    </record>
+
+    <record id="action_account_report_gstr4" model="ir.actions.client">
+        <field name="name">GSTR-4 Report</field>
+        <field name="tag">account_report</field>
+        <field name="context" eval="{'report_id': ref('l10n_in_reports.account_report_gstr4')}"/>
+    </record>
+
+    <menuitem id="menu_account_report_gstr4" name="GSTR-4" sequence="6" parent="l10n_in.account_reports_in_statements_menu" action="action_account_report_gstr4" groups="base.group_no_one"/>
+</odoo>

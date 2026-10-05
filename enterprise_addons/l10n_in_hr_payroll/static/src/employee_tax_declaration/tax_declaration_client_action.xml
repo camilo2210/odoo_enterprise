@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="l10n_in_hr_payroll.TaxDeclarationClientAction">
+        <div class="d-flex flex-column gap-3 h-100">
+            <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 pt-3">
+                <div class="d-flex flex-wrap align-items-center justify-content-center">
+                    <select id="financial-year-select"
+                        class="form-select"
+                        t-att-value="this.state.financialYear || ''"
+                        t-on-change="this.onFinancialYearChange">
+                        <t t-foreach="this.options" t-as="option" t-foreach-index="option_index" t-key="option_index">
+                            <option t-att-value="option.value" t-att-selected="option.value === this.state.financialYear">
+                                <t t-out="option.label"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+                <div>
+                    <button class="btn btn-primary" t-on-click="this.onPrint" t-att-disabled="!this.hasData">
+                        <i class="oi me-2" data-icon="print"/><span>Print</span>
+                    </button>
+                </div>
+                <div>
+                    <button class="btn btn-secondary" t-on-click="this.env.config.historyBack">
+                        <i class="oi me-2" data-icon="times"/><span>Close</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex-grow-1 overflow-auto border rounded shadow-sm bg-white p-3 tds-body">
+                <div t-attf-class="{{ this.hasData ? '' : 'text-muted' }}">
+                    <t t-if="this.hasData">
+                        <t t-set="declarations" t-value="this.declarations"/>
+
+                        <div class="tds-content d-flex flex-column gap-4">
+                            <div class="bg-100 rounded-3 p-3 shadow-sm">
+                                <t t-if="this.lastDeclaration">
+
+                                    <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
+                                        <div>
+                                            <div class="fw-semibold fs-4">TDS Overview</div>
+                                            <div class="text-muted small">
+                                                Financial Year:
+                                                <span class="fw-semibold">
+                                                    <t t-out="this.state.financialYear"/> <span class="text-muted small">(<t t-out="this.fyStartDate"/> to <t t-out="this.fyEndDate"/>)</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span class="badge bg-success-subtle text-success-emphasis">Active</span>
+                                            <span class="badge text-700 bg-300">Ended</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-2 mt-2">
+                                        <t t-foreach="this.overviewCards" t-as="card" t-key="card.key">
+                                            <div class="col-12 col-sm-6 col-xl-3">
+                                                <div class="card border-0 shadow-sm h-100">
+                                                    <div class="card-body p-3">
+                                                        <div class="text-muted small">
+                                                            <t t-out="card.label"/>
+                                                        </div>
+                                                        <div t-att-class="'fw-bold fs-3 mb-0' + (card.valueClass ? ' ' + card.valueClass : '')">
+                                                            <span t-out="card.value"/>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </div>
+
+                                    <div class="mt-3">
+                                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                            <div class="fw-semibold text-muted small">Contract Timeline (Total Tax to be Paid)</div>
+                                            <div class="text-muted small"><t t-out="this.contractCount"/> contract(s) (<t t-out="this.versionCount"/> employee records)</div>
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-2 mt-2">
+                                            <t t-foreach="declarations" t-as="declaration" t-foreach-index="declaration_index" t-key="declaration_index">
+                                                <button type="button"
+                                                    t-attf-class="btn btn-sm rounded-pill border px-3 d-flex align-items-center gap-2 border {{ declaration.contract_date_end ? 'text-700 bg-300 border-dark border-opacity-25' : 'bg-success-subtle border-success-subtle text-success-emphasis' }}"
+                                                    t-att-title="
+                                                        (declaration.contract_date_end
+                                                            ? (declaration.contract_date_start + ' to ' + declaration.contract_date_end)
+                                                            : ('Since ' + declaration.contract_date_start)
+                                                        )
+                                                    ">
+                                                    <span class="text-truncate tds-chip-label" t-out="declaration.display_name"/>
+                                                    <span class="vr opacity-75"></span>
+                                                    <span class="fw-semibold text-truncate tds-chip-amount" t-out="declaration.formatted_values.total_tds_tobe_paid"/>
+                                                </button>
+                                            </t>
+                                        </div>
+                                    </div>
+
+                                </t>
+                                <t t-else="">
+                                    <div class="text-muted small">No overview available.</div>
+                                </t>
+                            </div>
+
+                            <div class="bg-white rounded-3 shadow-sm">
+                                <div class="table-responsive tds-table-wrap">
+                                    <table class="table table-hover table-sm align-middle mb-0 tds-table">
+                                        <colgroup>
+                                            <col class="tds-col-label-col"/>
+                                            <t t-foreach="declarations" t-as="declaration" t-foreach-index="declaration_index" t-key="declaration_index">
+                                                <col class="tds-col-version-col"/>
+                                            </t>
+                                        </colgroup>
+
+                                        <thead class="bg-white">
+                                            <tr>
+                                                <th class="bg-white fw-semibold border-top tds-col-label">
+                                                    Details
+                                                </th>
+                                                <t t-foreach="declarations" t-as="declaration" t-foreach-index="declaration_index" t-key="declaration_index">
+                                                    <th class="bg-white border-top text-end tds-col-version">
+                                                        <div class="d-flex justify-content-end">
+                                                            <div class="text-truncate">
+                                                                <t t-out="declaration.display_name"/>
+                                                            </div>
+                                                        </div>
+                                                    </th>
+                                                </t>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            <tr class="bg-300">
+                                                <td colspan="100" class="fw-bold">Gross Income</td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label">Income From Salary</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end tds-col-version" t-out="declaration.formatted_values.total_income"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label">Income from Previous Employment</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end tds-col-version" t-out="declaration.formatted_values.income_previous_employment"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label">Income from Other Sources</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end tds-col-version" t-out="declaration.formatted_values.income_from_other_sources"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label">Income From Let Out Property</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end tds-col-version" t-out="declaration.formatted_values.income_let_out_property"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label">Interest Earned from Savings Deposit &amp; FD</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end tds-col-version" t-out="declaration.formatted_values.interest_fd_deposit"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label">Interest Earned from National Savings Certificates</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end tds-col-version" t-out="declaration.formatted_values.interest_national_savings"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label fw-semibold">Total Gross Income</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end fw-semibold tds-col-version" t-out="declaration.formatted_values.final_income"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr class="bg-300">
+                                                <td colspan="100" class="fw-bold">Exemptions</td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label">Standard Deduction</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end tds-col-version" t-out="declaration.formatted_values.standard_deduction"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label">Conveyance Allowance</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end tds-col-version" t-out="declaration.formatted_values.conveyance_allowance"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label">80CCD for contributions to the NPS/NPS Vatsalya</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end tds-col-version" t-out="declaration.formatted_values.contribution_nps"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label fw-semibold">Total Exemption</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end fw-semibold tds-col-version" t-out="declaration.formatted_values.total_exemption"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr class="bg-300">
+                                                <td colspan="100" class="fw-bold">TDS Computation</td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label">Taxable Income</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end tds-col-version" t-out="declaration.formatted_values.taxable_income"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label">Tax on Taxable Income</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end tds-col-version">
+                                                        <t t-out="declaration.formatted_values.tax_on_taxable_income"/><br/>
+                                                        <button type="button" class="btn btn-link p-0 ms-2 align-baseline"
+                                                            t-on-click="ev => this.onShowBreakup(ev, declaration)">
+                                                            Breakup
+                                                        </button>
+                                                    </td>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label">Rebate Under Section 87A(a)</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end tds-col-version" t-out="declaration.formatted_values.rebate"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label">Total Tax on Income</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end tds-col-version" t-out="declaration.formatted_values.total_tax_on_income"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label">Surcharge</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end tds-col-version" t-out="declaration.formatted_values.surcharge"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label">Health and Education Cess</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end tds-col-version" t-out="declaration.formatted_values.cess"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label">Total Tax to be Paid</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end tds-col-version" t-out="declaration.formatted_values.total_tds_tobe_paid"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label">Tax paid by previous employer</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end tds-col-version" t-out="declaration.formatted_values.tax_paid_previous_employer"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label fw-semibold">Total Tax Paid (Current Contract)</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end fw-semibold tds-col-version" t-out="declaration.formatted_values.current_version_paid_tds"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label fw-semibold">Total Tax Paid</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end fw-semibold tds-col-version" t-out="declaration.formatted_values.already_paid_tds"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label fw-semibold">Total Tax Remaining</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end fw-semibold tds-col-version" t-out="declaration.formatted_values.remaining_tds"/>
+                                                </t>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="tds-col-label"><t t-out="this.lastDeclaration.schedule_label"/> TDS Payable</td>
+                                                <t t-foreach="declarations" t-as="declaration" t-key="declaration.id or declaration.display_name">
+                                                    <td class="text-end tds-col-version" t-out="declaration.formatted_values.expected_tds"/>
+                                                </t>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </div>
+                    </t>
+
+                    <t t-else="">
+                        <div class="o_view_nocontent h-100 d-flex align-items-center justify-content-center">
+                            <div class="o_nocontent_help text-center">
+                                <p class="o_view_nocontent_empty_folder m-0">
+                                    <t>No tax declaration data available for this financial year</t>
+                                </p>
+                            </div>
+                        </div>
+                    </t>
+
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

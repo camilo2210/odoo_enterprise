@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="das2_aspone_xml_edi">
+        <XmlEdi t-att-Test="is_test">
+            <GroupeFonctionnel t-att-Type="type">
+                <t t-call="l10n_fr_reports.das2_declaration"/>
+            </GroupeFonctionnel>
+        </XmlEdi>
+    </template>
+
+    <template id="das2_declaration">
+        <Declaration t-att-Type="declaration_type" t-att-Reference="declaration_reference">
+            <t t-call="l10n_fr_reports.das2_writer"/>
+            <t t-call="l10n_fr_reports.das2_debtor"/>
+            <ListeDestinataires>
+                <Destinataire>
+                    <Designation t-out="receiver"/>
+                </Destinataire>
+            </ListeDestinataires>
+            <ListeFormulaires>
+                <t t-call="l10n_fr_reports.das2_identif"/>
+                <t t-call="l10n_fr_reports.das2_t"/>
+                <t t-foreach="enumerate(beneficiaries, start=1)" t-as="iterator">
+                    <t t-set="beneficiary" t-value="iterator[1]"/>
+                    <t t-set="repetition" t-value="iterator[0]"/>
+                    <t t-call="l10n_fr_reports.das2_tv"/>
+                </t>
+            </ListeFormulaires>
+        </Declaration>
+    </template>
+
+    <template id="das2_writer">
+        <Redacteur>
+            <Siret t-out="writer['identifier']"/>
+            <Designation t-out="writer['type']"/>
+            <DesignationSuite1 t-out="writer['designation']"/>
+            <DesignationSuite2 t-out="writer.get('designation2')"/>
+            <Adresse>
+                <AdresseNumero t-out="writer['address']['street_number']"/>
+                <AdresseVoie t-out="writer['address']['street_name']"/>
+                <AdresseCodePostal t-out="writer['address']['zip']"/>
+                <AdresseVille t-out="writer['address']['commune_name']"/>
+                <AdresseCodePays t-out="writer['address']['country_code']"/>
+            </Adresse>
+            <ReferenceDossier t-out="writer['reference']"/>
+        </Redacteur>
+    </template>
+
+    <template id="das2_debtor">
+        <Redevable>
+            <Identifiant t-out="debtor['identifier']"/>
+            <Designation t-out="debtor['designation']"/>
+            <DesignationSuite1 t-out="debtor.get('designation2')"/>
+            <Adresse>
+                <AdresseNumero t-out="debtor['address']['street_number']"/>
+                <AdresseVoie t-out="debtor['address']['street_name']"/>
+                <AdresseCodePostal t-out="debtor['address']['zip']"/>
+                <AdresseVille t-out="debtor['address']['commune_name']"/>
+                <AdresseCodePays t-out="debtor['address']['country_code']"/>
+            </Adresse>
+        </Redevable>
+    </template>
+
+    <template id="das2_identif">
+        <Identif t-att-Millesime="millesime">
+            <Zone id="AA">
+                <Identifiant t-out="debtor['identifier']"/>
+                <Designation t-out="debtor['designation']"/>
+                <DesignationSuite1 t-out="debtor.get('designation2')"/>
+                <AdresseNumero t-out="debtor['address']['street_number']"/>
+                <AdresseType t-out="debtor['address'].get('street_type')"/>
+                <AdresseVoie t-out="debtor['address']['street_name']"/>
+                <AdresseComplement t-out="debtor['address'].get('street2')"/>
+                <AdresseCodeDivisionTerritoriale t-out="debtor['address']['zip']"/>
+                <AdresseDivisionTerritoriale t-out="debtor['address']['commune_name']"/>
+                <AdresseCodePostal t-out="debtor['address']['zip']"/>
+                <AdresseVille t-out="debtor['address']['commune_name']"/>
+                <ContactDesignation t-out="contact_person['name']"/>
+                <Telephone t-out="contact_person['phone']"/>
+                <Email t-out="contact_person['email']"/>
+            </Zone>
+            <Zone id="AB">
+                <Identifiant t-out="writer['identifier']"/>
+                <AdresseNumero t-out="writer['address']['street_number']"/>
+                <AdresseType t-out="writer['address'].get('street_type')"/>
+                <AdresseVoie t-out="writer['address']['street_name']"/>
+                <AdresseCodeDivisionTerritoriale t-out="writer['address']['zip']"/>
+                <AdresseDivisionTerritoriale t-out="writer['address']['commune_name']"/>
+                <AdresseCodePostal t-out="writer['address']['zip']"/>
+                <AdresseVille t-out="writer['address']['commune_name']"/>
+            </Zone>
+            <Zone id="BA">
+                <Valeur t-out="debtor['dads_year']"/>
+            </Zone>
+            <Zone id="BB">
+                <Valeur t-out="debtor['date_from']"/>
+            </Zone>
+            <Zone id="BC">
+                <Valeur t-out="debtor['date_to']"/>
+            </Zone>
+            <Zone id="CA">
+                <Valeur t-out="debtor['ape']"/>
+            </Zone>
+        </Identif>
+    </template>
+
+    <template id="das2_t">
+        <Formulaire Nom="DAS2T" t-att-Millesime="millesime" Repetition="1">
+          <Zone id="AA">
+            <Identifiant t-out="debtor['identifier']"/>
+            <Designation t-out="debtor['designation']"/>
+            <DesignationSuite1 t-out="debtor.get('designation2')"/>
+            <AdresseNumero t-out="debtor['address']['street_number']"/>
+            <AdresseType t-out="debtor['address'].get('street_type')"/>
+            <AdresseVoie t-out="debtor['address']['street_name']"/>
+            <AdresseCodeDivisionTerritoriale t-out="debtor['address']['zip']"/>
+            <AdresseDivisionTerritoriale t-out="debtor['address']['commune_name']"/>
+            <AdresseCodePostal t-out="debtor['address']['zip']"/>
+            <AdresseVille t-out="debtor['address']['commune_name']"/>
+          </Zone>
+          <Zone id="AB">
+            <Valeur t-out="debtor['ape']"/>
+          </Zone>
+          <Zone id="AC">
+            <TexteLibre1 t-out="debtor['activity']"/>
+          </Zone>
+          <Zone id="AD">
+            <Valeur t-out="debtor['fiscal_year_end']"/>
+          </Zone>
+          <Zone id="AE">
+            <Valeur t-out="debtor['identifier']"/>
+          </Zone>
+          <Zone id="UA">
+            <t t-foreach="enumerate(debtor['das2_codes'], start=1)" t-as="code">
+              <Occurrence t-att-Numero="code[0]">
+                <Valeur t-out="code[1]"/>
+              </Occurrence>
+            </t>
+          </Zone>
+          <Zone id="TA">
+            <t t-foreach="enumerate(debtor['das2_totals_per_code'], start=1)" t-as="total">
+              <Occurrence t-att-Numero="total[0]">
+                <Valeur t-out="total[1]"/>
+              </Occurrence>
+            </t>
+          </Zone>
+          <Zone id="TB">
+            <Valeur t-out="debtor['das2_global_totals'].get('indemnities_refunds') or ''"/>
+          </Zone>
+          <Zone id="TC">
+            <Valeur t-out="debtor['das2_global_totals'].get('benefits_in_kind') or ''"/>
+          </Zone>
+          <Zone id="TD">
+            <Valeur t-out="debtor['das2_global_totals'].get('withholding_tax') or ''"/>
+          </Zone>
+        </Formulaire>
+    </template>
+
+    <template id="das2_tv">
+        <Formulaire Nom="DAS2TV" t-att-Millesime="millesime" t-att-Repetition="repetition">
+            <Zone id="AD">
+                <Valeur t-out="debtor.get('identifier')"/>
+            </Zone>
+
+            <t t-if="beneficiary['is_company']">
+                <Zone id="AF">
+                    <Identifiant t-out="beneficiary['identifier']"/>
+                    <Designation t-out="beneficiary['designation']"/>
+                    <DesignationSuite1 t-out="beneficiary.get('designation2')"/>
+                </Zone>
+            </t>
+            <t t-else="">
+                <Zone id="AE">
+                    <Designation t-out="beneficiary['designation']"/>
+                    <DesignationSuite1 t-out="beneficiary.get('designation2')"/>
+                </Zone>
+
+                <t t-if="
+                    beneficiary['is_european']
+                    and beneficiary['address']['country_code'] != 'FR'
+                    and any(code in {'DA', 'DI'} for code in beneficiary.get('das2_codes', []))
+                ">
+                    <Zone id="AI">
+                        <Valeur t-out="beneficiary['birth_date']"/>
+                    </Zone>
+                </t>
+            </t>
+
+            <Zone id="AG">
+                <AdresseNumero t-out="beneficiary['address']['street_number']"/>
+                <AdresseType t-out="beneficiary.get('address', {}).get('street_type')"/>
+                <AdresseVoie t-out="beneficiary['address']['street_name']"/>
+                <AdresseComplement t-out="beneficiary['address'].get('street2')"/>
+                <t t-if="beneficiary['address']['country_code'] != 'FR'">
+                    <AdresseCodeDivisionTerritoriale t-out="beneficiary['address']['insee_country_code']"/>
+                    <AdresseDivisionTerritoriale t-out="beneficiary['address']['commune_name']"/>
+                    <AdresseCodePostal t-out="beneficiary['address']['insee_country_code']"/>
+                    <AdresseVille t-out="beneficiary['address']['country_name']"/>
+                </t>
+                <t t-else="">
+                    <AdresseCodeDivisionTerritoriale t-out="beneficiary['address']['insee_zip']"/>
+                    <AdresseDivisionTerritoriale t-out="beneficiary['address']['commune_name']"/>
+                    <AdresseCodePostal t-out="beneficiary['address']['zip']"/>
+                    <AdresseVille t-out="beneficiary['address']['commune_name']"/>
+                </t>
+            </Zone>
+            <Zone id="AH">
+                <TexteLibre1 t-out="beneficiary['profession']"/>
+            </Zone>
+            <Zone id="CA">
+                <t t-foreach="enumerate(beneficiary['das2_codes'], start=1)" t-as="code">
+                    <Occurrence t-att-Numero="code[0]">
+                        <Valeur t-out="code[1]"/>
+                    </Occurrence>
+                </t>
+            </Zone>
+            <Zone id="BA">
+                <t t-foreach="enumerate(beneficiary['das2_totals_per_code'], start=1)" t-as="total">
+                    <Occurrence t-att-Numero="total[0]">
+                        <Valeur t-out="total[1]"/>
+                    </Occurrence>
+                </t>
+            </Zone>
+            <Zone id="BB">
+                <Valeur t-out="beneficiary['das2_global_totals'].get('indemnities_refunds') or ''"/>
+            </Zone>
+            <Zone id="BC">
+                <Valeur t-out="beneficiary['das2_global_totals'].get('benefits_in_kind') or ''"/>
+            </Zone>
+            <Zone id="BD">
+                <Valeur t-out="beneficiary['das2_global_totals'].get('withholding_tax') or ''"/>
+            </Zone>
+            <Zone id="CB">
+                <Valeur t-out="beneficiary['das2_global_totals'].get('indemnities_refunds_label')"/>
+            </Zone>
+            <Zone id="CC">
+                <Valeur t-out="beneficiary['das2_global_totals'].get('benefits_in_kind_label')"/>
+            </Zone>
+            <Zone id="CD">
+                <Valeur t-out="beneficiary['das2_global_totals'].get('withholding_tax_label')"/>
+            </Zone>
+        </Formulaire>
+    </template>
+</odoo>

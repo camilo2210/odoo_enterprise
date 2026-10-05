@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <record id="hr_payroll_warning_missing_pan" model="hr.payroll.warning">
+            <field name="name">Employees Without PAN Number</field>
+            <field name="description">Permanent Account Number is for tax compliance, TDS deduction, Income Tax Return (ITR) filing, and financial transactions.</field>
+            <field name="country_id" ref="base.in"/>
+            <field name="button_name">Review Employees</field>
+            <field name="model_id" ref="hr_payroll.model_hr_employee"/>
+            <field name="warning_type">domain</field>
+            <field name="warning_domain">[('l10n_in_pan', '=', False)]</field>
+        </record>
+
+        <record id="hr_payroll_warning_missing_uan" model="hr.payroll.warning">
+            <field name="name">Employees Without UAN Number</field>
+            <field name="description">Universal Account Number is for submit and manage Provident Fund (PF) contributions and to track them under the Employees' Provident Fund Organisation.</field>
+            <field name="country_id" ref="base.in"/>
+            <field name="button_name">Review Employees</field>
+            <field name="model_id" ref="hr_payroll.model_hr_employee"/>
+            <field name="warning_type">domain</field>
+            <field name="warning_domain">[('l10n_in_uan', '=', False)]</field>
+        </record>
+
+        <record id="hr_payroll_warning_missing_esic" model="hr.payroll.warning">
+            <field name="name">Employees Without ESIC Number</field>
+            <field name="description">To submit contributions to the govt. for social security benefits under the Employees' State Insurance Corporation scheme.</field>
+            <field name="country_id" ref="base.in"/>
+            <field name="button_name">Review Employees</field>
+            <field name="model_id" ref="hr_payroll.model_hr_employee"/>
+            <field name="warning_type">domain</field>
+            <field name="warning_domain">[
+                ('company_id.l10n_in_esic', '=', True),
+                ('l10n_in_esic_number', '=', False)
+            ]</field>
+        </record>
+
+        <record id="hr_payroll_warning_missing_lwf" model="hr.payroll.warning">
+            <field name="name">Employees Without LWF Number</field>
+            <field name="description">Labour Welfare Fund is to identify and manage contributions for employee social security and welfare benefits as per applicable state regulations.</field>
+            <field name="country_id" ref="base.in"/>
+            <field name="button_name">Review Employees</field>
+            <field name="model_id" ref="hr_payroll.model_hr_employee"/>
+            <field name="warning_type">domain</field>
+            <field name="warning_domain">[
+                ('company_id.l10n_in_labour_welfare', '=', True),
+                ('l10n_in_lwf_account_number', '=', False)
+            ]</field>
+        </record>
+
+        <record id="hr_payroll_warning_incoming_probation" model="hr.payroll.warning">
+            <field name="name">Employees Probation ends within a week</field>
+            <field name="country_id" ref="base.in"/>
+            <field name="button_name">Review Employees</field>
+            <field name="model_id" ref="hr_payroll.model_hr_employee"/>
+            <field name="warning_type">domain</field>
+            <field name="warning_domain">[
+                ('version_ids', 'any', [
+                    ('contract_date_end', '!=', False),
+                    ('contract_date_end', '&lt;=', 'today +7d'),
+                    ('contract_date_end', '&gt;=', 'today +1d'),
+                    ('employee_type_id', 'any', [
+                        ('code', '=', 'Probation'),
+                        ('country_id.code', '=', 'IN')
+                    ])
+                ])
+            ]</field>
+        </record>
+
+        <record id="l10n_in_hr_payroll_warning_invalid_ifsc" model="hr.payroll.warning">
+            <field name="name">Missing or invalid bank BIC/SWIFT/IFSC</field>
+            <field name="description">Employees must have a valid bank IFSC code to process payroll payments.</field>
+            <field name="country_id" ref="base.in"/>
+            <field name="button_name">Review Employees</field>
+            <field name="evaluation_code">
+indian_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'IN')
+if indian_companies:
+    employees_in = self.env['hr.employee'].search([
+        ('company_id', 'in', indian_companies.ids),
+    ])
+    employees_wo_ifsc = employees_in._get_employees_with_invalid_ifsc()
+    if employees_wo_ifsc:
+        warning_records = employees_wo_ifsc
+            </field>
+        </record>
+
+    </data>
+</odoo>

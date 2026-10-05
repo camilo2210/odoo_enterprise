@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="base.partner_demo_company_iq" model="res.partner" forcecreate="1">
+        <field name="name">My Iraqi Company</field>
+        <field name="country_id" ref="base.iq"/>
+    </record>
+    <record id="base.demo_company_iq" model="res.company" forcecreate="1">
+        <field name="name">My Iraqi Company</field>
+        <field name="partner_id" ref="base.partner_demo_company_iq"/>
+        <field name="currency_id" ref="base.IQD"/>
+        <field name="street">Falastin St. Al Anbari 123</field>
+        <field name="zip">00964</field>
+        <field name="city">Baghdad</field>
+        <field name="country_id" ref="base.iq"/>
+        <field name="resource_calendar_id" ref="l10n_iq_hr_payroll.l10n_iq_resource_calendar"/>
+    </record>
+
+    <record id="base.user_admin" model="res.users">
+        <field name="company_ids" eval="[(4, ref('base.demo_company_iq'))]"/>
+    </record>
+
+    <record id="base.user_demo" model="res.users">
+        <field name="company_ids" eval="[(4, ref('base.demo_company_iq'))]"/>
+    </record>
+
+    <record id="iq_hr_department_marketing" model="hr.department">
+        <field name="name">Marketing IQ</field>
+        <field name="company_id" ref="base.demo_company_iq"/>
+    </record>
+    <record id="iq_hr_department_accounting" model="hr.department">
+        <field name="name">Admin IQ</field>
+        <field name="company_id" ref="base.demo_company_iq"/>
+    </record>
+
+    <record id="iq_res_partner_rasheed" model="res.partner">
+        <field name="name">Rasheed Qasim</field>
+        <field name="street">Tayseer Na'na'ah 98</field>
+        <field name="city">Baghdad</field>
+        <field name="zip">00964</field>
+        <field name="state_id" ref="base.state_iq_07"/>
+        <field name="country_id" ref="base.iq"/>
+        <field name="phone">099 123 4567</field>
+        <field name="company_id" ref="base.demo_company_iq"/>
+    </record>
+    <record id="iq_res_partner_rasheed" model="res.partner">
+        <field name="email" model="res.partner" eval="'demo.' + obj(ref('l10n_iq_hr_payroll.iq_res_partner_rasheed')).name.split(' ')[-1].lower() + '@example.com'"/>
+    </record>
+
+    <record id="iq_res_partner_raghad" model="res.partner">
+        <field name="name">Raghad Abdulsattar</field>
+        <field name="street">Jordan Street</field>
+        <field name="city">Baghdad</field>
+        <field name="zip">00964</field>
+        <field name="state_id" ref="base.state_iq_07"/>
+        <field name="country_id" ref="base.iq"/>
+        <field name="phone">099 742 7498</field>
+        <field name="company_id" ref="base.demo_company_iq"/>
+    </record>
+    <record id="iq_res_partner_raghad" model="res.partner">
+        <field name="email" model="res.partner" eval="'demo.' + obj(ref('l10n_iq_hr_payroll.iq_res_partner_raghad')).name.split(' ')[-1].lower() + '@example.com'"/>
+    </record>
+
+    <record id="iq_user_raghad" model="res.users">
+        <field name="partner_id" ref="l10n_iq_hr_payroll.iq_res_partner_raghad"/>
+        <!-- firstname.lastname@example.com -->
+        <field name="login" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_raghad')).name.replace(' ', '.').lower() + '@example.com'"/>
+        <field name="signature" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_raghad')).name.split(' ')[0][0] + '. ' + obj(ref('l10n_iq_hr_payroll.iq_res_partner_raghad')).name.split(' ')[-1]"/>
+        <field name="company_ids" eval="[(4, ref('base.demo_company_iq'))]"/>
+        <field name="company_id" ref="base.demo_company_iq"/>
+        <field name="group_ids" eval="[(6,0,[ref('base.group_user')])]"/>
+        <field name="image_1920" type="bytes" file="hr/static/img/employee_al-image.webp"/>
+    </record>
+
+    <record id="iq_res_partner_bank_account_rasheed" model="res.partner.bank">
+        <field name="account_number">IQ94CBJO0010000000000131000302</field>
+        <field name="allow_out_payment" eval="True"/>
+        <field name="bank_name">Arab Bank</field>
+        <field name="bank_bic">ARABIQAXXXX</field>
+        <field name="street">Arab Bank street</field>
+        <field name="city">Baghdad</field>
+        <field name="zip">00964</field>
+        <field name="state_id" ref="base.state_iq_07"/>
+        <field name="country_id" ref="base.iq"/>
+        <field name="partner_id" ref="iq_res_partner_rasheed"/>
+        <field name="company_id" ref="base.demo_company_iq"/>
+    </record>
+
+    <record id="iq_res_partner_bank_account_raghad" model="res.partner.bank">
+        <field name="account_number">IQ71CBJO0000000000001234567890</field>
+        <field name="allow_out_payment" eval="True"/>
+        <field name="bank_name">Bank of Iraq</field>
+        <field name="bank_bic">BIRAIQAXXXX</field>
+        <field name="street">Bank of Iraq Street</field>
+        <field name="city">Baghdad</field>
+        <field name="zip">00964</field>
+        <field name="state_id" ref="base.state_iq_07"/>
+        <field name="country_id" ref="base.iq"/>
+        <field name="partner_id" ref="iq_res_partner_raghad"/>
+        <field name="company_id" ref="base.demo_company_iq"/>
+    </record>
+
+    <record id="iq_hr_employee_rasheed" model="hr.employee">
+        <field name="name" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_rasheed')).name"/>
+        <field name="job_id" ref="hr.job_developer"/>
+        <field name="image_1920" type="bytes" file="hr/static/img/employee_al-image.webp"/>
+        <field name="work_phone">99 123 0987</field>
+        <field name="work_email" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_rasheed')).name.replace(' ', '.').lower() + '@example.com'"/>
+        <field name="work_contact_id" ref="l10n_iq_hr_payroll.iq_res_partner_rasheed"/>
+        <field name="company_id" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_rasheed')).company_id"/>
+        <field name="resource_calendar_id" ref="l10n_iq_hr_payroll.l10n_iq_resource_calendar"/>
+        <field name="tz">Asia/Baghdad</field>
+        <field name="private_street" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_rasheed')).street"/>
+        <field name="private_city" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_rasheed')).city"/>
+        <field name="private_zip" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_rasheed')).zip"/>
+        <field name="private_state_id" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_rasheed')).state_id"/>
+        <field name="private_country_id" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_rasheed')).country_id"/>
+        <field name="private_email" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_rasheed')).email"/>
+        <field name="private_phone" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_rasheed')).phone"/>
+        <field name="distance_home_work">1</field>
+        <field name="country_id" ref="base.eg"/>
+        <field name="identification_id">97720300002</field>
+        <field name="sex">male</field>
+        <field name="birthday" eval="datetime(1977, 3, 7).date()"/>
+        <field name="place_of_birth">Baghdad</field>
+        <field name="country_of_birth" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_rasheed')).country_id"/>
+        <field name="emergency_contact">Ziad Hashem</field>
+        <field name="emergency_phone">99 784 5723</field>
+        <field name="certificate">master</field>
+        <field name="study_field">Mathematics</field>
+        <field name="marital">single</field>
+        <field name="bank_account_ids" eval="[(4, ref('l10n_iq_hr_payroll.iq_res_partner_bank_account_rasheed'))]"/>
+        <field name="department_id" ref="l10n_iq_hr_payroll.iq_hr_department_marketing"/>
+        <field name="structure_type_id" ref="l10n_iq_hr_payroll.l10n_iq_employee"/>
+        <field name="employee_type_id" ref="hr.contract_type_employee"/>
+        <field name="wage_type">monthly</field>
+        <field name="wage">4019916.66</field>
+        <field name="hr_responsible_id" ref="base.user_demo"/>
+        <field name="contract_date_start" eval="datetime(2021, 1, 1).date()"/>
+        <field name="date_version" eval="datetime(2021, 1, 1).date()"/>
+        <field name="address_id" ref="base.partner_demo_company_iq"/>
+    </record>
+
+    <record id="iq_hr_employee_raghad" model="hr.employee">
+        <field name="name" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_raghad')).name"/>
+        <field name="job_id" ref="hr.job_consultant"/>
+        <field name="image_1920" type="bytes" file="hr/static/img/employee_mit-image.webp"/>
+        <field name="work_phone">99 329 1469</field>
+        <field name="work_email" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_raghad')).name.replace(' ', '.').lower() + '@example.com'"/>
+        <field name="parent_id" ref="l10n_iq_hr_payroll.iq_hr_employee_rasheed"/>
+        <field name="user_id" ref="l10n_iq_hr_payroll.iq_user_raghad"/>
+        <field name="company_id" ref="base.demo_company_iq"/>
+        <field name="resource_calendar_id" ref="l10n_iq_hr_payroll.l10n_iq_resource_calendar"/>
+        <field name="tz">Asia/Baghdad</field>
+        <field name="private_street" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_raghad')).street"/>
+        <field name="private_city" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_raghad')).city"/>
+        <field name="private_zip" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_raghad')).zip"/>
+        <field name="private_state_id" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_raghad')).state_id"/>
+        <field name="private_country_id" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_raghad')).country_id"/>
+        <field name="private_email" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_raghad')).email"/>
+        <field name="private_phone" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_raghad')).phone"/>
+        <field name="distance_home_work">3</field>
+        <field name="country_id" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_raghad')).country_id"/>
+        <field name="identification_id">96510500001</field>
+        <field name="sex">female</field>
+        <field name="birthday" eval="datetime(1965, 8, 27).date()"/>
+        <field name="place_of_birth">Baghdad</field>
+        <field name="country_of_birth" model="res.partner" eval="obj(ref('l10n_iq_hr_payroll.iq_res_partner_raghad')).country_id"/>
+        <field name="emergency_contact">Hamza Abdullah</field>
+        <field name="emergency_phone">99 972 0741</field>
+        <field name="certificate">master</field>
+        <field name="study_field">Computer Science</field>
+        <field name="marital">single</field>
+        <field name="bank_account_ids" eval="[(4, ref('l10n_iq_hr_payroll.iq_res_partner_bank_account_raghad'))]"/>
+        <field name="department_id" ref="l10n_iq_hr_payroll.iq_hr_department_accounting"/>
+        <field name="structure_type_id" ref="l10n_iq_hr_payroll.l10n_iq_employee"/>
+        <field name="employee_type_id" ref="hr.contract_type_employee"/>
+        <field name="wage">4550050</field>
+        <field name="hr_responsible_id" ref="base.user_demo"/>
+        <field name="contract_date_start" eval="datetime(2022, 2, 1).date()"/>
+        <field name="date_version" eval="datetime(2022, 2, 1).date()"/>
+        <field name="address_id" ref="base.partner_demo_company_iq"/>
+    </record>
+
+    <function model="hr.version" name="_set_input_value">
+        <value model="hr.version" search="[('employee_id', '=', ref('l10n_iq_hr_payroll.iq_hr_employee_rasheed'))]"/>
+        <value>OTHER_ALLOWANCE</value>
+        <value>500</value>
+    </function>
+
+    <record id="iq_hr_leave_allocation_rasheed" model="hr.leave.allocation">
+        <field name="accrual_plan_id" ref="l10n_iq_hr_payroll.l10n_iq_hr_accrual_plan_paid_time_off"/>
+        <field name="work_entry_type_id" ref="hr_work_entry.iq_work_entry_type_legal_leave"/>
+        <field name="employee_id" ref="iq_hr_employee_rasheed"/>
+        <field name="date_from" eval="time.strftime('2021-01-01')"/>
+        <field name="number_of_days">23</field>
+    </record>
+    <record id="iq_hr_leave_allocation_raghad" model="hr.leave.allocation">
+        <field name="accrual_plan_id" ref="l10n_iq_hr_payroll.l10n_iq_hr_accrual_plan_paid_time_off"/>
+        <field name="work_entry_type_id" ref="hr_work_entry.iq_work_entry_type_legal_leave"/>
+        <field name="employee_id" ref="iq_hr_employee_raghad"/>
+        <field name="date_from" eval="time.strftime('2022-01-01')"/>
+        <field name="number_of_days">21</field>
+    </record>
+    <function model="hr.leave.allocation" name="action_approve">
+        <value eval="[ref('iq_hr_leave_allocation_rasheed'), ref('iq_hr_leave_allocation_raghad')]"/>
+    </function>
+</odoo>

@@ -1,0 +1,865 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo auto_sequence="1">
+    <record id="l10n_fr_2069_RCI" model="account.report">
+        <field name="name">2069 RCI</field>
+        <field name="name@fr">2069 RCI</field>
+        <field name="custom_handler_model_id" ref="model_l10n_fr_reports_2069_rci_report_handler"/>
+        <field name="column_ids">
+            <record id="l10n_fr_2069_rci_balance_column" model="account.report.column">
+                <field name="name">Balance</field>
+                <field name="expression_label">balance</field>
+            </record>
+        </field>
+        <field name="line_ids">
+            <record id="l10n_fr_2069_rci_title" model="account.report.line">
+                <field name="name">Tax credits</field>
+                <field name="name@fr">Crédits d'impôts</field>
+            </record>
+            <record id="l10n_fr_2069_rci_report_line_sme" model="account.report.line">
+                <field name="name">SME within the meaning of the Community</field>
+                <field name="name@fr">PME au sens communautaire</field>
+                <field name="code">l10n_fr_2069_sme</field>
+                <field name="expression_ids">
+                    <record id="l10n_fr_2069_rci_report_line_sme_expr" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">external</field>
+                        <field name="formula">most_recent</field>
+                        <field name="date_scope">from_beginning</field>
+                        <field name="subformula">editable;rounding=0</field>
+                        <field name="figure_type">boolean</field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_fr_2069_rci_report_line_parent_company" model="account.report.line">
+                <field name="name">Are you the parent company ?</field>
+                <field name="name@fr">Êtes-vous la société mère ?</field>
+                <field name="code">l10n_fr_2069_parent_company</field>
+                <field name="expression_ids">
+                    <record id="l10n_fr_2069_rci_report_line_parent_company_expr" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">external</field>
+                        <field name="formula">most_recent</field>
+                        <field name="date_scope">from_beginning</field>
+                        <field name="subformula">editable;rounding=0</field>
+                        <field name="figure_type">boolean</field>
+                    </record>
+                </field>
+                <field name="children_ids">
+                    <record id="l10n_fr_2069_rci_report_line_decla_company" model="account.report.line">
+                        <field name="name">If so, please specify the group company for which the tax reductions and credits are being claimed</field>
+                        <field name="name@fr">Si oui, indiquez la société du groupe pour laquelle les réductions et crédits d'impôt sont déclarés</field>
+                        <field name="code">l10n_fr_2069_decla_company</field>
+                        <field name="expression_ids">
+                            <record id="l10n_fr_2069_rci_report_line_decla_company_expr" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">reference</field>
+                                <field name="formula">res.partner</field>
+                                <field name="date_scope">from_beginning</field>
+                                <field name="figure_type">many2one</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_fr_2069_rci_report_line_1" model="account.report.line">
+                <field name="name">I - Tax reductions and credits not requiring the filing of a special return</field>
+                <field name="name@fr">I - Réduction et crédits d'impôt ne donnant pas lieu au dépôt d'une declaration spéciale</field>
+                <field name="code">l10n_fr_2069_tax_reduction</field>
+                <field name="expression_ids">
+                    <record id="l10n_fr_2069_rci_report_line_1_expr" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">
+                            l10n_fr_2069_non_carryforward.balance + l10n_fr_2069_carryforward_tax_credit.balance + l10n_fr_2069_non_deferrable.balance
+                        </field>
+                    </record>
+                </field>
+                <field name="children_ids">
+                    <record id="l10n_fr_2069_rci_report_line_1_1" model="account.report.line">
+                        <field name="name">Non-carryforward and non-refundable tax credits</field>
+                        <field name="name@fr">Créances non reportables et non restituables</field>
+                        <field name="code">l10n_fr_2069_non_carryforward</field>
+                        <field name="expression_ids">
+                            <record id="l10n_fr_2069_rci_report_line_1_1_expr" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">
+                                    l10n_fr_2069_bicycles.balance + l10n_fr_2069_press_company.balance + l10n_fr_2069_other_non_deferrable.balance
+                                </field>
+                            </record>
+                        </field>
+                        <field name="children_ids">
+                            <record id="l10n_fr_2069_rci_report_line_1_1_1" model="account.report.line">
+                                <field name="name">Tax reduction for providing a fleet of bicycles</field>
+                                <field name="name@fr">Réduction d'impôt pour mise à disposition d'une flotte de vélos</field>
+                                <field name="code">l10n_fr_2069_bicycles</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_1_1_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_1_1_2" model="account.report.line">
+                                <field name="name">Tax reduction for cash subscriptions to the capital of press companies</field>
+                                <field name="name@fr">Réduction d'impôt pour sousscriptions en numéraire au capital des entreprises de presse</field>
+                                <field name="code">l10n_fr_2069_press_company</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_1_2_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_1_1_3" model="account.report.line">
+                                <field name="name">Other non-deferrable and non-refundable receivables</field>
+                                <field name="name@fr">Autres créances non reportable et non restituables</field>
+                                <field name="code">l10n_fr_2069_other_non_deferrable</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_1_3_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_fr_2069_rci_report_line_1_2" model="account.report.line">
+                        <field name="name">Carryforward tax credits</field>
+                        <field name="name@fr">Créances reportables</field>
+                        <field name="code">l10n_fr_2069_carryforward_tax_credit</field>
+                        <field name="expression_ids">
+                            <record id="l10n_fr_2069_rci_report_line_1_2_expr" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">
+                                    l10n_fr_2069_patronage.balance + l10n_fr_2069_cice.balance + l10n_fr_2069_overseas_collectivises.balance + l10n_fr_2069_institutional_housing.balance
+                                </field>
+                            </record>
+                        </field>
+                        <field name="children_ids">
+                            <record id="l10n_fr_2069_rci_report_line_1_2_1" model="account.report.line">
+                                <field name="name">Tax reduction for patronage</field>
+                                <field name="name@fr">Réduction d'impôt en faveur du mécénat</field>
+                                <field name="code">l10n_fr_2069_patronage</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_2_1_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                                <field name="children_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_2_1_1" model="account.report.line">
+                                        <field name="name">Donations to organizations in the EU or EEA</field>
+                                        <field name="name@fr">Dons et versements à des organismes de l'UE ou de l'EEE</field>
+                                        <field name="code">l10n_fr_2069_patronage_eu</field>
+                                        <field name="expression_ids">
+                                            <record id="l10n_fr_2069_rci_report_line_1_2_1_1_expr" model="account.report.expression">
+                                                <field name="label">balance</field>
+                                                <field name="engine">external</field>
+                                                <field name="formula">most_recent</field>
+                                                <field name="date_scope">from_beginning</field>
+                                                <field name="subformula">editable;rounding=0</field>
+                                            </record>
+                                        </field>
+                                    </record>
+                                    <record id="l10n_fr_2069_rci_report_line_1_2_1_2" model="account.report.line">
+                                        <field name="name">Donations for the reconstruction of Notre-Dame de Paris</field>
+                                        <field name="name@fr">Dons pour la reconstruction de Notre-Dame de Paris</field>
+                                        <field name="code">l10n_fr_2069_patronage_notre_dame</field>
+                                        <field name="expression_ids">
+                                            <record id="l10n_fr_2069_rci_report_line_1_2_1_2_expr" model="account.report.expression">
+                                                <field name="label">balance</field>
+                                                <field name="engine">external</field>
+                                                <field name="formula">most_recent</field>
+                                                <field name="date_scope">from_beginning</field>
+                                                <field name="subformula">editable;rounding=0</field>
+                                            </record>
+                                        </field>
+                                    </record>
+                                    <record id="l10n_fr_2069_rci_report_line_1_2_1_3" model="account.report.line">
+                                        <field name="name">Amounts paid to federations or unions for financing SMEs</field>
+                                        <field name="name@fr">Montants versés aux fédérations ou unions pour le financement des PME</field>
+                                        <field name="code">l10n_fr_2069_patronage_sme_finance</field>
+                                        <field name="expression_ids">
+                                            <record id="l10n_fr_2069_rci_report_line_1_2_1_3_expr" model="account.report.expression">
+                                                <field name="label">balance</field>
+                                                <field name="engine">external</field>
+                                                <field name="formula">most_recent</field>
+                                                <field name="date_scope">from_beginning</field>
+                                                <field name="subformula">editable;rounding=0</field>
+                                            </record>
+                                        </field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_1_2_2" model="account.report.line">
+                                <field name="name">Tax credit for competitiveness and employment (Total amount (line 1 × 9%3) + (line 2 × 9%3) × 10/90 + line 3) (article 244 quater C du CGI) cf</field>
+                                <field name="name@fr">Crédit d’impôt pour la compétitivité et l'emploi (Montant total (ligne 1 × 9 %3) + (ligne 2 × 9 %3) x 10/90 + ligne 3) (article 244 quater C of CGI) cf</field>
+                                <field name="code">l10n_fr_2069_cice</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_2_2_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                                <field name="children_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_2_2_1" model="account.report.line">
+                                        <field name="name">Pre-financed amount</field>
+                                        <field name="name@fr">Dont montant préfinancé</field>
+                                        <field name="code">l10n_fr_2069_cice_prefinanced</field>
+                                        <field name="expression_ids">
+                                            <record id="l10n_fr_2069_rci_report_line_1_2_2_1_expr" model="account.report.expression">
+                                                <field name="label">balance</field>
+                                                <field name="engine">external</field>
+                                                <field name="formula">most_recent</field>
+                                                <field name="date_scope">from_beginning</field>
+                                                <field name="subformula">editable;rounding=0</field>
+                                            </record>
+                                        </field>
+                                    </record>
+                                    <record id="l10n_fr_2069_rci_report_line_1_2_2_2" model="account.report.line">
+                                        <field name="name">1 - Total amount of remuneration paid not exceeding 2.5 times the minimum wage and giving entitlement to tax credits paid to employees assigned to farms located in Mayotte</field>
+                                        <field name="name@fr">1 - Montant total des rémunérations versées n’excédant pas 2,5 SMIC et ouvrant droit à crédit d’impôt versées à des salariés affectés à des exploitations situées à Mayotte</field>
+                                        <field name="code">l10n_fr_2069_cice_remuneration_mayotte</field>
+                                        <field name="expression_ids">
+                                            <record id="l10n_fr_2069_rci_report_line_1_2_2_2_expr" model="account.report.expression">
+                                                <field name="label">balance</field>
+                                                <field name="engine">external</field>
+                                                <field name="formula">most_recent</field>
+                                                <field name="date_scope">from_beginning</field>
+                                                <field name="subformula">editable;rounding=0</field>
+                                            </record>
+                                        </field>
+                                    </record>
+                                    <record id="l10n_fr_2069_rci_report_line_1_2_2_3" model="account.report.line">
+                                        <field name="name">2 - Amount of remuneration eligible for the increase for employees assigned to operations located in Mayotte, in professions for which the payment of vacation pay and charges on vacation allowances is pooled among employers who are compulsorily affiliated to the compensation funds provided for in Article L 3141-32 of the Labor Code</field>
+                                        <field name="name@fr">2 - Montant des rémunérations éligibles à la majoration pour les salariés affectés à des exploitations situées à Mayotte, des professions pour lesquelles le paiement des congés et des charges sur les indemnités de congés est mutualisé entre les employeurs affiliés obligatoirement aux caisses de compensation prévues à l’article L 3141-32 du code du travail</field>
+                                        <field name="code">l10n_fr_2069_cice_remuneration_topup</field>
+                                        <field name="expression_ids">
+                                            <record id="l10n_fr_2069_rci_report_line_1_2_2_3_expr" model="account.report.expression">
+                                                <field name="label">balance</field>
+                                                <field name="engine">external</field>
+                                                <field name="formula">most_recent</field>
+                                                <field name="date_scope">from_beginning</field>
+                                                <field name="subformula">editable;rounding=0</field>
+                                            </record>
+                                        </field>
+                                    </record>
+                                    <record id="l10n_fr_2069_rci_report_line_1_2_2_4" model="account.report.line">
+                                        <field name="name">3 - Share of tax credit resulting from the company's participation in partnerships or similar groups</field>
+                                        <field name="name@fr">3 - Quote-part de crédit d'impôt résultant de la participation de l'entreprise dans des sociétés de personnes ou groupements assimilés</field>
+                                        <field name="code">l10n_fr_2069_cice_partnership_share</field>
+                                        <field name="expression_ids">
+                                            <record id="l10n_fr_2069_rci_report_line_1_2_2_4_expr" model="account.report.expression">
+                                                <field name="label">balance</field>
+                                                <field name="engine">external</field>
+                                                <field name="formula">most_recent</field>
+                                                <field name="date_scope">from_beginning</field>
+                                                <field name="subformula">editable;rounding=0</field>
+                                            </record>
+                                        </field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_1_2_3" model="account.report.line">
+                                <field name="name">Tax reduction for overseas collectivises</field>
+                                <field name="name@fr">Réduction d'impôt collectivités outre-mer</field>
+                                <field name="code">l10n_fr_2069_overseas_collectivises</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_2_3_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_1_2_4" model="account.report.line">
+                                <field name="name">Tax credit for institutional investors in intermediate rental housing</field>
+                                <field name="name@fr">Créance d'impôt en faveur des investisseurs institutionnels dans le logement locatif intermédiaire</field>
+                                <field name="code">l10n_fr_2069_institutional_housing</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_2_4_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_fr_2069_rci_report_line_1_3" model="account.report.line">
+                        <field name="name">Non-deferrable and refundable receivables for the fiscal year or year</field>
+                        <field name="name@fr">Créances non reportables et restituables au titre de l'exercice ou de l'année</field>
+                        <field name="code">l10n_fr_2069_non_deferrable</field>
+                        <field name="expression_ids">
+                            <record id="l10n_fr_2069_rci_report_line_1_3_expr" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">
+                                    l10n_fr_2069_manager_training.balance +
+                                    l10n_fr_2069_employee_buyout.balance +
+                                    l10n_fr_2069_cinema_production.balance +
+                                    l10n_fr_2069_audiovisual_production.balance +
+                                    l10n_fr_2069_foreign_film.balance +
+                                    l10n_fr_2069_live_music.balance +
+                                    l10n_fr_2069_theater.balance +
+                                    l10n_fr_2069_tertiary_renovation.balance +
+                                    l10n_fr_2069_glyphosate_free.balance +
+                                    l10n_fr_2069_hve_certification.balance +
+                                    l10n_fr_2069_green_industry.balance +
+                                    l10n_fr_2069_pam_tz.balance
+                                </field>
+                            </record>
+                        </field>
+                        <field name="children_ids">
+                            <record id="l10n_fr_2069_rci_report_line_1_3_1" model="account.report.line">
+                                <field name="name">Tax credit for training of business managers</field>
+                                <field name="name@fr">Crédit d'impôt formation des dirigeants d'entreprise</field>
+                                <field name="code">l10n_fr_2069_manager_training</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_3_1_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_1_3_2" model="account.report.line">
+                                <field name="name">Tax credit for the buyout of a company by its employees</field>
+                                <field name="name@fr">Crédit d'impôt pour le rachat d'une entreprise par ses salariés</field>
+                                <field name="code">l10n_fr_2069_employee_buyout</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_3_2_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_1_3_3" model="account.report.line">
+                                <field name="name">Tax credit for cinematographic work production expenses</field>
+                                <field name="name@fr">Crédit d'impôt pour dépenses de production d'œuvres cinématographiques</field>
+                                <field name="code">l10n_fr_2069_cinema_production</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_3_3_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_1_3_4" model="account.report.line">
+                                <field name="name">Tax credit for audiovisual work production expenses</field>
+                                <field name="name@fr">Crédit d'impôt pour dépenses de production d'œuvres audiovisuelles</field>
+                                <field name="code">l10n_fr_2069_audiovisual_production</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_3_4_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_1_3_5" model="account.report.line">
+                                <field name="name">Tax credit for production of foreign films and audiovisual works</field>
+                                <field name="name@fr">Crédit d'impôt pour dépenses de production de films et d'œuvres audiovisuelles étrangers</field>
+                                <field name="code">l10n_fr_2069_foreign_film</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_3_5_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_1_3_6" model="account.report.line">
+                                <field name="name">Tax credit for live musical or variety show companies</field>
+                                <field name="name@fr">Crédit d'impôt en faveur des entreprises de spectacles vivants musicaux ou de variétés</field>
+                                <field name="code">l10n_fr_2069_live_music</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_3_6_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_1_3_7" model="account.report.line">
+                                <field name="name">Tax credit for theatrical performances of dramatic works</field>
+                                <field name="name@fr">Crédit d'impôt en faveur des représentations théâtrales d'œuvres dramatiques</field>
+                                <field name="code">l10n_fr_2069_theater</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_3_7_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_1_3_8" model="account.report.line">
+                                <field name="name">Tax credit for SME energy renovation of tertiary buildings</field>
+                                <field name="name@fr">Crédit d'impôt pour rénovation énergétique des bâtiments à usage tertiaire</field>
+                                <field name="code">l10n_fr_2069_tertiary_renovation</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_3_8_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_1_3_9" model="account.report.line">
+                                <field name="name">Tax credit for glyphosate-free agricultural enterprises</field>
+                                <field name="name@fr">Crédit d'impôt pour entreprises agricoles sans glyphosate</field>
+                                <field name="code">l10n_fr_2069_glyphosate_free</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_3_9_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_1_3_10" model="account.report.line">
+                                <field name="name">Tax credit for agricultural businesses with HVE certification</field>
+                                <field name="name@fr">Crédit d’impôt en faveur des entreprises agricoles disposant d'une certification HVE</field>
+                                <field name="code">l10n_fr_2069_hve_certification</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_3_10_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_1_3_11" model="account.report.line">
+                                <field name="name">Green industry investment tax credit (C3IV)</field>
+                                <field name="name@fr">Crédit d'impôt industrie verte (C3IV)</field>
+                                <field name="code">l10n_fr_2069_green_industry</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_3_11_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_1_3_12" model="account.report.line">
+                                <field name="name">Zero-interest mutation advance loan tax credit (PAM TZ)</field>
+                                <field name="name@fr">Crédit d'impôt prêt avance mutation à taux zéro (PAM TZ)</field>
+                                <field name="code">l10n_fr_2069_pam_tz</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_1_3_12_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_fr_2069_rci_report_line_2" model="account.report.line">
+                <field name="name">II – Tax credits requiring the filing of a special return</field>
+                <field name="name@fr">II – Crédits d'impôt avec dépôt obligatoire d'une déclaration spéciale</field>
+                <field name="code">l10n_fr_2069_tax_credit</field>
+                <field name="expression_ids">
+                    <record id="l10n_fr_2069_rci_report_line_2_expr" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">
+                            l10n_fr_2069_non_refundable_special.balance + l10n_fr_2069_carryforward_special.balance + l10n_fr_2069_carryforward_non_refundable.balance + l10n_fr_2069_refundable_special.balance
+                        </field>
+                    </record>
+                </field>
+                <field name="children_ids">
+                    <record id="l10n_fr_2069_rci_report_line_2_1" model="account.report.line">
+                        <field name="name">Non-carryforward and non-refundable receivables</field>
+                        <field name="name@fr">Créances non reportable et non resituables</field>
+                        <field name="code">l10n_fr_2069_non_refundable_special</field>
+                        <field name="expression_ids">
+                            <record id="l10n_fr_2069_rci_report_line_2_1_expr" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">l10n_fr_2069_securities_credits.balance</field>
+                            </record>
+                        </field>
+                        <field name="children_ids">
+                            <record id="l10n_fr_2069_rci_report_line_2_1_1" model="account.report.line">
+                                <field name="name">Tax credits relating to securities</field>
+                                <field name="name@fr">Crédits d'impôt afférents aux valeurs mobilières</field>
+                                <field name="code">l10n_fr_2069_securities_credits</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_2_1_1_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_fr_2069_rci_report_line_2_2" model="account.report.line">
+                        <field name="name">Carryforward receivables</field>
+                        <field name="name@fr">Créance reportable</field>
+                        <field name="code">l10n_fr_2069_carryforward_special</field>
+                        <field name="expression_ids">
+                            <record id="l10n_fr_2069_rci_report_line_2_2_expr" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">l10n_fr_2069_corsica_investment.balance + l10n_fr_2069_research_credit.balance + l10n_fr_2069_collab_research.balance</field>
+                            </record>
+                        </field>
+                        <field name="children_ids">
+                            <record id="l10n_fr_2069_rci_report_line_2_2_1" model="account.report.line">
+                                <field name="name">Tax credit for investment in Corsica</field>
+                                <field name="name@fr">Crédit d'impôt pour investissement en Corse</field>
+                                <field name="code">l10n_fr_2069_corsica_investment</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_2_2_1_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_2_2_2" model="account.report.line">
+                                <field name="name">Research tax credit</field>
+                                <field name="name@fr">Crédit d'impôt en faveur de la recherche</field>
+                                <field name="code">l10n_fr_2069_research_credit</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_2_2_2_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                                <field name="children_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_2_2_2_1" model="account.report.line">
+                                        <field name="name">Research tax credit for expenses in DOM</field>
+                                        <field name="name@fr">Dont montant pour les dépenses dans les DOM</field>
+                                        <field name="code">l10n_fr_2069_research_dom</field>
+                                        <field name="expression_ids">
+                                            <record id="l10n_fr_2069_rci_report_line_2_2_2_1_expr" model="account.report.expression">
+                                                <field name="label">balance</field>
+                                                <field name="engine">external</field>
+                                                <field name="formula">most_recent</field>
+                                                <field name="date_scope">from_beginning</field>
+                                                <field name="subformula">editable;rounding=0</field>
+                                            </record>
+                                        </field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_2_2_3" model="account.report.line">
+                                <field name="name">Collaborative research tax credit (CIRCO)</field>
+                                <field name="name@fr">Crédit d'impôt en faveur de la recherche collaborative (CIRCO)</field>
+                                <field name="code">l10n_fr_2069_collab_research</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_2_2_3_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_fr_2069_rci_report_line_2_3" model="account.report.line">
+                        <field name="name">Carryforward and non-refundable receivables</field>
+                        <field name="name@fr">CRÉANCES REPORTABLES ET NON RESTITUABLES</field>
+                        <field name="code">l10n_fr_2069_carryforward_non_refundable</field>
+                        <field name="expression_ids">
+                            <record id="l10n_fr_2069_rci_report_line_2_3_expr" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">l10n_fr_2069_zero_interest_loan_mobility.balance</field>
+                            </record>
+                        </field>
+                        <field name="children_ids">
+                            <record id="l10n_fr_2069_rci_report_line_2_3_1" model="account.report.line">
+                                <field name="name">Zero-interest mobility loan tax reduction</field>
+                                <field name="name@fr">Réduction d'impôt prêt à taux zéro mobilité</field>
+                                <field name="code">l10n_fr_2069_zero_interest_loan_mobility</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_2_3_1_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_fr_2069_rci_report_line_2_4" model="account.report.line">
+                        <field name="name">Non-carryforward and refundable tax credits for the year (Special Return)</field>
+                        <field name="name@fr">Créances non reportables et restituables au titre de l'exercice ou de l'année</field>
+                        <field name="code">l10n_fr_2069_refundable_special</field>
+                        <field name="expression_ids">
+                            <record id="l10n_fr_2069_rci_report_line_2_4_expr" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">
+                                    l10n_fr_2069_family.balance +
+                                    l10n_fr_2069_organic_farming.balance +
+                                    l10n_fr_2069_phonographic.balance +
+                                    l10n_fr_2069_art_trades.balance +
+                                    l10n_fr_2069_video_games.balance +
+                                    l10n_fr_2069_music_publishers.balance +
+                                    l10n_fr_2069_eco_ptz.balance +
+                                    l10n_fr_2069_ptz_plus.balance +
+                                    l10n_fr_2069_agri_replacement.balance +
+                                    l10n_fr_2069_overseas_productive.balance +
+                                    l10n_fr_2069_overseas_housing.balance
+                                </field>
+                            </record>
+                        </field>
+                        <field name="children_ids">
+                            <record id="l10n_fr_2069_rci_report_line_2_4_1" model="account.report.line">
+                                <field name="name">Family tax credit</field>
+                                <field name="name@fr">Crédit d'impôt famille</field>
+                                <field name="code">l10n_fr_2069_family</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_2_4_1_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_2_4_2" model="account.report.line">
+                                <field name="name">Organic farming tax credit</field>
+                                <field name="name@fr">Crédit d'impôt en faveur de l'agriculture biologique</field>
+                                <field name="code">l10n_fr_2069_organic_farming</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_2_4_2_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_2_4_3" model="account.report.line">
+                                <field name="name">Phonographic work production tax credit</field>
+                                <field name="name@fr">Crédit d'impôt pour dépenses de production d'œuvres phonographiques</field>
+                                <field name="code">l10n_fr_2069_phonographic</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_2_4_3_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_2_4_4" model="account.report.line">
+                                <field name="name">Art trades tax credit</field>
+                                <field name="name@fr">Crédit d'impôt en faveur des métiers d'art</field>
+                                <field name="code">l10n_fr_2069_art_trades</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_2_4_4_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_2_4_5" model="account.report.line">
+                                <field name="name">Video game creators tax credit</field>
+                                <field name="name@fr">Crédit d'impôt en faveur des créateurs de jeux vidéo</field>
+                                <field name="code">l10n_fr_2069_video_games</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_2_4_5_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_2_4_6" model="account.report.line">
+                                <field name="name">Musical works publishers tax credit</field>
+                                <field name="name@fr">Crédit d'impôt en faveur des éditeurs d'œuvres musicales</field>
+                                <field name="code">l10n_fr_2069_music_publishers</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_2_4_6_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_2_4_7" model="account.report.line">
+                                <field name="name">Eco-PTZ tax credit</field>
+                                <field name="name@fr">Crédit d'impôt sur les avances remboursables pour travaux d'amélioration de la performance énergétique</field>
+                                <field name="code">l10n_fr_2069_eco_ptz</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_2_4_7_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_2_4_8" model="account.report.line">
+                                <field name="name">Reinforced PTZ tax credit</field>
+                                <field name="name@fr">Crédit d'impôt prêt à taux zéro renforcé</field>
+                                <field name="code">l10n_fr_2069_ptz_plus</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_2_4_8_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_2_4_9" model="account.report.line">
+                                <field name="name">Temporary replacement of agricultural operator tax credit</field>
+                                <field name="name@fr">Crédit d'impôt remplacement temporaire de l'exploitant agricole</field>
+                                <field name="code">l10n_fr_2069_agri_replacement</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_2_4_9_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_2_4_10" model="account.report.line">
+                                <field name="name">Overseas productive investment tax credit</field>
+                                <field name="name@fr">Crédit d'impôt pour investissements outre-mer dans le secteur productif</field>
+                                <field name="code">l10n_fr_2069_overseas_productive</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_2_4_10_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_fr_2069_rci_report_line_2_4_11" model="account.report.line">
+                                <field name="name">Overseas social housing investment tax credit</field>
+                                <field name="name@fr">Crédit d'impôt pour investissements outre-mer dans le secteur du logement social</field>
+                                <field name="code">l10n_fr_2069_overseas_housing</field>
+                                <field name="expression_ids">
+                                    <record id="l10n_fr_2069_rci_report_line_2_4_11_expr" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">external</field>
+                                        <field name="formula">most_recent</field>
+                                        <field name="date_scope">from_beginning</field>
+                                        <field name="subformula">editable;rounding=0</field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_fr_2069_rci_report_line_2_5" model="account.report.line">
+                        <field name="name">Clarification on the use of tax credits</field>
+                        <field name="name@fr">Précision sur l'utilisation des crédits d'impôts</field>
+                        <field name="code">l10n_fr_2069_clarification</field>
+                        <field name="expression_ids">
+                            <record id="l10n_fr_2069_rci_report_line_2_5_expr" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">external</field>
+                                <field name="formula">most_recent</field>
+                                <field name="date_scope">from_beginning</field>
+                                <field name="subformula">editable;rounding=0</field>
+                                <field name="figure_type">string</field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+            <record id="l10n_fr_2069_rci_report_line_3" model="account.report.line">
+                <field name="name">III – Special cases</field>
+                <field name="name@fr">III – Cas particuliers</field>
+                <field name="code">l10n_fr_2069_special_cases</field>
+                <field name="children_ids">
+                    <record id="l10n_fr_2069_rci_report_line_3_1" model="account.report.line">
+                        <field name="name">Tax credits in the event of termination for year N</field>
+                        <field name="name@fr">Crédits d'impôts en cas de cessation au titre de l'année N</field>
+                        <field name="code">l10n_fr_2069_special_cases_first_case</field>
+                    </record>
+                    <record id="l10n_fr_2069_rci_report_line_3_2" model="account.report.line">
+                        <field name="name">Tax credit for the previous calendar year, where the financial year exceeds 12 months</field>
+                        <field name="name@fr">Crédit d'impôts au titre de l'année civile N-1, en cas d'exercice de plus de 12 mois</field>
+                        <field name="code">l10n_fr_2069_special_cases_second_case</field>
+                    </record>
+                </field>
+            </record>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_l10n_fr_reports_report_form" model="ir.ui.view">
+        <field name="name">l10n_fr_reports.send.vat.report.form</field>
+        <field name="model">l10n_fr_reports.send.vat.report</field>
+        <field name="arch" type="xml">
+            <form string="Options">
+                <field name="has_wrongly_configured_account" invisible="True"/>
+                <field name="is_vat_due" invisible="True"/>
+                <field name="currency_id" invisible="True"/>
+                <sheet>
+                    <div class="alert alert-warning d-flex flex-column gap-1"
+                         role="alert"
+                         invisible="not has_wrongly_configured_account and vat_amount == computed_vat_amount and vat_amount"
+                    >
+                        <span invisible="vat_amount">
+                            There is no amount in your Tax report, Odoo will send an empty declaration (check box "declaration of nil" checked)
+                        </span>
+                        <span invisible="not has_wrongly_configured_account">
+                            Your account is wrongly configured. For the VAT declaration we need an account number and
+                            the BIC code.
+                        </span>
+                        <span invisible="is_vat_due or computed_vat_amount &gt;= vat_amount">
+                            The VAT amount does not match the amount you want to receive.<br/>
+                            If you proceed without matching the VAT amount,
+                            the difference will be carried over to the next period.
+                        </span>
+                        <span invisible="not is_vat_due or computed_vat_amount &gt;= vat_amount">
+                            The VAT amount does not match to the amount you have to pay to the administration.
+                        </span>
+                        <span invisible="computed_vat_amount &lt;= vat_amount">
+                            It seems you're trying to
+                            <t invisible="is_vat_due">receive</t>
+                            <t invisible="not is_vat_due">send</t>
+                            more money than the amount due
+                            <t invisible="is_vat_due">by</t>
+                            <t invisible="not is_vat_due">to</t>
+                             the administration.
+                        </span>
+                    </div>
+                    <group>
+                        <field name="vat_amount" invisible="is_vat_due" string="VAT Credit"/>
+                        <field name="vat_amount" invisible="not is_vat_due" string="VAT Due"/>
+                    </group>
+                    <div invisible="is_vat_due" class="mb-2">
+                        <field name="is_reimbursement_comment"/>
+                        <label for="is_reimbursement_comment" string="Ask Reimbursement"/>
+                    </div>
+                    <div invisible="not is_vat_due and not is_reimbursement_comment" class="mb-2">
+                        <field name="use_partial_amount"/>
+                        <label for="use_partial_amount" string="Partial amount"/>
+                        <field name="partial_amount" invisible="not use_partial_amount"/>
+                    </div>
+                    <group>
+                        <field name="bank_partner_id" class="w-50" invisible="not is_vat_due and not is_reimbursement_comment"/>
+                        <field name="reimbursement_type" invisible="not is_reimbursement_comment"/>
+                        <field name="reimbursement_date" invisible="not is_reimbursement_comment"/>
+                    </group>
+                    <div>
+                        <label for="reimbursement_comment" invisible="not is_reimbursement_comment"/>
+                        <field name="reimbursement_comment" invisible="not is_reimbursement_comment" placeholder="Write your reimbursement comment here..."/>
+                    </div>
+                    <div>
+                        <field name="show_express_mention" nolabel="1"/>
+                        <label for="show_express_mention" string="Express mention"/>
+                        <field name="express_mention_reason" invisible="not show_express_mention" placeholder="Write your express mention here..."/>
+                    </div>
+                </sheet>
+                <footer>
+                    <button string="Send VAT" name="send_vat_return" type="object" class="btn-primary" data-hotkey="q"/>
+                    <button class="btn-secondary" special="cancel" data-hotkey="z"/>
+                </footer>
+           </form>
+        </field>
+    </record>
+</odoo>

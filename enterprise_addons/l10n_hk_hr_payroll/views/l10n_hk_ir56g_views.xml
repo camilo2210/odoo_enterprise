@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_hk_ir56g_view_form" model="ir.ui.view">
+        <field name="name">l10n_hk_ir56g.view.form</field>
+        <field name="model">l10n_hk.ir56g</field>
+        <field name="inherit_id" ref="l10n_hk_hr_payroll.l10n_hk_ird_view_form"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <form position="attributes">
+                <attribute name="string">IR56G Sheet</attribute>
+            </form>
+            <header position="inside">
+                <button
+                    string="Create XML"
+                    name="action_generate_xml"
+                    type="object"
+                    class="btn-primary"
+                    invisible="not lines_count"/>
+            </header>
+            <field name="year_of_employer_return" position="replace"/>
+        </field>
+    </record>
+
+    <record id="l10n_hk_ir56g_view_tree" model="ir.ui.view">
+        <field name="name">l10n_hk.ir56g.view.list</field>
+        <field name="model">l10n_hk.ir56g</field>
+        <field name="inherit_id" ref="l10n_hk_hr_payroll.l10n_hk_ird_view_list"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <list position="attributes">
+                <attribute name="string">IR56G Sheets</attribute>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_hk_ir56g_action" model="ir.actions.act_window">
+        <field name="name">IR56G Sheet</field>
+        <field name="res_model">l10n_hk.ir56g</field>
+        <field name="view_mode">list,form</field>
+        <field name="target">current</field>
+    </record>
+
+    <record id="view_l10n_hk_ir56g_line_form" model="ir.ui.view">
+        <field name="name">l10n_hk.ir56g.line.view.form</field>
+        <field name="model">l10n_hk.ir56g.line</field>
+        <field name="arch" type="xml">
+            <form string="IR56G Details">
+                <sheet>
+                    <h3 class="mb-3">
+                        <field name="employee_id" widget="many2one_avatar_employee" readonly="1"/>
+                    </h3>
+                    <div class="mt16 content-group">
+                        <div class="row" title="Employee’s Tax File No. with this Department, if known.">
+                            <label for="tax_file_section" class="col-md-4"/>
+                            <div class="col-md-6 p-0">
+                                <field class="col-md-4" name="tax_file_section" placeholder="First 3 characters" nolabel="1" required="tax_file_prn"/>
+                                <field class="col-md-4 ps-2" name="tax_file_prn" placeholder="The remaining characters" required="tax_file_section"/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label for="leave_hk_date" class="col-md-4"/>
+                            <div class="col-md-6 p-0">
+                                <field name="leave_hk_date" nolabel="1"/>
+                            </div>
+                        </div>
+                        <div class="row" title="Whether the employee’s Salaries Tax will be borne by employer.">
+                            <label for="is_salary_tax_borne" class="col-md-4"/>
+                            <div class="col-md-6 p-0">
+                                <field name="is_salary_tax_borne" nolabel="1"/>
+                            </div>
+                        </div>
+                        <div class="row" title="Any money, including any money payable, held under section 52(7) of the Inland Revenue Ordinance.">
+                            <label for="has_money_payable_held_under_ird" class="col-md-4"/>
+                            <div class="col-md-6 p-0">
+                                <field class="col-md-4" name="has_money_payable_held_under_ird" nolabel="1"/>
+                                <field class="col-md-4 ps-2" name="amount_money_payable" placeholder="Estimated Amount" invisible="not has_money_payable_held_under_ird"/>
+                                <field class="col-md-4 ps-2" name="reason_no_money_payable" placeholder="Reason" invisible="has_money_payable_held_under_ird" required="not has_money_payable_held_under_ird"/>
+                            </div>
+                        </div>
+                        <div class="row" title="Any money, including any money payable, held under section 52(7) of the Inland Revenue Ordinance.">
+                            <label for="reason_departure" class="col-md-4"/>
+                            <div class="col-md-6 p-0">
+                                <field class="col-md-4" name="reason_departure" nolabel="1"/>
+                                <field class="col-md-4 ps-2" name="other_reason_departure" placeholder="Reason" invisible="reason_departure != '4'" required="reason_departure == '4'"/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label for="will_return_hk" class="col-md-4"/>
+                            <div class="col-md-6 p-0">
+                                <field class="col-md-4" name="will_return_hk" nolabel="1"/>
+                                <field class="col-md-4 ps-2" name="date_return" placeholder="Probable date of return" invisible="not will_return_hk" required="will_return_hk"/>
+                            </div>
+                        </div>
+                        <div class="row" title="Whether the employee has any share options granted by your company or any other corporation in respect of his/her employment with your company that are not yet exercised, assigned or released.">
+                            <label for="has_non_exercised_stock_options" class="col-md-4"/>
+                            <div class="col-md-6 p-0">
+                                <field class="col-md-4" name="has_non_exercised_stock_options" nolabel="1"/>
+                                <field class="col-md-4 ps-2" name="amount_non_exercised_stock_options" placeholder="Amount" invisible="not has_non_exercised_stock_options" required="has_non_exercised_stock_options"/>
+                                <field class="col-md-4 ps-2" name="date_grant" placeholder="Date of grant" invisible="not has_non_exercised_stock_options" required="has_non_exercised_stock_options"/>
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_eg_hr_payroll_structure_eg_employee_salary_basic_salary_rule" model="hr.salary.rule">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="name">Basic Salary</field>
+        <field name="sequence">1</field>
+        <field name="code">BASIC</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['BASIC']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="10n_eg_hr_payroll_structure_eg_employee_salary_housing_allowance" model="hr.salary.rule">
+        <field name="name">Housing Allowance</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_eg_hr_payroll.hr_salary_rule_category_eg_basic_alw')])]"/>
+        <field name="code">HOU</field>
+        <field name="sequence">2</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+overtime_codes = ['OVTWD', 'OVTWDN', 'OVTWEND', 'OVTPUB']
+working_days_without_overtime = payslip.worked_days_line_ids.filtered(lambda l: l.work_entry_type_id.code not in overtime_codes)
+number_of_working_days = sum(working_days_without_overtime.mapped('number_of_days')) or 1
+paid_days = working_days_without_overtime.filtered(lambda l: l.work_entry_type_id.amount_rate != 0)
+number_of_paid_days = sum(paid_days.mapped('number_of_days'))
+result = version.l10n_eg_housing_allowance * number_of_paid_days / number_of_working_days
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="l10n_eg_transportation_allowance_salary_rule" model="hr.salary.rule">
+        <field name="name">Transportation Allowance</field>
+        <field name="input_name">Transportation</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_eg_hr_payroll.hr_salary_rule_category_eg_basic_alw')])]"/>
+        <field name="code">TA</field>
+        <field name="sequence">3</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+overtime_codes = ['OVTWD', 'OVTWDN', 'OVTWEND', 'OVTPUB']
+working_days_without_overtime = payslip.worked_days_line_ids.filtered(lambda l: l.work_entry_type_id.code not in overtime_codes)
+number_of_working_days = sum(working_days_without_overtime.mapped('number_of_days')) or 1
+paid_days = working_days_without_overtime.filtered(lambda l: l.work_entry_type_id.amount_rate != 0)
+number_of_paid_days = sum(paid_days.mapped('number_of_days'))
+result = version.l10n_eg_transportation_allowance * number_of_paid_days / number_of_working_days
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="egypt_other_allowances_salary_rule" model="hr.salary.rule">
+        <field name="name">Other Allowances</field>
+        <field name="input_name">Other</field>
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_eg_hr_payroll.hr_salary_rule_category_eg_basic_alw')])]"/>
+        <field name="code">OA</field>
+        <field name="sequence">4</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+overtime_codes = ['OVTWD', 'OVTWDN', 'OVTWEND', 'OVTPUB']
+working_days_without_overtime = payslip.worked_days_line_ids.filtered(lambda l: l.work_entry_type_id.code not in overtime_codes)
+number_of_working_days = sum(working_days_without_overtime.mapped('number_of_days')) or 1
+paid_days = working_days_without_overtime.filtered(lambda l: l.work_entry_type_id.amount_rate != 0)
+number_of_paid_days = sum(paid_days.mapped('number_of_days'))
+result = version.l10n_eg_other_allowances * number_of_paid_days / number_of_working_days
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+
+    <record id="egypt_social_insurance_contribution_company" model="hr.salary.rule">
+        <field name="name">NOSI - Company Contribution</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+        <field name="code">SICOMP</field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="sequence">20</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = version.l10n_eg_social_insurance_reference
+result_rate = payslip._rule_parameter('l10n_eg_social_insurance_contribution_company_rate')
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="egypt_social_insurance_contribution_employee" model="hr.salary.rule">
+        <field name="name">NOSI - Employee Contribution</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+        <field name="code">SIEMP</field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="sequence">25</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = version.l10n_eg_social_insurance_reference
+result_rate = payslip._rule_parameter('l10n_eg_social_insurance_contribution_employee_rate')
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="egypt_end_of_service_provision_salary_rule" model="hr.salary.rule">
+        <field name="name">End of Service Provision</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+        <field name="code">EOSP</field>
+        <field name="sequence">45</field>
+        <field name="appears_on_payslip">never</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = not version.departure_date and version.l10n_eg_eligible_for_eos</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+compensation = version.wage
+if version.l10n_eg_number_of_years &lt; 5:
+    compensation /= 2
+result = compensation / 12.0
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="l10n_eg_salary_rule_annual_leave_provision" model="hr.salary.rule">
+        <field name="name">Annual Leave Provision</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+        <field name="code">ANNUALP</field>
+        <field name="sequence">50</field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="appears_on_payslip">never</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+overtime_codes = ['OVTWD', 'OVTWDN', 'OVTWEND', 'OVTPUB']
+overtime_amount = sum(payslip.worked_days_line_ids.filtered(lambda l: l.work_entry_type_id.code in overtime_codes).mapped('amount'))
+salary = categories['BASIC'] + categories['BASICALW'] - overtime_amount
+paid_days_line_ids = payslip.worked_days_line_ids.filtered(lambda l: l.work_entry_type_id.amount_rate != 0 and l.work_entry_type_id.code not in overtime_codes)
+number_of_paid_days = sum(paid_days_line_ids.mapped('number_of_days')) or 1
+result = (salary / number_of_paid_days) * version.l10n_eg_total_leave_days / 12
+        </field>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="l10n_eg_salary_rule_annual_leave_compensation" model="hr.salary.rule">
+        <field name="name">Annual Leave Compensation</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+        <field name="code">ANNUALCOMP</field>
+        <field name="sequence">55</field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+result = version.departure_date and version.departure_reason_id and employee._l10n_eg_get_annual_remaining_leaves()[employee.id] &gt; 0
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+overtime_codes = ['OVTWD', 'OVTWDN', 'OVTWEND', 'OVTPUB']
+overtime_amount = sum(payslip.worked_days_line_ids.filtered(lambda l: l.work_entry_type_id.code in overtime_codes).mapped('amount'))
+salary = categories['BASIC'] + categories['BASICALW'] - overtime_amount
+number_of_working_days = sum(payslip.worked_days_line_ids.filtered(lambda l: l.work_entry_type_id.code not in overtime_codes).mapped('number_of_days')) or 1
+result = (salary / number_of_working_days) * employee._l10n_eg_get_annual_remaining_leaves()[employee.id]
+        </field>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="egypt_end_of_service_benefit_salary_rule" model="hr.salary.rule">
+        <field name="name">End of Service Benefit</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+        <field name="code">EOSB</field>
+        <field name="sequence">60</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = version.departure_date and version.l10n_eg_eligible_for_eos and version.l10n_eg_number_of_years >= 1.0</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+compensation = version.wage
+adjusted_number_of_years = version.l10n_eg_number_of_years - (min(5.0, version.l10n_eg_number_of_years) * 0.5)
+result = compensation * adjusted_number_of_years
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="l10n_eg_hr_payroll_structure_eg_employee_salary_gross_salary_rule" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.GROSS')])]"/>
+        <field name="name">Taxable Salary</field>
+        <field name="sequence">70</field>
+        <field name="code">GROSS</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['BASIC'] + categories['ALW']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="egypt_yearly_gross" model="hr.salary.rule">
+        <field name="name">Gross Salary Yearly</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.NET')])]"/>
+        <field name="code">GROSSY</field>
+        <field name="sequence">75</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+<field name="amount_python_compute">result = (GROSS + categories['DED']) * 12</field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="egypt_taxable_amount" model="hr.salary.rule">
+        <field name="name">Taxable Salary Post Exemptions</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.NET')])]"/>
+        <field name="code">TAXBLEAM</field>
+        <field name="sequence">80</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+personal_exemption = payslip._rule_parameter('l10n_eg_lower_boundary')
+result = max(0, GROSSY - personal_exemption)
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="egypt_tax_bracket_total" model="hr.salary.rule">
+        <field name="name">Total Income Tax Deduction</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+        <field name="code">TOTTB</field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="sequence">90</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -payslip._get_eg_tax(TAXBLEAM) / 12
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="l10n_eg_hr_payroll_structure_eg_employee_salary_attachment_of_salary_rule" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+        <field name="name">Attachment of Salary</field>
+        <field name="sequence">110</field>
+        <field name="code">ATTACH_SALARY</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'ATTACH_SALARY' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -inputs['ATTACH_SALARY'].amount
+result_name = inputs['ATTACH_SALARY'].name
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="l10n_eg_hr_payroll_structure_eg_employee_salary_assignment_of_salary_rule" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+        <field name="name">Assignment of Salary</field>
+        <field name="sequence">110</field>
+        <field name="code">ASSIG_SALARY</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'ASSIG_SALARY' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -inputs['ASSIG_SALARY'].amount
+result_name = inputs['ASSIG_SALARY'].name
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="l10n_eg_hr_payroll_structure_eg_employee_salary_child_support" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+        <field name="name">Child Support</field>
+        <field name="code">CHILD_SUPPORT</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="amount_select">code</field>
+        <field name="sequence">110</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'CHILD_SUPPORT' in inputs</field>
+        <field name="amount_python_compute">
+result = -inputs['CHILD_SUPPORT'].amount
+result_name = inputs['CHILD_SUPPORT'].name
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="l10n_eg_hr_payroll_structure_eg_employee_salary_deduction_salary_rule" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+        <field name="name">Deduction</field>
+        <field name="sequence">110</field>
+        <field name="code">DEDUCTION</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'DEDUCTION' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -inputs['DEDUCTION'].amount
+result_name = inputs['DEDUCTION'].name
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="l10n_eg_hr_payroll_structure_eg_employee_salary_reimbursement_salary_rule" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+        <field name="name">Reimbursement</field>
+        <field name="sequence">110</field>
+        <field name="code">REIMBURSEMENT</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'REIMBURSEMENT' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = inputs['REIMBURSEMENT'].amount
+result_name = inputs['REIMBURSEMENT'].name
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="l10n_eg_hr_payroll_structure_eg_employee_salary_expenses_reimbursement" model="hr.salary.rule">
+        <field name="name">Expenses Reimbursement</field>
+        <field name="code">EXPENSES</field>
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+        <field name="sequence">110</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="l10n_eg_pos_tax_correction_salary_rule" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+        <field name="name">Positive Tax Correction</field>
+        <field name="sequence">110</field>
+        <field name="code">TAX_CORRECT_POS</field>
+        <field name="condition_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="amount_select">property_input</field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="l10n_eg_neg_tax_correction_salary_rule" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+        <field name="name">Negative Tax Correction</field>
+        <field name="sequence">110</field>
+        <field name="code">TAX_CORRECT_NEG</field>
+        <field name="condition_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -(inputs['TAX_CORRECT_NEG'].amount if 'TAX_CORRECT_NEG' in inputs else 0.0)
+        </field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+    <record id="l10n_eg_hr_payroll_structure_eg_employee_salary_net_salary" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.NET')])]"/>
+        <field name="name">Net Salary</field>
+        <field name="sequence">400</field>
+        <field name="code">NET</field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['BASIC'] + categories['ALW'] + categories['DED']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_eg_hr_payroll.hr_payroll_structure_eg_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.eg"/>
+    </record>
+
+</odoo>

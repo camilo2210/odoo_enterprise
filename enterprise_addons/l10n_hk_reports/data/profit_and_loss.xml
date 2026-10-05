@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_financial_report_hk_pl" model="account.report">
+        <field name="name">Profit and Loss</field>
+        <field name="name@zh_HK">損益表</field>
+        <field name="root_report_id" ref="account_reports.profit_and_loss"/>
+        <field name="groupby">account_id</field>
+        <field name="filter_unfold_all" eval="True"/>
+        <field name="filter_journals" eval="True"/>
+        <field name="filter_hierarchy">by_default</field>
+        <field name="country_id" ref="base.hk"/>
+        <field name="filter_multi_company">selector</field>
+        <field name="column_ids">
+            <record id="account_financial_report_hk_pl_column" model="account.report.column">
+                <field name="name">Balance</field>
+                <field name="name@zh_HK">結餘</field>
+                <field name="expression_label">balance</field>
+            </record>
+        </field>
+        <field name="line_ids">
+            <record id="account_financial_report_hk_pl_revenue" model="account.report.line">
+                <field name="name">Revenue</field>
+                <field name="name@zh_HK">收益</field>
+                <field name="code">HK_REV</field>
+                <field name="hierarchy_level">0</field>
+                <field name="foldability">foldable</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_hk_pl_revenue_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('account_id.account_type', '=', 'income')]"/>
+                        <field name="subformula">-sum</field>
+                        <field name="date_scope">strict_range</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_hk_pl_cos" model="account.report.line">
+                <field name="name">Cost Of Sales</field>
+                <field name="name@zh_HK">銷售成本</field>
+                <field name="code">HK_COS</field>
+                <field name="hierarchy_level">0</field>
+                <field name="foldability">foldable</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_hk_pl_cos_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('account_id.account_type', '=', 'expense_direct_cost')]"/>
+                        <field name="subformula">sum</field>
+                        <field name="date_scope">strict_range</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_hk_pl_gross_profit" model="account.report.line">
+                <field name="name">Gross Profit</field>
+                <field name="name@zh_HK">毛利</field>
+                <field name="code">HK_GP</field>
+                <field name="hierarchy_level">0</field>
+                <field name="aggregation_formula">HK_REV.balance - HK_COS.balance</field>
+            </record>
+            <record id="account_financial_report_hk_pl_other_income" model="account.report.line">
+                <field name="name">Other Income</field>
+                <field name="name@zh_HK">其他收入</field>
+                <field name="code">HK_OI</field>
+                <field name="hierarchy_level">0</field>
+                <field name="foldability">foldable</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_hk_pl_other_income_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('account_id.account_type', '=', 'income_other')]"/>
+                        <field name="subformula">-sum</field>
+                        <field name="date_scope">strict_range</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_hk_pl_oae" model="account.report.line">
+                <field name="name">Operating &amp; Admin Expenses</field>
+                <field name="name@zh_HK">費用</field>
+                <field name="code">HK_OAE</field>
+                <field name="hierarchy_level">0</field>
+                <field name="foldability">foldable</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_hk_pl_oae_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[
+                            ('account_id.account_type', 'in', ['expense', 'expense_other', 'expense_depreciation']),
+                            ('account_id.tag_ids', 'not in', [
+                                ref('l10n_hk.account_tag_income_tax_expense'),
+                                ref('l10n_hk.account_tag_finance_costs'),
+                            ]),
+                        ]"/>
+                        <field name="subformula">sum</field>
+                        <field name="date_scope">strict_range</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_hk_pl_fc" model="account.report.line">
+                <field name="name">Finance Costs</field>
+                <field name="name@zh_HK">費用</field>
+                <field name="code">HK_FC</field>
+                <field name="hierarchy_level">0</field>
+                <field name="foldability">foldable</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_hk_pl_fc_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[
+                            ('account_id.account_type', 'in', ['expense', 'expense_other', 'expense_depreciation']),
+                            ('account_id.tag_ids', 'in', [ref('l10n_hk.account_tag_finance_costs')]),
+                        ]"/>
+                        <field name="subformula">sum</field>
+                        <field name="date_scope">strict_range</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_hk_pl_profit_before_tax" model="account.report.line">
+                <field name="name">Profit Before Tax</field>
+                <field name="name@zh_HK">除稅前利潤</field>
+                <field name="code">HK_PBT</field>
+                <field name="hierarchy_level">0</field>
+                <field name="aggregation_formula">HK_GP.balance + HK_OI.balance - HK_OAE.balance - HK_FC.balance</field>
+            </record>
+            <record id="account_financial_report_hk_pl_income_tax" model="account.report.line">
+                <field name="name">Income Tax Expense</field>
+                <field name="name@zh_HK">所得稅費用</field>
+                <field name="code">HK_ITE</field>
+                <field name="hierarchy_level">0</field>
+                <field name="foldability">foldable</field>
+                <field name="expression_ids">
+                    <record id="account_financial_report_hk_pl_income_tax_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[
+                            ('account_id.account_type', 'in', ['expense', 'expense_other', 'expense_depreciation']),
+                            ('account_id.tag_ids', 'in', [ref('l10n_hk.account_tag_income_tax_expense')]),
+                        ]"/>
+                        <field name="subformula">sum</field>
+                        <field name="date_scope">strict_range</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_hk_pl_profit_for_year" model="account.report.line">
+                <field name="name">Profit For The Year</field>
+                <field name="name@zh_HK">年內利潤</field>
+                <field name="code">HK_PFY</field>
+                <field name="hierarchy_level">0</field>
+                <field name="aggregation_formula">HK_PBT.balance - HK_ITE.balance</field>
+            </record>
+            <record id="account_financial_report_hk_pl_oci" model="account.report.line">
+                <field name="name">Other Comprehensive Income</field>
+                <field name="name@zh_HK">其他全面收益</field>
+                <field name="code">HK_OCI</field>
+                <field name="hierarchy_level">0</field>
+                <field name="foldability">foldable</field>
+                <field name="hide_if_zero" eval="True"/>
+                <field name="expression_ids">
+                    <record id="account_financial_report_hk_pl_oci_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[
+                            ('account_id.account_type', '=', 'equity'),
+                            ('account_id.tag_ids', 'in', [ref('l10n_hk.account_tag_other_comprehensive_income')]),
+                        ]"/>
+                        <field name="subformula">-sum</field>
+                        <field name="date_scope">strict_range</field>
+                    </record>
+                </field>
+            </record>
+            <record id="account_financial_report_hk_pl_total_comprehensive_income" model="account.report.line">
+                <field name="name">Total Comprehensive Income</field>
+                <field name="name@zh_HK">全面收益總額</field>
+                <field name="code">HK_TCI</field>
+                <field name="hierarchy_level">0</field>
+                <field name="hide_if_zero" eval="True"/>
+                <field name="expression_ids">
+                    <record id="account_financial_report_hk_pl_tci_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">HK_PFY.balance + HK_OCI.balance</field>
+                        <field name="subformula">if_other_expr_above(HK_TCI.combined_check, HKD(0))</field>
+                    </record>
+                    <record id="account_financial_report_hk_pl_tci_check_above" model="account.report.expression">
+                        <field name="label">check_above</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">1</field>
+                        <field name="subformula">if_other_expr_above(HK_OCI.balance, HKD(0))</field>
+                    </record>
+                    <record id="account_financial_report_hk_pl_tci_check_below" model="account.report.expression">
+                        <field name="label">check_below</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">1</field>
+                        <field name="subformula">if_other_expr_below(HK_OCI.balance, HKD(0))</field>
+                    </record>
+                    <record id="account_financial_report_hk_pl_tci_combined_check" model="account.report.expression">
+                        <field name="label">combined_check</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">HK_TCI.check_above + HK_TCI.check_below</field>
+                    </record>
+                </field>
+            </record>
+        </field>
+    </record>
+</odoo>

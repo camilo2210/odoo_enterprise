@@ -1,0 +1,1080 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Input sections -->
+
+    <record id="housing_rules_section" model="hr.salary.rule.section">
+        <field name="name">Housing</field>
+    </record>
+    <record id="allowances_rules_section" model="hr.salary.rule.section">
+        <field name="name">Allowances &amp; Variable Pay</field>
+    </record>
+    <record id="ded_rem_rules_section" model="hr.salary.rule.section">
+        <field name="name">Deductions &amp; Reimbursements</field>
+    </record>
+    <record id="special_payout_section" model="hr.salary.rule.section">
+        <field name="name">Special Payouts</field>
+    </record>
+    <record id="override_adjustment_section" model="hr.salary.rule.section">
+        <field name="name">Overrides &amp; Adjustments</field>
+    </record>
+
+    <!-- Rules -->
+
+    <record id="cap57_employees_salary_manual_rent_allowance" model="hr.salary.rule">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="name">Manual Housing Reimbursement</field>
+        <field name="code">HRA_MANUAL</field>
+        <field name="sequence">1</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="appears_on_payslip">never</field>
+        <field name="input_section" ref="housing_rules_section"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="cap57_employees_salary_rent_allowance" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.HOUSING_ALW')])]"/>
+        <field name="name">Housing Reimbursement</field>
+        <field name="code">HRA</field>
+        <field name="sequence">2</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+rental = payslip.l10n_hk_rental_id
+if not rental or rental.lease_type != "reimbursement":
+    result = False
+else:
+    valid_rental = rental.valid_up_to_date and rental.valid_up_to_date &gt;= payslip.date_from
+    result = valid_rental or (inputs['HRA_MANUAL'].amount if 'HRA_MANUAL' in inputs else 0.0)
+        </field>
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="amount_python_compute">
+min_hourly_wage = payslip._rule_parameter('l10n_hk_minimum_hourly_wage')
+# These are the actually worked hours (excluding leaves, ... where the employee was actively working their job)
+actual_work_hours = sum(payslip.worked_days_line_ids.filtered(
+    lambda wd: wd.work_entry_type_id.count_as == 'working_time' and wd.work_entry_type_id.code != '000.00'
+).mapped('number_of_hours'))
+statutory_work_value = actual_work_hours * min_hourly_wage
+max_reimbursable_cap = max(0.0, payslip._get_hk_paid_amount(categories) - statutory_work_value)
+monthly_rent = (inputs['HRA_MANUAL'].amount if 'HRA_MANUAL' in inputs else 0.0) or payslip.l10n_hk_rental_id.monthly_rent_amount
+
+period_rent = payslip._l10n_hk_hr_payroll_from_to_schedule(monthly_rent, from_schedule='monthly')
+remaining_budget = max(period_rent - l10n_hk_payrun_totals['HRA'], 0.0)
+result = min(remaining_budget, max_reimbursable_cap)
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="l10n_hk_hr_payroll_structure_cap57_employee_salary_basic_salary_rule" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.BASIC')])]"/>
+        <field name="name">Basic Salary</field>
+        <field name="sequence">3</field>
+        <field name="code">BASIC</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = payslip._get_hk_paid_amount(categories) - result_rules['HRA']['total']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!-- Other Basic Amounts -->
+
+    <record id="cap57_employees_salary_deduction" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.BASIC')])]"/>
+        <field name="name">Deduction</field>
+        <field name="code">GLOBAL_DEDUCTION</field>
+        <field name="sequence">4</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = -(inputs['GLOBAL_DEDUCTION'].amount if 'GLOBAL_DEDUCTION' in inputs else 0.0)</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="input_section" ref="hr_payroll.default_salary_rule_section"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="ded_rem_rules_section"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="cap57_employees_salary_reimbursement" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.BASIC')])]"/>
+        <field name="name">Reimbursement</field>
+        <field name="code">GLOBAL_REIMBURSEMENT</field>
+        <field name="sequence">5</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="input_section" ref="hr_payroll.default_salary_rule_section"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="ded_rem_rules_section"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="cap57_employees_salary_oversea_pay" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.OVERSEAS_INCOME')])]"/>
+        <field name="name">Oversea Pay</field>
+        <field name="code">OVERSEAS_PAY</field>
+        <field name="sequence">6</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="input_section" ref="allowances_rules_section"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!-- Leave Encashment -->
+
+    <record id="cap57_employees_salary_leave_encashment" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.LEAVE_PAY')])]"/>
+        <field name="name">Leave Encashment</field>
+        <field name="code">LEAVE_ENCASHMENT</field>
+        <field name="sequence">7</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="input_section" ref="special_payout_section"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!-- Director Fee -->
+
+    <record id="cap57_employees_salary_director_fee" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.DIRECTOR_FEE')])]"/>
+        <field name="name">Director Fee</field>
+        <field name="code">DIRECTOR_FEE</field>
+        <field name="sequence">8</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="input_section" ref="special_payout_section"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="country_id" ref="base.hk"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+    </record>
+
+    <!-- Back-Payment -->
+
+    <record id="cap57_employees_salary_back_pay" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.BACKPAY')])]"/>
+        <field name="name">Back Pay</field>
+        <field name="code">BACKPAY</field>
+        <field name="sequence">9</field>
+        <field name="condition_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="amount_select">property_input</field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="input_section" ref="override_adjustment_section"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!-- Retirement -->
+
+    <record id="cap57_employees_salary_retirement_pay" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.RETIREMENT')])]"/>
+        <field name="name">Retirement Pay</field>
+        <field name="code">RETIREMENT_PAY</field>
+        <field name="sequence">10</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="input_section" ref="special_payout_section"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!-- Pension -->
+
+    <record id="cap57_employees_salary_pension_pay" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.PENSION')])]"/>
+        <field name="name">Pension Pay</field>
+        <field name="code">PENSION_PAYOUT</field>
+        <field name="sequence">11</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="input_section" ref="special_payout_section"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!-- Education -->
+
+    <record id="cap57_employees_salary_education_allowance" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.EDUCATION')])]"/>
+        <field name="name">Education Allowance</field>
+        <field name="code">EDU_ALLOWANCE</field>
+        <field name="sequence">12</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="input_section" ref="allowances_rules_section"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!-- End of Year Pay -->
+
+    <record id="cap57_employees_salary_end_of_year_payment" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.BONUS')])]"/>
+        <field name="name">End of Year Payment</field>
+        <field name="code">END_OF_YEAR_PAYMENT</field>
+        <field name="sequence">14</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="condition_select">python</field>
+        <field name="input_section" ref="special_payout_section"/>
+        <field name="condition_python">
+is_eoy_month = payslip.company_id.l10n_hk_eoy_pay_month and str(payslip.date_to.month) == payslip.company_id.l10n_hk_eoy_pay_month
+result = is_eoy_month or 'END_OF_YEAR_PAYMENT' in inputs
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+is_eoy_month = payslip.company_id.l10n_hk_eoy_pay_month and str(payslip.date_to.month) == payslip.company_id.l10n_hk_eoy_pay_month
+uses_input = 'END_OF_YEAR_PAYMENT' in inputs
+input_amount = uses_input and inputs['END_OF_YEAR_PAYMENT'].amount
+# During EOY month, a 0 input means we manually disable the payment.
+# During other months, a 0 input means we enable the payment and want it to be automatically calculated
+if (is_eoy_month and uses_input and input_amount == 0) or (uses_input and input_amount != 0):
+    result = input_amount
+else:
+    # Calculate the number of days in current year
+    first_day = payslip.date_from + relativedelta(month=1, day=1)
+    last_day = payslip.date_to + relativedelta(month=12, day=31)
+    total_days = (last_day - first_day).days + 1
+
+    # Find past 12-month payslips
+    last_year_payslips = payslip._get_previous_year_payslips(order='date_from desc')
+
+    if not last_year_payslips:
+        result = 0
+    else:
+        # Calculate the work rate
+        number_of_days = last_year_payslips._get_number_of_worked_days(only_full_pay=True)
+        number_of_months = number_of_days / total_days * 12  # total_days remains the same for last 12 months and current year
+
+        # Calculate the average monthly salary
+        gross = last_year_payslips._get_line_values(['713_GROSS'], compute_sum=True)['713_GROSS']['sum']['total']
+        gross -= last_year_payslips._get_total_non_full_pay()
+        average_monthly_salary = gross / number_of_months if number_of_months else 0.0
+
+        # Calculate the pro-rata rate
+        current_year_payslips = last_year_payslips.filtered(lambda p: p.date_from &gt;= first_day) + payslip
+        number_of_days = current_year_payslips._get_number_of_worked_days()
+        prorata_rate = number_of_days / total_days
+
+        result = average_monthly_salary
+        result_rate = prorata_rate * 100.0
+        </field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!-- Share Options -->
+
+    <record id="cap57_employees_salary_share_options" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.SHARE_OPTION')])]"/>
+        <field name="name">Share Options</field>
+        <field name="code">SHARE_OPTIONS</field>
+        <field name="sequence">15</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="input_section" ref="special_payout_section"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!-- Tax Paid -->
+
+    <record id="cap57_employees_salary_emp_tax_paid" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.TAX_PAID')])]"/>
+        <field name="name">Tax Paid By Employer</field>
+        <field name="code">TAX_PAID_BY_EMP</field>
+        <field name="sequence">16</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="input_section" ref="special_payout_section"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!-- Commission & Referral -->
+
+    <record id="cap57_employees_salary_fixed_commission" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.COMMISSION')])]"/>
+        <field name="name">Commission</field>
+        <field name="code">COMMISSION</field>
+        <field name="sequence">20</field>
+        <field name="condition_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="amount_select">property_input</field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="input_section" ref="allowances_rules_section"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="cap57_employees_salary_referral_fee" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.COMMISSION')])]"/>
+        <field name="name">Referral Fee</field>
+        <field name="code">REFERRAL_FEE</field>
+        <field name="sequence">21</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="input_section" ref="allowances_rules_section"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!-- Rewards, Allowances, and Perquisites -->
+
+    <record id="cap57_employees_salary_internet" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.ALLOWANCE_RAP')])]"/>
+        <field name="name">Internet Allowance</field>
+        <field name="code">ALW.INT</field>
+        <field name="sequence">30</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = bool(not payslip.is_outside_contract and version.l10n_hk_internet)</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+target_amount = version.l10n_hk_internet * worked_days_prorata_rate
+remaining_budget = max(version.l10n_hk_internet - l10n_hk_payrun_totals['ALW.INT'], 0.0)
+
+result = min(target_amount, remaining_budget)
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!-- Housing -->
+
+    <record id="cap57_employees_salary_cash_housing_allowance" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.HOUSING_ALW')])]"/>
+        <field name="name">Housing Allowance</field>
+        <field name="code">HA</field>
+        <field name="sequence">35</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="input_section" ref="housing_rules_section"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!-- Post-accident earnings -->
+
+    <record id="cap57_employees_post_accident_earnings" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.POST_ACCIDENT_EARNINGS')])]"/>
+        <field name="name">Post Accident Earnings</field>
+        <field name="code">POST_ACCIDENT_EARNINGS</field>
+        <field name="sequence">40</field>
+        <field name="condition_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="amount_select">property_input</field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!-- 713 Gross -->
+
+    <record id="cap57_employees_salary_713_gross" model="hr.salary.rule">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="name">713 Gross</field>
+        <field name="code">713_GROSS</field>
+        <field name="sequence">105</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+# -------------------------------------------------------------------------
+# 713 Average Daily Wage (ADW) Base
+# Calculates "Wages" as defined under Cap. 57 Employment Ordinance.
+# Legally excludes: End of Year Payments (BONUS), Director Fees,
+# Retirement/Pension payouts, and non-cash fringe benefits.
+# -------------------------------------------------------------------------
+result = categories['HK_BASIC'] + categories['OTHER_CASH_EARNINGS']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="appears_on_payslip">never</field>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!-- Average Daily Wage -->
+
+    <record id="cap57_employees_salary_average_daily_wage" model="hr.salary.rule">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="name">Average Daily Wage</field>
+        <field name="code">AVERAGE_DAILY_WAGE</field>
+        <field name="sequence">109</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="appears_on_payslip">never</field>
+        <field name="input_section" ref="override_adjustment_section"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="cap57_employees_salary_custom_average_monthly_salary" model="hr.salary.rule">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="name">Payment in Lieu of Notice - Custom Average Monthly Salary</field>
+        <field name="code">CUST_AVG_MONTHLY_SALARY</field>
+        <field name="sequence">110</field>
+        <field name="condition_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="amount_select">property_input</field>
+        <field name="appears_on_payslip">never</field>
+        <field name="input_section" ref="override_adjustment_section"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!-- MPF -->
+
+    <record id="cap57_employees_salary_mpf_gross" model="hr.salary.rule">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="name">Relevant income for MPF</field>
+        <field name="code">GROSS</field>
+        <field name="sequence">115</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+# -------------------------------------------------------------------------
+# MPF Relevant Income Base
+# Calculates "Relevant Income" as defined under the MPFSO.
+# Explicitly includes 13th-month payments (BONUS) and Director Fees.
+# Explicitly excludes Severance (SLSP), Retirement, and non-cash benefits.
+# -------------------------------------------------------------------------
+result = categories['HK_BASIC'] + categories['OTHER_CASH_EARNINGS'] + categories['DIRECTOR_FEE'] + categories['BONUS']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!-- Employer Costs -->
+
+    <record id="cap57_employees_employer_paid_rent" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+        <field name="name">Employer Paid Rent</field>
+        <field name="code">HEPR</field>
+        <field name="sequence">150</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+result = payslip.l10n_hk_rental_id and payslip.l10n_hk_rental_id.lease_type in ('direct_payment', 'co_payment')
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+rental_amount = payslip._l10n_hk_hr_payroll_from_to_schedule(payslip.l10n_hk_rental_id.amount, from_schedule='monthly')
+result = max(rental_amount - l10n_hk_payrun_totals['HEPR'], 0.0)
+        </field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!-- After-Tax Deductions and Expenses -->
+
+    <record id="l10n_hk_hr_payroll_structure_cap57_employee_salary_attachment_of_salary_rule" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.DED_AFTER_TAX')])]"/>
+        <field name="name">Attachment of Salary</field>
+        <field name="sequence">174</field>
+        <field name="code">ATTACH_SALARY</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'ATTACH_SALARY' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -inputs['ATTACH_SALARY'].amount
+result_name = inputs['ATTACH_SALARY'].name
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_non_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="l10n_hk_hr_payroll_structure_cap57_employee_salary_assignment_of_salary_rule" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.DED_AFTER_TAX')])]"/>
+        <field name="name">Assignment of Salary</field>
+        <field name="sequence">175</field>
+        <field name="code">ASSIG_SALARY</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'ASSIG_SALARY' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = -inputs['ASSIG_SALARY'].amount
+result_name = inputs['ASSIG_SALARY'].name
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_non_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="l10n_hk_hr_payroll_structure_cap57_employee_salary_child_support" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.DED_AFTER_TAX')])]"/>
+        <field name="name">Child Support</field>
+        <field name="code">CHILD_SUPPORT</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="amount_select">code</field>
+        <field name="sequence">176</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'CHILD_SUPPORT' in inputs</field>
+        <field name="amount_python_compute">
+result = -inputs['CHILD_SUPPORT'].amount
+result_name = inputs['CHILD_SUPPORT'].name
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="cap57_employees_salary_expense_refund" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.NON_TAXABLE')])]"/>
+        <field name="name">Expenses Reimbursement</field>
+        <field name="code">EXPENSES</field>
+        <field name="sequence" eval="190"/>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="ded_rem_rules_section"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_non_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="l10n_hk_hr_payroll_structure_cap57_employee_salary_reimbursement_salary_rule" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.NON_TAXABLE')])]"/>
+        <field name="name">Non-Taxable Reimbursement</field>
+        <field name="code">REIMBURSEMENT</field>
+        <field name="sequence">198</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">property_input</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="ded_rem_rules_section"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_non_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="l10n_hk_hr_payroll_structure_cap57_employee_salary_deduction_salary_rule" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.DED_AFTER_TAX')])]"/>
+        <field name="name">Non-Taxable Deduction</field>
+        <field name="sequence">199</field>
+        <field name="code">DEDUCTION</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = -(inputs['DEDUCTION'].amount if 'DEDUCTION' in inputs else 0.0)</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="input_section" ref="ded_rem_rules_section"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_non_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!-- Final Pay -->
+
+    <record id="cap57_employees_rent_contribution" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.HOUSING_DED')])]"/>
+        <field name="name">Rent Contribution</field>
+        <field name="code">HC</field>
+        <field name="sequence">200</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+result = payslip.l10n_hk_rental_id and payslip.l10n_hk_rental_id.lease_type == "co_payment"
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+rental_copay = payslip._l10n_hk_hr_payroll_from_to_schedule(abs(payslip.l10n_hk_rental_id.co_pay_amount), from_schedule='monthly')
+remaining_budget = max(rental_copay - abs(l10n_hk_payrun_totals['HC']), 0.0)
+# We do not allow the net to be lower than 0
+available_pay = max(0.0, categories['GROSS_CASH'] + categories['NON_TAXABLE'] + categories['DED'] + categories['EEMPF'])
+
+result = -min(remaining_budget, available_pay)
+        </field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="cap57_employees_termination_payment_pre_transition" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.SLSP')])]"/>
+        <field name="name">Termination Payment - Pre-Transition</field>
+        <field name="code">TERMINATION_PAYMENT_PRE_TRANSITION</field>
+        <field name="sequence">202</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+final_pay = version.departure_date and (payslip.date_from &lt;= version.departure_date &lt;= payslip.date_to)
+valid_termination_reason = (
+    version.departure_reason_id.l10n_hk_empf_code in ('DEATH', 'DISMIS', 'CONTRACT_END', 'ILL_HEALTH', 'RETIRE', 'REDUNDANCY', 'LAID_OFF')
+)
+pre_transition_years, post_transition_years = payslip._get_years_of_services_per_period()
+required_years_of_services = 2 if version.departure_reason_id.l10n_hk_empf_code in ['REDUNDANCY', 'LAID_OFF'] else 5
+reached_years_of_services = pre_transition_years + post_transition_years &gt;= required_years_of_services
+result = (final_pay and valid_termination_reason and reached_years_of_services and pre_transition_years) or 'TERMINATION_PAYMENT_PRE_TRANSITION' in inputs
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result_name = payslip._get_termination_pay_label(version.departure_reason_id.l10n_hk_empf_code, 'pre_transition_payment')
+if 'TERMINATION_PAYMENT_PRE_TRANSITION' in inputs:
+    result = inputs['TERMINATION_PAYMENT_PRE_TRANSITION'].amount
+else:
+    pre_transition_years, _ = payslip._get_years_of_services_per_period()
+
+    threshold = payslip._rule_parameter('l10n_hk_final_payment_threshold')
+    max_yearly_allowance = threshold * 2 / 3.0
+
+    if version.wage_type == 'hourly':
+        pre_transition_version = employee._get_version(date(2025, 5, 1)) or version
+        hours_per_day = pre_transition_version.resource_calendar_id.hours_per_day or 8
+        yearly_allowance = pre_transition_version.hourly_wage * hours_per_day * 18
+    else:  # Regular employee
+        monthly_wage = payslip._get_713_gross_at_date(date(2025, 5, 1))
+        yearly_allowance = monthly_wage * 2 / 3.0
+
+    yearly_allowance = min(yearly_allowance, max_yearly_allowance)
+    result = yearly_allowance
+    result_qty = pre_transition_years
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="appears_on_payslip">never</field>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="cap57_employees_termination_payment_post_transition" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.SLSP')])]"/>
+        <field name="name">Termination Payment - Post-Transition</field>
+        <field name="code">TERMINATION_PAYMENT_POST_TRANSITION</field>
+        <field name="sequence">203</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+final_pay = version.departure_date and (payslip.date_from &lt;= version.departure_date &lt;= payslip.date_to)
+valid_termination_reason = (
+    version.departure_reason_id.l10n_hk_empf_code in ('DEATH', 'DISMIS', 'CONTRACT_END', 'ILL_HEALTH', 'RETIRE', 'REDUNDANCY', 'LAID_OFF')
+)
+pre_transition_years, post_transition_years = payslip._get_years_of_services_per_period()
+required_years_of_services = 2 if version.departure_reason_id.l10n_hk_empf_code in ['REDUNDANCY', 'LAID_OFF'] else 5
+reached_years_of_services = pre_transition_years + post_transition_years &gt;= required_years_of_services
+result = (final_pay and valid_termination_reason and reached_years_of_services and post_transition_years) or 'TERMINATION_PAYMENT_POST_TRANSITION' in inputs
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result_name = payslip._get_termination_pay_label(version.departure_reason_id.l10n_hk_empf_code, 'post_transition_payment')
+if 'TERMINATION_PAYMENT_POST_TRANSITION' in inputs:
+    result = inputs['TERMINATION_PAYMENT_POST_TRANSITION'].amount
+else:
+    _, post_transition_years = payslip._get_years_of_services_per_period()
+
+    threshold = payslip._rule_parameter('l10n_hk_final_payment_threshold')
+    cap = payslip._rule_parameter('l10n_hk_final_payment_cap')
+    max_yearly_allowance = threshold * 2 / 3.0
+
+    if version.wage_type == 'hourly':
+        hours_per_day = version.resource_calendar_id.hours_per_day or 8
+        yearly_allowance = version.hourly_wage * hours_per_day * 18
+    else:  # Regular employee
+        monthly_wage = payslip._get_713_gross_at_date(payslip.date_from)
+        yearly_allowance = monthly_wage * 2 / 3.0
+
+    yearly_allowance = min(yearly_allowance, max_yearly_allowance)
+    remaining_cap = max(0.0, cap - result_rules['TERMINATION_PAYMENT_PRE_TRANSITION']['total'])
+    # In case of long service + high wage, we may be above the cap at this stage. Even though we cap in the net payment,
+    # we still need to cap here too to avoid discrepancies.
+    total_post_transition = yearly_allowance * post_transition_years
+    result = min(total_post_transition, remaining_cap) / post_transition_years if post_transition_years else 0.0
+    result_qty = post_transition_years
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="appears_on_payslip">never</field>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="cap57_employees_termination_payment" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.NON_TAXABLE')])]"/>
+        <field name="name">Termination Payment</field>
+        <field name="code">TERMINATION_PAYMENT</field>
+        <field name="sequence">204</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = categories['SLSP']</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = min(categories['SLSP'], payslip._rule_parameter('l10n_hk_final_payment_cap'))
+result_name = payslip._get_termination_pay_label(version.departure_reason_id.l10n_hk_empf_code)
+        </field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="cap57_employees_termination_payment_pre_transition_offset" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+        <field name="name">Pre-transition Offset</field>
+        <field name="code">TERMINATION_PAYMENT_PRE_TRANSITION_OFFSET</field>
+        <field name="sequence">205</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+input_value = inputs['TERMINATION_PAYMENT_PRE_TRANSITION_OFFSET'].amount if 'TERMINATION_PAYMENT_PRE_TRANSITION_OFFSET' in inputs else 0.0
+result = -abs(min(input_value, result_rules['TERMINATION_PAYMENT_PRE_TRANSITION']['total']))
+        </field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="note">Enter the exact vested accrued benefit amount retrieved from the MPF Trustee portal.</field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="cap57_employees_termination_payment_post_transition_offset" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED')])]"/>
+        <field name="name">Post-transition Offset</field>
+        <field name="code">TERMINATION_PAYMENT_POST_TRANSITION_OFFSET</field>
+        <field name="sequence">206</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+input_value = inputs['TERMINATION_PAYMENT_POST_TRANSITION_OFFSET'].amount if 'TERMINATION_PAYMENT_POST_TRANSITION_OFFSET' in inputs else 0.0
+result = -abs(min(input_value, result_rules['TERMINATION_PAYMENT_POST_TRANSITION']['total']))
+        </field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="note">Enter the exact vested accrued benefit amount retrieved from the MPF Trustee portal.</field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="cap57_employees_salary_payment_in_lieu_of_notice" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.PILON')])]"/>
+        <field name="name">Payment in Lieu of Notice</field>
+        <field name="code">PAYMENT_IN_LIEU_OF_NOTICE</field>
+        <field name="sequence">208</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_suffix">Months</field>
+        <field name="input_section" ref="special_payout_section"/>
+        <field name="input_default_value">1</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+# Calculate the number of days for past 12 months
+first_day = max(payslip.date_from + relativedelta(months=-12, day=1), employee._get_first_contract_date())
+last_day = payslip.date_to + relativedelta(day=1)
+total_days = (last_day - first_day).days
+
+# Find past 12-month payslips
+last_year_payslips = payslip._get_previous_year_payslips(order='date_from desc')
+
+# Calculate the work rate
+number_of_days = last_year_payslips._get_number_of_worked_days(only_full_pay=True)
+delta = relativedelta(last_day, first_day)
+period_months = delta.years * 12 + delta.months + (delta.days / (365 / 12))
+number_of_months = (number_of_days / total_days) * period_months if total_days > 0 else 0.0
+
+# Calculate the average monthly salary
+gross = last_year_payslips._get_line_values(['713_GROSS'], compute_sum=True)['713_GROSS']['sum']['total']
+gross -= last_year_payslips._get_total_non_full_pay()
+custom_ams = inputs['CUST_AVG_MONTHLY_SALARY'].amount if 'CUST_AVG_MONTHLY_SALARY' in inputs else 0.0
+average_monthly_salary = custom_ams if custom_ams or number_of_months == 0.0 else gross / number_of_months
+
+# Set the result. The quantity can be used to set the amount of month to pay if wanted.
+result = average_monthly_salary
+result_qty = inputs['PAYMENT_IN_LIEU_OF_NOTICE'].amount if 'PAYMENT_IN_LIEU_OF_NOTICE' in inputs else 1.0
+        </field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <!--
+    The payment in lieu has two methods of calculation, which varies on the way the period is defined.
+    The most common is in month; so we keep  that one as default.
+    But to make it easy to change if needed, we'll have a weekly version with the specific calculation for it.
+    -->
+    <record id="cap57_employees_salary_payment_in_lieu_of_notice_weekly" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.PILON')])]"/>
+        <field name="name">Payment in Lieu of Notice - Daily/Weekly</field>
+        <field name="code">PAYMENT_IN_LIEU_OF_NOTICE_WEEKLY</field>
+        <field name="sequence">208</field>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_name">Payment in Lieu of Notice</field>
+        <field name="input_suffix">Days</field>
+        <field name="input_section" ref="special_payout_section"/>
+        <field name="input_default_value">1</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+# The base amount is the statutory Average Daily Wage (ADW).
+# The HR user will manually set the 'quantity' on the payslip line
+# to the exact number of days (e.g., 7 for one week, 42 for six weeks).
+result = payslip.l10n_hk_average_daily_wage
+result_qty = inputs['PAYMENT_IN_LIEU_OF_NOTICE_WEEKLY'].amount if 'PAYMENT_IN_LIEU_OF_NOTICE_WEEKLY' in inputs else 1.0
+        </field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="country_id" ref="base.hk"/>
+        <field name="active" eval="False"/>
+    </record>
+
+    <!-- Work Injury Compensation -->
+
+    <record id="cap57_employees_work_injury_leave_earnings" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.NON_TAXABLE')])]"/>
+        <field name="name">Work Injury Leave Earnings</field>
+        <field name="code">WORK_INJURY</field>
+        <field name="sequence">209</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'HKLEAVE112' in worked_days</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = sum(worked_days['HKLEAVE112'].mapped('amount'))
+        </field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="l10n_hk_hr_payroll_structure_cap57_employee_salary_net_salary" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.NET')])]"/>
+        <field name="name">Net Salary</field>
+        <field name="sequence">210</field>
+        <field name="code">NET</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+# -------------------------------------------------------------------------
+# Net Bank Transfer
+# Calculates the physical cash payout.
+# - Uses GROSS_CASH to deliberately exclude non-cash taxable benefits.
+# - Adds out-of-pocket NON_TAXABLE reimbursements.
+# - Subtracts post-tax DED (penalties) and EEMPF (employee pension only).
+# -------------------------------------------------------------------------
+result = categories['GROSS_CASH'] + categories['NON_TAXABLE'] + categories['DED'] + categories['EEMPF']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+
+    <record id="cap57_employees_salary_monthly_end_autopay" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_hk_hr_payroll.AUTOPAY')])]"/>
+        <field name="name">Monthly End Autopay</field>
+        <field name="code">MEA</field>
+        <field name="sequence">220</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = result_rules['NET']['total']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_employee_salary'),
+            ref('l10n_hk_hr_payroll.hr_payroll_structure_cap57_casual_employee_salary'),
+        ])]"/>
+        <field name="appears_on_payslip">never</field>
+        <field name="country_id" ref="base.hk"/>
+    </record>
+</odoo>

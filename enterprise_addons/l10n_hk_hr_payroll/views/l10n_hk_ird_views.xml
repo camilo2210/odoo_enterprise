@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_hk_ird_view_form" model="ir.ui.view">
+        <field name="name">l10n_hk_ird.view.form</field>
+        <field name="model">l10n_hk.ird</field>
+        <field name="inherit_id" ref="hr_payroll.hr_payroll_declaration_mixin_view_form"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <!-- Avoid showing the populate button for adjustment-only reports, as these won't concern most employees. -->
+            <button name="action_generate_declarations" class="btn-primary" position="attributes">
+                <attribute name="options">{'reload_on_button': true}</attribute>
+                <attribute name="invisible" separator=" or " add="type_of_form == 'ARS'"/>
+            </button>
+            <button name="action_generate_declarations" class="btn-secondary" position="attributes">
+                <attribute name="options">{'reload_on_button': true}</attribute>
+                <attribute name="invisible" separator=" or " add="type_of_form == 'ARS'"/>
+            </button>
+            <group name="first_group" position="replace">
+                <group name="first_group">
+                    <group name="group_start">
+                        <field name="start_year" class="o_hr_narrow_field" options="{'type': 'number'}" />
+                        <field name="start_month" class="o_hr_narrow_field"/>
+                    </group>
+                </group>
+                <group string="Extra" name="extra_group">
+                    <field name="type_of_form" invisible="not separate_original_from_adjustments" required="separate_original_from_adjustments"/>
+                    <field name="submission_date" />
+                    <field name="year_of_employer_return" placeholder="YYYY" required="type_of_form == 'O'" invisible="type_of_form != 'O'"/>
+                    <field name="name_of_signer" />
+                    <field name="designation_of_signer" />
+                </group>
+            </group>
+            <p name="save_warning" position="attributes">
+                <attribute name="invisible">state != 'done'</attribute>
+            </p>
+            <sheet position="after">
+                <chatter reload_on_post="True"/>
+            </sheet>
+        </field>
+    </record>
+
+    <record id="l10n_hk_ird_view_list" model="ir.ui.view">
+        <field name="name">l10n_hk.ird.view.list</field>
+        <field name="model">l10n_hk.ird</field>
+        <field name="inherit_id" ref="hr_payroll.hr_payroll_declaration_mixin_view_list"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <field name="year" position="replace">
+                <field name="display_name" string="Name"/>
+            </field>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_employee_tax_declaration_client" model="ir.actions.client">
+        <field name="name">Tax Declaration</field>
+        <field name="tag">l10n_in_hr_payroll.tax_declaration_client_action</field>
+        <field name="context">{'active_id': active_id}</field>
+    </record>
+
+    <record id="hr_employee_view_form_in_inherit" model="ir.ui.view">
+        <field name="name">hr.employee.form.in.inherit</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr_payroll.payroll_hr_employee_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/header" position="inside">
+                <button name="%(l10n_in_hr_payroll.action_employee_tax_declaration_client)d"
+                    invisible="company_country_code != 'IN'"
+                    string="Tax Declaration" type="action" groups="hr_payroll.group_hr_payroll_user"/>
+            </xpath>
+            <xpath expr="//page[@name='personal_information']/group" position="inside">
+                <group string="Statutory Information" invisible="company_country_code != 'IN'">
+                    <field name="l10n_in_pan" placeholder="10 digit Permanent Account Number"/>
+                    <field name="l10n_in_uan" placeholder="12 digit Universal Account Number"/>
+                    <field name="l10n_in_pf_account_number" placeholder="22 character PF A/c Number"/>
+                    <field name="l10n_in_lwf_account_number" placeholder="Labour Welfare Fund Account Number"/>
+                    <field name="l10n_in_esic_number" placeholder="17 digit ESIC Number"/>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='children']" position="after">
+                <field name="l10n_in_residing_child_hostel" invisible="company_country_code != 'IN'"/>
+            </xpath>
+            <group name="payroll_group" position="inside">
+                <group string="Salary Components" invisible="country_code != 'IN'">
+                    <label for="l10n_in_basic_salary_amount"/>
+                    <div class="o_row">
+                        <field name="l10n_in_basic_salary_amount" class="o_hr_narrow_field"/>
+                        <span>/</span>
+                        <field name="schedule_pay" readonly="1"></field>
+                        <field name="l10n_in_basic_percentage" widget="percentage" nolabel="1"
+                            class="o_hr_narrow_field ms-4"/>
+                    </div>
+                    <label for="l10n_in_hra"/>
+                    <div class="o_row">
+                        <field name="l10n_in_hra" class="o_hr_narrow_field"/>
+                        <span>/</span>
+                        <field name="schedule_pay" readonly="1"></field>
+                        <field name="l10n_in_hra_percentage" widget="percentage"
+                            class="o_hr_narrow_field ms-4"/>
+                    </div>
+                    <label for="l10n_in_standard_allowance"/>
+                    <div class="o_row">
+                        <field name="l10n_in_standard_allowance" class="o_hr_narrow_field"/>
+                        <span>/</span>
+                        <field name="schedule_pay" readonly="1"></field>
+                        <field name="l10n_in_standard_allowance_percentage" widget="percentage"
+                            class="o_hr_narrow_field ms-4"/>
+                    </div>
+                    <label for="l10n_in_performance_bonus"/>
+                    <div class="o_row">
+                        <field name="l10n_in_performance_bonus" class="o_hr_narrow_field"/>
+                        <span>/</span>
+                        <field name="schedule_pay" readonly="1"></field>
+                        <field name="l10n_in_performance_bonus_percentage" widget="percentage"
+                            class="o_hr_narrow_field ms-4"/>
+                    </div>
+                    <label for="l10n_in_leave_travel_allowance"/>
+                    <div class="o_row">
+                        <field name="l10n_in_leave_travel_allowance" class="o_hr_narrow_field"/>
+                        <span>/</span>
+                        <field name="schedule_pay" readonly="1"></field>
+                        <field name="l10n_in_leave_travel_percentage" widget="percentage"
+                            class="o_hr_narrow_field ms-4"/>
+                    </div>
+                    <label for="l10n_in_fixed_allowance"/>
+                    <div class="o_row">
+                        <field name="l10n_in_fixed_allowance" class="o_hr_narrow_field"/>
+                        <span>/</span>
+                        <field name="schedule_pay" readonly="1"></field>
+                    </div>
+                    <separator name="benefits" string="Benefits"/>
+                    <label for="l10n_in_phone_subscription"/>
+                    <div class="o_row">
+                        <field name="l10n_in_phone_subscription" class="o_hr_narrow_field"/>
+                        <span>/</span>
+                        <field name="schedule_pay" readonly="1"></field>
+                    </div>
+                    <label for="l10n_in_internet_subscription"/>
+                    <div class="o_row">
+                        <field name="l10n_in_internet_subscription" string="Internet Subscription"
+                            class="o_hr_narrow_field"/>
+                        <span>/</span>
+                        <field name="schedule_pay" readonly="1"></field>
+                    </div>
+                    <label for="l10n_in_meal_voucher_amount"/>
+                    <div class="o_row">
+                        <field name="l10n_in_meal_voucher_amount" string="Meal Vouchers" class="o_hr_narrow_field"/>
+                        <span>/</span>
+                        <field name="schedule_pay" readonly="1"></field>
+                    </div>
+                    <label for="l10n_in_company_transport"/>
+                    <div class="o_row" name="company_transport">
+                        <field name="l10n_in_company_transport" class="o_hr_narrow_field"/>
+                        <span>/</span>
+                        <field name="schedule_pay" readonly="1"></field>
+                    </div>
+                    <separator string="Insurance Benefits"/>
+                    <label for="l10n_in_medical_insurance"/>
+                    <div class="o_row">
+                        <field name="l10n_in_medical_insurance" class="o_hr_narrow_field"/>
+                        <span>/ person</span>
+                    </div>
+                    <field name="l10n_in_insured_spouse" string="Insured Spouse"
+                        invisible="not l10n_in_medical_insurance"/>
+                    <field name="l10n_in_insured_first_children" invisible="not l10n_in_medical_insurance"/>
+                    <field name="l10n_in_insured_second_children" invisible="not l10n_in_medical_insurance"/>
+                    <field name="l10n_in_medical_insurance_total" invisible="not l10n_in_medical_insurance"/>
+                </group>
+                <group string="Provident Fund (PF) contribution"
+                    invisible="country_code != 'IN' or not l10n_in_provident_fund">
+                    <label for="l10n_in_pf_employee_amount"/>
+                    <div class="o_row">
+                        <field name="l10n_in_pf_employee_amount" string="Employee" class="o_hr_narrow_field"/>
+                        <span>/</span>
+                        <field name="schedule_pay" readonly="1"></field>
+                        <field name="l10n_in_pf_employee_percentage" widget="percentage"
+                            class="o_hr_narrow_field ms-4" groups="base.group_no_one"/>
+                    </div>
+                    <field name="l10n_in_pf_employee_type" string='Contribution'/>
+                    <label for="l10n_in_pf_employer_amount"/>
+                    <div class="o_row">
+                        <field name="l10n_in_pf_employer_amount" class="o_hr_narrow_field"/>
+                        <span>/</span>
+                        <field name="schedule_pay" readonly="1"></field>
+                        <field name="l10n_in_pf_employer_percentage" widget="percentage"
+                            class="o_hr_narrow_field ms-4" groups="base.group_no_one"/>
+                    </div>
+                    <field name="l10n_in_pf_employer_type" string='Contribution'/>
+                </group>
+                <group string="ESIC (Employee State Insurance)" invisible="country_code != 'IN' or not l10n_in_esic">
+                    <label for="l10n_in_esic_employee_amount"/>
+                    <div class="o_row">
+                        <field name="l10n_in_esic_employee_amount" string='Employee' class="o_hr_narrow_field"/>
+                        <span>/</span>
+                        <field name="schedule_pay" readonly="1"></field>
+                        <field name="l10n_in_esic_employee_percentage" widget="percentage"
+                            class="o_hr_narrow_field ms-4"/>
+                    </div>
+                    <label for="l10n_in_esic_employer_amount"/>
+                    <div class="o_row">
+                        <field name="l10n_in_esic_employer_amount" string='Employer' class="o_hr_narrow_field"/>
+                        <span>/</span>
+                        <field name="schedule_pay" readonly="1"></field>
+                        <field name="l10n_in_esic_employer_percentage" widget="percentage"
+                            class="o_hr_narrow_field ms-4"/>
+                    </div>
+                </group>
+                <group string="Tax Deductions" invisible="country_code != 'IN' or not l10n_in_pt">
+                    <field name="pt_rule_parameter_id" domain="[('code', 'ilike', 'l10n_in_pt_')]"
+                        options="{'no_open': True, 'no_create': True}"/>
+                    <field name="l10n_in_professional_tax_deduction_cycle" invisible="not l10n_in_pt"/>
+                </group>
+                <group string="TDS Deduction" invisible="country_code != 'IN'">
+                    <field name="l10n_in_tds_deduction_cycle" string="Deduction Cycle"/>
+                </group>
+                <group string="Other Sources of Income" invisible="country_code != 'IN'">
+                    <field name="l10n_in_income_from_other_sources" class="o_hr_narrow_field"/>
+                    <field name="l10n_in_income_let_out_property" class="o_hr_narrow_field"/>
+                    <field name="l10n_in_interest_fd_deposit" class="o_hr_narrow_field"/>
+                    <field name="l10n_in_interest_national_savings" class="o_hr_narrow_field"/>
+                </group>
+                <group string="Other Exemption Allowance" invisible="country_code != 'IN'">
+                    <field name="l10n_in_conveyance_allowance" class="o_hr_narrow_field"/>
+                    <field name="l10n_in_contribution_nps" class="o_hr_narrow_field"/>
+                </group>
+                <group string="Tax from Previous Employment" invisible="country_code != 'IN'">
+                    <field name="l10n_in_income_previous_employment" class="o_hr_narrow_field"/>
+                    <field name="l10n_in_tax_paid_previous_employer" class="o_hr_narrow_field"/>
+                </group>
+                <group string="Other Deductions" invisible="country_code != 'IN'">
+                    <label for="l10n_in_gratuity"/>
+                    <div class="o_row">
+                        <field name="l10n_in_gratuity" class="o_hr_narrow_field"/>
+                        <span>/</span>
+                        <field name="schedule_pay" readonly="1"></field>
+                        <field name="l10n_in_gratuity_percentage" widget="percentage"
+                            class="o_hr_narrow_field ms-4"/>
+                    </div>
+                </group>
+                <group string="Labour Welfare Fund (LWF)"
+                    invisible="country_code != 'IN' or not l10n_in_labour_welfare">
+                    <field name="l10n_in_lwf_employee_contribution" string="Employee" class="o_hr_narrow_field"/>
+                    <field name="l10n_in_lwf_employer_contribution" string="Employer" class="o_hr_narrow_field"/>
+                    <field name="l10n_in_lwf_deduction_cycle" string="Deduction Cycle" class="o_hr_narrow_field"/>
+                </group>
+            </group>
+        </field>
+    </record>
+
+</odoo>

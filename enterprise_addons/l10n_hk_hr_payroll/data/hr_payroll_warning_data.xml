@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="hr_payroll_warning_empf_unregistered_employee" model="hr.payroll.warning">
+            <field name="name">Missing MPF Registration</field>
+            <field name="country_id" ref="base.hk"/>
+            <field name="model_id" ref="hr_payroll.model_hr_employee"/>
+            <field name="warning_type">domain</field>
+            <field name="warning_domain">[('l10n_hk_mpf_registration_status', '=', False)]</field>
+        </record>
+
+        <record id="hr_payroll_warning_empf_unreported_slips" model="hr.payroll.warning">
+            <field name="name">Validated Payslip Not Reported To eMPF</field>
+            <field name="country_id" ref="base.hk"/>
+            <field name="warning_color_class">warning</field>
+            <field name="evaluation_code">
+# Only display the warning during the contribution period for the previous month (until the 10 of this month)
+is_contribution_period = 1 &lt;= date.today().day &lt;= 10
+if is_contribution_period:
+    hk_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'HK')
+    validated_payslips_without_report_line = self.env['hr.payslip'].search([
+        ('state', 'in', ['validated', 'paid']),
+        ('company_id', 'in', hk_companies.ids),
+        ('l10n_hk_contribution_line_id', '=', False),
+        ('date_from', '&gt;=', date.today() - relativedelta(months=1, day=1)),
+        ('date_to', '&lt;=', date.today() - relativedelta(months=1, day=31)),
+    ])
+    if validated_payslips_without_report_line:
+        warning_records = validated_payslips_without_report_line
+        warning_deadline = date.today() + relativedelta(day=10)  # Fixed to the 10th of this month
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_468_rule_meeting" model="hr.payroll.warning">
+            <field name="name">Non-continuous employees meeting 468 rule</field>
+            <field name="description">The total working hours of non-continuous employees is required to check for 468 rule.</field>
+            <field name="country_id" ref="base.hk"/>
+            <field name="warning_color_class">warning</field>
+            <field name="block_payslips" eval="False"/>
+            <field name="button_name">Review Records</field>
+            <field name="evaluation_code">
+approach_employees, _met = self.env['hr.employee']._l10n_hk_get_468_rule_employees()
+if approach_employees:
+    warning_records = approach_employees
+    warning_deadline = date.today()  # This warning is always a 'Today' thing.
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_468_rule_met" model="hr.payroll.warning">
+            <field name="name">Non-continuous employees met 468 rule</field>
+            <field name="description">The total working hours of non-continuous employees is over 468 rule, update employee type to follow 468 rule.</field>
+            <field name="country_id" ref="base.hk"/>
+            <field name="warning_color_class">danger</field>
+            <field name="block_payslips" eval="False"/>
+            <field name="button_name">Review Records</field>
+            <field name="evaluation_code">
+_approach, met_employees = self.env['hr.employee']._l10n_hk_get_468_rule_employees()
+if met_employees:
+    warning_records = met_employees
+    warning_deadline = date.today()  # This warning is always a 'Today' thing.
+            </field>
+        </record>
+
+        <record id="hr_payroll_warning_non_valid_running_rental" model="hr.payroll.warning">
+            <field name="name">Expired or Missing Rental Valid Up To Date</field>
+            <field name="description">Some draft payslips have a reimbursement rental whose 'Valid Up To' date is missing or expired.</field>
+            <field name="country_id" ref="base.hk"/>
+            <field name="warning_color_class">warning</field>
+            <field name="display_on_dashboard" eval="False"/>
+            <field name="display_on_model" eval="True"/>
+            <field name="model_id" ref="l10n_hk_hr_payroll.model_hr_payslip"/>
+            <field name="warning_type">python</field>
+            <field name="evaluation_code">
+hk_companies = self.env.companies.filtered(lambda c: c.country_id.code == 'HK')
+payslips = self.env['hr.payslip'].search([
+    ('id', 'in', active_ids),
+    ('company_id', 'in', hk_companies.ids),
+    ('state', '=', 'draft'),
+    ('l10n_hk_rental_id', '!=', False),
+    ('l10n_hk_rental_id.lease_type', '=', 'reimbursement'),
+])
+
+warning_records = self.env['hr.payslip']
+warning_details = defaultdict(list)
+for payslip in payslips:
+    rental = payslip.l10n_hk_rental_id
+    valid_rental = rental.valid_up_to_date and rental.valid_up_to_date &gt;= payslip.date_from
+    if not valid_rental and not payslip._get_input_line_amount('HRA_MANUAL'):
+        warning_records |= payslip
+        warning_details[payslip].append({
+            'message': _get_payroll_translation("The employee rental's 'Valid Up To' date is missing or expired."),
+            'level': 'warning',
+            'action_text': _get_payroll_translation('Rental'),
+            'action': rental._get_records_action(),
+        })
+            </field>
+        </record>
+    </data>
+</odoo>

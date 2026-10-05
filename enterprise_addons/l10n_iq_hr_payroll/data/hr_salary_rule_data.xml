@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_iq_regular_pay_basic" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_iq_hr_payroll.l10n_iq_category_fixed_wage')])]"/>
+        <field name="name">Basic Salary</field>
+        <field name="sequence">1</field>
+        <field name="code">BASIC</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['BASIC']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_iq_hr_payroll.l10n_iq_regular_pay'),
+        ])]"/>
+        <field name="country_id" ref="base.iq"/>
+    </record>
+
+    <record id="l10n_iq_regular_pay_bonus" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+        <field name="name">Bonus</field>
+        <field name="code">BONUS</field>
+        <field name="sequence">2</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = (inputs['BONUS'].amount if 'BONUS' in inputs else 0.0)</field>
+        <field name="input_section" ref="hr_payroll.default_salary_rule_section"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_iq_hr_payroll.l10n_iq_regular_pay'),
+        ])]"/>
+        <field name="country_id" ref="base.iq"/>
+    </record>
+
+    <record id="l10n_iq_regular_pay_other_allowance" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW'), ref('l10n_iq_hr_payroll.l10n_iq_category_fixed_wage')])]"/>
+        <field name="name">Other Allowance</field>
+        <field name="code">OTHER_ALLOWANCE</field>
+        <field name="sequence">2</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+un_paid_days = sum(line.number_of_days for line in payslip.worked_days_line_ids if not line.is_paid)
+total_days = sum(worked_days[worked_day].number_of_days for worked_day in worked_days)
+result_qty = (total_days - un_paid_days) / total_days if total_days else 0
+result = (inputs['OTHER_ALLOWANCE'].amount if 'OTHER_ALLOWANCE' in inputs else 0.0)
+        </field>
+        <field name="input_section" ref="hr_payroll.default_salary_rule_section"/>
+        <field name="input_usage_payslip" eval="False"/>
+        <field name="input_usage_employee" eval="True"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_iq_hr_payroll.l10n_iq_regular_pay'),
+        ])]"/>
+        <field name="country_id" ref="base.iq"/>
+    </record>
+
+    <record id="l10n_iq_regular_pay_expenses" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+        <field name="name">Expenses Reimbursement </field>
+        <field name="code">EXPENSES</field>
+        <field name="sequence">2</field>
+        <field name="condition_select">property_input</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = (inputs['EXPENSES'].amount if 'EXPENSES' in inputs else 0.0)</field>
+        <field name="appears_on_payslip">non_zero</field>
+        <field name="input_section" ref="hr_payroll.default_salary_rule_section"/>
+        <field name="input_usage_payslip" eval="True"/>
+        <field name="input_usage_employee" eval="False"/>
+        <field name="input_default_value" eval="0.0"/>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_iq_hr_payroll.l10n_iq_regular_pay'),
+        ])]"/>
+        <field name="country_id" ref="base.iq"/>
+    </record>
+
+    <record id="l10n_iq_regular_pay_gross" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.GROSS')])]"/>
+        <field name="name">Taxable Salary</field>
+        <field name="sequence">100</field>
+        <field name="code">GROSS</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['BASIC'] + categories['ALW']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_iq_hr_payroll.l10n_iq_regular_pay'),
+        ])]"/>
+        <field name="country_id" ref="base.iq"/>
+    </record>
+
+    <record id="l10n_iq_regular_pay_sspc_employee_contribution" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.DED'), ref('hr_payroll.COMP')])]"/>
+        <field name="name">SSPC Employee Contribution</field>
+        <field name="sequence">100</field>
+        <field name="code">SSPC_EMPLOYEE</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+base = payslip._get_sspc_contribution_base()
+if base:
+    result = base
+    un_paid_days = sum(line.number_of_days for line in payslip.worked_days_line_ids if not line.is_paid)
+    total_days = sum(worked_days[worked_day].number_of_days for worked_day in worked_days)
+    result_qty = (total_days - un_paid_days) / total_days if total_days else 0
+else:
+    result = categories['FW']
+
+result_rate =  -1 * payslip._rule_parameter('l10n_iq_sspc_employee_contribution') * 100
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_iq_hr_payroll.l10n_iq_regular_pay'),
+        ])]"/>
+        <field name="country_id" ref="base.iq"/>
+    </record>
+
+    <record id="l10n_iq_regular_pay_sspc_employer_contribution" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.COMP')])]"/>
+        <field name="name">SSPC Employer Contribution</field>
+        <field name="sequence">100</field>
+        <field name="code">SSPC_EMPLOYER</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+base = payslip._get_sspc_contribution_base()
+if base:
+    result = base
+    un_paid_days = sum(line.number_of_days for line in payslip.worked_days_line_ids if not line.is_paid)
+    total_days = sum(worked_days[worked_day].number_of_days for worked_day in worked_days)
+    result_qty = (total_days - un_paid_days) / total_days if total_days else 0
+else:
+    result = categories['FW']
+
+rate = 0
+if employee.company_id.l10n_iq_is_oil_and_gas_company:
+    rate = payslip._rule_parameter('l10n_iq_sspc_oil_and_gas_employer_contribution')
+else:
+    rate = payslip._rule_parameter('l10n_iq_sspc_non_oil_and_gas_employer_contribution')
+    if employee.country_id.code != 'IQ':
+        rate += payslip._rule_parameter('l10n_iq_sspc_non_oil_and_gas_non_iraqi_additional_employer_contribution')
+
+result_rate = -1 * rate * 100
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_iq_hr_payroll.l10n_iq_regular_pay'),
+        ])]"/>
+        <field name="country_id" ref="base.iq"/>
+    </record>
+
+    <record id="l10n_iq_regular_pay_end_of_service_provision" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_iq_hr_payroll.l10n_iq_category_company_provision')])]"/>
+        <field name="name">End of Service Provision</field>
+        <field name="sequence">150</field>
+        <field name="code">EOSP</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+result = not employee.departure_date or (employee.departure_date and employee.departure_date &gt; payslip.date_to)
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = payslip._get_contract_wage() / 2
+result_rate = (1 / 12) * 100
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_iq_hr_payroll.l10n_iq_regular_pay'),
+        ])]"/>
+        <field name="country_id" ref="base.iq"/>
+    </record>
+
+    <record id="l10n_iq_regular_pay_end_of_service_benefit" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+        <field name="name">End of Service Benefit</field>
+        <field name="sequence">150</field>
+        <field name="code">EOSB</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+result = employee.departure_reason_id and employee.departure_reason_id.l10n_iq_reason_type == 'contract_terminated'\
+    and payslip.date_from &lt;= employee.departure_date &lt;= payslip.date_to
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+unpaid_worked_days = sum(payslip.env['hr.payslip.worked_days'].search([
+    ('payslip_id', 'any', [('employee_id', '=', employee.id)]),
+    ('is_paid', '=', False),
+]).mapped('number_of_days'))
+delta = relativedelta(payslip.date_from, employee.first_contract_date)
+result = payslip._get_contract_wage()
+result_rate = (1 / 2) * 100
+result_qty = delta.years + (delta.months / 12) + (delta.days / 365) - (unpaid_worked_days / 365)
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_iq_hr_payroll.l10n_iq_regular_pay'),
+        ])]"/>
+        <field name="country_id" ref="base.iq"/>
+    </record>
+
+    <record id="l10n_iq_regular_pay_annual_leave_provision" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_iq_hr_payroll.l10n_iq_category_company_provision')])]"/>
+        <field name="name">Annual leave Provision</field>
+        <field name="sequence">150</field>
+        <field name="code">ANNUAL_LEAVE_PROVISION</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+count_worked_days = sum(worked_days[worked_day].number_of_days for worked_day in worked_days)
+result = payslip._get_contract_wage()
+result_rate = (1 / count_worked_days) * 100
+result_qty = version.l10n_iq_annual_leave_provision_eligibility / 12
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_iq_hr_payroll.l10n_iq_regular_pay'),
+        ])]"/>
+        <field name="country_id" ref="base.iq"/>
+    </record>
+
+    <record id="l10n_iq_regular_pay_annual_leave_provision_payout" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_iq_hr_payroll.l10n_iq_category_provision_payout')])]"/>
+        <field name="name">Annual leave Provision Payout</field>
+        <field name="sequence">150</field>
+        <field name="code">ANNUAL_LEAVE_PPAYOUT</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+result = '016.00' in worked_days
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = worked_days['016.00'].amount
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_iq_hr_payroll.l10n_iq_regular_pay'),
+        ])]"/>
+        <field name="country_id" ref="base.iq"/>
+    </record>
+
+    <record id="l10n_iq_regular_pay_remaining_leaves_compensation" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.ALW')])]"/>
+        <field name="name">Remaining Leaves Compensation</field>
+        <field name="sequence">150</field>
+        <field name="code">RLC</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">
+result = employee.departure_reason_id and employee.l10n_iq_remaining_annual_leave_balance\
+    and payslip.date_from &lt;= employee.departure_date &lt;= payslip.date_to
+        </field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+count_worked_days = sum(worked_days[worked_day].number_of_days for worked_day in worked_days)
+result = payslip._get_contract_wage()
+result_rate = (1 / count_worked_days) * 100
+result_qty = employee.l10n_iq_remaining_annual_leave_balance
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_iq_hr_payroll.l10n_iq_regular_pay'),
+        ])]"/>
+        <field name="country_id" ref="base.iq"/>
+    </record>
+
+    <record id="l10n_iq_regular_pay_net" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('hr_payroll.NET')])]"/>
+        <field name="name">Net Salary</field>
+        <field name="sequence">200</field>
+        <field name="code">NET</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['BASIC'] + categories['ALW'] + categories['DED']
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_iq_hr_payroll.l10n_iq_regular_pay'),
+        ])]"/>
+        <field name="country_id" ref="base.iq"/>
+    </record>
+
+    <record id="l10n_iq_regular_pay_net_cost" model="hr.salary.rule">
+        <field name="category_ids" eval="[(6, 0, [ref('l10n_iq_hr_payroll.l10n_iq_category_net_cost')])]"/>
+        <field name="name">Net Cost</field>
+        <field name="sequence">300</field>
+        <field name="code">NETCOST</field>
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
+        <field name="appears_on_payslip">never</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories['NET'] + abs(categories['COMP'])
+        </field>
+        <field name="struct_ids" eval="[(6, 0, [
+            ref('l10n_iq_hr_payroll.l10n_iq_regular_pay'),
+        ])]"/>
+        <field name="country_id" ref="base.iq"/>
+    </record>
+</odoo>
