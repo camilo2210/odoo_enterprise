@@ -1,0 +1,40 @@
+<templates>
+
+<t t-name="web_studio.SelectionValuesEditor">
+    <SelectionContentDialog
+        defaultChoices="this.selection"
+        onConfirm.bind="this.onConfirm"
+        close="this.props.cancel"
+    />
+</t>
+
+<t t-name="web_studio.RelationalFieldConfigurator" >
+    <span t-if="this.props.fieldType === 'one2many'" >Select the reciprocal ManyToOne field</span>
+    <span t-else="">Select the model in relation to this one</span>
+    <div name="relation_id">
+        <RecordSelector t-props="this.valueSelectorProps"/>
+    </div>
+</t>
+
+
+<t t-name="web_studio.FieldConfigurationDialog">
+    <t t-if="this.props.isDialog">
+        <t t-component="this.Component" t-props="this.props.componentProps" configurationModel="this.configurationModel" confirm="this.confirm" cancel="this.cancel" />
+    </t>
+    <Dialog t-else="" size="this.props.size or 'sm'" title="this.title">
+        <t t-component="this.Component" t-props="this.props.componentProps" configurationModel="this.configurationModel" />
+        <t t-set-slot="footer">
+            <button type="button" class="btn btn-primary" t-att-class="{ disabled: !this.canConfirm }" t-on-click="this.confirm">Confirm</button>
+            <button type="button" class="btn btn-secondary" t-on-click="this.cancel">Discard</button>
+        </t>
+    </Dialog>
+</t>
+
+<t t-name="web_studio.FilterConfiguration">
+    <label class="mb-4">Filter label
+        <input type="text" id="domain_label" class="o_input" t-model.proxy="this.state.filterLabel" />
+    </label>
+    <DomainSelector t-props="this.domainSelectorProps" />
+</t>
+
+</templates>

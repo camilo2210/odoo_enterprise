@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<templates>
+<t t-name="voip.History">
+    <t t-set="searchPlaceholder">Search contacts…</t>
+    <AddressBook
+        t-if="this.isSearchingContacts"
+        onContactCalled.bind="this.clearSearch"
+        onClickHistory.bind="this.onClickContactHistory"
+        onInputSearch.bind="this.onInputSearch"
+        searchPlaceholder="searchPlaceholder"
+        showPrioritizedContacts="true"
+        state="this.state"
+    />
+    <Tab
+        t-else=""
+        itemsBySection="this.callsByDate"
+        extraClass="'o-voip-History'"
+        listContextKey="this.listContextKey"
+        noEntriesMessage="this.noEntriesMessage"
+        onTabEnd="() => this.fetchRecentCalls({ offset: this.filteredCalls.length })"
+        state="this.state"
+    >
+        <t t-set-slot="top">
+            <div t-if="this.state.selectedContact" class="d-flex align-items-center gap-2 border-bottom p-2">
+                <button type="button" class="btn btn-sm btn-secondary d-flex p-2" t-att-title="this.clearSelectedContactTitle" t-att-aria-label="this.clearSelectedContactTitle" t-on-click="this.clearSelectedContact">
+                    <i class="oi" data-icon="west" aria-hidden="true"/>
+                </button>
+                <span class="flex-grow-1 text-truncate" t-out="this.selectedContactHistoryTitle"/>
+
+                <button type="button" class="btn btn-sm btn-light d-flex p-2" title="Open full history" aria-label="Open full history" t-on-click="this.openFullHistory">
+                    <i class="oi" data-icon="expand_content" aria-hidden="true"/>
+                </button>
+            </div>
+            <SearchBar t-else="" state="this.state" onInputSearch.bind="this.onInputSearch" placeholder="searchPlaceholder" trailingIcon="'expand_content'" trailingIconTitle.translate="Open full history" onTrailingIconClick.bind="this.openFullHistory"/>
+        </t>
+        <t t-set-slot="entry" t-slot-scope="slot">
+            <t t-set="call" t-value="slot.item"/>
+            <TabEntry
+                record="call"
+                contactRecord="call.partner_id"
+                phoneNumberField="'phone_number'"
+                subtitle="this.getStatusText(call)"
+                subtitleClass="this.getStatusColor(call)"
+                subtitleIcon="this.getSubtitleIcon(call)"
+                subtitleIconClass="this.getSubtitleIconClass(call)"
+                subtitleExtraIcons="this.getSubtitleExtraIcons(call)"
+                section="slot.section"
+            >
+                <t t-set-slot="extra-title">
+                    <time class="text-muted smaller text-nowrap" t-att-datetime="call.create_date" t-out="call.callDate"/>
+                </t>
+                <t t-set-slot="info">
+                    <div class="d-flex flex-column d-empty-none gap-1">
+                        <PhoneNumber t-if="call.partner_id?.voipName" number="call.phone_number" country="call.phone_country_id"/>
+                        <p t-if="call.partner_id?.parent_name" class="m-0 text-muted">
+                            <i class="oi oi-fw me-1" data-icon="business" aria-hidden="true"/>
+                            <t t-out="call.partner_id?.parent_name"/>
+                        </p>
+                    </div>
+                </t>
+                <t t-set-slot="actions">
+                    <ActionList call="call"/>
+                    <ActionButton
+                        t-if="call.partner_id and !this.state.selectedContact"
+                        name.translate="History"
+                        icon="'history'"
+                        type="'secondary'"
+                        onClick="() => this.onClickCallHistory(call)"
+                    />
+                    <ActionButton
+                        t-if="!call.activity_id"
+                        name.translate="Log"
+                        icon="'schedule'"
+                        type="'secondary'"
+                        onClick="call.logToChatter"
+                    />
+                </t>
+                <t t-set-slot="call-to-action">
+                    <ActionButton
+                        name.translate="Call"
+                        icon="'phone'" iconClass="'oi-filled'"
+                        type="'success'"
+                        onClick="() => this.onClickCall(call)"
+                    />
+                </t>
+            </TabEntry>
+        </t>
+        <t t-set-slot="no-entries">
+            <NoPhoneNumberCard
+                t-if="this.showsNoNumberCard"
+                inline="true"
+                internalCallingAvailable="this.voip.config.usesOdooProvider ? this.voip.hasInternalCallingIdentity : undefined"
+            />
+            <p t-else="" class="fs-4 m-0" t-out="this.noEntriesMessage"/>
+        </t>
+    </Tab>
+</t>
+</templates>

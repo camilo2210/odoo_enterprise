@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="stock_barcode.SuggestBatchDialog.Line">
+        <button t-attf-class="list-group-item list-group-item-action {{this.props.selected ? 'active' : ''}}"
+                t-on-click="this.onClick">
+            <div class="row">
+                <div class="col-4 text-end" t-out="this.props.picking.origin || this.props.picking.name"/>
+                <div class="col-4 text-center" t-out="this.date"/>
+                <div t-if="this.props.picking.origin" class="col-4 text-muted" t-out="this.props.picking.name"/>
+            </div>
+        </button>
+    </t>
+
+    <t t-name="stock_barcode.SuggestBatchDialog" t-inherit="web.ConfirmationDialog" t-inherit-mode="primary">
+        <xpath expr="//p" position="replace">
+            <div class="o_barcode_suggest_batch_dialog">
+                <p t-out="this.props.body" class="fw-bold"/>
+                <div class="list-group">
+                    <t t-foreach="this.props.candidates" t-as="picking" t-key="picking.id">
+                        <SuggestBatchDialogLine picking="picking"
+                                                selected="this.state.selectedPicking.id == picking.id"
+                                                onClick="this.onClickPicking.bind(this)"/>
+                    </t>
+                </div>
+            </div>
+        </xpath>
+        <xpath expr="//button" position="after">
+            <button class="btn btn-secondary"
+                t-on-click="this.onClickAddProduct"
+                data-available-offline="">
+                Add Product
+            </button>
+        </xpath>
+    </t>
+</templates>

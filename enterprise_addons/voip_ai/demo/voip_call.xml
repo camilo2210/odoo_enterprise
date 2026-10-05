@@ -1,0 +1,213 @@
+<odoo noupdate="0">
+
+    <!-- Demo Call with just transcript artifact -->
+
+    <record id="voip.voip_call_demo_outgoing_terminated" model="voip.call">
+        <field name="summary">Inventory Valuation technical support</field>
+    </record>
+
+    <record id="voip_mail_call_artifact_inventory_vtt" model="mail.call.artifact">
+        <field name="voip_call_id" ref="voip.voip_call_demo_outgoing_terminated"/>
+        <field name="is_stt" eval="True"/>
+        <field name="transcription_state">done</field>
+        <field name="start_ms">0</field>
+        <field name="end_ms">55000</field>
+        <field name="transcript">WEBVTT
+
+            00:00:00.000 --> 00:00:04.000
+            Hello, Odoo Support, how can I help you today?
+
+            00:00:05.000 --> 00:00:10.000
+            Hi, I'm having some trouble with the inventory valuation report. It doesn't seem to match my accounting.
+
+            00:00:11.000 --> 00:00:16.000
+            I see. Are you using Automated or Manual Inventory Valuation?
+
+            00:00:17.000 --> 00:00:22.000
+            We switched to Automated last month, but some old products still seem to behave differently.
+
+            00:00:23.000 --> 00:00:29.000
+            That might be because the Category settings only apply to new transactions. We should check the historical moves.
+
+            00:00:30.000 --> 00:00:35.000
+            Okay, how do I do that? Can you walk me through the steps?
+
+            00:00:36.000 --> 00:00:42.000
+            Sure. First, go to Inventory &gt; Reporting &gt; Stock Moves. We'll filter by product category and date.
+
+            00:00:43.000 --> 00:00:48.000
+            I'm there. I see a lot of 'Initial Inventory' lines from when we started.
+
+            00:00:49.000 --> 00:00:54.000
+            Exactly. Those probably didn't generate accounting entries if they were created before the switch.
+        </field>
+    </record>
+
+    <!--
+        While the registry is initializing (module install), ir.ui.view only
+        merges inherit views of modules already loaded (_filter_loaded_views).
+        This module's own inherit view is added to _init_modules only after its
+        data load, so renders performed here need load_all_views to include it.
+    -->
+    <function model="voip.call" name="update_activity_message" context="{'load_all_views': True}" eval="[[ref('voip.voip_call_demo_outgoing_terminated')]]"/>
+
+    <!-- Demo Call with both recording artifact and transcript artifact -->
+
+    <record id="voip.voip_call_demo_contact_logged" model="voip.call">
+        <field name="summary">Tracking commissions feature</field>
+    </record>
+
+    <record id="voip_mail_call_artifact_meta_media" model="mail.call.artifact">
+        <field name="voip_call_id" ref="voip.voip_call_demo_contact_logged"/>
+        <field name="is_stt" eval="False"/>
+        <field name="start_ms">0</field>
+        <field name="end_ms">21108</field>
+    </record>
+
+    <record id="ir_attachment_voip_recording_meta" model="ir.attachment">
+        <field name="name">call_recording_demo.mp3</field>
+        <field name="type">binary</field>
+        <field name="raw" type="bytes" file="voip_ai/demo/call_recording_demo.mp3"/>
+        <field name="mimetype">audio/mpeg</field>
+        <field name="res_model">mail.call.artifact</field>
+        <field name="res_id" ref="voip_mail_call_artifact_meta_media"/>
+    </record>
+
+    <record id="voip_mail_call_artifact_meta_vtt" model="mail.call.artifact">
+        <field name="voip_call_id" ref="voip.voip_call_demo_contact_logged"/>
+        <field name="is_stt" eval="True"/>
+        <field name="transcription_state">done</field>
+        <field name="start_ms">0</field>
+        <field name="end_ms">60000</field>
+        <field name="transcript">WEBVTT
+
+            00:00:00.000 --> 00:00:02.500
+            Hello, Mitchell Admin speaking. How can I help you today?
+
+            00:00:03.000 --> 00:00:06.000
+            Hi Mitchell, this is Marc Demo. I'm calling about the new Odoo 18 features.
+
+            00:00:06.500 --> 00:00:09.000
+            Excellent! We have a lot of exciting updates. What specifically are you interested in?
+
+            00:00:09.500 --> 00:00:13.000
+            I heard there's a new Call Debrief widget. Can you tell me more about how it handles transcripts?
+
+            00:00:13.500 --> 00:00:17.000
+            Absolutely. The new widget allows you to play back call recordings while simultaneously viewing the transcription.
+
+            00:00:17.500 --> 00:00:20.500
+            That sounds incredibly useful for QA. Does it highlight the text as the audio plays?
+
+            00:00:21.000 --> 00:00:24.000
+            Yes, it does! As the playhead moves, the corresponding line in the transcript is highlighted.
+
+            00:00:24.500 --> 00:00:27.500
+            And if I click on a specific sentence in the transcript, what happens?
+
+            00:00:28.000 --> 00:00:31.000
+            Clicking a line will instantly seek the audio player to that exact moment in the recording.
+
+            00:00:31.500 --> 00:00:34.500
+            Wow, that will save our support managers so much time. No more scrubbing through audio manually.
+
+            00:00:35.000 --> 00:00:38.000
+            Exactly. It also supports keyboard shortcuts, so you can navigate the transcript using the up and down arrow keys.
+
+            00:00:38.500 --> 00:00:41.000
+            Wait, really? So I can just press the down arrow and it jumps to the next sentence?
+
+            00:00:41.500 --> 00:00:44.000
+            Yes! And it will automatically scroll the transcript container to keep the active line centered on your screen.
+
+            00:00:44.500 --> 00:00:47.000
+            That auto-scroll feature... I hope it doesn't scroll the entire web page along with it?
+
+            00:00:47.500 --> 00:00:50.000
+            Don't worry, we specifically isolated the scroll behavior. Only the transcript box itself will scroll.
+
+            00:00:50.500 --> 00:00:53.000
+            That is a massive relief. The UX team really thought this through. What about the database architecture?
+
+            00:00:53.500 --> 00:00:56.000
+            We introduced a new model called `mail.call.artifact` to handle the chunking and metadata cleanly.
+
+            00:00:56.500 --> 00:00:58.000
+            Fascinating. Well, this has been incredibly informative. I think we are ready to upgrade.
+
+            00:00:58.200 --> 00:00:59.000
+            Glad to hear it! I'll send over the documentation shortly. Have a great rest of your day, Marc.
+
+            00:00:59.200 --> 00:01:00.000
+            Thanks, Mitchell. You too. Bye!
+        </field>
+    </record>
+
+    <function model="voip.call" name="update_activity_message" context="{'load_all_views': True}" eval="[[ref('voip.voip_call_demo_contact_logged')]]"/>
+
+    <record id="voip_mail_call_artifact_crm_error" model="mail.call.artifact">
+        <field name="voip_call_id" ref="voip.voip_call_demo_crm_logged"/>
+        <field name="transcription_state">error</field>
+        <field name="start_ms">0</field>
+        <field name="end_ms">15000</field>
+    </record>
+
+    <function model="voip.call" name="update_activity_message" context="{'load_all_views': True}" eval="[[ref('voip.voip_call_demo_crm_logged')]]"/>
+
+    <!-- Demo Call with transcript artifact in pending state -->
+
+    <record id="voip_mail_call_artifact_project_media" model="mail.call.artifact">
+        <field name="voip_call_id" ref="voip.voip_call_demo_project_logged"/>
+        <field name="is_stt" eval="False"/>
+        <field name="start_ms">0</field>
+        <field name="end_ms">20000</field>
+    </record>
+
+    <record id="ir_attachment_voip_recording_project_media" model="ir.attachment">
+        <field name="name">project_call_recording_demo.mp3</field>
+        <field name="type">binary</field>
+        <field name="raw" type="bytes" file="voip_ai/demo/call_recording_demo.mp3"/>
+        <field name="mimetype">audio/mpeg</field>
+        <field name="res_model">mail.call.artifact</field>
+        <field name="res_id" ref="voip_mail_call_artifact_project_media"/>
+    </record>
+
+    <record id="voip_mail_call_artifact_project_pending" model="mail.call.artifact">
+        <field name="voip_call_id" ref="voip.voip_call_demo_project_logged"/>
+        <field name="is_stt" eval="True"/>
+        <field name="transcription_state">pending</field>
+        <field name="start_ms">0</field>
+        <field name="end_ms">20000</field>
+    </record>
+
+    <record id="ir_attachment_voip_recording_project_pending_stt" model="ir.attachment">
+        <field name="name">project_call_recording_pending_stt.mp3</field>
+        <field name="type">binary</field>
+        <field name="raw" type="bytes" file="voip_ai/demo/call_recording_demo.mp3"/>
+        <field name="mimetype">audio/mpeg</field>
+        <field name="res_model">mail.call.artifact</field>
+        <field name="res_id" ref="voip_mail_call_artifact_project_pending"/>
+    </record>
+
+    <function model="voip.call" name="update_activity_message" context="{'load_all_views': True}" eval="[[ref('voip.voip_call_demo_project_logged')]]"/>
+
+    <!-- Demo Call with plaintext transcript artifact -->
+
+    <record id="voip.voip_call_demo_incoming_terminated" model="voip.call">
+        <field name="summary">Customer confirmed order, provided delivery details</field>
+    </record>
+
+    <record id="voip_mail_call_artifact_incoming_plaintext" model="mail.call.artifact">
+        <field name="voip_call_id" ref="voip.voip_call_demo_incoming_terminated"/>
+        <field name="is_stt" eval="True"/>
+        <field name="transcription_state">done</field>
+        <field name="start_ms">0</field>
+        <field name="end_ms">35000</field>
+        <field name="transcript">Hi following up on our previous discussion.
+
+How is my subscription order. I paid everything, but didn't get any confirmation. Hi, let me check. Ah yes. I see we didn't have your email in the database so it wasn't sent automatically, but your subscription is active. Cool, Thanks.</field>
+    </record>
+
+    <function model="voip.call" name="update_activity_message" context="{'load_all_views': True}" eval="[[ref('voip.voip_call_demo_incoming_terminated')]]"/>
+
+</odoo>

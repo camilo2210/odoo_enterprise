@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <div t-name="spreadsheet_edition.CollaborativeStatus" class="user-select-none d-flex align-items-center h-100">
+        <div class="o_spreadsheet_users list-group list-group-horizontal">
+            <div
+                class="o_spreadsheet_user ms-1"
+                t-foreach="this.usersThumbnail"
+                t-as="user"
+                t-key="user_index"
+            >
+                <div class="rounded justify-content-between"
+                    t-att-style="'border-color: ' + user.color"
+                    t-att-data-tooltip="this.getDataTooltip(user.name)"
+                    t-on-click="() => this.jumpToUser(user)"
+                    t-on-mouseenter="() => this.showUser(user)"
+                    t-on-mouseleave="() => this.hideUser(user)">
+                    
+                    <img t-if="user.avatar" t-att-src="user.avatar"/>
+                    <i t-else="" class="oi oi-filled d-flex align-items-center justify-content-center text-white" data-icon="person" t-att-style="'background-color: ' + user.color"/>
+                </div>
+            </div>
+        </div>
+        <div t-if="this.tooltipInfo.length"
+            class="o_spreadsheet_more_users ms-1"
+            t-on-mouseenter="this.openPopover"
+            t-on-mouseleave="this.closePopover"
+        >
+            <div style="padding-top: 0.2rem;">
+                +<t t-out="this.tooltipInfo.length"/>
+            </div>
+        </div>
+    </div>
+    <t t-name="spreadsheet_edition.SpreadsheetUsersTooltip">
+        <div class="text-start"
+            t-on-mouseenter="this.props.onMouseEnter"
+            t-on-mouseleave="this.props.onMouseLeave"
+            >
+            <div t-foreach="this.props.users" t-as="user" t-key="user_index" class="pb-1">
+                <div class="o_spreadsheet_user d-flex justify-content-between align-items-center px-1 pt-1" style="cursor:pointer;"
+                    t-on-click="() => this.props.onClick(user)"
+                    t-att-data-tooltip="this.getDataTooltip(user.name)" data-tooltip-position="right"
+                >
+                    <div class="rounded justify-content-between" t-att-style="'border-color: ' + user.color">
+                        <img t-if="user.avatar" t-att-src="user.avatar" />
+                        <i t-else="" class="oi oi-filled d-flex align-items-center justify-content-center text-white" data-icon="person" t-att-style="'background-color: ' + user.color"></i>
+                    </div>
+                    <span class="flex-grow-1 ps-1">
+                        <t t-out="user.name"/>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

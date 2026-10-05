@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="view_requirement_list" model="ir.ui.view">
+        <field name="name">voip.requirement.list</field>
+        <field name="model">voip.requirement</field>
+        <field name="arch" type="xml">
+            <list create="False" delete="False">
+                <field name="name" readonly="True"/>
+                <field name="field_type" readonly="True"/>
+                <field name="review_status" column_invisible="True"/>
+                <button type="button" icon="edit" icon_class="oi-filled text-danger" invisible="review_status not in ('required', 'not_submitted')" title="Fill requirement"/>
+                <button type="button" icon="check" icon_class="text-success" invisible="review_status != 'provided' or field_type == 'action'" title="Provided"/>
+                <button type="button" icon="schedule" icon_class="text-warning" invisible="review_status != 'under_review'" title="Under review"/>
+                <button type="button" icon="close" icon_class="text-danger" invisible="review_status != 'rejected'" title="Rejected"/>
+                <button type="button" icon="check" icon_class="text-success" invisible="review_status != 'approved'" title="Approved"/>
+                <button name="action_open_verification_url" type="object" icon="link" string="Verify" invisible="not (field_type == 'action' and bool(action_verification_url))"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_requirement_form" model="ir.ui.view">
+        <field name="name">voip.requirement.form</field>
+        <field name="model">voip.requirement</field>
+        <field name="arch" type="xml">
+            <form create="False" delete="False" edit="True" class="o_voip_requirement_form">
+                <div class="d-flex flex-column flex-lg-row gap-2">
+                    <div class="position-relative d-flex justify-content-center align-items-center flex-shrink-0">
+                        <svg class="position-absolute mh-100" viewBox="0 0 420 310">
+                            <path invisible="field_type != 'textual' or 'Service Usage' in name" d="M163.287 182.884C173.743 201.006 181.203 221.888 199.27 231.2C230.986 247.546 304.756 235.769 327.949 194.591C339.603 173.061 360.32 124.503 338.254 109.616C306.81 88.4015 240.158 118.793 224.37 65.939C219.266 48.8527 213.739 32.547 201.62 21.0024C149.489 -28.6599 57.7217 36.8212 81.5057 115.085C94.3871 157.47 140.112 152.97 163.287 182.884Z" fill="var(--primary)" fill-opacity="0.7"/>
+                            <path invisible="field_type != 'address' and (field_type != 'document' or 'Proof of Address' not in name)" d="M32.0864 165.65C34.5198 138.378 126.757 144.256 66.6761 104.696C6.5958 65.1368 104.129 -23.2507 206.725 12.9979C309.32 49.2466 352.249 14.4576 382.722 45.7237C413.196 76.9901 334.106 105.975 331.091 140.598C328.265 173.048 407.848 211.371 366.373 233.463C324.898 255.555 270.878 220.254 232.009 240.719C193.14 261.185 81.9263 284.671 46.4934 220.896C35.6685 201.412 30.1045 187.861 32.0864 165.65Z" fill="var(--primary)" fill-opacity="0.7"/>
+                            <path invisible="field_type != 'document' or 'Proof of Address' in name or 'Application Form' in name or 'Passport' in name or 'ID' in name or 'LOI' in name or 'Circular' in name or 'Liability' in name or 'Commitment' in name" d="M324.189 67.0034C392.711 73.2281 437.437 139.694 395.951 156.804C333.044 182.748 267.183 148.163 262.362 233.031C260.656 263.069 206.69 279.651 154.008 235.652C133.694 218.686 -147.005 57.5626 128.405 32.2283C218.065 23.9807 205.456 56.2176 324.189 67.0034Z" fill="var(--primary)" fill-opacity="0.7"/>
+                            <path invisible="(field_type != 'textual' or 'Service Usage' not in name) and (field_type != 'document' or ('LOI' not in name and 'Circular' not in name and 'Liability' not in name and 'Commitment' not in name))" d="M324.189 67.0034C392.711 73.2281 437.437 139.694 395.951 156.804C333.044 182.748 267.183 148.163 262.362 233.031C260.656 263.069 206.69 279.651 154.008 235.652C133.694 218.686 -147.005 57.5626 128.405 32.2283C218.065 23.9807 205.456 56.2176 324.189 67.0034Z" fill="var(--primary)" fill-opacity="0.7"/>
+                            <path invisible="field_type != 'document' or ('Passport' not in name and 'ID' not in name)" d="M191.188 18.4899C235.338 31.3657 202.099 80.9902 233.661 104.793C259.981 124.643 324.883 108.67 342.143 132.335C360.365 157.321 346.872 195.572 309.884 209.306C272.894 223.039 233.795 189.143 191.188 188.383C151.254 187.67 107.947 222.933 78.8501 205.182C50.0305 187.601 99.2349 157.994 99.312 132.335C99.3887 106.791 61.0221 82.4042 79.287 59.7717C99.9721 34.1402 150.501 6.62413 191.188 18.4899Z" fill="var(--primary)" fill-opacity="0.7"/>
+                            <path invisible="'Application Form' not in name" d="M320.346 76.1509C288.894 50.3513 272.43 80.7247 257.304 76.1509C224.25 66.1568 70.7972 -66.8761 64.8061 125.665C60.4615 265.29 296.34 254.814 335.71 220.11C372.369 187.796 351.799 101.951 320.346 76.1509Z" fill="var(--primary)" fill-opacity="0.7"/>
+                            <path invisible="field_type != 'action'" d="M196.874 222.703C129.823 286.179 81.4958 255.017 28.6509 222.703C-24.194 190.389 5.45834 104.543 50.7985 78.7435C96.1386 52.9438 119.871 83.3172 141.676 78.7435C185.295 69.5945 225.783 47.9217 266.739 25.9983L267.769 25.4471C298.133 9.19421 416.397 66.4668 419.168 128.257C421.697 184.641 411.046 223.442 373.369 222.703C336.706 221.983 257.667 165.152 196.874 222.703Z" fill="var(--primary)" fill-opacity="0.7"/>
+                        </svg>
+                        <img invisible="field_type != 'textual' or 'Service Usage' in name" class="z-1" src="/voip/static/src/img/voip_requirement_contact_info.svg" alt="Contact Information"/>
+                        <img invisible="field_type != 'address' and (field_type != 'document' or 'Proof of Address' not in name)" class="z-1" src="/voip/static/src/img/voip_requirement_address_info.svg" alt="Address Information"/>
+                        <img invisible="field_type != 'document' or 'Proof of Address' in name or 'Application Form' in name or 'Passport' in name or 'ID' in name or 'LOI' in name or 'Circular' in name or 'Liability' in name or 'Commitment' in name" class="z-1" src="/voip/static/src/img/voip_requirement_address_doc.svg" alt="Document Requirement"/>
+                        <img invisible="(field_type != 'textual' or 'Service Usage' not in name) and (field_type != 'document' or ('LOI' not in name and 'Circular' not in name and 'Liability' not in name and 'Commitment' not in name))" class="z-1" src="/voip/static/src/img/voip_requirement_letter.svg" alt="Letter Document"/>
+                        <img invisible="field_type != 'document' or ('Passport' not in name and 'ID' not in name)" class="z-1" src="/voip/static/src/img/voip_requirement_passport.svg" alt="Passport/ID Document"/>
+                        <img invisible="'Application Form' not in name" class="z-1" src="/voip/static/src/img/voip_requirement_form.svg" alt="Form Filling"/>
+                        <img invisible="field_type != 'action'" class="z-1" src="/voip/static/src/img/voip_requirement_id_verification.svg" alt="Identity Verification Action"/>
+                    </div>
+                    <div class="flex-grow-1 px-lg-4">
+                        <group invisible="not (description and field_type != 'action')">
+                            <!-- field_type is used in various checks as what we show depends on the requirement type -->
+                            <field name="field_type" readonly="True" invisible="True"/>
+                            <field name="review_status" invisible="True"/>
+                            <field name="description" nolabel="True" readonly="True"/>
+                        </group>
+                        <div class="text-muted" invisible="not (example and example != description and field_type not in ['action', 'textual'])">
+                            <strong>Example: </strong><field name="example" readonly="True"/>
+                        </div>
+                        <separator invisible="field_type != 'textual'"/>
+                        <group invisible="field_type != 'textual'">
+                            <div class="o_form_label">
+                                <field name="name" readonly="True" nolabel="True"/>
+                            </div>
+                            <field name="text_value" nolabel="True" required="field_type == 'textual'" readonly="review_status == 'approved'" options="{'placeholder_field': 'example'}"/>
+                        </group>
+                        <group invisible="field_type != 'document'" class="mt-3">
+                            <field name="document_file" nolabel="True" string="Upload Document" required="field_type == 'document'" readonly="review_status == 'approved'" widget="voip_document_dropzone"/>
+                        </group>
+                        <div invisible="field_type != 'address'" class="mt-3 border-top pt-4">
+                            <group>
+                                <field name="address_first_name" placeholder="John" readonly="review_status == 'approved'"/>
+                                <field name="address_last_name" placeholder="Doe" readonly="review_status == 'approved'"/>
+                                <field name="address_business_name" placeholder="My Company" readonly="review_status == 'approved'"/>
+                                <div class="o_horizontal_separator" colspan="2"/>
+                                <field name="address_phone" placeholder="(optional)" readonly="review_status == 'approved'"/>
+                                <div class="o_horizontal_separator" colspan="2"/>
+                                <field name="address_street" placeholder="221B Baker Street" required="field_type == 'address'" readonly="review_status == 'approved'"/>
+                                <span/>
+                                <field name="address_extended" nolabel="1" placeholder="Apt, Suite, Floor (optional)" readonly="review_status == 'approved'"/>
+                                <field name="address_city" placeholder="London" required="field_type == 'address'" readonly="review_status == 'approved'"/>
+                                <field name="address_state" placeholder="England" required="field_type == 'address'" readonly="review_status == 'approved'"/>
+                                <field name="address_postal_code" placeholder="NW1 6XE" required="field_type == 'address'" readonly="review_status == 'approved'"/>
+                                <field name="address_country_id" placeholder="United Kingdom" options="{'no_create': True, 'no_open': True}" required="field_type == 'address'" readonly="review_status == 'approved'"/>
+                            </group>
+                            <div class="alert alert-info mb-0" role="alert">
+                                Note: If you are a business only fill in your Business Name
+                            </div>
+                        </div>
+                        <div invisible="field_type != 'action' or action_verification_url" class="alert alert-info" role="alert">
+                            Please provide your name below and <strong>click “Save”</strong>. You will then be provided a <strong>URL to a third-party service</strong> to verify your identity.
+                        </div>
+                        <div invisible="field_type != 'action'">
+                            <group invisible="action_verification_url">
+                                <field name="action_first_name" placeholder="John" label="First Name" required="field_type == 'action' and not action_verification_url" readonly="review_status == 'approved'"/>
+                                <field name="action_last_name" placeholder="Doe" label="Last Name" required="field_type == 'action' and not action_verification_url" readonly="review_status == 'approved'"/>
+                            </group>
+                            <group invisible="not action_verification_url">
+                                <field name="action_verification_url" widget="url" readonly="True"/>
+                            </group>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </field>
+    </record>
+</odoo>

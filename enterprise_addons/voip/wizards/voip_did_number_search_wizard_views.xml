@@ -1,0 +1,193 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="voip_did_number_search_wizard_form" model="ir.ui.view">
+        <field name="name">voip.did.number.search.wizard.form</field>
+        <field name="model">voip.did.number.search.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="step" invisible="True"/>
+                <field name="needs_credits" invisible="True"/>
+                <field name="show_continue" invisible="True"/>
+                <field name="show_pay" invisible="True"/>
+                <field name="has_searched" invisible="True"/>
+                <field name="has_requirements" invisible="True"/>
+                <field name="has_available_types" invisible="True"/>
+                <field name="number_request" invisible="True"/>
+                <field name="number_request_uuid" invisible="True"/>
+                <field name="available_did_number_type_codes" invisible="True"/>
+                <field name="country_id_domain" invisible="True"/>
+                <sheet>
+                    <div invisible="step != 'search'">
+                        <group>
+                            <group>
+                                <field name="country_id" domain="country_id_domain" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="did_number_type" widget="filterable_selection" options="{'whitelist_fname': 'available_did_number_type_codes'}" invisible="not has_available_types" required="has_available_types"/>
+                            </group>
+                            <group>
+                                <field name="starts_with" placeholder="eg. 123"/>
+                                <field name="ends_with" placeholder="eg. 123" readonly="consecutive > 1"/>
+                                <field name="consecutive" placeholder="e.g., 10"/>
+                            </group>
+                        </group>
+                        <div class="alert alert-warning" role="alert" invisible="step != 'search' or not country_id or has_available_types">
+                            No supported number types are available for the selected country.
+                        </div>
+                    </div>
+
+                    <div invisible="step != 'search' or not has_searched">
+                        <!-- search_error is used to display the error below if there is one -->
+                        <field name="search_error" invisible="True"/>
+                        <div class="alert alert-warning" role="alert" invisible="not search_error">
+                            <field name="search_error" readonly="True" nolabel="True"/>
+                        </div>
+                        <div class="alert alert-warning" role="alert" invisible="result_line_ids or search_error">
+                            <p>No phone numbers found matching your search criteria.</p>
+                            <p class="mb-0">
+                                Try adjusting your filters and search again, or submit a request and we'll try to obtain them for you.
+                            </p>
+                        </div>
+                        <div invisible="not result_line_ids">
+                            <notebook>
+                                <page string="Available Phone Numbers">
+                                    <field name="result_line_ids" nolabel="True" widget="voip_x2many_result_line_ids">
+                                        <list create="False" delete="False" editable="bottom" no_open="True">
+                                            <field name="selected" string="" widget="boolean" width="25px"/>
+                                            <field name="phone_number" readonly="True"/>
+                                            <field name="did_number_type" string="Type" readonly="True"/>
+                                            <field name="location" readonly="True"/>
+                                            <field name="price_display" string="Price" readonly="True"/>
+                                        </list>
+                                    </field>
+                                </page>
+                            </notebook>
+                        </div>
+                    </div>
+                    <div invisible="step != 'number_request'">
+                        <group>
+                            <group>
+                                <field name="country_id" readonly="True"/>
+                                <field name="did_number_type" readonly="True"/>
+                            </group>
+                            <group>
+                                <field name="starts_with" placeholder="eg. 123"/>
+                                <field name="number_request_quantity"/>
+                            </group>
+                        </group>
+                    </div>
+                    <div class="d-flex justify-content-end align-items-center pt-2" invisible="step == 'assign_groups' or (step == 'search' and not has_searched)">
+                        <span><strong>Your credits:</strong> <field name="iap_balance_label" class="d-inline ps-1"/></span>
+                        <button name="action_refresh_balance" type="object" class="btn btn-link btn-sm px-1" icon="refresh" title="Refresh balance"/>
+                    </div>
+                    <div invisible="step != 'assign_groups'" class="d-flex flex-column flex-lg-row gap-4">
+                        <div class="d-flex justify-content-center position-relative flex-shrink-0">
+                            <svg class="position-absolute mh-100" viewBox="0 0 420 310">
+                                <path d="M213.158 0.260436C245.067 5.37703 227.222 66.862 253.358 85.8705C279.468 104.861 323.529 75.6208 347.104 97.6797C370.742 119.797 371.694 158.906 365.335 190.647C358.538 224.577 345.341 269.988 311.32 276.31C273.122 283.409 251.302 226.311 213.158 218.927C187.068 213.877 164.57 250.909 139.203 242.991C113.579 234.993 103.967 204.43 91.1489 180.845C75.2934 151.671 38.0641 118.03 56.1578 90.1893C76.2428 59.2844 130.373 89.5982 162.356 71.2785C188.245 56.449 183.698 -4.46335 213.158 0.260436Z" fill="var(--primary)" fill-opacity="0.7"/>
+                            </svg>
+                            <img class="mw-100 z-1" src="/voip/static/src/img/voip_requirements.svg" alt="List of Regulatory requirements"/>
+                        </div>
+                        <div>
+                            <p invisible="number_request">Some selected numbers require regulatory documentation. Please fill in the required information below.</p>
+                            <p invisible="not number_request">These numbers require regulatory documentation. Please fill in the required information below.</p>
+                            <group>
+                                <field name="requirement_ids" nolabel="True" readonly="True" widget="voip_x2many_requirement_ids"/>
+                            </group>
+                        </div>
+                    </div>
+                </sheet>
+
+                <footer>
+                    <button string="Search"
+                            name="action_search"
+                            type="object"
+                            class="btn-primary"
+                            invisible="step != 'search' or not has_available_types or (has_searched and not search_error)"/>
+                    <button string="Request Numbers"
+                            name="action_open_number_request"
+                            type="object"
+                            class="btn-primary"
+                            invisible="step != 'search' or not has_searched or result_line_ids or search_error"/>
+                    <button string="Buy Credits"
+                            name="action_buy_credits"
+                            type="object"
+                            class="btn-primary"
+                            icon="open_in_new"
+                            invisible="step != 'search' or not has_searched or not needs_credits or not result_line_ids"/>
+                    <button string="Search"
+                            name="action_search"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="step != 'search' or not has_available_types or not has_searched or search_error or (result_line_ids and not needs_credits)"/>
+                    <button string="Buy Credits"
+                            name="action_buy_credits"
+                            type="object"
+                            class="btn-secondary"
+                            icon="open_in_new"
+                            invisible="step != 'search' or not has_searched or not needs_credits or result_line_ids or search_error"/>
+                    <!-- Continue (numbers need regulatory info → assign_groups step).
+                         Active once a number is ticked; the greyed twin shows until then.
+                         A button's `disabled` can't be data-driven, hence the pair. -->
+                    <button name="action_next"
+                            type="object"
+                            class="btn-primary"
+                            invisible="not show_continue or not selected_count">
+                        Continue
+                    </button>
+                    <button name="action_next"
+                            type="object"
+                            class="btn-primary"
+                            disabled="disabled"
+                            invisible="not show_continue or selected_count">
+                        Continue
+                    </button>
+                    <!-- Pay (buy directly). Same active/greyed pair as Continue. -->
+                    <button name="action_purchase"
+                            type="object"
+                            class="btn-primary"
+                            invisible="not show_pay or not selected_count">
+                        <field name="pay_label"/>
+                    </button>
+                    <button name="action_purchase"
+                            type="object"
+                            class="btn-primary"
+                            disabled="disabled"
+                            invisible="not show_pay or selected_count">
+                        <field name="pay_label"/>
+                    </button>
+                    <span class="text-muted align-self-center ms-2" invisible="not show_pay or not selected_count">for the remainder of this month</span>
+                    <button name="action_confirm_groups"
+                            type="object"
+                            class="btn-primary"
+                            invisible="step != 'assign_groups' or number_request">
+                        <field name="pay_label"/>
+                    </button>
+                    <button name="action_confirm_groups"
+                            type="object"
+                            string="Continue"
+                            class="btn-primary"
+                            invisible="step != 'assign_groups' or not number_request"/>
+                    <button name="action_submit_number_request"
+                            type="object"
+                            string="Submit Request"
+                            class="btn-primary"
+                            invisible="step != 'number_request'"/>
+                    <button name="action_back"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="step == 'search'">
+                        Back
+                    </button>
+                    <span class="text-muted align-self-center ms-2" invisible="step != 'assign_groups' or number_request or not selected_count">
+                        <field name="selected_prorated_total_label" class="d-inline"/> credits now, then <field name="selected_total_credits_label" class="d-inline"/> credits/month
+                    </span>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_voip_did_number_search_wizard" model="ir.actions.act_window">
+        <field name="name">Buy a Phone Number</field>
+        <field name="res_model">voip.did.number.search.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

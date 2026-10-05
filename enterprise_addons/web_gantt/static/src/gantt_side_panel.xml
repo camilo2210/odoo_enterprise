@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="web.GanttSidePanel">
+        <t t-call="{{ this.constructor.panelTemplate }}" />
+    </t>
+
+    <t t-name="web.GanttSidePanel.Panel">
+        <div class="h-100 px-2 o_gantt_sidepanel_resize opacity-0 opacity-100-hover" t-on-click.stop.prevent="" t-on-pointerdown.stop.prevent="this._onStartResize">
+            <span class="border-start border-2 border-primary h-100 d-block"/>
+        </div>
+        <div
+            class="o_gantt_sidepanel flex-grow-0 flex-shrink-0 d-print-none overflow-x-hidden overflow-y-auto position-relative me-3"
+            t-att-style="`width: ${this.props.width}px`"
+            t-ref="this.rootRef"
+        >
+            <div
+                t-if="this.props.showUnscheduledZone"
+                class="d-flex o_gantt_unschedule_zone align-items-center justify-content-center my-3 rounded-4 pe-auto"
+            >
+                <b>Drop here to unschedule</b>
+            </div>
+            <div t-else="">
+                <h5 t-out="this.toScheduleString" class="mb-2"/>
+                <div class="d-flex flex-column">
+                    <div
+                        class="align-items-center o_event_to_schedule_draggable py-1 text-truncate"
+                        t-foreach="this.props.model.data.eventsToSchedule.records"
+                        t-as="event"
+                        t-key="event.id"
+                        t-att-data-res-id="event.id"
+                    >
+                        <i class="oi o_event_to_schedule_handle" data-icon="drag_indicator"/>
+                        <span class="cursor-pointer ps-1" t-out="event.display_name" t-att-title="event.display_name" t-on-click="() => this.props.editRecord(event.id)"/>
+                    </div>
+                </div>
+                <button t-if="this.displayLoadMoreButton" class="btn btn-link" t-on-click="() => this.props.model.loadMoreEventsToSchedule()">
+                    Load More
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

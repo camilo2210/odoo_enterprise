@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="web_cohort.CohortView.Buttons">
+    </t>
+
+    <t t-name="web_cohort.CohortView">
+        <div t-att-class="this.props.className" t-ref="this.rootRef">
+            <Layout className="this.model.useSampleModel ? 'o_view_sample_data' : ''" display="this.props.display">
+                <t t-set-slot="control-panel-buttons">
+                    <t t-call="{{ this.props.buttonTemplate }}"/>
+                </t>
+                <t t-set-slot="control-panel-additional-actions">
+                    <CogMenu/>
+                </t>
+                <t t-set-slot="control-panel-actions">
+                    <SearchBar/>
+                </t>
+                <t t-set="displayNoContent" t-value="
+                    this.props.info.noContentHelp !== false and (
+                        !this.model.hasData() or this.model.useSampleModel
+                    )"
+                />
+                <t t-if="displayNoContent">
+					<t t-if="this.props.info.noContentHelp">
+						<ActionHelper noContentHelp="this.props.info.noContentHelp"/>
+                    </t>
+                    <t t-else="" t-call="web.NoContentHelper"/>
+                </t>
+                <t t-component="this.props.Renderer" class="'o_renderer'" model="this.model" onRowClicked="(row, middleClick) => this.onRowClicked(row, middleClick)"/>
+            </Layout>
+        </div>
+    </t>
+
+</templates>

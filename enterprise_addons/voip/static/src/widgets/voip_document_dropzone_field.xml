@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<templates>
+
+    <t t-name="voip.DocumentDropzoneField">
+        <t t-if="!this.props.readonly">
+            <div t-if="this.props.record.data[this.props.name]" class="d-flex flex-column gap-2 my-2">
+                <p class="fw-bold mb-0">File Uploaded:</p>
+                <div class="d-flex justify-content-between align-items-center rounded px-3 py-2 bg-100">
+                    <span>
+                        <i class="oi oi-filled me-2 text-success" data-icon="check_circle"/>
+                        <t t-out="this.fileName"/>
+                        <t t-if="!this.fileName" t-out="'File name unknown'"/>
+                    </span>
+                    <div>
+                        <button
+                            class="btn btn-link o_clear_file_button"
+                            data-tooltip="Clear"
+                            aria-label="Clear"
+                            t-on-click="() => this.update({})"
+                        >
+                            <i class="oi oi-filled" data-icon="delete"/>
+                        </button>
+                        <button
+                            t-if="this.props.record.resId and !this.props.record.dirty"
+                            class="btn btn-link o_download_file_button align-self-end"
+                            data-tooltip="Download"
+                            aria-label="Download"
+                            t-on-click="this.onFileDownload"
+                        >
+                            <i class="oi" data-icon="download"/>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="o-Dropzone o_voip_document_dropzone d-flex flex-column align-items-center justify-content-center rounded px-4 py-5"
+                t-att-class="{ 'border-primary bg-primary bg-opacity-10': this.dragState.isDragOver }"
+                t-on-dragover="this.onDragOver"
+                t-on-dragleave="this.onDragLeave"
+                t-on-drop="this.onDrop"
+            >
+                <strong class="mb-2">
+                    <t t-if="this.props.record.data[this.props.name]">
+                        Drag and drop to replace
+                    </t>
+                    <t t-else="">
+                        Drag and drop a document
+                    </t>
+                </strong>
+                <span class="mb-2 text-muted">or</span>
+                <FileUploader
+                    acceptedFileExtensions="this.props.acceptedFileExtensions"
+                    allowedMIMETypes="this.props.allowedMIMETypes"
+                    onUploaded.bind="this.update"
+                >
+                    <t t-set-slot="toggler">
+                        <button t-if="this.props.record.data[this.props.name]" class="btn btn-primary o_select_file_button">
+                            <i class="oi me-1" data-icon="refresh"/> Upload replacement
+                        </button>
+                        <button t-else="" class="btn btn-primary">
+                            <i class="oi me-1" data-icon="cloud_upload"/> Upload Document
+                        </button>
+                    </t>
+                </FileUploader>
+            </div>
+        </t>
+        <t t-elif="this.props.record.resId and this.props.record.data[this.props.name]">
+            <a class="o_form_uri" href="#" t-on-click.prevent="this.onFileDownload">
+                <span class="oi me-2" data-icon="download"/>
+                <t t-if="this.fileName" t-out="this.fileName"/>
+            </a>
+        </t>
+    </t>
+
+</templates>

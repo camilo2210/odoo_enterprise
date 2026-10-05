@@ -1,0 +1,44 @@
+<templates>
+
+    <t t-name="web_studio.ReportEditorSidebar">
+        <ResizablePanel
+            class="'o-web-studio-report-editor-sidebar h-100 d-flex flex-column flex-shrink-0 flex-grow-0 shadow'"
+            minWidth="200"
+            initialWidth="300"
+        >
+            <div class="o-web-studio-report-editor-sidebar-header w-100 p-2 d-flex flex-shrink-0 justify-content-between overflow-auto gap-1">
+                <div class="d-flex gap-1">
+                    <t t-foreach="this.startItems()" t-as="item" t-key="item.id">
+                        <t t-component="item.component" t-props="item.props"/>
+                    </t>
+                </div>
+                <div class="d-flex gap-1">
+                    <t t-foreach="this.endItems()" t-as="item" t-key="item.id">
+                        <t t-component="item.component" t-props="item.props"/>
+                    </t>
+                </div>
+            </div>
+            <ReportNotebook className="'flex-grow-1 overflow-auto'" pages="this.pages()" icons="this.icons()" onPageUpdate="index => this.setMode(this.pages()[index].mode)"/>
+        </ResizablePanel>
+    </t>
+
+    <t t-name="web_studio.ReportEditor.Notebook" t-inherit="web.Notebook" t-inherit-mode="primary">
+        <xpath expr="//ul" position="before">
+            <div
+                class="o-web-studio-tabs-highlighter position-absolute h-100 pe-none"
+                t-attf-class="o-web-studio-tabs-highlight-{{ this.state.currentPage }}"
+                t-attf-style="width: {{ 100.0 / this.props.pages.length }}%; transform: translateX({{ this.state.currentPage * 100 }}%)"
+            />
+        </xpath>
+        <xpath expr="//li" position="attributes">
+            <attribute name="t-attf-style">width: {{ 100.0 / this.props.pages.length }}%</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('o_notebook_headers')]" position="attributes">
+            <attribute name="class" add="position-relative" separator=" "/>
+        </xpath>
+        <xpath expr="//div[hasclass('tab-pane')]" position="attributes">
+            <attribute name="class" add="d-flex flex-column overflow-y-auto gap-1" separator=" "/>
+        </xpath>
+    </t>
+
+</templates>

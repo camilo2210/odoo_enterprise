@@ -1,0 +1,77 @@
+<templates>
+
+<t t-name="web_studio.ReportEditor">
+    <div class="o-web-studio-report-editor h-100 w-100 d-flex flex-row">
+        <ReportEditorSidebar/>
+        <ReportEditorWysiwyg t-if="this.reportEditorModel.mode === 'wysiwyg'" paperFormatStyle="this.paperFormatStyle" />
+        <ReportEditorXml t-if="this.reportEditorModel.mode === 'xml'" paperFormatStyle="this.paperFormatStyle" />
+        <ReportEditorPreview t-if="this.reportEditorModel.mode === 'preview'"/>
+    </div>
+</t>
+
+<t t-name="web_studio.ReportEditor.Iframe">
+    <div class="h-100 w-100 overflow-auto position-relative" t-on-scroll="this.onContainerScroll">
+        <div class="o-web-studio-report-container shadow my-0 mx-auto my-lg-5 d-flex" t-att-style="this.paperFormatStyle">
+            <iframe t-if="!this.reportEditorModel.fullErrorDisplay" class="w-100" t-ref="this.iframeRef" t-att-srcdoc="this.iframeSource" t-key="this.iframeKey" t-att-style="this.iframeStyle" type="text/plain" t-on-load="this.onIframeLoaded"/>
+            <ErrorDisplay t-if="this.reportEditorModel.fullErrorDisplay" error="this.reportEditorModel.fullErrorDisplay" />
+        </div>
+    </div>
+</t>
+
+<t t-name="web_studio.ReportEditor.NotificationError">
+    <div>
+        Saving the report "<t t-out="this.reportName" />" failed.
+        <p>This may be due to an incorrect syntax in the edited parts.</p>
+        <p t-if="!this.recordId">This could also be due to the absence of a real record to render the report with.</p>
+        <div t-if="this.error">
+            <p>Error message: <t t-out="this.error.message" /></p>
+            <p t-if="this.error.viewError">On view (ir.ui.view): <t t-out="this.error.viewError.resIds.join(', ')" /></p>
+        </div>
+    </div>
+</t>
+
+<t t-name="web_studio.ErrorDisplay" >
+    <div class="d-flex flex-column gap-2 p-2 mw-100 o-web-studio-report-error">
+        <span>The report could not be loaded as some error occurred. Usually it means that some view inherits from another but targets a node that doesn't exist. It might be due to the mutations of the base views during the upgrade process.</span>
+        <div><span class="me-1">Error name:</span><strong t-out="this.error().name"/></div>
+        <div><span class="me-1">Error message:</span><strong t-out="this.error().message"/></div>
+        <div t-if="this.error().viewError" class="d-flex flex-column">
+            <t t-set="viewError" t-value="this.error().viewError"/>
+            <span class="fs-4">View in Error:</span>
+            <table>
+                <thead>
+                    <th>IDs</th>
+                    <th>Name</th>
+                    <th>Model</th>
+                    <th>Parent View (inherit_id)</th>
+                </thead>
+                <tbody>
+                    <td>
+                        <t t-foreach="viewError.resIds" t-as="resId" t-key="resId">
+                            <a t-att-href="this.urlFor('ir.ui.view', resId)" t-on-click.synthetic.prevent="() => this.openRecord(viewError.viewModel, resId)" t-out="resId"/>
+                            <span class="me-2">,</span>
+                        </t>
+                    </td>
+                    <td t-out="viewError.completeName" />
+                    <td>
+                        <t t-if="viewError.model" t-out="viewError.model"/><t t-else="">N/A</t>
+                    </td>
+                    <td>
+                        <t t-foreach="viewError.parentIds" t-as="resId" t-key="resId">
+                            <a t-att-href="this.urlFor('ir.ui.view', resId)" t-on-click.synthetic.prevent="() => this.openRecord(viewError.viewModel, resId)" t-out="resId"/>
+                            <span class="me-2">,</span>
+                        </t>
+                    </td>
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <button class="btn btn-primary" t-on-click="() => this.state.showTrace = !this.state.showTrace">Show Traceback</button>
+        </div>
+        <div t-if="this.state.showTrace">
+            <pre class="d-flex flex-column alert alert-info bg-100" t-out="this.error().traceback" />
+        </div>
+    </div>
+</t>
+
+</templates>

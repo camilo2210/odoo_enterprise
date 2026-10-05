@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="web_gantt.GanttController">
+        <div t-att-class="this.className" t-ref="this.rootRef">
+            <Layout className="this.model.useSampleModel ? 'o_view_sample_data' : '' + 'd-flex flex-column'" display="this.props.display">
+                <t t-set-slot="control-panel-additional-actions">
+                    <CogMenu/>
+                </t>
+                <t t-set-slot="control-panel-buttons">
+                    <t t-call="{{ this.props.buttonTemplate }}"/>
+                </t>
+                <t t-set-slot="control-panel-actions">
+                    <SearchBar toggler="this.searchBarToggler"/>
+                </t>
+                <t t-set-slot="control-panel-navigation-additional">
+                    <t t-component="this.searchBarToggler.component" t-props="this.searchBarToggler.props"/>
+                </t>
+                <t t-set-slot="default" t-slot-scope="layout">
+                    <t t-if="this.showNoContentHelp">
+						<ActionHelper noContentHelp="this.props.info.noContentHelp"/>
+                    </t>
+                    <t t-component="this.props.Renderer"
+                        class="this.model.useSampleModel ? 'o_sample_data_disabled' : ''"
+                        model="this.model"
+                        arch="this.props.arch"
+                        create.bind="this.create"
+                        openDialog.bind="this.openDialog"
+                        scrollPosition="this.props.scrollPosition"
+                        multiCreateValues="this.props.multiCreateValues"
+                        contentRef="layout.contentRef"
+                        context="this.props.context"
+                    />
+                </t>
+            </Layout>
+        </div>
+    </t>
+
+    <t t-name="web_gantt.GanttView.Buttons">
+        <button t-if="this.model.metaData.canCreate and !this.env.inDialog" class="o_gantt_button_add btn btn-primary" data-hotkey="c" t-on-click="this.onNewClicked">
+            New
+        </button>
+    </t>
+
+</templates>

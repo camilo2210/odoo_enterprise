@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates>
+    <t t-inherit="website_sale.product_availability" t-inherit-mode="extension">
+        <div id="threshold_message" position="attributes">
+            <attribute name="t-elif" add="!this.is_rental" separator=" and "/>
+        </div>
+        <xpath expr="//div[@id='threshold_message']" position="after">
+            <div id="threshold_message_renting"
+                 t-if="!(this.free_qty lte 0 and !this.cart_qty) and this.show_availability and this.free_qty lte this.available_threshold and this.is_rental"
+                 t-attf-class="availability_message_#{this.product_template} text-warning fw-bold">
+                Only <t t-out="this.free_qty"/><t t-if="this.uom_name" t-out="' ' + this.uom_name"/> still available during the selected period.
+            </div>
+        </xpath>
+        <xpath expr="//span[@id='already_in_cart_message']" position="attributes">
+            <attribute name="t-if">!this.allow_out_of_stock_order and this.show_availability and this.cart_qty and !this.is_rental</attribute>
+        </xpath>
+        <xpath expr="//span[@id='already_in_cart_message']" position="after">
+            <div id="already_in_cart_message_rental" t-if="!this.allow_out_of_stock_order and this.show_availability and this.cart_qty and this.is_rental"
+                 t-attf-class="availability_message_#{this.product_template} text-warning mt8">
+                <t t-if='!this.free_qty'>
+                    You already added all the available product in your cart during the selected period.
+                </t>
+                <t t-else=''>
+                    You already added <t t-out="this.cart_qty" /><t t-if="this.uom_name" t-out="' ' + this.uom_name"/> in your cart for the selected period.
+                </t>
+            </div>
+        </xpath>
+    </t>
+</templates>

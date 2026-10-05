@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+  <t t-name="spreadsheet_edition.CommentThreadsSidePanel">
+    <div
+      class="o-threads-side-panel"
+      tabindex="0"
+      >
+      <Section title.translate="Filter comments">
+        <Select
+          selectedValue="this.state.mode"
+          values="this.filterOptions"
+          onChange="(value) => this.state.mode = value"
+        />
+      </Section>
+      <t t-foreach="this.sheetIds" t-as="sheetId" t-key="sheetId">
+        <t t-set="threads" t-value="this.env.model.getters.getSpreadsheetThreads([sheetId])" />
+        <Section class="'d-flex gap-2 flex-column'">
+          <div class="d-flex justify-content-between">
+            <div class="o-section-title text-truncate" t-out="this.env.model.getters.getSheetName(sheetId)" />
+            <div class="text-muted text-nowrap ps-4" t-out="this.getNumberOfCommentsLabel(threads.length)" />
+          </div>
+          <div
+            t-foreach="threads"
+            t-as="thread"
+            t-key="thread.threadId"
+            class="o-thread-item border border rounded d-flex"
+            t-on-click="() => this.selectThread(thread.threadId)"
+            t-att-class="{ 'selected': thread.threadId === this.selectedThreadId }"
+            >
+            <div class="o-sp-badge badge rounded-4 d-flex align-items-center justify-content-center" t-out="this.getThreadTitle(thread.threadId)"></div>
+            <div class="d-flex align-self-center ms-auto">
+              <span
+                t-if="thread.isResolved"
+                class="oi d-flex ps-1 pe-1 resolved"
+                data-icon="check"
+                title="Resolved"
+                t-on-click="(ev) => this.openMenu(ev, thread.threadId)"
+              />
+              <span
+                class="cursor-pointer oi d-flex ps-1 pe-1 thread-menu"
+                data-icon="more_vert"
+                t-on-click="(ev) => this.openMenu(ev, thread.threadId)"
+              />
+            </div>
+          </div>
+        </Section>
+      </t>
+      <MenuPopover
+        t-if="this.menuState.isOpen"
+        anchorRect="this.menuState.anchorRect"
+        popoverPositioning="'bottom-left'"
+        menuItems="this.menuItems"
+        onClose.bind="this.closeMenu"
+      />
+    </div>
+  </t>
+</templates>

@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<templates>
+    <t t-name="web_grid.Renderer">
+        <div class="o_grid_renderer position-relative z-0" t-ref="this.rootRef">
+            <div class="o_grid_grid d-grid gap-0 border-bottom bg-view"
+                 t-attf-style="grid-template-rows: {{ this.gridTemplateRows() }}; grid-template-columns: {{ this.gridTemplateColumns() }}"
+                 t-on-mouseover.stop="this.onMouseOver"
+                 t-on-mouseout.stop="this.onMouseOut"
+            >
+                <t t-call="{{ this.subTemplates.header }}"/>
+                <t t-foreach="this.virtualRows()" t-as="row" t-key="row.id">
+                    <t t-if="row.isSection">
+                        <t t-call="{{ this.subTemplates.section }}"/>
+                    </t>
+                    <t t-else="">
+                        <t t-call="{{ this.subTemplates.row }}"/>
+                        <t t-if="this.getDisplayAddLine(row)">
+                            <t t-call="{{ this.subTemplates.addLine }}"/>
+                        </t>
+                    </t>
+                </t>
+                <t t-if="this.props.createInline and !this.props.model.hasData()" t-call="{{ this.subTemplates.addLine }}"/>
+                <t t-call="{{ this.subTemplates.footer }}"/>
+                <t t-if="this.props.options.hasBarChartTotal" t-call="{{ this.subTemplates.barChart }}"/>
+                <GridComponent
+                    t-props="this.hoveredCellProps"
+                />
+                <GridComponent
+                    t-props="this.editCellProps"
+                />
+            </div>
+        </div>
+    </t>
+    <t t-name="web_grid.Header">
+        <div class="o_grid_column_title o_grid_navigation_wrap o_grid_first_cell position-md-sticky bg-100 top-0 start-0 d-flex align-items-center gap-2 px-3 border-bottom overflow-visible"
+             t-attf-style="grid-row: {{this.rowsGap}}; grid-column: {{this.columnsGap}};">
+            <t t-call="{{ this.subTemplates.navigationButtons }}"/>
+        </div>
+        <div t-foreach="this.props.columns"
+             t-as="column"
+             t-key="column.id"
+             class="o_grid_column_title position-relative position-md-sticky top-0 d-flex align-items-center justify-content-center px-3 py-2 border-bottom bg-100"
+             t-att-data-grid-row="this.rowsGap"
+             t-att-data-grid-column="column_index + 1 + this.columnsGap"
+             t-attf-style="grid-row: {{this.rowsGap}}; grid-column: {{column_index + 1 + this.columnsGap}};"
+        >
+            <div class="position-absolute top-0 start-0 w-100 h-100"
+                 t-att-class="{
+                    'o_grid_cell_overlay_today bg-info-subtle': column.isToday,
+                    'o_grid_cell_overlay text-bg-100' : !this.getUnavailableClass(column) === 'o_grid_unavailable'
+                 }"
+                 t-attf-class="{{this.getUnavailableClass(column)}}"/>
+            <span
+                class="z-1 text-center fw-bold"
+                t-att-class="{
+                    'border-info text-info': column.isToday,
+                    'text-bg-100' : !this.getUnavailableClass(column) === 'o_grid_unavailable',
+                    'text-muted' : this.getUnavailableClass(column) === 'o_grid_unavailable'
+                }"
+                t-out="column.title"
+            />
+        </div>
+        <div t-if="!this.props.options.hideLineTotal"
+             class="o_grid_column_title o_grid_row_total o_grid_last_cell position-md-sticky top-0 end-0 d-flex align-items-center justify-content-center bg-100 px-3 py-2 border-bottom fw-bold text-center"
+             t-attf-style="grid-row: {{this.rowsGap}}; grid-column: {{this.props.columns.length + 1 + this.columnsGap}};"
+        >
+            <span class="z-1" t-out="this.measureLabel()"/>
+        </div>
+    </t>
+    <t t-name="web_grid.Section">
+        <t t-set="section" t-value="row"/>
+        <t t-set="rowPosition" t-value="this.getRowPosition(section)"/>
+        <t name="section" t-if="!section.isFake and (this.props.sections.length &gt; 1 or section.value)">
+            <div class="o_grid_section o_grid_section_title o_grid_first_cell o_grid_highlightable d-flex align-items-center ps-3 border-top bg-200 fw-bold position-relative"
+                 t-att-class="{
+                    'position-md-sticky start-0': !this.props.model.useSampleModel,
+                 }"
+                 t-att-data-grid-row="rowPosition"
+                 t-att-data-grid-column="this.columnsGap"
+                 t-attf-style="grid-row: {{rowPosition}}; grid-column: {{this.columnsGap}};"
+            >
+            <div class="o_grid_cell_overlay position-absolute top-0 start-0 w-100 h-100"/>
+                <GridComponent
+                    classNames="'z-1 text-truncate'"
+                    name="this.props.sectionField.name"
+                    model="this.props.model"
+                    row="section"
+                    t-props="this.getFieldAdditionalProps(this.props.sectionField.name)"
+                />
+            </div>
+            <div t-foreach="this.props.columns"
+                t-as="column"
+                t-key="column.id"
+                t-attf-class="o_grid_section o_grid_column_cell o_grid_highlightable position-relative d-flex align-items-center justify-content-center fw-bold {{ this.getCellColorClass(column, section) }} {{ column.isToday ? 'bg-info-subtle' : '' }}"
+                t-att-class="this.getSectionColumnsClasses(column, section)"
+                t-att-data-row="section.id"
+                t-att-data-column="column.id"
+                t-att-data-grid-row="rowPosition"
+                t-att-data-grid-column="column_index + 1 + this.columnsGap"
+                t-attf-style="grid-row: {{rowPosition}}; grid-column: {{column_index + 1 + this.columnsGap}};"
+            >
+                <div class="position-absolute top-0 start-0 w-100 h-100"
+                    t-att-class="{
+                       'o_grid_cell_overlay_today' : column.isToday,
+                       'o_grid_cell_overlay' : !column.isToday,
+                    }"
+                    t-attf-class="{{this.getUnavailableClass(column, section)}} allo"
+                />
+                <div class="o_grid_cell_readonly position-relative d-flex justify-content-center align-items-center w-100 h-100">
+                    <span class="z-1" t-att-class="this.getSectionCellsClasses(column, section)"
+                          t-out="this.formatValue(section.cells[column.id].value)"
+                    />
+                </div>
+            </div>
+            <t t-set="grandTotal" t-value="section.getGrandTotal(this.props.state.isWeekendVisible)" />
+            <div t-if="!this.props.options.hideLineTotal"
+                 class="o_grid_section o_grid_row_total o_grid_last_cell o_grid_highlightable position-relative position-md-sticky end-0 z-1 d-flex align-items-center justify-content-center px-3 py-1 border-top fw-bold bg-opacity-75 backdrop-blur"
+                 t-att-class="this.getSectionTotalRowClass(section, grandTotal)"
+                 t-att-data-grid-row="rowPosition"
+                 t-att-data-grid-column="this.props.columns.length + 1 + this.columnsGap"
+                 t-attf-style="grid-row: {{rowPosition}}; grid-column: {{this.props.columns.length + 1 + this.columnsGap}};"
+                 t-attf-data-tooltip="{{this.getSectionTotalTooltip(section, grandTotal)}}"
+            >
+                <div class="o_grid_cell_overlay_total position-absolute top-0 start-0 w-100 h-100"/>
+                <div class="position-relative d-flex align-items-center">
+                    <span t-out="this.formatValue(grandTotal)"/>
+                </div>
+            </div>
+        </t>
+    </t>
+    <t t-name="web_grid.Row">
+        <t t-set="rowPosition" t-value="this.getRowPosition(row)"/>
+        <t t-set="isEven" t-value="rowPosition % 2 !== 0"/>
+        <div name="row"
+             class="o_grid_row o_grid_row_title o_grid_first_cell o_grid_highlightable position-relative d-flex flex-column flex-md-row justify-content-center justify-content-md-start align-items-md-center border-end px-3 py-1 bg-view bg-opacity-75 backdrop-blur"
+             t-att-class="{
+                'position-md-sticky start-0': !this.props.model.useSampleModel,
+                'fst-italic': row.isAdditionalRow,
+                'opacity-25' : this.getUnavailableClass(row) === 'o_grid_unavailable'
+             }"
+             t-att-data-grid-row="rowPosition"
+             t-att-data-grid-column="this.columnsGap"
+             t-attf-style="grid-row: {{rowPosition}}; grid-column: {{this.columnsGap}};"
+        >
+            <div class="o_grid_cell_overlay position-absolute top-0 start-0 w-100 h-100"/>
+            <t t-set="rowFields" t-value="this.props.model.rowFields.map(field => field.name)"/>
+            <t t-foreach="this.props.rowFields" t-as="rowField" t-key="rowField_index">
+                <t t-set="fieldName" t-value="rowField.name"/>
+                <GridComponent
+                    t-if="row.initialRecordValues[fieldName] or rowField_index === 0"
+                    classNames="`d-flex z-1 text-truncate o_grid_field_${fieldName.replace('_id','')}${this.uiService.isSmall ? '' : ' text-nowrap'}${row.isAdditionalRow ? ' pe-1' : ''}`"
+                    name="fieldName"
+                    value="row.initialRecordValues[fieldName]"
+                    model="this.props.model"
+                    row="row"
+                    t-props="this.getFieldAdditionalProps(fieldName)"
+                />
+                <span t-if="!rowField_last and row.initialRecordValues[this.props.rowFields[rowField_index + 1].name]"
+                      class="o_grid_row_data_separator d-none d-md-inline px-2 text-300"
+                >
+                |
+                </span>
+            </t>
+        </div>
+        <div t-foreach="this.props.columns"
+             t-as="column"
+             t-key="column.id"
+             class="o_grid_row o_grid_column_cell o_grid_highlightable position-relative d-flex align-items-center justify-content-center"
+             t-att-class="this.getCellsClasses(column, row, section, isEven)"
+             t-attf-class="{{this.getUnavailableClass(column) === 'o_grid_unavailable' ? 'bg-100' : ''}} {{ column.isToday ? 'bg-info-subtle' : '' }}"
+             t-att-data-row="row.id"
+             t-att-data-column="column.id"
+             t-att-data-grid-row="rowPosition"
+             t-att-data-grid-column="column_index + 1 + this.columnsGap"
+             t-attf-style="grid-row: {{rowPosition}}; grid-column: {{column_index + 1 + this.columnsGap}};"
+             t-on-click.prevent.synthetic="this.onCellClick"
+        >
+            <div class="position-absolute top-0 start-0 w-100 h-100"
+                 t-att-class="{
+                    'o_grid_cell_overlay_today' : column.isToday,
+                    'o_grid_cell_overlay' : !column.isToday,
+                 }"
+                 t-attf-class="{{this.getUnavailableClass(column)}}"
+            />
+            <div class="o_grid_cell_readonly position-relative d-flex justify-content-center align-items-center w-100 h-100">
+                <span t-att-class="this.getCellsTextClasses(column, row)"
+                      t-out="this.formatValue(row.cells[column.id].value)"
+                />
+            </div>
+        </div>
+        <t t-set="grandTotal" t-value="row.getGrandTotal(this.props.state.isWeekendVisible)" />
+        <div t-if="!this.props.options.hideLineTotal"
+             class="o_grid_row o_grid_row_total o_grid_last_cell o_grid_highlightable position-relative position-md-sticky end-0 d-flex align-items-center justify-content-center border-start px-3 py-1 bg-opacity-75 backdrop-blur"
+             t-att-class="this.getTotalCellsTextClasses(row, grandTotal)"
+             t-att-data-grid-row="rowPosition"
+             t-att-data-grid-column="this.props.columns.length + 1 + this.columnsGap"
+             t-attf-style="grid-row: {{rowPosition}}; grid-column: {{this.props.columns.length + 1 + this.columnsGap}};"
+        >
+            <div class="o_grid_cell_overlay_total position-absolute top-0 start-0 w-100 h-100"/>
+            <span class="z-1" t-out="this.formatValue(grandTotal)"/>
+
+        </div>
+    </t>
+    <t t-name="web_grid.AddLine">
+        <t t-set="rowPosition" t-value="this.getRowPosition(row or undefined, true)"/>
+        <t t-set="isEven" t-value="rowPosition % 2 !== 0"/>
+        <div t-if="this.props.createInline"
+             class="o_grid_row o_grid_add_line o_grid_add_line_first_cell o_grid_first_cell position-md-sticky start-0 d-flex align-items-center border-end bg-view bg-opacity-75 backdrop-blur z-1"
+             t-attf-style="grid-row: {{rowPosition}}; grid-column: {{this.columnsGap}};"
+        >
+            <a class="btn btn-link px-3 o_text_overflow"
+               t-on-click="() => this.onCreateInlineClick(row?.section)"
+               data-hotkey="i">
+               <i class="oi me-1" data-icon="add_circle"/>Add a line
+            </a>
+        </div>
+        <div t-foreach="this.props.columns"
+             t-as="column"
+             t-key="column.id"
+             class="o_grid_row o_grid_add_line o_grid_column_cell position-relative"
+             t-att-class="{
+                   'o_grid_cell_today bg-info-subtle' : column.isToday,
+                   'bg-100': this.getUnavailableClass(column, row?.section) === 'o_grid_unavailable',
+                }"
+             t-att-data-grid-row="rowPosition"
+             t-att-data-grid-column="column_index + 1 + this.columnsGap"
+             t-attf-style="grid-row: {{rowPosition}}; grid-column: {{column_index + 1 + this.columnsGap}};"
+        >
+            <div class="position-absolute top-0 start-0 w-100 h-100"
+                 t-att-class="{
+                    'o_grid_cell_overlay_today' : column.isToday,
+                    'o_grid_cell_overlay' : !column.isToday,
+                 }"
+                 t-attf-class="{{this.getUnavailableClass(column, row?.section)}}"
+            />
+        </div>
+        <div class="o_grid_last_cell o_grid_add_line position-md-sticky end-0 border-start bg-view bg-opacity-75 backdrop-blur"
+             t-attf-style="grid-row: {{rowPosition}}; grid-column: {{this.props.columns.length + 1 + this.columnsGap}};"
+        ></div>
+    </t>
+    <t t-name="web_grid.Footer">
+        <t t-if="!this.props.options.hideColumnTotal">
+            <t t-set="rowPosition" t-value="this.getTotalRowPosition()"/>
+            <t t-set="isEven" t-value="rowPosition % 2 !== 0"/>
+            <div class="o_grid_first_cell border-end bg-view bg-opacity-75 backdrop-blur"
+                 t-att-class="{
+                    'z-1 position-md-sticky start-0': !this.props.model.useSampleModel,
+                 }"
+                 t-attf-style="grid-row: {{rowPosition}}; grid-column: {{this.columnsGap}};"/>
+            <t t-set="grandTotal"
+               t-value="0"
+            />
+            <div t-foreach="this.props.columns"
+                 t-as="column"
+                 t-key="column.id"
+                 class="o_grid_row o_grid_column_total o_grid_column_cell o_grid_highlightable position-relative"
+                 t-att-class="{
+                    'text-danger': column.grandTotal lt 0,
+                    'bg-info-subtle': column.isToday,
+                    'bg-100' : this.getUnavailableClass(column) === 'o_grid_unavailable'
+                 }"
+                 t-att-data-grid-row="rowPosition"
+                 t-att-data-grid-column="column_index + 1 + this.columnsGap"
+                 t-attf-style="grid-row: {{rowPosition}}; grid-column: {{column_index + 1 + this.columnsGap}};"
+            >
+                <div class="position-absolute top-0 start-0 w-100 h-100"
+                     t-att-class="{
+                        'o_grid_cell_overlay_today' : column.isToday,
+                        'o_grid_cell_overlay' : !column.isToday,
+                     }"
+                     t-attf-class="{{this.getUnavailableClass(column)}}"/>
+                <t t-set="grandTotal"
+                   t-value="grandTotal + column.grandTotal"
+                />
+                <div class="h-100 d-flex justify-content-center align-items-center z-2"
+                     t-if="column.grandTotal !== 0">
+                    <div class="o_grid_bar_chart_total_title">
+                        <span class="fs-5 fw-bolder"
+                              t-att-class="this.getColumnTotalClassNames(column)">
+                            <t t-out="this.formatValue(column.grandTotal)"/>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div t-if="!this.props.options.hideLineTotal"
+                t-att-data-grid-row="rowPosition"
+                t-att-data-grid-column="this.props.columns.length + 1 + this.columnsGap"
+                t-attf-class="o_grid_highlightable position-md-sticky end-0 o_grid_last_cell d-flex align-items-center justify-content-center px-3 fw-bolder border {{ this.getFooterTotalCellClasses(grandTotal) }}"
+                t-attf-style="grid-row: {{rowPosition}}; grid-column: {{this.props.columns.length + 1 + this.columnsGap}};"
+            >
+                <span>
+                    <t t-out="this.formatValue(grandTotal)"/>
+                </span>
+            </div>
+        </t>
+    </t>
+    <t t-name="web_grid.barChart">
+        <t t-if="!this.props.options.hideColumnTotal">
+            <t t-set="rowPosition" t-value="this.getTotalRowPosition()"/>
+            <t t-set="isEven" t-value="(rowPosition + 1) % 2 !== 0"/>
+            <div class="o_grid_row_barChart o_grid_first_cell border-end bg-view bg-opacity-75 backdrop-blur"
+                 t-att-class="{
+                    'z-1 position-md-sticky start-0': !this.props.model.useSampleModel,
+                 }"
+                 t-attf-style="grid-row: {{rowPosition + 1}}; grid-column: {{this.columnsGap}};"/>
+            <t t-set="grandTotal" t-value="0"/>
+            <div t-foreach="this.props.columns"
+                t-as="column"
+                t-key="column.id"
+                class="o_grid_row o_grid_column_total o_grid_column_cell o_grid_highlightable o_grid_bar_chart_container"
+                t-att-data-grid-row="rowPosition + 1"
+                t-att-data-grid-column="column_index + 1 + this.columnsGap"
+                t-attf-style="grid-row: {{rowPosition + 1}}; grid-column: {{column_index + 1 + this.columnsGap}};"
+            >
+                <t t-set="grandTotal" t-value="grandTotal + column.grandTotal"/>
+                <div class="h-100 position-relative"
+                     t-if="column.grandTotal !== 0">
+                    <div class="o_grid_bar_chart_total_pill position-absolute w-100 border-top border-primary border-2 bg-primary bg-opacity-50" t-if="this.props.options.hasBarChartTotal"
+                         t-att-style="this.getColumnBarChartHeightStyle(column)"
+                    >
+                    </div>
+                </div>
+            </div>
+            <div t-if="!this.props.options.hideLineTotal"
+                 class="o_grid_row o_grid_column_total o_grid_row_total o_grid_last_cell o_grid_highlightable position-md-sticky end-0 border-start bg-view bg-opacity-75 backdrop-blur"
+                 t-att-data-grid-row="rowPosition + 1"
+                 t-att-data-grid-column="this.props.columns.length + 1 + this.columnsGap"
+                 t-attf-style="grid-row: {{rowPosition + 1}}; grid-column: {{this.props.columns.length + 1 + this.columnsGap}};"
+            >
+                <div class="h-100 position-relative"
+                     t-if="grandTotal !== 0"/>
+            </div>
+        </t>
+    </t>
+    <t t-name="web_grid.NavigationButtons">
+        <div class="o_grid_navigation_buttons position-md-sticky d-flex gap-2" t-if="this.props.model.columnFieldIsDate">
+            <button class="btn btn-secondary"
+                    data-hotkey="t"
+                    type="button"
+                    t-on-click="this.onTodayButtonClick"
+            >
+                Today
+            </button>
+            <div class="btn-group">
+                <button class="btn btn-secondary"
+                        type="button"
+                        t-on-click="this.onPreviousButtonClick"
+                        data-hotkey="p"
+                >
+                    <span aria-label="Previous" class="oi" data-icon="west" role="img" title="Previous"/>
+                </button>
+                <GridScaleSelector
+                        t-if="Object.keys(this.props.ranges).length"
+                        scales="this.props.ranges"
+                        currentScale="this.props.state.activeRangeName"
+                        setScale.bind="this.onRangeClick"
+                        isWeekendVisible="this.props.state.isWeekendVisible"
+                        isWeekendButtonDisabled="this.props.model.navigationInfo.range.step != 'day'"
+                        toggleWeekendVisibility="this.props.toggleWeekendVisibility"
+                />
+                <button type="button"
+                        class="btn btn-secondary"
+                        t-on-click="this.onNextButtonClick"
+                        data-hotkey="n"
+                >
+                    <span aria-label="Next" class="oi" data-icon="east" role="img" title="Next"/>
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

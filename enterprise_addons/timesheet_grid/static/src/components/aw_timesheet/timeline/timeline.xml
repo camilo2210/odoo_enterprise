@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="timesheet_grid.TimesheetsAssistantTimeline">
+        <div class="list-group rounded mb-3">
+            <t t-set="previousWasSelected" t-value="false"/>
+            <t t-foreach="this.props.records" t-as="record" t-key="record.start">
+                <t t-if="record.type != 'afk' || this.props.showAwayTime">
+                    <t t-set="hasTakeButton" t-value="record.allow_timesheets &amp;&amp; !(record.groupKey === this.props.model.unmatchedProjectTaskKey || this.props.selectedRowsSize > 0)"/>
+                    <t t-set="hasRemoveButton" t-value="this.props.selectedRowsSize === 0"/>
+                    <button t-if="record.duration >= 0"
+                       class="o_suggestions_suggestion list-group-item list-group-item-action cursor-pointer bg-view d-flex flex-wrap flex-xl-nowrap align-items-stretch position-relative p-0 mb-2 mb-lg-0"
+                       t-att-title="record.title"
+                       t-att-class="{
+                            [this.props.getSelectionClass(record.groupKey, record.title, previousWasSelected, record.start)]: true,
+                            'o_suggestions_suggestion_no_toolbar': !(hasTakeButton || hasRemoveButton),
+                       }"
+                       t-att-aria-current="this.props.isSelected(record.groupKey, record.title, record.start)"
+                       t-on-mousedown.stop="(ev) => this.props.onMouseDown(record.groupKey, record.title, ev, record.start)"
+                       t-on-mouseenter.stop="() => this.props.onMouseEnter(record.groupKey, record.title, record.start)"
+                    >
+                        <div class="flag position-absolute end-100 h-100 bg-view rounded-start align-items-center">
+                            <i class="oi smaller" data-icon="chevron_backward" role="presentation"/>
+                        </div>
+                        <div t-if="record.formattedStart" class="o_suggestions_suggestion_start_time position-absolute top-0 end-0 pt-1 pe-2 text-muted small" style="z-index: 1;" t-out="record.formattedStart" />
+
+                        <div
+                            class="d-flex flex-column flex-xl-row flex-xl-nowrap flex-grow-1 min-w-0 gap-2 pt-2 px-2"
+                            t-att-class="hasTakeButton || hasRemoveButton ? 'pb-1 pb-xl-2' : 'pb-2'"
+                            t-attf-class="{{ record.type == 'afk' ? 'text-muted' : 'align-items-xl-baseline' }}"
+                        >
+                            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                <t t-set="icon" t-value="this.getIcon(record.type)"/>
+                                <i t-attf-class="oi oi-fw {{ icon.class ?? '' }}" t-att-data-icon="icon.icon" role="presentation"/>
+                                <time
+                                    class="o_tabular_nums fw-medium"
+                                    style="min-width: 4ch;"
+                                    t-att-datetime="(record.duration / 60).toFixed(0) + 'm'"
+                                    t-out="this.formatDuration(record.duration / 3600, { hideZeroHours: false })"
+                                />
+                            </div>
+                            <div class="d-flex flex-column min-w-0">
+                                <span
+                                    class="o_suggestions_suggestion_description w-100 min-w-0 w-xl-auto"
+                                    t-out="record.title"
+                                />
+                                <div t-if="record.type != 'afk'" class="w-100 small text-muted text-truncate">
+                                    <t t-if="record.project" t-out="record.project"/>
+                                    <em class="opacity-50" t-else="">No Project</em>
+                                    <t t-if="record.task" t-out="' / ' + record.task"/>
+                                    <em class="opacity-50" t-else=""> / No Task</em>
+                                </div>
+                            </div>
+                        </div>
+
+                        <t t-set="toolbarMobileClasses">px-3 py-2 w-100 justify-content-end gap-2</t>
+                        <t t-set="toolbarDesktopClasses">px-0 w-auto align-items-stretch</t>
+                        <div
+                            t-if="hasTakeButton || hasRemoveButton"
+                            class="o_suggestions_suggestion_toolbar d-flex"
+                            t-att-class="this.uiService.isSmall ? toolbarMobileClasses : toolbarDesktopClasses"
+                        >
+                            <button t-if="hasTakeButton"
+                                class="o_aw_btn_take btn btn-sm text-nowrap"
+                                t-on-click.stop="() => this.props.onTake(record.groupKey, record.title, record.start)"
+                                title="Take this suggestion"
+                            >
+                                Add
+                                <i class="ms-1" role="presentation"/>
+                            </button>
+                            <button class="o_aw_btn_remove btn btn-sm text-nowrap"
+                                t-on-click.stop="() => this.props.onDelete(record.groupKey, record.title, true, false, record.start)"
+                                title="Hide this suggestion"
+                            >
+                                <i class="oi" data-icon="close_small" role="presentation"/>
+                                Remove
+                            </button>
+                        </div>
+                    </button>
+                    <t t-set="previousWasSelected" t-value="this.props.isSelected(record.groupKey, record.title, record.start)"/>
+                </t>
+            </t>
+        </div>
+    </t>
+</templates>

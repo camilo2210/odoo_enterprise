@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <t t-inherit="knowledge.PermissionPanel" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o_knowledge_restriction_message')]" position="before">
+            <div t-if="this.state.isArticleLoaded" class="d-flex py-1" t-att-class="{ 'cursor-pointer': this.userIsInternalEditor }" t-on-click="this.onWebsitePublishedClick">
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between">
+                        <h4 class="knowledge_published_status_message mb-0">
+                            <t t-if="this.data.website_published">Article shared to web</t>
+                            <t t-elif="this.userIsInternalEditor">Share to web</t>
+                            <t t-else="">Article not Published</t>
+                        </h4>
+                        <div t-if="this.userIsInternalEditor" class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" t-att-checked="this.data.website_published"/>
+                        </div>
+                    </div>
+                    <div class="text-muted">
+                        <t t-if="this.data.website_published">This article and its sub-articles are public</t>
+                        <t t-elif="this.userIsInternalEditor">Publish this article and its sub-articles</t>
+                        <t t-else="">Only specific people can access</t>
+                    </div>
+                    <div class="d-flex mt-2" t-if="this.data.website_published">
+                        <CopyButton copyText.translate="Copy Link" content="this.data.article_url" iconClass="'d-none'" successText.translate="Article link copied" className="'btn-link p-0'"/>
+                    </div>
+                </div>
+            </div>
+            <hr class="mx-n3 my-3" t-if="this.state.isArticleLoaded"/>
+        </xpath>
+    </t>
+</templates>

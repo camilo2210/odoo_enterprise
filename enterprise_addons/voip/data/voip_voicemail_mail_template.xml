@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="mail_template_voicemail_message" model="mail.template">
+        <field name="name">VoIP: New Mailbox Message</field>
+        <field name="model_id" ref="model_voip_voicemail_message"/>
+        <field name="subject">New mailbox message in {{ object.voicemail_id.name }}</field>
+        <field name="email_to">{{ object.voicemail_id.email or object.voicemail_id.user_id.email }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+            <div>
+                <p>A new mailbox message was left in <t t-out="object.voicemail_id.name"/>.</p>
+                <ul>
+                    <li>
+                        <strong>Caller:</strong>
+                        <t t-if="object.caller_id_name or object.caller_id_num" t-out="object.caller_id_name or object.caller_id_num"/>
+                        <t t-else="">Unknown caller</t>
+                    </li>
+                    <li t-if="object.caller_id_name and object.caller_id_num"><strong>Phone number:</strong> <t t-out="object.caller_id_num"/></li>
+                    <li><strong>Received on:</strong> <t t-out="format_datetime(object.occurred_at)"/></li>
+                    <li><strong>Duration:</strong> <t t-out="format_duration(object.duration / 3600)"/></li>
+                </ul>
+                <p>The recording is attached to this email.</p>
+            </div>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<templates>
+<t t-name="voip.Agenda">
+    <Tab
+        itemsBySection="this.activitiesByDate"
+        extraClass="'o-voip-Agenda'"
+        state="this.state"
+        noEntriesMessage.translate="No calls scheduled for today 😎"
+        getSectionStyle="this.getSectionStyle"
+        listContextKey="this.state.searchInputValue"
+        sectionIcon="'schedule'"
+    >
+        <t t-set-slot="top">
+            <SearchBar state="this.state" onInputSearch="this.onInputSearch"/>
+        </t>
+        <t t-set-slot="entry" t-slot-scope="slot">
+            <t t-set="activity" t-value="slot.item"/>
+            <t t-set="isFolded" t-value="!activity.eq(this.voip.softphone.activeRecord)"/>
+            <TabEntry
+                record="activity"
+                contactRecord="activity.partner"
+                extraClass="this.getExtraClass(activity)"
+                subtitle="isFolded ? activity.summary || '' : activity.partner?.jobDescription || ''"
+                subtitleIcon="isFolded ? '' : 'business'"
+                subtitleIconClass="isFolded ? '' : 'oi-fw'"
+                section="slot.section"
+            >
+                <t t-set-slot="info">
+                <div class="d-flex flex-column gap-1">
+                    <div t-if="activity.summary" class="d-flex gap-1">
+                        <i class="oi oi-fw flex-shrink-0 lh-base" data-icon="format_quote"/>
+                        <p class="mb-0 text-break" t-out="activity.summary"/>
+                    </div>
+                </div>
+                </t>
+                <t t-set-slot="actions">
+                    <ActionList activity="activity"/>
+                    <Dropdown>
+                        <ActionButton name.translate="Activity" icon="'schedule'"/>
+                        <t t-set-slot="content">
+                            <div role="separator" class="dropdown-divider"/>
+                            <DropdownItem onSelected="() => this.onClickDone(activity)">
+                                <i class="oi me-2" data-icon="check" aria-hidden="true"/>
+                                <span class="text-center">Done</span>
+                            </DropdownItem>
+                            <DropdownItem onSelected="() => this.onClickEdit(activity)">
+                                <i class="oi oi-filled me-2" data-icon="edit" aria-hidden="true"/>
+                                <span class="text-center">Edit</span>
+                            </DropdownItem>
+                            <DropdownItem onSelected="() => this.onClickCancel(activity)">
+                                <i class="oi me-2" data-icon="close" aria-hidden="true"/>
+                                <span class="text-center">Cancel</span>
+                            </DropdownItem>
+                        </t>
+                    </Dropdown>
+                </t>
+                <t t-set-slot="call-to-action">
+                    <t class="o-voip-Agenda-sms-xpathTarget"/>
+                    <ActionButton
+                        name.translate="Call"
+                        icon="'phone'"
+                        iconClass="'oi-filled'"
+                        type="'success'"
+                        onClick="() => this.onClickCall(activity)"
+                    />
+                </t>
+            </TabEntry>
+        </t>
+        <t t-set-slot="no-search-results">
+            <NoSearchResults
+                icon="'schedule'"
+                noResultsMessage.translate="No call activities found"
+                actionMessage.translate="See all other activities"
+                actionCallback="() => this.openMyActivities()"
+            />
+        </t>
+    </Tab>
+</t>
+</templates>

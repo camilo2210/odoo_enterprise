@@ -1,0 +1,41 @@
+id,name,model_id,group_id/id,operation,domain
+access_hr_timesheet_merge_wizard,access_hr_timesheet_merge_wizard,hr_timesheet.merge.wizard,hr_timesheet.group_hr_timesheet_user,crud,
+access_aw_rule_timesheet_user,access.aw.rule.timesheet.user,aw.rule,hr_timesheet.group_hr_timesheet_user,c,
+aw_rule_read_user,AW Rule: User Read,aw.rule,hr_timesheet.group_hr_timesheet_user,r,"[
+                '|',
+                    ('applies_to', '=', 'everyone'),
+                '|',
+                    '&',
+                        ('applies_to', '=', 'departments'),
+                        ('department_ids', 'child_of', user.employee_id.department_id.id),
+                    '&',
+                        ('applies_to', '=', 'private'),
+                        ('create_uid', '=', user.id)
+            ]"
+aw_rule_write_user,AW Rule: User Write/Delete,aw.rule,hr_timesheet.group_hr_timesheet_user,ud,"[('applies_to', '=', 'private'), ('create_uid', '=', user.id)]"
+aw_rule_admin,AW Rule: Admin,aw.rule,hr_timesheet.group_timesheet_manager,crud,"[
+                 '|',
+                    ('applies_to', 'in', ['everyone', 'departments']),
+                    '&',
+                        ('applies_to', '=', 'private'),
+                        ('create_uid', '=', user.id)
+            ]"
+aw_rule_multi_company_ir_rule,Activity Watch Rule: multi-company,aw.rule,,crud,"[('company_id', 'in', company_ids + [False])]"
+timesheet_line_rule_user,account.analytic.line.timesheet.user,account.analytic.line,hr_timesheet.group_hr_timesheet_user,cr,"[
+                ('user_id', '=', user.id),
+                ('project_id', '!=', False),
+                '|', '|', '|',
+                    ('project_id.privacy_visibility', 'in', ['employees', 'portal']),
+                    ('project_id.allowed_internal_user_ids', 'in', user.id),
+                    ('partner_id', '=', user.partner_id.id),
+                    ('message_partner_ids', 'in', [user.partner_id.id])
+            ]"
+timesheet_line_rule_user_update-unlink,account.analytic.line.timesheet.user.update-unlink,account.analytic.line,hr_timesheet.group_hr_timesheet_user,ud,"[
+                ('user_id', '=', user.id),
+                ('validated', '=', False),
+                ('project_id', '!=', False),
+                '|', '|',
+                    ('project_id.privacy_visibility', 'in', ['employees', 'portal']),
+                    ('project_id.allowed_internal_user_ids', 'in', user.id),
+                    ('message_partner_ids', 'in', [user.partner_id.id])
+            ]"

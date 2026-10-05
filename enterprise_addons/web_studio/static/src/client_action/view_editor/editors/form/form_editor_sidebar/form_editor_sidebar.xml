@@ -1,0 +1,54 @@
+<templates>
+
+    <t t-name="web_studio.ViewEditor.FormEditorSidebar">
+        <InteractiveEditorSidebar>
+            <t t-set-slot="new" isDefault="true">
+                <ViewStructures structures="this.constructor.viewStructures" />
+                <NewFields />
+                <ExistingFields resModel="this.viewEditorModel.resModel" fields="this.viewEditorModel.fields" fieldsInArch="this.viewEditorModel.fieldsInArch"/>
+            </t>
+            <t t-set-slot="view">
+                <Property
+                    name="'create'"
+                    value="this.getActiveAction('create')"
+                    type="'boolean'"
+                    onChange.bind="this.onAttributeChanged"
+                >
+                    Can Create
+                </Property>
+                <Property
+                    name="'edit'"
+                    value="this.getActiveAction('edit')"
+                    type="'boolean'"
+                    onChange.bind="this.onAttributeChanged"
+                >
+                    Can Edit
+                </Property>
+                <Property
+                    name="'delete'"
+                    value="this.getActiveAction('delete')"
+                    type="'boolean'"
+                    onChange.bind="this.onAttributeChanged"
+                >
+                    Can Delete
+                </Property>
+                <Property
+                    t-if="this.getActiveAction('create')"
+                    name="'duplicate'"
+                    value="this.getActiveAction('duplicate')"
+                    type="'boolean'"
+                    onChange.bind="this.onCanDuplicateChanged"
+                >
+                    Can Duplicate
+                </Property>
+                <t t-call="web_studio.ViewEditor.ShowInvisibleToggler" />
+                <SidebarViewToolbox onMore="this.props.openViewInForm" canEditXml="!this.env.viewEditorModel.isEditingSubview" openDefaultValues="this.props.openDefaultValues" />
+            </t>
+
+            <t t-set-slot="properties">
+                <Properties propertiesComponents="this.propertiesComponents"/>
+            </t>
+        </InteractiveEditorSidebar>
+    </t>
+
+</templates>

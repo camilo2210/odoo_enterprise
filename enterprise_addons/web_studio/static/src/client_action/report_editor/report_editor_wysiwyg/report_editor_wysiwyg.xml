@@ -1,0 +1,80 @@
+<templates>
+
+<t t-name="web_studio.ReportEditorWysiwyg">
+  <div class="o-web-studio-report-editor-wysiwyg h-100 w-100 position-relative">
+    <ReportEditorIframe iframeSource="this.iframeSource" onIframeLoaded.bind="this.onIframeLoaded" />
+    <LocalOverlayContainer localOverlay="this.overlayRef" identifier="this.localOverlayContainerKey"/>
+  </div>
+</t>
+
+<t t-name="web_studio.ReportEditorWysiwyg.Sidebar">
+  <Record t-props="this.reportRecordProps" hooks="this.reportRecordHooks" t-slot-scope="scope">
+    <t t-set="record" t-value="scope.record" />
+
+    <OptionsContainer name.translate="Properties">
+        <t t-set-slot="header">
+            <button class="btn btn-flat" t-if="this.debugMode.isActive()" t-on-click="this.openReportFormView" title="Edit report action">
+                <i class="oi oi-filled" data-icon="settings" />
+            </button>
+        </t>
+        <div class="o_web_studio_sidebar_field o_web_studio_sidebar_text">
+            <label for="name" class="my-auto">Name</label>
+            <div>
+                <CharField name="'name'" record="record" id="'name'" />
+            </div>
+        </div>
+
+        <div class="o_web_studio_sidebar_field o_web_studio_sidebar_tags">
+            <label for="paperformat_id" class="my-auto">Format</label>
+            <div class="o_field_widget">
+                <Many2OneField record="record" name="'paperformat_id'" id="'paperformat_id'" />
+            </div>
+        </div>
+    </OptionsContainer>
+
+    <OptionsContainer name.translate="Visibility">
+        <div class="o_web_studio_sidebar_field">
+            <label class="m-0">Print Menu</label>
+            <div class="btn-group">
+                <button
+                    type="button"
+                    class="btn"
+                    t-att-class="{ active: record.data.display_in_print_menu }"
+                    t-on-click="() => record.update({ 'display_in_print_menu': true })"
+                >Visible</button>
+                <button
+                    type="button"
+                    class="btn"
+                    t-att-class="{ active: !record.data.display_in_print_menu }"
+                    t-on-click="() => record.update({ 'display_in_print_menu': false })"
+                >Hidden</button>
+            </div>
+        </div>
+
+        <div t-if="record.data.display_in_print_menu"
+            class="o_web_studio_sidebar_field o-web-studio-bordered-label position-relative h-auto">
+            <label class="h-100 d-inline-block">Condition</label>
+            <button type="button" class="btn" t-on-click="() => this.openPrintDomainEditor(record)">
+                <t t-if="record.data.domain and record.data.domain != '[]'">Edit</t>
+                <t t-else="">Set</t>
+            </button>
+        </div>
+
+        <div
+            class="o_web_studio_sidebar_field o_web_studio_sidebar_tags d-flex align-items-start">
+            <label for="group_ids">Groups</label>
+            <div class="o_field_widget o_field_many2many_tags" name="group_ids">
+                <Many2ManyTagsField id="'group_ids'" name="'group_ids'" record="record" />
+            </div>
+        </div>
+    </OptionsContainer>
+  </Record>
+
+    <OptionsContainer t-if="this.reportEditorModel.sharedReport()" name="this.reportEditorModel.sharedReport()">
+        <div>
+            <span><i class="oi text-warning" data-icon="warning"/> Changes to this shared block will affect other reports using it</span>
+        </div>
+    </OptionsContainer>
+</t>
+
+</templates>

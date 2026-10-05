@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+
+    <t t-name="timesheet_grid.TimesheetGridMyTimesheetsTotal" t-inherit="web_grid.barChart">
+        <xpath expr="//div[hasclass('o_grid_bar_chart_total_pill')]" position="after">
+            <t t-set="dailyOvertime" t-value="this.getDailyOvertime(column)"/>
+            <t t-set="value" t-value="this.props.model.workingHoursData.daily[column.value]"/>
+            <div class="d-flex position-absolute align-items-center justify-content-center w-100 h-100">
+                <span t-if="(dailyOvertime gt 0.00001 or dailyOvertime lt -0.00001) and value > 0"
+                    class="o_grid_bar_chart_overtime px-2 rounded-pill bg-white fw-bolder transition-base"
+                    t-att-class="dailyOvertime >= 0 ? 'text-success': 'text-danger'"
+                    title="Daily overtime">
+                    <t t-out="this.formatDailyOvertime(dailyOvertime)"/>
+                </span>
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('o_grid_row_total') and hasclass('o_grid_column_total')]/div" position="inside">
+            <t t-set="weeklyOvertime" t-value="this.getWeeklyOvertime()"/>
+            <div class="d-flex position-absolute align-items-center justify-content-center w-100 h-100">
+                <span t-if="weeklyOvertime gt 0.00001 or weeklyOvertime lt -0.00001"
+                    class="o_grid_bar_chart_overtime px-2 rounded-pill bg-white fw-bolder transition-base"
+                    t-att-class="weeklyOvertime > 0 ? 'text-success': 'text-danger'"
+                    title="Total overtime">
+                    <t t-out="this.formatWeeklyOvertime(weeklyOvertime)"/>
+                </span>
+            </div>
+        </xpath>
+    </t>
+
+</templates>

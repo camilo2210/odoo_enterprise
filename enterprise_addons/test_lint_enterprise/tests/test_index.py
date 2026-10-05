@@ -1,0 +1,48 @@
+from odoo.addons.test_lint.tests.test_index import BTREE_INDEX_IGNORE_MODELS, BTREE_INDEX_IGNORE_FIELDS
+
+BTREE_INDEX_IGNORE_MODELS.update([
+    'account.asset',
+    'account.batch.payment',
+    'account.return',
+    'account.return.check',
+    'account.transfer.model',
+    'appointment.type',
+    'data_cleaning.model',
+    'data_cleaning.rule',
+    'data_merge.group',
+    'data_merge.model',
+    'documents.account.folder.setting',
+    'esg.emission.factor',
+    'esg.metric',
+    'helpdesk.sla',
+    'helpdesk.sla.status',
+    'helpdesk.team',
+    'hr.appraisal.skill',
+    'hr.contract.salary.benefit',
+    'hr.payroll.structure',
+    'hr.payroll.warning',
+    'hr.referral.reward',
+    'hr.rule.parameter',
+    'l10n.be.hr.payroll.export.partena',
+    'l10n_be.273_xx',
+    'l10n_be.274_xx',
+    'l10n_be.281_10',
+    'l10n_be.281_45',
+    'l10n_be.form.325',
+    'mrp.eco',
+    'mrp.eco.approval',
+    'mrp.eco.routing.change',
+    'planning.slot.template',
+    'platform.order.entity',
+    'platform.order.provider',
+    'sign.item.type',
+    'soda.analytic.mapping',
+    'studio.approval.rule',
+    'studio.export.model',
+    'whatsapp.template',
+    'l10n_be_reports.isoc.prepayment.pay.form',
+])
+
+BTREE_INDEX_IGNORE_FIELDS.update({
+    'spreadsheet.revision.res_id': 'spreadsheet_revision_res_model_res_id_idx',  # usually accessed with `res_model` in the domain
+})

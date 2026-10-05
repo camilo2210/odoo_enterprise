@@ -1,0 +1,113 @@
+<templates>
+
+    <t t-name="web_studio.ViewEditor.ListEditorSidebar">
+        <InteractiveEditorSidebar>
+            <t t-set-slot="new" isDefault="true">
+                <NewFields />
+                <ExistingFields resModel="this.viewEditorModel.resModel" fields="this.viewEditorModel.fields" fieldsInArch="this.viewEditorModel.fieldsInArch"/>
+            </t>
+            <t t-set-slot="view">
+                <Property
+                    name="'create'"
+                    type="'boolean'"
+                    value="this.archInfo.activeActions.create === true"
+                    onChange.bind="this.onAttributeChanged"
+                >
+                    Can Create
+                </Property>
+                <Property
+                    name="'edit'"
+                    type="'boolean'"
+                    value="this.archInfo.activeActions.edit === true"
+                    onChange.bind="this.onAttributeChanged"
+                >
+                    Can Edit
+                </Property>
+                <Property
+                    name="'delete'"
+                    type="'boolean'"
+                    value="this.archInfo.activeActions.delete === true"
+                    onChange.bind="this.onAttributeChanged"
+                >
+                    Can Delete
+                </Property>
+                <Property
+                    t-if="this.archInfo.activeActions.create === true"
+                    name="'duplicate'"
+                    value="this.archInfo.activeActions.duplicate === true"
+                    type="'boolean'"
+                    onChange.bind="this.onCanDuplicateChanged"
+                >
+                    Can Duplicate
+                </Property>
+
+                <t t-call="web_studio.ViewEditor.ShowInvisibleToggler" />
+
+                <Property
+                    name="'editable'"
+                    type="'selection'"
+                    value="this.archInfo.editable or ''"
+                    onChange.bind="this.onAttributeChanged"
+                    childProps="{ choices: this.editableChoices }"
+                >
+                    When Creating Record
+                </Property>
+                <Property
+                    t-if="this.archInfo.activeActions.edit === true"
+                    name="'multi_edit'"
+                    type="'boolean'"
+                    value="this.archInfo.multiEdit === true"
+                    onChange.bind="this.onAttributeChanged"
+                >
+                    Enable Mass Editing
+                </Property>
+                <Property
+                    t-if="this.archInfo.editable"
+                    name="'open_form_view'"
+                    type="'boolean'"
+                    value="this.archInfo.openFormView === true"
+                    onChange.bind="this.onAttributeChanged"
+                >
+                    Show link to record
+                </Property>
+                <Property
+                    name="'sort_by'"
+                    type="'selection'"
+                    value="this.defaultOrder.name or null"
+                    onChange.bind="this.setSortBy"
+                    childProps="{ choices: this.sortChoices, required: false }"
+                >
+                    Sort By
+                </Property>
+                <Property
+                    t-if="this.defaultOrder.name"
+                    name="'sort_order'"
+                    type="'selection'"
+                    value="this.defaultOrder.asc ? 'asc' : 'desc'"
+                    onChange.bind="this.setOrder"
+                    childProps="{ choices: this.orderChoices }"
+                >
+                    Order
+                </Property>
+                <Property
+                    name="'default_group_by'"
+                    type="'selection'"
+                    value="this.viewEditorModel.studioViewProps.defaultGroupBy"
+                    onChange.bind="this.editDefaultGroupBy"
+                    childProps="{ choices: this.defaultGroupbyChoices, required: false, multiSelect: true }"
+                >
+                    Default Group By
+                </Property>
+                <p t-if="this.viewEditorModel.studioViewProps.defaultGroupBy.length" class="alert alert-dark fst-italic p-2 mt-3" role="alert">
+                    <small><i class="oi oi-filled me-1" data-icon="info" aria-hidden="true"/>Grouping is not applied while in Studio to allow editing.</small>
+                </p>
+                <SidebarViewToolbox onMore="this.props.openViewInForm" canEditXml="!this.viewEditorModel.isEditingSubview" openDefaultValues="this.props.openDefaultValues" />
+            </t>
+
+            <t t-set-slot="properties">
+                <Properties propertiesComponents="this.propertiesComponents"/>
+            </t>
+        </InteractiveEditorSidebar>
+    </t>
+
+</templates>

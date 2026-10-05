@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="scrap_product_selector" model="ir.ui.view">
+        <field name="name">scrap.product.selector</field>
+        <field name="model">stock.move</field>
+        <field name="priority">1000</field>
+        <field name="arch" type="xml">
+            <form class="o_barcode_line_form flex-column">
+                <div class="row mt-4 mb-4">
+                    <field name="company_id" force_save="1" invisible="1" readonly="state == 'done'"/>
+                    <field name="state" invisible="1" />
+                    <div class="col-12 d-flex align-items-baseline">
+                        <i class="oi oi-fw oi-lg me-3" data-icon="sell" title="Product"/>
+                        <field name="product_id" placeholder="Product" domain="[('id', 'in', context.get('product_ids', []))]"
+                            context="{'default_is_storable': True}"
+                            options="{'no_create': True}"
+                            required="1"
+                            readonly="state == 'done'" nolabel="1"/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 my-2 d-flex align-items-baseline">
+                        <i class="oi oi-fw oi-lg me-3" data-icon="deployed_code" title="Quantity"/>
+                        <field name="quantity" class="text-end o_qty_done_field_not_completed me-2" options="{'type': 'number'}" placeholder="Quantity" readonly="state == 'done'"/>
+                        <field name="uom_id" placeholder="Unit" groups="uom.group_uom" widget="many2one_uom"
+                            options="{'no_open': True}" readonly="1" force_save="1" />
+                    </div>
+                </div>
+                <div class="row justify-content-center justify-content-md-start">
+                    <div class="col-12 col-sm-10 col-md-8 my-2 ms-md-5 align-items-baseline"
+                        invisible="has_tracking == 'serial'">
+                        <widget name="digipad" field_to_edit="quantity" fulfilled_at="quantity"
+                            invisible="has_tracking == 'serial' and (show_lots_text or show_lots_m2o)"/>
+                    </div>
+                </div>
+                <div class="row" groups="stock.group_stock_multi_locations">
+                    <div class="col-12 my-2 d-flex align-items-baseline">
+                        <i class="oi oi-fw oi-lg me-3" data-icon="location_on" title="Source Location" />
+                        <field name="location_id" placeholder="Source Location"
+                               readonly="state == 'done'"/>
+                        <i class="oi oi-fw oi-lg me-3" data-icon="east" title="Scrap Location" />
+                        <field name="location_dest_id" placeholder="Scrap Location"
+                               readonly="state == 'done'"/>
+                    </div>
+                </div>
+                <field name="has_tracking" invisible="1"/>
+                <div class="row" groups="stock.group_production_lot" invisible="not product_id or has_tracking not in ['lot', 'serial']">
+                    <div class="col-12 my-2 d-flex align-items-baseline">
+                        <i class="oi oi-fw oi-lg me-3" data-icon="barcode" title="Serial/Lot Number"/>
+                        <field name="lot_ids" widget="many2many_tags" placeholder="Serial/Lot Number" options="{'no_open': True}"
+                               context="{'default_product_id': product_id}"
+                               readonly="state == 'done'"/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 d-flex align-items-baseline">
+                        <field name="should_replenish_scrapped" class="test-end me-3" readonly="state == 'done'"/>
+                        <span>Replenish Quantities</span>
+                    </div>
+                </div>
+                <div class="fixed-bottom">
+                    <div class="o_barcode_control d-flex justify-content-between p-2 gap-2">
+                        <button class="btn btn-secondary o_discard" special="cancel"/>
+                        <button string="Scrap" class="btn btn-primary o_save" name="action_scrap" type="object"/>
+                    </div>
+                </div>
+            </form>
+        </field>
+    </record>
+</odoo>

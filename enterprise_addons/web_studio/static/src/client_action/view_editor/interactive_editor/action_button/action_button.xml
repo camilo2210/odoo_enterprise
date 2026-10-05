@@ -1,0 +1,29 @@
+<templates>
+	<t t-name="web_studio.AddButtonAction">
+		<t t-call="web_studio.AddButton" classNames="'o-web-studio-editor--add-button-action'" onClick="this.onClick" />
+	</t>
+
+	<t t-name="web_studio.SelectionHeaderButtons">
+		<div class="d-flex justify-content-between m-2 o-ws-selection-header-buttons" >
+			<div class="d-flex align-items-center align-content-around flex-wrap gap-1" t-ref="this.buttonsContainerRef">
+				<t t-foreach="this.buttons()" t-as="button" t-key="button.id">
+					<StudioHook t-if="button_first" position="'before'" xpath="button.studioXpath" structures="this.hookId" hookId="this.hookId" />
+					<button
+						t-attf-class="btn o-web-studio-editor--element-clickable {{this.getClassName(button)}} o-draggable"
+						t-att-data-hook-id="this.hookId"
+						t-att-studioxpath="button.studioXpath"
+						t-att-data-studio-xpath="button.studioXpath"
+						t-att-data-tooltip-template="this.debugMode.isActive() ? 'views.ViewButtonTooltip' : false"
+						t-att-data-tooltip-info="this.debugMode.isActive() ? this.makeTooltipButton(button) : false"
+						t-att-data-tooltip="button.title"
+						data-tooltip-delay="1000"
+						t-on-click="() => this.env.config.onNodeClicked(button.studioXpath)"
+						t-out="button.string"
+					/>
+					<StudioHook position="'after'" xpath="button.studioXpath" structures="this.hookId" hookId="this.hookId" />
+				</t>
+				<AddButtonAction/>
+			</div>
+		</div>
+	</t>
+</templates>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <div t-name="spreadsheet_edition.RelationFilterEditorSidePanel" class="o_spreadsheet_filter_editor_side_panel" data-id="relation-filter-panel">
+        <Section title.translate="Label">
+            <TextInput
+                placeholder="this.store.labelPlaceholder"
+                class="'o_global_filter_label' + (this.store.missingLabelError ? ' o_field_invalid' : '')"
+                value="this.store.filter.label"
+                onChange.bind="this.setLabel"
+                autofocus="true"
+            />
+        </Section>
+        <t t-if="this.store.isValid">
+            <div class="o-section o_side_panel_related_model">
+                <div class="o-section-title">Related model</div>
+                <div t-att-class="this.missingModel ? 'o_field_invalid' : ''" class="mb-2">
+                    <ModelSelector
+                        value="this.store.relationModelLabel"
+                        onModelSelected.bind="this.onModelSelected"
+                    />
+                </div>
+            </div>
+            <t t-if="this.store.filter.modelName and this.store.filter.modelName !== this.store.relationModelLabel">
+                <div class="o-section">
+                    <div class="o-section-title">Default value</div>
+                    <div class="pivot_filter_input" t-if="this.store.filter.defaultValue?.ids !== 'current_user'">
+                        <GlobalFilterInput
+                            filter="this.store.filter"
+                            setGlobalFilterValue.bind="this.updateDefaultValue"
+                            updateOperator.bind="this.updateOperator"
+                            globalFilterValue="this.store.filter.defaultValue"
+                            rangesOfAllowedValues="[]"
+                        />
+                    </div>
+                    <div t-if="this.store.isResUserRelation" class="o-checkbox mt-2">
+                        <Checkbox
+                            name="'user_automatic_filter'"
+                            label.translate="Automatically filter on the current user"
+                            value="this.store.filter.defaultValue?.ids === 'current_user'"
+                            onChange.bind="this.toggleDefaultsToCurrentUser"
+                        />
+                    </div>
+                </div>
+                <Section title.translate="Possible values">
+                    <Checkbox
+                        className="'mb-1'"
+                        label.translate="Restrict values with a domain"
+                        onChange.bind="this.toggleDomainRestriction"
+                        value="this.state.domainRestriction"
+                    />
+                    <SidePanelDomain
+                        t-if="this.state.domainRestriction"
+                        resModel="this.store.filter.modelName"
+                        domain="this.store.filter.domainOfAllowedValues or '[]'"
+                        onUpdate.bind="this.onDomainUpdate"
+                    />
+                </Section>
+            </t>
+            <t t-if="this.store.shouldDisplayFieldMatching">
+                <SidePanelCollapsible isInitiallyCollapsed="!this.store.isNew" title.translate="Field matching">
+                    <t t-set-slot="content">
+                        <Section class="'pt-0'">
+                            <FilterEditorFieldMatching
+                                fieldMatchings="this.store.fieldsMatching"
+                                selectField.bind="this.store.updateFieldMatching"
+                                filterModelFieldSelectorField="(field, path) => this.store.filterModelFieldSelectorField(field, path, this.store.filter.modelName)"
+                            />
+                        </Section>
+                    </t>
+                </SidePanelCollapsible>
+            </t>
+        </t>
+        <Section t-else="1">
+            <ValidationMessages messages="[this.invalidModel]" msgType="'error'"/>
+        </Section>
+        <GlobalFilterFooter t-props="this.footerProps"/>
+    </div>
+</templates>

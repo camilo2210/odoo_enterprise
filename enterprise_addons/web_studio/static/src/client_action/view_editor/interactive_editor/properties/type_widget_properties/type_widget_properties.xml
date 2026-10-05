@@ -1,0 +1,153 @@
+<templates>
+
+<t t-name="web_studio.ViewEditor.InteractiveEditorProperties.Field.TypeWidgetProperties">
+    <t t-set="property_id" t-value="this.props.node.xpath" />
+    <Property
+        t-if="this.isField"
+        t-key="property_id + '_widget'"
+        name="'widget'"
+        type="'selection'"
+        value="this.props.node.attrs.widget || this.props.node.field.type"
+        onChange.bind="this.onChangeWidget"
+        childProps="this.widgetChoices"
+    >
+        Widget
+    </Property>
+
+    <Property
+        t-if="this.showDecoration()"
+        name="'decoration'"
+        type="'selection'"
+        onChange.bind="this.onChangeDecoration"
+        childProps="this.decorationChoices"
+        value="this.getDecorationAttribute()?.modifier"
+    >
+        Decoration
+    </Property>
+
+    <Property
+        t-if="this.showDecorationCondition()"
+        name="'decoration_condition'"
+        type="'selection'"
+        onChange.bind="this.onChangeDecorationCondition"
+        childProps="this.decorationConditionChoices"
+        value="this.getDecorationAttribute()?.value"
+    >
+        Decoration Condition
+    </Property>
+
+    <t t-foreach="this.attributes.field" t-as="attribute" t-key="property_id + '_' + attribute.name" t-if="!attribute.isSubOption">
+        <t t-call="web_studio.property.field" />
+    </t>
+    <t t-foreach="this.attributes.selection" t-as="attribute" t-key="property_id + '_' + attribute.name" t-if="!attribute.isSubOption">
+        <t t-call="web_studio.property.selection" />
+    </t>
+    <t t-foreach="this.attributes.boolean" t-as="attribute" t-key="property_id + '_' + attribute.name" t-if="!attribute.isSubOption">
+        <t t-call="web_studio.property.boolean" />
+    </t>
+    <t t-foreach="this.attributes.domain" t-as="attribute" t-key="property_id + '_' + attribute.name" t-if="!attribute.isSubOption">
+        <t t-call="web_studio.property.domain" />
+    </t>
+    <t t-foreach="this.attributes.number" t-as="attribute" t-key="property_id + '_' + attribute.name" t-if="!attribute.isSubOption">
+        <t t-call="web_studio.property.number" />
+    </t>
+    <t t-foreach="this.attributes.string" t-as="attribute" t-key="property_id + '_' + attribute.name" t-if="!attribute.isSubOption">
+        <t t-call="web_studio.property.string" />
+    </t>
+    <t t-foreach="this.attributes.digits" t-as="attribute" t-key="property_id + '_' + attribute.name" t-if="!attribute.isSubOption">
+        <t t-call="web_studio.property.digits" />
+    </t>
+</t>
+
+<t t-name="web_studio.property.subOptions">
+    <t t-if="attribute.subOptions">
+        <t t-foreach="attribute.subOptions" t-as="subOption" t-key="subOption">
+            <t t-set="subOptionObj" t-value="this.getOptionObj(subOption)" />
+            <t t-call="{{ 'web_studio.property.' + subOptionObj.type }}"
+                attribute="this.getPropertyFromOptions(subOptionObj, this.props)"/>
+        </t>
+    </t>
+</t>
+
+<t t-name="web_studio.property.defaultInput">
+    <t t-if="attribute and !attribute.isInvisible">
+        <Property
+            name="attribute.name"
+            type="attribute.type"
+            value="attribute.value"
+            onChange.bind="this.onChangeProperty"
+            tooltip="attribute.help"
+            isReadonly="attribute.isReadonly"
+            inputAttributes="{placeholder: attribute.placeholder}"
+        >
+            <t t-out="attribute.label"/>
+            <t t-set="__dummy"></t>
+        </Property>
+        <t t-call="web_studio.property.subOptions" />
+    </t>
+</t>
+<t t-name="web_studio.property.selection">
+    <t t-if="attribute and !attribute.isInvisible">
+        <Property
+            inputAttributes="{placeholder: attribute?.placeholder}"
+            name="attribute.name"
+            type="'selection'"
+            value="this.getSelectValue(attribute.value)"
+            childProps="{choices:attribute.choices, required: 'isRequired' in attribute ? attribute.isRequired : false }"
+            onChange.bind="this.onChangeProperty"
+            tooltip="attribute.help"
+            isReadonly="this.isAttributeReadonly(attribute)"
+        >
+            <t t-out="attribute.label"/>
+            <t t-set="__dummy"></t>
+        </Property>
+        <t t-call="web_studio.property.subOptions" />
+    </t>
+</t>
+<t t-name="web_studio.property.domain">
+    <t t-if="attribute and !attribute.isInvisible">
+        <Property
+            name="attribute.name"
+            type="'domain'"
+            value="attribute.value.domain"
+            onChange.bind="this.onChangeProperty"
+            childProps="{relation: attribute.value.relation}"
+            tooltip="attribute.help"
+            isReadonly="attribute.isReadonly"
+        >
+            <t t-out="attribute.label"/>
+            <t t-set="__dummy"></t>
+        </Property>
+        <t t-call="web_studio.property.subOptions" />
+    </t>
+</t>
+<t t-name="web_studio.property.digits">
+    <t t-if="attribute and !attribute.isInvisible">
+         <Property
+            name="attribute.name"
+            type="'number'"
+            value="attribute.value and attribute.value[1]"
+            onChange.bind="this.onChangeProperty"
+            tooltip="attribute.help"
+            inputAttributes="{min: 0, max: 20, step: 1}"
+        >
+            <t t-out="attribute.label"/>
+            <t t-set="__dummy"></t>
+        </Property>
+    </t>
+</t>
+
+<t t-name="web_studio.property.boolean">
+    <t t-call="web_studio.property.defaultInput" />
+</t>
+<t t-name="web_studio.property.field">
+    <t t-call="web_studio.property.selection" />
+</t>
+<t t-name="web_studio.property.number">
+    <t t-call="web_studio.property.defaultInput" />
+</t>
+<t t-name="web_studio.property.string">
+    <t t-call="web_studio.property.defaultInput" />
+</t>
+
+</templates>

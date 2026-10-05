@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<templates>
+<t t-name="voip.TransferView">
+    <div class="o-voip-TransferView d-flex flex-column h-100 w-100 overflow-auto">
+        <t t-if="this.props.state.activeView === 'keypad'">
+            <Keypad
+                state="this.props.state.keypad"
+                onClickBack.bind="this.props.onClickBack"
+                onClickContact.bind="this.props.onClickTransferContact"
+                onSubmit.bind="this.props.onClickTransferPhone"
+            >
+                <t t-set-slot="primaryAction" t-slot-scope="scope">
+                    <ActionButton
+                        icon="'sync_alt'"
+                        name.translate="Transfer"
+                        type="scope.isSmall ? 'outline-success' : 'success'"
+                        onClick="() => this.props.onClickTransferContact(scope.contact)"
+                        isSmall="scope.isSmall"
+                        hideLabel="scope.isSmall"
+                    />
+                </t>
+            </Keypad>
+            <div t-if="!this.props.state.keypad.showMore" class="o-voip-Keypad-numpad grid w-100 px-3 pb-3">
+                <ActionButton name.translate="Transfer" icon="'sync_alt'" iconClass="'oi-2x'" type="'success'" hideLabel="true" inCallPad="true" extraClass="'g-col-4 g-start-5 rounded-pill'" onClick.bind="this.props.onClickTransferPhone" disabled="!this.props.state.keypad.input.value.trim()"/>
+            </div>
+        </t>
+        <t t-if="this.props.state.activeView === 'contacts'">
+            <AddressBook contactsFilter="this.props.contactExcludeFilter" onClickBack.bind="this.props.onClickBack" searchInternalUsersFirst="true">
+                <t t-set-slot="primaryAction" t-slot-scope="scope">
+                    <ActionButton
+                        icon="'sync_alt'"
+                        name.translate="Transfer"
+                        type="scope.isSmall ? 'outline-success' : 'success'"
+                        onClick="() => this.props.onClickTransferContact(scope.contact)"
+                        isSmall="scope.isSmall"
+                        hideLabel="scope.isSmall"
+                    />
+                </t>
+            </AddressBook>
+        </t>
+    </div>
+</t>
+</templates>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="timesheet_grid_hr_attendance.TimesheetSystrayContent" t-inherit="timesheet_grid.TimesheetSystrayContent" t-inherit-mode="extension">
+        <div name="timesheet_grid_header" position="attributes">
+            <attribute name="t-if">!this.hrAttendanceProps.attendanceCheckInPermission and this.timesheetCheckInPermission</attribute>
+        </div>
+        <xpath expr="//div[hasclass('o_timesheet_systray_md_scroll')]/div[1]" position="attributes">
+            <attribute name="t-attf-class">
+                px-3 {{ this.hrAttendanceProps.attendanceCheckInPermission ? 'pt-2 pb-2' : 'pt-3' }}
+            </attribute>
+        </xpath>
+        <div name="ts_systray_footer" position="replace">
+            <t t-if="this.hrAttendanceProps.attendanceCheckInPermission">
+                <div class="m-3 d-flex flex-row align-items-center gap-3">
+                    <div name="ts_checkin_btn"
+                        class="o_wrap_btn_sign_out position-md-sticky bottom-0
+                            align-self-center d-flex flex-grow-1">
+                        <button t-if="this.hrAttendanceProps.signInOut" t-on-click="this.hrAttendanceProps.signInOut"
+                            class="btn btn-secondary">
+                            Check out
+                        </button>
+                    </div>
+                    <div t-if="this.employee and this.employee.working_hours !== false" name="total_hours"
+                        class="text-end text-nowrap fw-medium ms-sm-auto">
+                        <div>
+                            Total
+                            <b t-att-class="this.employee.working_hours
+                                    ? (this.totalTime &lt; this.employee.working_hours
+                                        ? 'text-danger'
+                                        : 'text-success')
+                                    : ''"
+                                t-out="this.formatDuration(this.totalTime, { hideZeroHours: false })"/>
+                        </div>
+                        <div t-if="this.employee.working_hours !== null" class="text-muted">
+                            over
+                            <span t-out="this.formatDuration(this.employee.working_hours, { hideZeroHours: false })"/>
+                        </div>
+                    </div>
+                </div>
+            </t>
+            <div t-elif="this.timesheetCheckInPermission" class="m-3 d-flex flex-row align-items-center"
+                name="ts_systray_footer">
+                <div name="ts_checkin_btn"
+                    class="o_wrap_btn_sign_out position-md-sticky bottom-0
+                        align-self-center d-flex flex-grow-1">
+                    <button t-on-click="() => this.hrAttendanceProps.signInOut()"
+                            t-attf-class="btn btn-{{ this.props.checkInData.checkedIn ? 'secondary' : 'primary w-100' }}">
+                        <span t-if="!this.props.checkInData.checkedIn">Start Session</span>
+                        <span t-else="">End Session</span>
+                        <i t-if="!this.props.checkInData.checkedIn" class="oi ms-1" data-icon="login"/>
+                    </button>
+                </div>
+                <div t-if="this.employee and this.employee.working_hours !== false
+                        and this.props.checkInData.checkedIn"
+                    name="total_hours" class="text-end fw-medium ms-sm-auto">
+                    <div>
+                        Total
+                        <b t-att-class="this.employee.working_hours
+                                ? (this.totalTime &lt; this.employee.working_hours
+                                    ? 'text-danger'
+                                    : 'text-success')
+                                : ''"
+                            t-out="this.formatDuration(this.totalTime, { hideZeroHours: false })"/>
+                    </div>
+                    <div t-if="this.employee.working_hours !== null" class="text-muted">
+                        over
+                        <span t-out="this.formatDuration(
+                            this.employee.working_hours, { hideZeroHours: false })"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <xpath expr="//div[@name='inline_form']" position="attributes">
+            <attribute name="class" remove="pt-3" separator=" "/>
+        </xpath>
+        <t name="ts_checkin_state" position="attributes">
+            <attribute name="t-if" add="!this.hrAttendanceProps.attendanceCheckInPermission and this.timesheetCheckInPermission" separator=" and "/>
+        </t>
+    </t>
+</templates>

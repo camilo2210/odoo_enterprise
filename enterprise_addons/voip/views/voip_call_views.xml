@@ -1,0 +1,249 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="voip_call_tree_view" model="ir.ui.view">
+        <field name="name">VoIP Calls list view</field>
+        <field name="model">voip.call</field>
+        <field name="arch" type="xml">
+            <list string="Calls" create="false" default_order="create_date desc">
+                <field name="create_date" string="Date" widget="voip_simple_datetime"/>
+                <field name="partner_id" string="Contact"/>
+                <field name="phone_number_formatted" string="Phone Number" widget="voip_flag_phone" class="d-flex align-items-center"/>
+                <field name="country_id" optional="hide"/>
+                <field name="country_flag_url" column_invisible="True"/> <!-- Needed for voip_flag_phone widget -->
+                <field name="duration" string="Duration" widget="voip_duration" invisible="not duration" sum="Total Duration"/>
+                <field name="user_id" string="User" widget="many2one_avatar_user"/>
+                <field name="has_recording" nolabel="True" widget="voip_call_indicators"/>
+                <field name="activity_res_id" string="Logged On" widget="many2one_reference_icon"/>
+                <field name="activity_res_model" column_invisible="True"/>
+                <field name="state" string="Status" widget="voip_call_status_badge" class="mt-1"/>
+                <field name="direction" column_invisible="True"/>
+                <field name="id" column_invisible="True"/>
+                <field name="cost_display"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="voip_call_action_history" model="ir.actions.act_window">
+        <field name="name">History</field>
+        <field name="res_model">voip.call</field>
+        <field name="view_mode">list,kanban,pivot,graph,form</field>
+        <field name="context">{"search_default_my_calls": True, "graph_measure": "__count", "pivot_measures": ["__count"]}</field>
+    </record>
+
+    <record id="voip_call_view_calendar" model="ir.ui.view">
+        <field name="name">voip.call.view.calendar</field>
+        <field name="model">voip.call</field>
+        <field name="arch" type="xml">
+            <calendar js_class="voip_call_calendar" date_start="effective_start_date" date_stop="end_date" mode="week" event_open_popup="true" create="False" color="user_id">
+                <field name="direction" invisible="True"/>
+                <field name="phone_number" invisible="True"/>
+                <field name="create_date" invisible="True"/>
+                <field name="duration" invisible="True"/>
+                <field name="end_date" invisible="True"/>
+                <field name="partner_id" invisible="not partner_id" widget="voip_calendar_many2one" options="{'noLabel': True}"/>
+                <field name="user_id" filters="True" invisible="True"/>
+                <field name="state" string="Status" filters="True" invisible="True"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="voip_call_view_pivot" model="ir.ui.view">
+        <field name="name">voip.call.view.pivot</field>
+        <field name="model">voip.call</field>
+        <field name="arch" type="xml">
+            <pivot string="Calls Analysis">
+                <field name="user_id" type="row"/>
+                <field name="create_date" type="col"/>
+                <field name="duration" type="measure" string="Duration" widget="voip_duration"/>
+                <field name="cost"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="voip_call_view_kanban" model="ir.ui.view">
+        <field name="name">voip.call.view.kanban</field>
+        <field name="model">voip.call</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" create="0" group_create="0" sample="1" default_order="create_date desc">
+                <field name="partner_id"/>
+                <field name="image_1920"/>
+                <field name="avatar_128"/>
+                <field name="phone_number_formatted"/>
+                <field name="direction"/>
+                <field name="state"/>
+                <field name="duration"/>
+                <field name="create_date"/>
+                <templates>
+                    <t t-name="card">
+                        <section class="p-2 d-flex align-items-start h-100">
+                            <div class="me-2 d-flex align-items-center justify-content-center">
+                                <t t-if="record.partner_id.raw_value">
+                                    <field name="image_1920" widget="contact_image" options="{'preview_image': 'avatar_128', 'size':[65,65], 'img_class': 'rounded border'}"/>
+                                </t>
+                                <t t-else="">
+                                    <img src="/base/static/img/avatar_grey.png" class="rounded border" width="65" height="65" alt="Contact Avatar"/>
+                                </t>
+                            </div>
+                            <div class="flex-grow-1 min-w-0">
+                                <group class="d-flex align-items-start">
+                                    <div class="fw-bold text-truncate">
+                                        <t t-if="record.partner_id.raw_value">
+                                            <field name="partner_id" options="{'no_open': True}"/>
+                                        </t>
+                                        <t t-else=""><span class="text-muted">Unknown number</span></t>
+                                    </div>
+                                    <div class="ms-auto small text-nowrap">
+                                        <field name="create_date" widget="voip_simple_datetime"/>
+                                    </div>
+                                </group>
+                                <address class="d-flex align-items-center my-1">
+                                    <field name="phone_number_formatted" widget="voip_flag_phone" class="d-flex align-items-center"/>
+                                    <field name="country_flag_url" invisible="True"/>
+                                </address>
+                                <footer class="mt-1 small text-muted d-inline-flex align-items-center text-nowrap">
+                                    <span class="d-inline-flex align-items-center">
+                                        <field name="state" widget="voip_call_status_badge"/>
+                                        <field name="direction" invisible="True"/>
+                                    </span>
+                                    <span class="ms-1"><field name="duration" widget="voip_duration"/></span>
+                                </footer>
+                            </div>
+                        </section>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="voip_call_view_graph" model="ir.ui.view">
+        <field name="name">voip.call.view.graph</field>
+        <field name="model">voip.call</field>
+        <field name="arch" type="xml">
+            <graph string="Calls Analysis">
+                <field name="create_date" interval="week"/>
+                <field name="duration" string="Duration" type="measure" widget="voip_duration"/>
+                <field name="state"/>
+                <field name="cost"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="voip_call_view_search" model="ir.ui.view">
+        <field name="name">voip.call.view.search</field>
+        <field name="model">voip.call</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id"/>
+                <field name="phone_number"/>
+                <field name="user_id"/>
+                <filter string="My Calls" name="my_calls" domain="[('user_id', '=', uid)]"/>
+                <separator/>
+                <filter string="Production Calls" name="prod_calls" domain="[('is_production', '=', True)]"/>
+                <separator/>
+                <filter string="Internal" name="internal" domain="[('is_within_same_company', '=', True)]"/>
+                <filter string="External" name="external" domain="[('is_within_same_company', '=', False)]"/>
+                <separator/>
+                <filter string="Incoming" name="incoming" domain="[('direction', '=', 'incoming')]"/>
+                <filter string="Outgoing" name="outgoing" domain="[('direction', '=', 'outgoing')]"/>
+                <separator/>
+                <filter string="Handled" name="terminated" domain="[('state', '=', 'terminated')]"/>
+                <separator/>
+                <filter string="Has Recording" name="has_recording" domain="[('has_recording', '=', True)]"/>
+                <separator/>
+                <filter string="Today" name="today" domain="[('create_date', '&gt;=', 'today')]"/>
+                <filter string="Yesterday" name="yesterday" domain="[('create_date', '&lt;', 'today'), ('create_date', '&gt;=', 'today -1d')]"/>
+                <filter string="Last 7 Days" name="last_7_days" domain="[('create_date', '&gt;=', 'today -6d')]"/>
+                <group>
+                    <filter string="User" name="groupby_user" context="{'group_by': 'user_id'}"/>
+                    <filter string="Contact" name="groupby_contact" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Status" name="groupby_status" context="{'group_by': 'state'}"/>
+                    <separator/>
+                    <filter string="Date" name="groupby_date" context="{'group_by': 'create_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="voip_call_view_form" model="ir.ui.view">
+        <field name="name">voip.call.form</field>
+        <field name="model">voip.call</field>
+        <field name="arch" type="xml">
+            <form create="false">
+                <header>
+                    <field name="activity_id" invisible="True"/>
+                    <button name="action_log_call" string="Log Call" type="object" invisible="activity_id"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_calls" type="object" class="oe_stat_button" icon="phone">
+                            <field name="call_count" widget="statinfo" string="Calls"/>
+                        </button>
+                    </div>
+                    <div class="d-flex flex-column flex-md-row align-items-center gap-3 mb-3">
+                        <field name="image_1920" widget="contact_image" class="voip-call-avatar" options="{'preview_image': 'avatar_128', 'size': [100,100], 'img_class': 'rounded border'}" invisible="not partner_id"/>
+                        <field name="avatar_128" invisible="True"/> <!-- Needed in contact_image widget -->
+                        <img src="/base/static/img/avatar_grey.png" class="rounded border voip-call-avatar" width="100" height="100" invisible="partner_id" alt="Contact Avatar"/>
+                        <div class="d-flex flex-column flex-grow-1">
+                            <label for="partner_id" class="d-md-none"/>
+                            <div class="d-flex align-items-center gap-3 mb-2">
+                                <h1 class="flex-grow-1 mb-0">
+                                    <field name="partner_id" nolabel="True" placeholder="e.g. Brandon Freeman" class="w-100"/>
+                                </h1>
+                                <field name="state" widget="voip_call_status_badge" nolabel="True" class="voip-call-badge voip-call-header-badge"/>
+                                <!-- Needed for voip_call_status_badge widget -->
+                                <field name="direction" invisible="True"/>
+                                <field name="id" invisible="True"/>
+                            </div>
+                            <label for="phone_number" class="d-md-none"/>
+                            <div class="d-flex align-items-baseline w-md-50 gap-2">
+                                <i class="d-none d-md-inline-flex oi oi-filled" data-icon="phone" title="Phone"/>
+                                <field name="country_flag_url" invisible="not country_id" widget="country_flag_url" options='{"size": [20, 20]}' nolabel="True" class="d-flex w-auto align-self-center align-items-center"/>
+                                <field name="phone_number_formatted" invisible="True"/>
+                                <field name="phone_number" widget="phone" options="{'formatted_field': 'phone_number_formatted', 'dial_field': 'phone_number'}" class="text-nowrap"/>
+                            </div>
+                        </div>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="duration_human_readable" invisible="1"/>
+                            <field name="create_date" string="Date" widget="voip_simple_datetime" options="{'duration_field': 'duration_human_readable'}"/>
+                            <field name="user_id" string="User" widget="many2one_avatar_user" readonly="True"/>
+                        </group>
+                        <group>
+                            <field name="activity_res_model" invisible="True"/>
+                            <field name="activity_res_id" string="Logged On" widget="many2one_reference_icon"/>
+                            <field name="cost_display" invisible="not cost_display" groups="voip.group_voip_admin"/>
+                        </group>
+                    </group>
+                    <field name="effective_start_date" invisible="1"/>
+                    <field name="end_date" invisible="1"/>
+                    <field name="artifact_ids"
+                        widget="call_debrief"
+                        options="{'callStartDateField': 'effective_start_date', 'callEndDateField': 'end_date'}"
+                        invisible="not artifact_ids"
+                    />
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="voip_call_view" model="ir.actions.act_window">
+        <field name="name">Calls</field>
+        <field name="res_model">voip.call</field>
+        <field name="view_mode">list,kanban,calendar,graph,pivot,form</field>
+        <field name="view_id" ref="voip_call_tree_view"/>
+        <field name="domain">[]</field>
+        <field name="context">{"search_default_my_calls": True, "graph_measure": "__count", "pivot_measures": ["__count"]}</field>
+        <field name="help" type="html">
+            <div>
+                <div class="position-relative mb-3">
+                    <span class="o_view_nocontent_voip_bg_shape o_view_nocontent_voip_number_bg position-absolute bg-primary"/>
+                    <img class="position-relative mw-100 mx-auto" src="/voip/static/src/img/voip_search_number.svg" alt="No Calls yet"/>
+                </div>
+                <h2>No Calls yet</h2>
+                <span id="voip_buy_number_help"/>
+            </div>
+        </field>
+    </record>
+</odoo>

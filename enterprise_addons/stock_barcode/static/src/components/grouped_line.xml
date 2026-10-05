@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="stock_barcode.GroupedLineComponent">
+        <div t-on-click="this.select"
+            class="o_barcode_line list-group-item d-flex flex-row flex-wrap pt-0"
+            t-att-style="(this.line.colorLine or this.line.colorLine === 0) ? 'border-color: hsla(' + this.line.colorLine + ', 80%, 50%, 0.6);' : ''"
+            t-att-data-virtual-id="this.line.virtual_id"
+            t-att-data-barcode="this.line.product_id.barcode" t-attf-class="{{this.componentClasses}}">
+            <div class="o_barcode_line_summary d-flex flex-grow-1 py-2 mt-2" t-att-class="this.opened ? 'o_unfolded': ''">
+                <div class="o_barcode_line_details flex-grow-1">
+                    <t t-call="stock_barcode.LineTitle"/>
+                    <t t-if="!this.displayToggleBtn" t-call="stock_barcode.LineLot"/>
+                    <t t-call="stock_barcode.LineQuantity"/>
+                    <t t-call="stock_barcode.LineDestinationLocation"/>
+                    <t t-set="mainLine" t-value="this.mainSubLine"/>
+                    <div t-if="mainLine" name="package">
+                        <i class="oi oi-fw" data-icon="archive"/>
+                        <span t-if="mainLine.package_id" class="package" t-out="mainLine.package_id.complete_name"/>
+                        <i t-if="displayResultPackage" class="oi mx-1" data-icon="east"/>
+                        <span t-if="mainLine.result_package_id" class="result-package" t-out="mainLine.result_package_id.dest_complete_name"/>
+                    </div>
+                </div>
+            </div>
+            <div class="o_sublines mb-2 flex-grow-1" t-if="this.opened &amp;&amp; this.displayToggleBtn">
+                <t t-foreach="this.linesToDisplay" t-as="subline" t-key="subline.virtual_id">
+                    <LineComponent t-props="this.getsublineProps(subline)"/>
+                </t>
+            </div>
+        </div>
+    </t>
+
+</templates>

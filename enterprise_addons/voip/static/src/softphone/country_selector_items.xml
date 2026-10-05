@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<templates>
+<t t-name="voip.CountrySelectorItems">
+    <div class="o-voip-countryDropdown-search dropdown-header position-sticky top-0">
+        <div class="position-relative d-flex align-items-center pb-2">
+            <input class="form-control border-top-0 border-start-0 border-end-0 bg-transparent pe-4" placeholder="Search country or prefix" t-ref="this.countryFilterInputRef" t-model.proxy="this.state.input"/>
+            <i class="oi position-absolute end-0 p-2" data-icon="search" aria-hidden="true"/>
+        </div>
+    </div>
+    <t t-set="countries" t-value="this.filteredCountries"/>
+    <div t-if="countries.length === 0" class="dropdown-item disabled d-flex align-items-center gap-2">
+        <i class="oi o-voip-countryFlag text-center" data-icon="flag" aria-hidden="true"/> No country found
+    </div>
+    <t t-foreach="countries" t-as="country" t-key="country.id">
+        <DropdownItem onSelected="() => this.props.onCountrySelected(country)" class="'d-flex align-items-center gap-2 py-2'">
+            <t t-if="country.image_url">
+                <img class="o-voip-countryFlag border" t-att-src="country.image_url" t-att-alt="this.flagAltLabel(country)"/>
+            </t>
+            <t t-else="">
+                <i class="oi o-voip-countryFlag text-center" data-icon="public" aria-label="Select country"/>
+            </t>
+            <span class="d-block text-truncate" t-out="country.name"/>
+            <span class="ms-auto text-muted" t-out="'+' + country.phone_code"/>
+        </DropdownItem>
+    </t>
+</t>
+</templates>

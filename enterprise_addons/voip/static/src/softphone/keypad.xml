@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<templates>
+<t t-name="voip.Keypad">
+    <div class="o-voip-Keypad d-flex flex-column justify-content-between flex-grow-1 row-gap-3 w-100" t-ref="this.keypadRootRef" t-att-class="{ 'pb-2': this.softphone.inCallView.activeView === 'transfer' and !this.props.state.showMore, 'overflow-auto': this.softphone.inCallView.activeView === 'default' and this.softphone.inCallView.keypad.isOpen }">
+        <t t-if="!this.props.state.showMore">
+            <div>
+                <t t-call="o-voip-Keypad-searchBar"/>
+                <t t-if="!this.props.dtmf" t-call="o-voip-Keypad-calleeSuggestions"/>
+            </div>
+            <t t-call="o-voip-Keypad-numpad"/>
+        </t>
+        <t t-else="" t-call="o-voip-Keypad-showMore"/>
+    </div>
+</t>
+
+<t t-name="o-voip-Keypad-searchBar">
+    <div class="o-voip-Keypad-searchBar" t-attf-class="{{ this.props.state.showMore ? 'position-sticky top-0 border-bottom p-3 bg-view z-1' : 'position-relative m-3' }}">
+        <div class="position-absolute start-0 top-50 translate-middle-y d-flex align-items-center" t-att-class="{ 'ms-3': this.props.state.showMore }">
+            <button t-if="this.props.state.showMore or this.props.onClickBack" title="Back" class="btn btn-secondary d-flex p-2" t-on-click="this.onClickBack">
+                <i class="oi" data-icon="west" aria-hidden="true"/>
+            </button>
+            <t t-if="!this.props.dtmf and !this.props.state.showMore">
+                <Dropdown onStateChanged.bind="this.onCountryDropdownStateChanged" menuRef="this.countryMenuRef" menuClass="'o-voip-countryDropdown pt-0'" navigationOptions="{ virtualFocus: true }">
+                    <button class="btn btn-light d-flex p-1" t-att-title="this.country?.name">
+                        <img t-if="this.country?.image_url" class="o-voip-countryFlag border" t-att-src="this.country.image_url" t-att-alt="this.flagAltLabel"/>
+                        <i t-else="" class="oi oi-lg o-voip-countryFlag" data-icon="public"/>
+                    </button>
+                    <t t-set-slot="content">
+                        <CountrySelectorItems onCountrySelected.bind="this.onCountrySelected"/>
+                    </t>
+                </Dropdown>
+            </t>
+        </div>
+        <!-- hack: "data-value" is used to reflect input changes in the DOM, so it immediately triggers the "contains" test helper's MutationObserver, speeding up tests -->
+        <input type="text" t-ref="this.inputRef" class="o-voip-Keypad-input form-control border-0 border-bottom px-5 fw-bold text-center transition-none" t-att-class="{ 'fs-2': !this.props.state.input.value }" t-att-placeholder="!this.props.dtmf and 'Type a name or number'" t-att-readonly="this.props.dtmf" t-model.proxy="this.props.state.input.value" t-att-data-value="this.props.state.input.value" t-on-keydown="this.onSearchInputKeydown" t-on-input="this.onInput" inputmode="none" t-on-mousedown="(ev) => ev.target.inputMode = 'text'"/>
+        <t t-if="this.props.state.input.value and !this.props.state.showMore and !this.props.dtmf">
+            <button class="o-voip-Keypad-backspace btn btn-link position-absolute end-0 top-50 translate-middle-y d-flex p-1 text-reset opacity-75 opacity-100-hover" title="Backspace" t-on-pointerdown="(ev) => this.onPointerDown(ev, 'KEYPAD_BACKSPACE')" t-on-pointerup="this.longPressHandler.onPointerUp" t-on-pointercancel="this.longPressHandler.onPointerCancel" t-on-click="this.onClickBackspace" tabindex="-1">
+                <i class="oi oi-2x" data-icon="backspace" aria-hidden="true"/>
+            </button>
+        </t>
+
+        <ActionButton
+            t-if="this.props.state.showMore and this.isTransferKeypad"
+            name.translate="Transfer"
+            icon="'sync_alt'"
+            type="'outline-success'"
+            hideLabel="true"
+            isSmall="true"
+            onClick="this.props.onSubmit"
+            disabled="!this.softphone.inCallView.transferView.keypad.input.value.trim()"
+            extraClass="'position-absolute end-0 top-50 translate-middle-y me-3'"
+        />
+        <ActionButton
+            t-if="this.props.state.showMore and !this.isTransferKeypad"
+            name.translate="Call"
+            icon="'phone'" iconClass="'oi-filled'"
+            type="'outline-success'"
+            hideLabel="true"
+            isSmall="true"
+            onClick="this.props.onSubmit"
+            extraClass="'position-absolute end-0 top-50 translate-middle-y me-3'"
+        />
+    </div>
+</t>
+
+<t t-name="o-voip-Keypad-calleeSuggestions">
+    <t t-set="suggestions" t-value="this.calleeSuggestions"/>
+    <div t-if="suggestions.length > 0" class="d-flex flex-column mx-3">
+        <button type="button" t-ref="this.firstSuggestionButtonRef" class="btn btn-light fw-normal text-truncate" t-att-data-tooltip="this.firstSuggestionTooltipText" t-on-keydown="this.onSuggestionKeydown" t-on-click="() => this.onClickContact(suggestions.firstResult.contact)">
+            <!--
+            TODO the ImStatus here is not valid as it adds <div> element(s)
+            inside a <button>... but this would require deeper changes in
+            discuss for this to be fixed properly (converting the main <div>
+            into a <span> but then there are conditional inner <div>, etc).
+            -->
+            <VoipImStatus persona="suggestions.firstResult.contact" className="'d-inline-flex me-1'"/>
+            <t t-out="this.firstSuggestion"/>
+        </button>
+        <button t-if="suggestions.length > 1" type="button" class="btn btn-link fw-normal text-truncate" t-on-keydown="this.onSuggestionKeydown" t-on-click="() => this.onClickShowMore()">
+            <i class="oi oi-filled pe-1" data-icon="group" aria-hidden="true"/>
+            <t t-out="this.showOthersButtonText"/>
+        </button>
+    </div>
+</t>
+
+<t t-name="o-voip-Keypad-numpad">
+    <div class="o-voip-Keypad-numpad grid px-3">
+        <t t-foreach="this.keys" t-as="key" t-key="key.key">
+            <!-- ⚠ align-items-stretch necessary for proper alignment on Safari -->
+            <button
+                class="o-voip-Keypad-digitBtn btn btn-secondary d-flex flex-column align-items-stretch gap-1 g-col-4 rounded-pill p-2"
+                t-att-class="{ 'justify-content-center': key.icon }"
+                t-on-pointerdown="(ev) => this.onPointerDown(ev, key)"
+                t-on-pointerup="this.longPressHandler.onPointerUp"
+                t-on-pointercancel="this.longPressHandler.onPointerCancel"
+                t-on-click="(ev) => this.onKeypadClick(ev, key)"
+            >
+                <i t-if="key.icon" class="oi" t-att-data-icon="key.icon"/>
+                <span t-else="" class="o-voip-Keypad-digit fw-bolder lh-1" t-out="key.key"/>
+                <span t-if="key.letters" class="o-voip-Keypad-letter d-flex align-items-center justify-content-center smaller fw-bold lh-1 opacity-75" t-att-class="{ 'fs-3': key.key === '0'}" t-out="key.letters"/>
+                <span t-elif="key.longPressAction === 'voicemail'" class="o-voip-Keypad-voicemail d-flex align-items-center justify-content-center opacity-75" title="Long press to call your mailbox">
+                    <svg viewBox="0 0 124 51" width="1.1em" height="1.2em" fill="currentColor" aria-hidden="true">
+                        <path d="M25.49,0A25.49,25.49,0,0,1,45.68,41.06H77.2a25.49,25.49,0,1,1,22.17,9.85,4.94,4.94,0,0,1-.87.08h-73a25.5,25.5,0,0,1,0-51ZM108.4,14.48a15.57,15.57,0,1,0,4.56,11,15.56,15.56,0,0,0-4.56-11Zm-71.9,0a15.57,15.57,0,1,0,4.56,11,15.54,15.54,0,0,0-4.56-11Z"/>
+                    </svg>
+                </span>
+            </button>
+        </t>
+    </div>
+</t>
+
+<t t-name="o-voip-Keypad-showMore">
+    <AddressBook state="this.addressBookState" showPrioritizedContacts="!this.isTransferKeypad" onClickHistory="this.props.onClickHistory">
+        <t t-set-slot="top">
+            <t t-call="o-voip-Keypad-searchBar"/>
+        </t>
+        <t t-set-slot="primaryAction" t-slot-scope="scope">
+            <t t-if="this.props.slots?.primaryAction" t-call-slot="primaryAction" contact="scope.contact" isSmall="scope.isSmall"/>
+            <ActionButton t-else=""
+                name.translate="Call"
+                icon="'phone'" iconClass="'oi-filled'"
+                type="scope.isSmall ? 'outline-success' : 'success'"
+                hideLabel="scope.isSmall"
+                isSmall="scope.isSmall"
+                onClick="() => this.onClickContact(scope.contact)"
+            />
+        </t>
+    </AddressBook>
+</t>
+</templates>

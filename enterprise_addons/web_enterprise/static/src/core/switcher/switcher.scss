@@ -1,0 +1,88 @@
+// Meta-component to
+
+.o_switcher {
+    $-switcher-spacer: map-get($spacers, 1);
+
+    --o-Switcher-activeBackgroundColor: #{$o-gray-200};
+
+    padding: $-switcher-spacer;
+    background: var(--o-Switcher-backgroundColor, #{$o-view-background-color});
+    border: var(--o-Switcher-border, #{$border-width solid $border-color});
+    border-radius: calc(#{$-switcher-spacer} + #{$btn-border-radius});
+    gap: $-switcher-spacer;
+
+    .btn {
+        --#{$prefix}btn-border-color: transparent;
+        --#{$prefix}btn-bg: transparent;
+        --#{$prefix}btn-padding-x: #{$-switcher-spacer * 1.5};
+        --#{$prefix}btn-padding-y: #{$-switcher-spacer * 0.5};
+        --#{$prefix}btn-hover-border-color: transparent;
+        --#{$prefix}btn-hover-bg: #{rgba($o-gray-300, 0.5)};
+        --#{$prefix}btn-active-bg: var(--o-Switcher-activeBackgroundColor);
+        --#{$prefix}btn-active-border-color: transparent;
+        --gradient: none;
+
+        &:not(.o_arrow_button_current) {
+            --#{$prefix}btn-disabled-bg: transparent;
+            --#{$prefix}btn-disabled-border-color: transparent;
+        }
+
+        border-radius: var(--border-radius) !important;
+    }
+
+    // All following rules are for background sliding effect
+    & {
+        --SwitchButtons-gap: calc(#{$-switcher-spacer} - var(--#{$prefix}border-width));
+        // Taken from the width of the group, not added up from the button
+        // paddings: those are rounded, and the error grows along the row.
+        --SwitchButtons-width: calc(
+            (100% - 2 * #{$-switcher-spacer} -
+                (var(--SwitchButtons-count) - 1) * var(--SwitchButtons-gap)) /
+                var(--SwitchButtons-count)
+        );
+
+        position: relative;
+
+        &::before {
+            --SwitchButtons-index: var(--SwitchButtons-activeIndex);
+
+            content: "";
+            position: absolute;
+            z-index: 0;
+            inset-block: $-switcher-spacer;
+            left: calc(
+                #{$-switcher-spacer} + var(--SwitchButtons-index) *
+                    (var(--SwitchButtons-width) + var(--SwitchButtons-gap))
+            );
+            width: var(--SwitchButtons-width);
+            border-radius: var(--#{$prefix}border-radius);
+            background-color: var(--o-Switcher-activeBackgroundColor);
+
+            @media screen and (prefers-reduced-motion: no-preference) {
+                transition: left .2s cubic-bezier(.2, 1.12, .2, 1.12);
+            }
+        }
+
+        @starting-style {
+            &.o_cp_switch_buttons::before {
+                --SwitchButtons-index: var(--SwitchButtons-slideFrom, var(--SwitchButtons-activeIndex));
+            }
+        }
+
+        &:not(.o_cp_switch_buttons) {
+            @for $index from 1 through 4 {
+                &:has(> .btn:nth-child(#{$index})) {
+                    --SwitchButtons-count: #{$index};
+                }
+                &:has(> .btn.active:nth-child(#{$index})) {
+                    --SwitchButtons-activeIndex: #{$index - 1};
+                }
+            }
+        }
+
+        .btn {
+            --#{$prefix}btn-active-bg: transparent;
+            --#{$prefix}btn-hover-bg: transparent;
+        }
+    }
+}

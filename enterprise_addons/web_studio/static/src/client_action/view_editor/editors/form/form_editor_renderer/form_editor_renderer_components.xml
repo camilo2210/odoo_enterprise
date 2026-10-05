@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+  <!-- Notebook.Hook -->
+  <t t-name="web_studio.Notebook.Hook" t-inherit="web.Notebook">
+    <xpath expr="//ul" position="attributes">
+      <attribute name="t-ref">this.rootRef</attribute>
+    </xpath>
+
+    <xpath expr="//li[@t-foreach='this.navItems']" position="attributes" >
+      <attribute name="t-att-class">{
+        'd-flex align-items-center': true,
+        'o_web_studio_show_invisible': !navItem[1].studioIsVisible,
+      }</attribute>
+    </xpath>
+
+    <xpath expr="//li[@t-foreach='this.navItems']/button" position="attributes">
+      <attribute name="t-on-click">(ev) => this.studioOnPageClicked(ev, navItem)</attribute>
+      <attribute name="t-att-data-studio-xpath">navItem[1].studioXpath</attribute>
+      <attribute name="data-structure">formPage</attribute>
+    </xpath>
+
+    <!-- Drag and drop hook -->
+    <xpath expr="//li[@t-foreach='this.navItems']/button" position="before">
+      <StudioHook position="'before'" xpath="navItem[1].studioXpath" type="'formPage'" hookId="this.hookId" ref="this.hooksRef" subTemplate="'formPage'"/>
+    </xpath>
+
+    <xpath expr="//li[@t-foreach='this.navItems']" position="inside">
+      <StudioHook position="'after'" xpath="navItem[1].studioXpath" type="'formPage'" hookId="this.hookId" ref="this.hooksRef" subTemplate="'formPage'"/>
+    </xpath>
+
+    <!-- Layout Hooks -->
+    <xpath expr="./div" position="before">
+      <StudioHook xpath="this.props.studioXpath" position="'before'" type="'notebook'"/>
+    </xpath>
+    <xpath expr="./div" position="after">
+      <StudioHook xpath="this.props.studioXpath" position="'after'" type="'notebook'"/>
+    </xpath>
+
+    <!-- Nwe Page -->
+    <xpath expr="//li[@t-foreach='this.navItems']" position="after" >
+      <li class="nav-item o_web_studio_add_form_page" t-on-click.prevent="this.onNewPageClicked">
+        <button class="nav-link" >
+          <i class="oi oi-filled" data-icon="add_box" />
+        </button>
+      </li>
+    </xpath>
+
+    <xpath expr="//div[hasclass('tab-pane')]/t[2]" position="after">
+      <t t-set="studioHookProps" t-value="this.props.slots[this.state.currentPage].studioHookProps"/>
+      <StudioHook t-if="studioHookProps" t-props="studioHookProps" />
+    </xpath>
+  </t>
+
+  <!-- FormViewAddButtonAction -->
+  <t t-name="web_studio.FormViewAddButtonAction" t-inherit="web.StatusBarButtons">
+    <xpath expr="//div" position="attributes">
+      <attribute name="t-ref">this.rootRef</attribute>
+    </xpath>
+    <xpath expr="//div/t[2]" position="after">
+        <AddButtonAction/>
+    </xpath>
+    <xpath expr="//div/t[2]//t[@t-call-slot]" position="attributes">
+      <attribute name="hooksRef">this.hooksRef</attribute>
+      <attribute name="hookId">this.hookId</attribute>
+    </xpath>
+  </t>
+
+  <!-- AddElementHook -->
+  <t t-name="web_studio.AddElementHook">
+    <button t-attf-class="o_web_studio_add_element btn btn-secondary d-flex align-items-center justify-content-center text-center bg-300 text-primary fw-bolder py-3 {{ this.classNames || '' }}" t-att-data-icon="this.dataIcon" t-att-data-tooltip="this.tooltip" t-att-data-hook-id="this.hookId" t-ref="this.hookRef" t-on-click.stop="this.onClick" t-out="this.title" />
+  </t>
+
+  <!-- AddSmartButton -->
+  <t t-name="web_studio.AddSmartButton">
+    <t t-call="web_studio.AddButton" classNames="this.classNames" hookId="this.hookId" onClick="this.onClick"/>
+  </t>
+
+  <!-- AddButton -->
+  <t t-name="web_studio.AddButton">
+    <button class="btn btn-secondary"
+            t-att-class="classNames"
+            t-att-data-hook-id="hookId"
+            t-att-data-tooltip="tooltip"
+            t-on-click="onClick">
+              <i class="oi me-1" data-icon="plus"/>Add button</button>
+  </t>
+
+  <!-- StatusBarFieldHook -->
+  <t t-name="web_studio.StatusBarFieldHook">
+    <div t-attf-class="align-self-end position-relative opacity-disabled opacity-75-hover {{ this.classNames || '' }}" t-att-data-hook-id="this.hookId" t-ref="this.hookRef" data-tooltip="Drop a Many2One or Selection field">
+      <div class="o_field_statusbar d-block mb-0">
+        <div class="o_statusbar_status" role="radiogroup" aria-label="Statusbar">
+          <button type="button" class="btn btn-secondary o_arrow_button o_first text-bg-300">Stage 2</button>
+          <button type="button" class="btn btn-secondary o_arrow_button o_last text-bg-400" >Stage 1</button>
+        </div>
+      </div>
+    </div>
+  </t>
+
+  <!-- FormLabel -->
+  <t t-name="web_studio.FormLabel" t-inherit="web.FormLabel">
+    <xpath expr="./label" position="attributes" >
+      <attribute name="t-ref">this.rootRef</attribute>
+    </xpath>
+  </t>
+
+  <!-- ButtonBox -->
+  <t t-name="web_studio.ButtonBox">
+    <div class="d-flex justify-content-center my-2 flex-column w-75 ms-auto" t-ref="this.rootRef">
+      <div class="o-form-buttonbox o_menu_item d-flex w-md-auto" t-attf-class="{{this.props.class}}" t-ref="this.buttonContainers">
+        <t t-foreach="this.visibleButtons" t-as="button" t-key="button_value">
+          <StudioHook xpath="this.getSlotInfo(button_value).studioXpath" position="'before'" type="'smart_button'" t-if="button_first" hookId="this.hookId" />
+          <t t-call-slot="{{ button_value }}"/>
+          <StudioHook xpath="this.getSlotInfo(button_value).studioXpath" position="'after'" type="'smart_button'" hookId="this.hookId" />
+        </t>
+        <div class="ms-3 d-flex flex-row gap-1">
+          <ButtonHook add_buttonbox="this.studioProps.addButtonBox" t-if="!this.viewEditorModel.isEditingSubview" />
+          <button
+            t-ref="this.togglerRef"
+            t-if="this.additionalButtons.length" t-on-click="this.toggle" type="button" aria-expanded="false"
+            class="o_button_more o-dropdown o-dropdown-caret btn btn-secondary d-flex align-items-center"
+          >
+            More
+          </button>
+        </div>
+      </div>
+    <div t-if="this.expanded.value and this.additionalButtons.length" class="o-form-buttonbox d-flex flex-wrap" t-attf-class="{{this.props.class}}" t-ref="this.buttonContainers">
+      <t t-foreach="this.additionalButtons" t-as="button" t-key="button_value" >
+        <StudioHook xpath="this.getSlotInfo(button_value).studioXpath" position="'before'" type="'smart_button'" t-if="button_first" hookId="this.hookId" />
+        <t t-call-slot="{{ button_value }}"/>
+        <StudioHook xpath="this.getSlotInfo(button_value).studioXpath" position="'after'" type="'smart_button'" hookId="this.hookId" />
+      </t>
+    </div>
+  </div>
+</t>
+
+</templates>

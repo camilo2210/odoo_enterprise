@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="mail_template_phone_number_request" model="mail.template">
+        <field name="name">VoIP: Phone Number Request</field>
+        <field name="model_id" ref="model_voip_did_number_request_wizard"/>
+        <field name="subject">Phone number request</field>
+        <field name="email_from">{{ user.email_formatted }}</field>
+        <field name="use_default_to" eval="False"/>
+        <field name="partner_to">{{ ctx.get('recipient_id') }}</field>
+        <field name="lang">{{ ctx.get('recipient_lang') }}</field>
+        <field name="email_layout_xmlid">mail.mail_notification_light</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Dear <t t-out="ctx.get('recipient_name')"/>,
+                    <br/><br/>
+                    <strong t-out="user.name"/> has requested a phone number.
+                    <br/><br/>
+                    <t t-if="not is_html_empty(object.body_html)">
+                        <span>They added the following comment:</span>
+                        <div style="border-left: 4px solid #dee2e6; padding: 8px 0 8px 16px; margin: 1rem 0 2rem 0;">
+                            <t t-out="object.body_html"/>
+                        </div>
+                    </t>
+                    <a t-attf-style="background-color: {{user.company_id.email_secondary_color or '#875A7B'}}; padding: 8px 16px; text-decoration: none; color: {{user.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px;"
+                       href="/odoo/action-voip.action_voip_did_number">
+                        Buy Number
+                    </a>
+                </p>
+            </div>
+        </field>
+    </record>
+</odoo>

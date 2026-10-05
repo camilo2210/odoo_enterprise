@@ -1,0 +1,58 @@
+<templates>
+    <t t-name="spreadsheet_edition.ListDimensions">
+      <div t-ref="this.dimensionsContainerRef">
+        <div
+          t-foreach="this.props.dimensions"
+          t-as="dimension"
+          t-key="dimension.name+dimension_index"
+          class="mt-1 p-2 d-flex flex-column shadow-sm pivot-dimension border rounded"
+          t-att-data-id="dimension.name"
+          t-att-style="this.dnd.itemsStyle[dimension.name]"
+          t-on-pointerdown="(ev) => this.startDragAndDrop(dimension, ev)">
+          <div class="d-flex flex-row justify-content-between align-items-center">
+            <div class="d-flex align-items-center overflow-hidden text-nowrap flex-grow-1 me-2">
+              <span class="text-danger me-1" t-if="!dimension.isValid">
+                <t t-call="o-spreadsheet-Icon.TRIANGLE_EXCLAMATION"/>
+              </span>
+              <TextInput
+                value="dimension.string"
+                onChange="(name) => this.updateName(dimension, name)"
+                class="'o-fw-bold'"
+                selectContentOnFocus="true"
+              />
+            </div>
+            <div class="d-flex flex-rows">
+              <i
+                  t-att-data-icon="dimension.hidden ? 'visibility_off': 'visibility'"
+                  t-att-title="this.hideTitle"
+                  class="oi oi-filled o-button-icon pe-1 ps-2"
+                  t-on-click="() => this.props.toggleVisibility(dimension)"
+              />
+              <i
+                class="oi oi-filled o-button-icon pe-1 ps-2" data-icon="delete"
+                t-on-click="() => this.props.onRemoved(dimension)"
+              />
+            </div>
+          </div>
+          <div
+            t-if="!dimension.computedBy and dimension.string !== dimension.fieldString"
+            class="d-flex flex-row text-muted text-truncate fst-italic small mt-1 px-1"
+            t-att-title="dimension.fieldString"
+            t-out="this.getDimensionCollapsedName(dimension.fieldString)"
+          />
+          <div t-if="dimension.computedBy" class="d-flex flex-row small o-computed-column">
+            <div class="d-flex flex-column py-2 px-2 w-100 position-relative" t-on-pointerdown.stop="">
+              <StandaloneComposer
+                onConfirm="(f) => this.props.onFormulaUpdate(dimension, f)"
+                composerContent="dimension.computedBy.formula"
+                defaultRangeSheetId="dimension.computedBy.sheetId"
+                invalid="this.isCalculatedColumnInvalid(dimension)"
+                getContextualColoredSymbolToken.bind="this.getColoredSymbolToken"
+                contextualAutocomplete="this.getCalculatedColumnAutoComplete(dimension)"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </t>
+  </templates>

@@ -1,0 +1,108 @@
+<grammar xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes"
+    xmlns:rng="http://relaxng.org/ns/structure/1.0">
+    <define name="map">
+        <element name="map">
+            <optional>
+                <attribute name="string"/>
+            </optional>
+            <choice>
+                <attribute name="res_partner"/>
+                <empty/>
+            </choice>
+            <optional>
+                <attribute name="default_order"/>
+            </optional>
+            <optional>
+                <attribute name="default_group_by"/>
+            </optional>
+            <optional>
+                <attribute name="routing">
+                    <choice>
+                        <value>optimized</value>
+                        <value>ordered</value>
+                    </choice>
+                </attribute>
+            </optional>
+            <optional>
+                <attribute name="hide_name"/>
+            </optional>
+            <optional>
+                <attribute name="hide_address"/>
+            </optional>
+            <optional>
+                <attribute name="limit"/>
+            </optional>
+            <optional>
+                <attribute name="js_class"/>
+            </optional>
+            <optional>
+                <attribute name="dialog_size"/>
+            </optional>
+            <optional>
+                <attribute name="create"/>
+            </optional>
+            <interleave>
+                <zeroOrMore>
+                    <optional>
+                        <ref name="field"/>
+                    </optional>
+                </zeroOrMore>
+                <optional>
+                    <element name="popover">
+                        <optional><attribute name="card_id"/></optional>
+                        <zeroOrMore>
+                            <ref name="field"/>
+                        </zeroOrMore>
+                        <optional>
+                            <element name="templates">
+                                <oneOrMore>
+                                    <ref name="any"/>
+                                </oneOrMore>
+                            </element>
+                        </optional>
+                    </element>
+                </optional>
+            </interleave>
+        </element>
+    </define>
+
+    <define name="field">
+        <element name="field">
+            <attribute name="name"/>
+            <optional>
+                <attribute name="string"/>
+            </optional>
+            <optional>
+                <attribute name="on_change"/>
+            </optional>
+            <optional>
+                <attribute name="modifiers"/>
+            </optional>
+            <optional>
+                <attribute name="can_create"/>
+            </optional>
+            <optional>
+                <attribute name="can_write"/>
+            </optional>
+        </element>
+    </define>
+
+    <define name="any">
+        <element>
+            <anyName/>
+            <zeroOrMore>
+                <choice>
+                    <attribute>
+                        <anyName/>
+                    </attribute>
+                    <text/>
+                    <ref name="any"/>
+                </choice>
+            </zeroOrMore>
+        </element>
+    </define>
+
+    <start>
+        <ref name="map"/>
+    </start>
+</grammar>

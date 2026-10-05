@@ -1,0 +1,250 @@
+<?xml version ="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="web_map.MapRenderer">
+        <t t-if="this.uiService.isSmall">
+            <div class="g-0 o-sm-map-toggler border-bottom border-top py-2 px-3 bg-view d-flex align-items-end">
+                <t t-call="{{ this.subTemplates.AddressAutocomplete }}"/>
+                <button class="btn btn-secondary align-items-baseline ms-1" t-att-class="{ 'active': this.state.expandedPinList }" t-on-click="this.togglePinList">
+                    <span class="fs-6 fw-bold text-truncate">Locations</span>
+                </button>
+            </div>
+        </t>
+        <div class="o-map-renderer row g-0">
+            <div class="position-relative" t-att-class="this.uiService.isSmall ? 'col' : undefined"
+                 t-att-style="!this.uiService.isSmall ? `width: calc(100% - ${this.pinListWidth}px)` : undefined">
+                <t t-if="this.props.model.data.fetchingCoordinates">
+                    <t t-call="{{ this.subTemplates.FetchingCoordinates }}"/>
+                </t>
+                <t t-elif="this.props.model.metaData.routing and !this.props.model.geolocation.useMapBoxAPI">
+                    <t t-call="{{ this.subTemplates.NoMapToken }}"/>
+                </t>
+                <div class="o-map-renderer--container h-100" t-att-class="{'rounded-3 rounded-bottom-0 ms-md-3 border border-bottom-0': !this.uiService.isSmall }" t-ref="this.mapContainerRef"/>
+            </div>
+            <t t-if="!this.uiService.isSmall">
+                <div class="h-100 w-0">
+                    <span class="o-map-renderer--pin-list-resize position-absolute top-0 bottom-0 h-100" t-on-click.stop.prevent="" t-on-pointerdown.stop.prevent="(ev) => this.onStartResize(ev)"/>
+                </div>
+                <t t-call="{{ this.subTemplates.PinListContainer }}" renderer="this"/>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="web_map.PinListPopover">
+        <t t-set="renderer" t-value="this.props.renderer"/>
+        <t t-call="{{ this.subTemplates.PinListContainer }}"/>
+    </t>
+
+    <t t-name="web_map.MapRenderer.FetchingCoordinates">
+        <div class="alert alert-info end-0 start-0 px-5 mt-3 mx-5 text-center position-absolute o-map-renderer--alert" role="status">
+            <i class="oi oi-spin" data-icon="autorenew"/> Locating new addresses...
+        </div>
+    </t>
+
+    <t t-name="web_map.MapRenderer.NoMapToken">
+        <div class="alert alert-info alert-dismissible end-0 start-0 px-5 mt-3 mx-5 text-center position-absolute o-map-renderer--alert" role="status">
+            To get routing on your map, you first need to set up your MapBox token. It's free.
+            <a href="/odoo/action-base_setup.action_general_configuration" class="ml8">
+                <i class="oi" data-icon="east"/>
+                Set up token
+            </a>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </t>
+
+    <t t-name="web_map.MapRenderer.PinListContainer">
+        <div class="o-map-renderer--pin-list-container cursor-default h-100"
+             t-att-class="this.uiService.isSmall ? 'col-12 bg-view' : 'flex-grow-0 flex-shrink-0'"
+             t-att-style="!this.uiService.isSmall ? `width: ${this.pinListWidth}px` : undefined"
+             t-ref="this.pinListContainerRef">
+            <div t-if="!this.uiService.isSmall" class="o-map-renderer--pin-list-search d-flex align-items-end mb-2">
+                <t t-call="{{ this.subTemplates.AddressAutocomplete }}"/>
+            </div>
+            <t t-if="this.props.model.data.isGrouped">
+                <t t-foreach="this.props.model.data.recordGroups" t-as="groupId" t-key="groupId">
+                    <div class="o-map-renderer--pin-list-group cursor-pointer">
+                        <t t-set="group" t-value="this.props.model.data.recordGroups[groupId]"/>
+                        <div class="o-map-renderer--pin-list-group-header d-flex align-items-center"
+                             t-on-click="() => this.props.model.toggleGroup(groupId)">
+                                <i class="oi oi-fw me-1" t-attf-data-icon="{{ this.props.model.closedGroupIds().has(groupId) ? 'arrow_right' : 'arrow_drop_down' }}"/>
+                            <span class="o-map-renderer--pin-list-group-svg">
+                                <t t-set="color" t-value="renderer.getGroupColor(groupId)"/>
+                                <t t-call="web_map.pinSVG"/>
+                            </span>
+                            <t t-if="group.name" t-out="group.name"/>
+                            <t t-else="">Undefined</t>
+                            <div class="ms-auto">
+                                <button class="btn p-1" t-on-click.stop="() => this.props.model.googleMapUrl(groupId)">
+                                    <t t-call="web_map.GoogleMapsIcon"/>
+                                </button>
+                            </div>
+                        </div>
+                        <t t-if="!this.props.model.closedGroupIds().has(groupId)">
+                            <t t-set="records" t-value="group.records"/>
+                            <t t-if="records.length" t-call="{{ this.subTemplates.PinList }}"/>
+                        </t>
+                    </div>
+                </t>
+            </t>
+            <t t-else="">
+                <t t-set="records" t-value="this.props.model.data.records"/>
+                <t t-if="records.length" t-call="{{ this.subTemplates.PinList }}"/>
+            </t>
+            <t t-if="this.props.model.data.unlocatedRecords.length">
+                <div class="o-map-renderer--pin-list-group cursor-pointer">
+                    <div class="o-map-renderer--pin-list-group-header d-flex align-items-center" t-on-click="() => this.props.model.toggleUnlocated()">
+                        <i class="oi oi-fw me-1" t-att-data-icon="this.props.model.expandUnlocated() ? 'arrow_drop_down' : 'arrow_right'"/>
+                        <i class="oi me-1" data-icon="explore"/>
+                        <h5 class="m-0 user-select-none">Unlocated</h5>
+                    </div>
+                    <ul t-if="this.props.model.expandUnlocated()" class="o-map-renderer--pin-list-details mb-0 pb-0">
+                        <t t-foreach="this.props.model.data.unlocatedRecords" t-as="record" t-key="record.id">
+                            <li t-att-data-id="record.id"
+                                t-custom-click.prevent="(ev) => renderer.onClickOpenUnlocated(ev, [record.id])"
+                                class="cursor-pointer d-flex align-items-center justify-content-between o-map-renderer--pin-clickable py-1"
+                            >
+                                <span class="o_row_task_title text-truncate flex-grow-1 ms-1"><t t-out="record.display_name"/></span>
+                            </li>
+                        </t>
+                    </ul>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="web_map.MapRenderer.AddressAutocomplete">
+        <div class="o_map_address_autocomplete position-relative flex-grow-1"
+            t-ref="this.addressAutocompleteRef"
+            t-on-input="(ev) => this.state.hasInput = !!ev.target.value"
+            t-on-mouseenter="() => this.userPositionMarker?.getElement()?.classList.add('o_map_marker_hover')"
+            t-on-mouseleave="() => this.userPositionMarker?.getElement()?.classList.remove('o_map_marker_hover')"
+        >
+            <AutoComplete
+                value="this.currentAddress"
+                sources="this.addressAutocompleteSources"
+                placeholder.translate="Search..."
+                searchOnInputClick="false"
+                inputDebounceDelay="500"
+                onCancel="() => this.state.hasInput = false"
+                class="'w-100'"
+            >
+                <t t-set-slot="option" t-slot-scope="optionScope">
+                    <t t-out="optionScope.label"/>
+                </t>
+            </AutoComplete>
+            <i t-if="this.state.hasInput" class="oi position-absolute top-50 end-0 translate-middle-y pe-1" data-icon="search"/>
+        </div>
+        <button class="btn btn-sm" t-att-class="{ 'active': this.isUserLocated, 'w-0 px-0 o_border_transparent': this.state.hasInput, 'ms-2': !this.state.hasInput }" t-att-data-tooltip="this.locationTooltip" t-on-click="() => this.updateUserPosition(this.isUserLocated ? {} : null)">
+            <i class="oi oi-lg" data-icon="my_location" t-att-class="{ 'invisible': this.state.hasInput }"/>
+        </button>
+    </t>
+
+    <t t-name="web_map.MapRenderer.PinList">
+        <ul class="o-map-renderer--pin-list-details mb-0 pb-0">
+            <t t-call="{{ this.subTemplates.PinListItems }}"/>
+        </ul>
+    </t>
+
+    <t t-name="web_map.MapRenderer.PinListItems">
+        <t t-foreach="records" t-as="record" t-key="record.id">
+            <t t-set="latitude" t-value="record.partner and record.partner.partner_latitude"/>
+            <t t-set="longitude" t-value="record.partner and record.partner.partner_longitude"/>
+            <li t-att-data-id="record.id"
+                t-if="latitude and longitude"
+                t-on-click.prevent="() => renderer.centerAndOpenPin(record)"
+                t-on-mouseenter="() => renderer.onPinListHover(record, true)"
+                t-on-mouseleave="() => renderer.onPinListHover(record, false)"
+                class="cursor-pointer d-flex align-items-center justify-content-between o-map-renderer--pin-clickable py-1"
+            >
+                <span class="o_row_task_title text-truncate flex-grow-1 ms-1"><t t-out="record.display_name"/></span>
+            </li>
+        </t>
+    </t>
+
+    <t t-name="web_map.marker">
+        <div class="o_map_marker">
+            <div class="o_map_marker_content">
+                <t t-call="web_map.pinSVG"/>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="web_map.markerPopup">
+        <div>
+            <table class="o-map-renderer--popup-table align-top">
+                <thead>
+                    <tr>
+                        <th colspan="2"></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="data" t-as="field" t-key="field.id">
+                        <td class="o-map-renderer--popup-table-content-name fw-bold text-nowrap align-baseline">
+                            <t t-out="field.string"/>
+                        </td>
+                        <td class="o-map-renderer--popup-table-space"></td>
+                        <td class="o-map-renderer--popup-table-content-value align-baseline">
+                            <t t-out="field.value"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <t t-if="hasFormView or url">
+                <div class="o-map-renderer--popup-buttons d-flex align-item-end justify-content-start mt8">
+                    <t t-if="hasFormView">
+                        <button class="btn btn-primary o-map-renderer--popup-buttons-open">
+                            Open
+                        </button>
+                    </t>
+                    <div class="o-map-renderer--popup-buttons-divider d-inline-block h-auto"/>
+                    <t t-if="url">
+                        <a class="btn btn-primary" role="button" t-att-href="url" target="_blank">
+                            Navigate to
+                        </a>
+                    </t>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="web_map.routingPopup">
+        <div class="o-map-renderer--routing-popup">
+            <span>
+                <t t-out="distance"/> km in <t t-out="duration"/>
+            </span>
+        </div>
+    </t>
+
+    <t t-name="web_map.pinSVG">
+        <t t-set="radius" t-value="((this.count || 0) > 1) ? 9 : 6.5"/>
+        <t t-set="numberFontSize" t-value="(this.count >= 100) ? 9 : ((this.count >= 10) ? 12 : 14)"/>
+        <svg display="block" height="41px" width="27px" viewBox="0 0 27 41">
+            <defs>
+                <radialGradient id="shadowGradient">
+                    <stop offset="10%" stop-opacity="0.4"></stop>
+                    <stop offset="100%" stop-opacity="0.05"></stop>
+                </radialGradient>
+            </defs>
+            <ellipse cx="13.5" cy="34.8" rx="10.5" ry="5.25" fill="url(#shadowGradient)"></ellipse>
+            <path t-att-fill="color" d="M27,13.5C27,19.07 20.25,27 14.75,34.5C14.02,35.5 12.98,35.5 12.25,34.5C6.75,27 0,19.22 0,13.5C0,6.04 6.04,0 13.5,0C20.96,0 27,6.04 27,13.5Z"></path>
+            <path opacity="0.25" d="M13.5,0C6.04,0 0,6.04 0,13.5C0,19.22 6.75,27 12.25,34.5C13,35.52 14.02,35.5 14.75,34.5C20.25,27 27,19.07 27,13.5C27,6.04 20.96,0 13.5,0ZM13.5,1C20.42,1 26,6.58 26,13.5C26,15.9 24.5,19.18 22.22,22.74C19.95,26.3 16.71,30.14 13.94,33.91C13.74,34.18 13.61,34.32 13.5,34.44C13.39,34.32 13.26,34.18 13.06,33.91C10.28,30.13 7.41,26.31 5.02,22.77C2.62,19.23 1,15.95 1,13.5C1,6.58 6.58,1 13.5,1Z"></path>
+            <circle fill="white" cx="13.5" cy="13.5" t-att-r="radius"></circle>
+            <t t-if="(this.count || 0) > 1">
+                <!-- dominant-baseline for dynamic centering depending on font size -->
+                <text x="13.5" y="13.5"
+                    class="o-map-renderer-number"
+                    t-att-fill="color"
+                    text-anchor="middle"
+                    t-att-style="'font-size:' + numberFontSize + 'px;'"
+                    font-weight="700"
+                    dominant-baseline="middle"
+                >
+                    <t t-out="this.count"/>
+                </text>
+            </t>
+        </svg>
+    </t>
+
+</templates>

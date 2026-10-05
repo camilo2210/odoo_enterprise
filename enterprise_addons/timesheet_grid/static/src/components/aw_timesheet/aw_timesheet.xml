@@ -1,0 +1,859 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="timesheet_grid.TimesheetsAssistant">
+        <div class="d-flex flex-column h-100">
+            <div class="o_calendar_header border-bottom border-top px-3 py-2 align-items-center bg-view">
+                <div class="d-flex align-items-center flex-wrap w-100">
+                    <div class="d-flex align-items-center" style="flex: 1 1 0%;">
+                        <button class="btn btn-secondary"
+                            t-att-class="{'active': this.model.isToday}"
+                            t-on-click.stop="() => this.navigateToToday()"
+                            data-hotkey="t"
+                        >
+                            <i class="oi d-md-none" data-icon="early_on" role="presentation"/>
+                            <span class="d-none d-md-inline">Today</span>
+                        </button>
+                        <span class="vr flex-shink-0 d-none d-md-inline mx-2 mx-lg-3"/>
+                        <h1 class="order-md-1 text-nowrap d-inline-flex my-1 ms-auto ms-md-2 me-2">
+                            <small class="d-md-none mb-0" t-out="this.dayHeader"/>
+                            <span class="h5 d-none d-md-inline mb-0" t-out="this.dayHeader"/>
+                        </h1>
+                        <div class="o_calendar_navigation_buttons btn-group">
+                            <button class="o_calendar_button_prev btn btn-secondary"
+                                    title="Previous Day"
+                                    data-hotkey="p"
+                                    t-on-click.stop="() => this.navigateToDay(-1)">
+                                <i class="oi" data-icon="west" role="presentation"/>
+                            </button>
+                            <button class="o_calendar_button_next btn btn-secondary"
+                                    title="Next Day"
+                                    data-hotkey="n"
+                                    t-on-click.stop="() => this.navigateToDay(1)">
+                                <i class="oi" data-icon="east"  role="presentation"/>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-center px-md-2 py-3 py-md-0" style="flex: 0 0 auto;">
+                        <div t-if="this.selectedRowCount" class="o_selection_box list-group flex-row" role="alert">
+                            <span class="list-group-item active d-flex align-items-center pe-0 py-0 rounded-1 gap-1 flex-grow-1" t-att-class="{'shadow': this.uiService.isSmall}">
+                                <span><b><t t-out="this.selectedRowCount"/></b> selected</span>
+                                <button title="Unselect All" class="o_unselect_all btn btn-link ms-auto border-0" t-on-click="() => this.dismissAllForms()">
+                                    <i class="oi" data-icon="close_small"/>
+                                </button>
+                            </span>
+                            <button class="btn btn-danger ms-1"
+                                t-on-click.stop="() => this.onDeleteSelected()">
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                    <div class="d-none d-lg-flex justify-content-end align-items-center me-2" style="flex: 1 1 0%;">
+                        <Dropdown position="'bottom-end'">
+                            <button class="btn btn-light border-0" title="Settings">
+                                <i class="oi oi-lg oi-filled" data-icon="settings" role="presentation"/>
+                            </button>
+                            <t t-set-slot="content">
+                                <DropdownItem onSelected="() => this.openInstallDialog()">
+                                    Install Assistant
+                                </DropdownItem>
+                                <DropdownItem onSelected="() => this.openTestConnectionDialog()">
+                                    Test Connection
+                                </DropdownItem>
+                                <DropdownItem>
+                                    <DocumentationLink path="'/applications/services/timesheets/timesheet_assistant.html'" label.translate="Need Help" class="'dropdown-item p-0'"/>
+                                </DropdownItem>
+                                <div t-if="this.state.groupBy === 'timeline'" class="dropdown-divider" role="separator"/>
+                                <DropdownItem t-if="this.state.groupBy === 'timeline'" onSelected="() => this.toggleShowAwayTime()" class="`${this.state.showAwayTime ? 'active' : ''}`">
+                                    Show Away Time
+                                </DropdownItem>
+                            </t>
+                        </Dropdown>
+                    </div>
+                </div>
+            </div>
+            <div class="o_activitywatch_sync d-lg-flex flex-column flex-lg-row-reverse flex-grow-1 o_activity_watch_min_h-0">
+                <div class="o_suggestions w-lg-50 overflow-x-hidden overflow-y-auto d-flex flex-column flex-grow-0 flex-shrink-0 flex-shrink-xl-1 bg-200 o_activity_watch_min_h-0">
+                    <t t-set="recordsList" t-value="this.records"/>
+                    <div class="bg-view border-bottom d-flex flex-wrap justify-content-between align-items-center py-2 px-3">
+                        <div role="heading" aria-level="2" class="fw-medium">
+                            Suggestions
+                        </div>
+                        <span class="btn btn-sm px-0 w-0 opacity-0 pe-none">
+                            <!--Placeholder
+                            to ensure the left and right sections use the right height -->
+                            placeholder
+                        </span>
+                        <div t-if="recordsList.length" class="d-inline-flex align-items-center text-nowrap">
+                            <div class="btn-group btn-group-sm">
+                                <button
+                                    name="action_groupby_timeline"
+                                    t-att-class="(this.state.groupBy === 'timeline') and 'active'"
+                                    t-on-click="() => this.onGroupByChange('timeline')"
+                                    class="btn btn-secondary"
+                                    title="No group - Chronological order"
+                                    data-hotkey="shift+c"
+                                >
+                                    Chronological
+                                </button>
+                                <button
+                                    name="action_groupby_project"
+                                    t-att-class="(this.state.groupBy === 'project') and 'active'"
+                                    t-on-click="() => this.onGroupByChange('project')"
+                                    class="btn btn-secondary"
+                                    title="Group Assistant suggestion by Project"
+                                    data-hotkey="shift+p"
+                                >
+                                    By Project
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="position-relative d-flex flex-column flex-grow-1">
+                        <!-- Installer Dialog Banner -->
+                        <div t-if="this.model.data.awServerStatus !== 'connected' and !this.state.connectionWarningDismissed"
+                             class="alert alert-info d-none d-lg-block rounded-0 border-bottom z-1 py-2 px-3 w-100 mb-0"
+                             role="alert"
+                        >
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="d-flex flex-column justify-content-center align-items-start flex-grow-1">
+                                    <t t-if="this.model.data.awServerStatus === 'unauthorized'">
+                                        <div class="mb-1 fw-bold">
+                                            <i class="oi me-2" data-icon="power"/>ActivityWatch is installed, but needs configuration.
+                                        </div>
+                                        <div class="small opacity-75">
+                                            Your browser can't connect to the tracker. Please follow these steps to configure the CORS settings.
+                                        </div>
+                                    </t>
+                                    <t t-else="">
+                                        <div class="mb-1">
+                                            Install our activity tracker to automate your timesheet suggestions.
+                                        </div>
+                                        <div class="small opacity-75">
+                                            Already installed? Make sure ActivityWatch is running, and enable “Apps on Device” in your browser settings.
+                                            <i class="oi oi-filled ms-1 cursor-pointer" data-icon="info" title="How to enable this permission" t-on-click="() => this.openAppsOnDeviceDialog()" role="button"/>
+                                        </div>
+                                    </t>
+                                </div>
+
+                                <div class="d-flex align-items-center gap-2">
+                                    <button t-if="this.model.data.awServerStatus === 'unauthorized'" class="btn btn-dark btn-sm text-nowrap" t-on-click="() => this.openInstallDialog(3)">
+                                        Configure CORS
+                                    </button>
+                                    <button t-else="" class="btn btn-dark btn-sm text-nowrap" t-on-click="() => this.openInstallDialog()">
+                                        Start Now
+                                    </button>
+                                    <i class="oi oi-filled cursor-pointer opacity-75 ms-1" data-icon="help" title="More information" t-on-click="() => this.openTestConnectionDialog()" role="button"/>
+                                    <button type="button" class="btn-close ms-3 p-0 opacity-50 align-self-start mt-1" aria-label="Close" t-on-click="this.onDismissConnectionWarning"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Web Watcher Warning Banner -->
+                        <div t-if="this.model.data.awServerStatus === 'connected' and !this.model.data.hasWebWatcher and !this.state.webWatcherWarningDismissed"
+                             class="alert alert-warning d-none d-lg-block rounded-0 border-bottom z-1 py-1 px-3 w-100 mb-0"
+                             role="alert"
+                        >
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="d-flex flex-column justify-content-center align-items-start flex-grow-1 text-start">
+                                    <div class="small">
+                                        <i class="oi me-2" data-icon="fullscreen"/>
+                                        <b>Browser activity:</b> No data detected from the extension.
+                                    </div>
+                                    <div class="smaller opacity-75">
+                                        We recommend installing our browser extension for more accurate suggestions. If you've already installed it, please make sure it is enabled.
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <a
+                                        class="btn btn-link btn-sm p-0 me-2 shadow-none"
+                                        href="https://chromewebstore.google.com/detail/timesheets-assistant/bmgldglijgnaohjpjkieijkkjfacifdj"
+                                        target="_blank"
+                                    >
+                                        <img
+                                            src="/timesheet_grid/static/img/ChromeWebStore_BadgeWBorder_v2_206x58.png"
+                                            alt="Get it on Chrome Web Store"
+                                            style="height: 35px;"
+                                            class="rounded-1"
+                                        />
+                                    </a>
+                                    <a
+                                        class="btn btn-link btn-sm p-0 me-2 shadow-none"
+                                        href="https://addons.mozilla.org/en-US/firefox/addon/timesheets-assistant/"
+                                        target="_blank"
+                                    >
+                                        <img
+                                            src="/timesheet_grid/static/img/AMO-get-the-addon-178x60px.png"
+                                            alt="Get the Firefox Add-on"
+                                            style="height: 35px;"
+                                            class="rounded-1"
+                                        />
+                                    </a>
+                                    <button type="button" class="btn-close p-0 opacity-50 ms-2" aria-label="Close" t-on-click="this.onDismissWebWatcherWarning"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div t-ref="this.suggestionsContentRef" class="o_suggestions_content position-relative d-flex flex-column flex-grow-1 pt-3 px-3 overflow-x-hidden overflow-y-auto">
+                            <div t-if="recordsList.length" class="flex-grow-1">
+                                <TimesheetsAssistantByProject t-if="this.state.groupBy === 'project'"
+                                    model="this.model"
+                                    selectedRowsSize="this.selectedRowCount"
+                                    isSelected="(groupKey, title, start) => this.isSelected(groupKey, title, start)"
+                                    getSelectionClass="(groupKey, title, previousWasSelected, start) => this.getSelectionClass(groupKey, title, previousWasSelected, start)"
+                                    onMouseDown="(groupKey, title, ev, start) => this.onMouseDown(groupKey, title, ev, start)"
+                                    onMouseEnter="(groupKey, title, start) => this.onMouseEnter(groupKey, title, start)"
+                                    onTake="(groupKey, title, start) => this.onTakeDebounced(groupKey, title, start)"
+                                    onDelete="(groupKey, title, refresh, isConsumed, start) => this.onDelete(groupKey, title, refresh, isConsumed, start)"
+                                />
+
+                                <TimesheetsAssistantTimeline t-if="this.state.groupBy === 'timeline'"
+                                    model="this.model"
+                                    records="recordsList"
+                                    showAwayTime="this.state.showAwayTime"
+                                    selectedRowsSize="this.selectedRowCount"
+                                    isSelected="(groupKey, title, start) => this.isSelected(groupKey, title, start)"
+                                    getSelectionClass="(groupKey, title, previousWasSelected, start) => this.getSelectionClass(groupKey, title, previousWasSelected, start)"
+                                    onMouseDown="(groupKey, title, ev, start) => this.onMouseDown(groupKey, title, ev, start)"
+                                    onMouseEnter="(groupKey, title, start) => this.onMouseEnter(groupKey, title, start)"
+                                    onTake="(groupKey, title, start) => this.onTakeDebounced(groupKey, title, start)"
+                                    onDelete="(groupKey, title, refresh, isConsumed, start) => this.onDelete(groupKey, title, refresh, isConsumed, start)"
+                                />
+                                <t t-set="totalDurationHours" t-value="this.suggestionsTotal / 3600"/>
+                                <div t-if="this.model.data.workingHours !== false"
+                                    class="position-sticky bottom-0 d-flex flex-column align-items-end text-end z-2 p-3 mx-n3 bg-200"
+                                    t-attf-title="Total: {{ this.formatDuration(totalDurationHours, { hideZeroHours: false }) }} | Working hours: {{ this.formatDuration(this.model.data.workingHours, { hideZeroHours: false }) }}."
+                                >
+                                    <div class="d-flex gap-1">
+                                        <span class="fw-medium">Total</span>
+                                        <b t-att-class="this.model.data.workingHours ? (totalDurationHours &lt; this.model.data.workingHours ? 'text-danger' : 'text-success') : ''"
+                                            t-out="this.formatDuration(totalDurationHours, { hideZeroHours: false })"/>
+                                    </div>
+                                    <div t-if="this.model.data.workingHours !== null" class="d-flex gap-1">
+                                        <span>over</span>
+                                        <span t-out="this.formatDuration(this.model.data.workingHours, { hideZeroHours: false })"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div t-if="this.debugMode.isActive()" class="flex-grow-1 d-flex align-items-end justify-content-center">
+                                <div class="bg-black text-200 font-monospace p-4 pt-3 d-flex flex flex-column gap-2 flex-grow-0 shadow-lg rounded">
+                                    <b class="mb-1"><i class="oi me-1" data-icon="bug_report"/><small>Debug</small></b>
+                                    <div class="d-flex flex-lg-nowrap gap-2">
+                                        <button type="button" class="btn btn-sm btn-info px-3 py-2 small" t-on-click="() => window.open('http://localhost:5600/#/timeline', '_blank')">
+                                            View ActivityWatch Data
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-add btn-success px-3 py-2 small" t-on-click="() => this.generateSampleData()">
+                                            Generate Sample Data
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div t-if="recordsList.length === 0" class="o_activity_watch_timesheet_no_data position-relative position-lg-absolute top-0 bottom-0 start-0 end-0 flex-grow-1 d-flex flex-column justify-content-center px-3 py-5 text-center pe-none">
+                            <p t-if="noSuggestionsText" class="py-5 text-muted" t-out="noSuggestionsText"></p>
+                            <p class="d-block d-xl-none text-muted fst-italic">The Timesheets Assistant isn't available on mobile yet</p>
+                            <div t-if="this.state.awServerStatus !== 'connected'" role="alert" class="d-none d-xl-block">
+                                <t t-call="timesheet_grid.aw_timesheet_no_content_animation"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DIVIDERS: mobile/tablet and desktop -->
+                <span class="vr d-none d-lg-block flex-shrink-0"/>
+                <hr class="d-lg-none border-top opacity-100 m-0"/>
+
+                <!-- RIGHT SIDE: form + my timesheets -->
+                <div class="o_activity_watch_timesheet_right d-flex flex-shrink-1 flex-grow-1 flex-column o_activity_watch_min_h-0 overflow-hidden">
+                    <div
+                        class="bg-view border-bottom d-flex flex-wrap align-items-center px-3 py-2"
+                    >
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-primary"
+                            t-att-disabled="this.state.showCreateForm"
+                            t-on-click="() => this.onShowCreateForm()"
+                            data-hotkey="c"
+                        >
+                            New
+                        </button>
+                        <div role="heading" aria-level="2" class="fw-medium ms-2">
+                            My Timesheets
+                        </div>
+                    </div>
+
+                    <div class="o_activity_watch_timesheet_right_content d-flex flex-column flex-grow-1 overflow-x-hidden overflow-y-auto">
+                        <!-- Creation Form -->
+                        <div
+                            t-if="this.state.showCreateForm"
+                            class="o_activitywatch_sync_timesheet_creation_form flex-shrink-0 pb-4 o_activity_watch_min_h-0"
+                        >
+                            <t t-call="timesheet_grid.ActivityWatchTimesheetFormWrapper"
+                                formClasses.translate="border border-info rounded py-3">
+                                <TimesheetInlineForm
+                                    context="this.context"
+                                    onSaveCallback="(timesheet, changes) => this.onSaveTimesheetForm(timesheet, changes)"
+                                    onWriteTimesheet="(timesheet) => this.onWriteTimesheet(timesheet)"
+                                    onDelete="(timesheetId) => this.onDeleteTimesheet(timesheetId)"
+                                    saveButtonText.translate="Create"
+                                    onDiscard="() => this.dismissAllForms()"
+                                    onRecordReady="(record) => this.currentRecord = record"
+                                    onLinkedRecordSaved="() =&gt; this.onLinkedRecordSaved()"
+                                />
+                            </t>
+                        </div>
+
+                        <!-- Timesheets section -->
+                        <div name="timesheets_section" class="mb-4" t-att-class="{'opacity-50': this.state.showCreateForm}">
+                            <h2 class="h6 d-none">Timesheets</h2>
+                            <t t-if="this.model.data.timesheets.length === 0">
+                                <p class="text-muted small ms-3 mb-0 mt-2">No time recorded.</p>
+                            </t>
+                            <t t-else="">
+                                <div class="list-group">
+                                    <t t-foreach="this.model.data.timesheets" t-as="tsh" t-key="tsh.id">
+                                        <!-- Show edit form inline if this timesheet is being edited -->
+                                        <div t-if="tsh.showEditForm" class="o_activitywatch_sync_timesheet_edition_form list-group-item active border-0 p-0 text-reset" t-att-data-timesheet-form="tsh.id">
+                                            <t t-call="timesheet_grid.ActivityWatchTimesheetFormWrapper"
+                                                formClasses.translate="border border-info py-3">
+                                                <TimesheetInlineForm
+                                                    data="this.selectedData"
+                                                    onSaveCallback="(timesheet, changes) => this.onSaveTimesheetForm(timesheet, changes)"
+                                                    onWriteTimesheet="(timesheet) => this.onWriteTimesheet(timesheet)"
+                                                    onDelete="(timesheetId) => this.onDeleteTimesheet(timesheetId)"
+                                                    saveButtonText.translate="Save"
+                                                    onDiscard="() => this.dismissAllForms()"
+                                                    onRecordReady="(record) => this.currentRecord = record"
+                                                    onLinkedRecordSaved="() =&gt; this.onLinkedRecordSaved()"
+                                                />
+                                            </t>
+                                        </div>
+                                        <!-- Show normal timesheet item -->
+                                        <a t-else="" href="#" class="list-group-item list-group-item-action d-flex"
+                                           t-att-class="{
+                                               'pe-none': this.state.showCreateForm,
+                                               'opacity-75': this.selectedTimesheet != null,
+                                           }"
+                                           t-on-click.stop="() => this.onClickExistingTimesheet(tsh)"
+                                        >
+                                            <div class="text-wrap text-break me-3">
+                                                <p t-if="tsh.name" class="fw-medium mb-0"><t t-out="tsh.name"/></p>
+                                                <em t-else="" class="opacity-50">No description</em>
+                                                <div class="small opacity-75">
+                                                    <t t-if="tsh.project_id and tsh.project_id.display_name">
+                                                        <t t-out="tsh.project_id.display_name"/>
+                                                    </t>
+                                                    <span t-else="" class="fst-italic">No Project</span>
+
+                                                    <t t-if="tsh.task_id and tsh.task_id.display_name">
+                                                    / <t t-out="tsh.task_id.display_name"/>
+                                                    </t>
+                                                </div>
+                                            </div>
+                                            <span
+                                                class="o_tabular_nums fw-medium ms-auto text-nowrap"
+                                                t-out="this.formatDuration(tsh.unit_amount)"
+                                            />
+                                        </a>
+                                    </t>
+                                </div>
+                            </t>
+                        </div>
+                        <div t-if="this.model.data.workingHours !== false"
+                            class="o_activity_watch_timesheet_right_tots position-sticky bottom-0 d-flex flex-column align-items-end z-2 p-3 mt-n3 bg-100 bg-opacity-75 text-end"
+                            t-attf-title="Total: {{this.formatDuration(this.model.data.totalTime, { hideZeroHours: false })}} | Working hours: {{this.formatDuration(this.model.data.workingHours, { hideZeroHours: false })}}."
+                        >
+                            <div class="d-flex gap-1">
+                                <span class="fw-medium">Total</span>
+                                <b t-att-class="this.model.data.workingHours ? (this.model.data.totalTime &lt; this.model.data.workingHours ? 'text-danger' : 'text-success') : ''"
+                                t-out="this.formatDuration(this.model.data.totalTime, { hideZeroHours: false })"/>
+                            </div>
+                            <div t-if="this.model.data.workingHours !== null" class="d-flex gap-1">
+                                <span>over</span>
+                                <span t-out="this.formatDuration(this.model.data.workingHours, { hideZeroHours: false })"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="timesheet_grid.ActivityWatchTimesheetFormWrapper">
+        <div class="o_form_view">
+            <div class="o_form_view_container">
+                <div class="o_content">
+                    <div
+                        class="o_form_renderer o_form_nosheet o_form_editable d-block"
+                        t-att-class="formClasses"
+                    >
+                        <t t-out="0"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="timesheet_grid.InstallTimesheetAssistantDialog">
+        <Dialog
+            title.translate="'Install ActivityWatch'"
+            size="'lg'"
+            footer="false"
+            header="false"
+            withBodyPadding="false"
+            contentClass="'o_activitywatch_install_dialog'"
+        >
+
+            <div class="d-flex align-items-stretch bg-200">
+                <button
+                    type="button"
+                    class="btn-close position-absolute m-2 end-0"
+                    t-on-click="this.onDiscard"
+                    aria-label="Close"
+                />
+                <figure class="bg-100 d-none d-lg-block flex-grow-0 flex-shrink-0 m-0"/>
+                <div
+                    class="flex-grow-1 px-4 px-xxl-5 border-start bg-gradient d-flex flex-column"
+                    t-att-class="this.state.showDevList ? 'py-3' : 'py-5'"
+                >
+                    <t t-set="currentStep" t-value="this.state.step"/>
+                    <t t-if="currentStep &gt; 2 and this.os === 'windows'" t-set="currentStep" t-value="currentStep - 1"/>
+                    <t t-set="totalStep" t-value="this.os === 'windows' ? 5 : 6"/>
+                    <div class="flex-grow-1 overflow-hidden d-flex flex-column">
+                        <t t-if="this.state.step === 1">
+                            <h2 class="h3">Install Timesheets Assistant <span class="text-muted fs-5">(Step <t t-out="currentStep"/> of <t t-out="totalStep"/>)</span></h2>
+                            <p class="mb-4">Track activities on your device to get timesheet suggestions. Your data stays private locally — only you have access to activities.</p>
+
+                            <div class="card rounded bg-white-75 border-0 mb-2">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start gap-3">
+                                        <div>
+                                            <h3 class="h5 m-0">
+                                                Desktop activity <small class="text-muted">(required)</small>
+                                            </h3>
+                                            <p class="m-0">Tracks the app or window you’re using.</p>
+                                        </div>
+
+                                        <div class="d-flex flex-column align-items-center gap-1 flex-shrink-0">
+                                            <t t-if="this.os === 'linux'">
+                                                <div class="dropdown">
+                                                    <button class="btn btn-primary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        Download for Linux
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-menu-end">
+                                                        <li><a class="dropdown-item cursor-pointer" t-on-click="() => this.onInstall('linux_jammy')">Ubuntu 22.04 (Jammy)</a></li>
+                                                        <li><a class="dropdown-item cursor-pointer" t-on-click="() => this.onInstall('linux_noble')">Ubuntu 24.04 (Noble)</a></li>
+                                                    </ul>
+                                                </div>
+                                            </t>
+                                            <t t-else="">
+                                                <button
+                                                    class="btn btn-primary w-100"
+                                                    t-on-click="() => this.onInstall('windows')"
+                                                    t-att-class="{ disabled: this.os !== 'windows' }"
+                                                >
+                                                    Download for Windows
+                                                </button>
+                                            </t>
+                                            <a href="https://nightly.odoo.com/aw/"
+                                               target="_blank"
+                                               class="small text-nowrap"
+                                               title="If this isn’t the right installer, you can find other versions here.">
+                                                Other platforms
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <small t-if="this.os !== 'windows' and this.os !== 'linux'" class="text-danger d-block mt-2">
+                                        Available on Windows and Ubuntu-based Linux only. Support for other platforms is coming soon.
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="card rounded bg-white-75 border-0 mb-2 card-body">
+                                <div>
+                                    <h3 class="h5 m-0">Browser activity <small class="text-muted">(recommended)</small></h3>
+                                    <p class="m-0">Tracks the websites and tabs you have open.</p>
+                                </div>
+                                <div class="mt-2 d-flex gap-1 align-items-center">
+                                    <a
+                                        class="me-2"
+                                        href="https://addons.mozilla.org/en-US/firefox/addon/timesheets-assistant/"
+                                        target="_blank"
+                                    >
+                                        <img
+                                            src="/timesheet_grid/static/img/AMO-get-the-addon-178x60px.png"
+                                            alt="Get the Firefox Add-on"
+                                        />
+                                    </a>
+
+                                    <a
+                                        href="https://chromewebstore.google.com/detail/timesheets-assistant/bmgldglijgnaohjpjkieijkkjfacifdj"
+                                        target="_blank"
+                                    >
+                                        <img
+                                            src="/timesheet_grid/static/img/ChromeWebStore_BadgeWBorder_v2_206x58.png"
+                                            alt="Get it on Chrome Web Store"
+                                        />
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card rounded bg-white-75 border-0 mb-2">
+                                <div
+                                    class="card-body d-flex justify-content-between align-items-center cursor-pointer"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#devCollapse"
+                                    aria-expanded="false"
+                                    aria-controls="devCollapse"
+                                >
+                                    <h3 class="h5 m-0">Development Activity</h3>
+                                    <i class="oi text-muted" data-icon="expand_more"/>
+                                </div>
+
+                                <div id="devCollapse" class="collapse">
+                                    <div class="card-body pt-0">
+                                        <p class="m-0">
+                                            We track the files you’re working on and the project folder to help log your coding time accurately.
+                                        </p>
+                                        <a class="btn btn-link px-0" target="_blank" href="https://docs.activitywatch.net/en/latest/watchers.html#editor-watchers">
+                                            <i class="oi" data-icon="east"/>
+                                            Set Up Coding Activity Tracking
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+
+                        <t t-if="this.state.step === 2">
+                            <h2 class="h3 mb-4">Restart Required <span class="text-muted fs-5">(Step <t t-out="currentStep"/> of <t t-out="totalStep"/>)</span></h2>
+                            <p>To complete the installation, you need to restart your computer or log out. Either option will close all running applications.</p>
+                            <p>After restarting or logging back in, open the Assistant again to continue setup.</p>
+                        </t>
+
+                        <t t-if="this.state.step === 3">
+                            <h2 class="h3 mb-4">Configure CORS <span class="text-muted fs-5">(Step <t t-out="currentStep"/> of <t t-out="totalStep"/>)</span></h2>
+                            <p class="mb-2">To help the Assistant automatically suggest your timesheet entries, your browser needs to be able to communicate with your local <strong>ActivityWatch</strong> server.</p>
+                            <ul class="mb-4 ps-3">
+                                <li>Click <strong>Open Settings</strong> below to open the <strong>ActivityWatch</strong> website.</li>
+                                <li>
+                                    Under <strong>Server</strong> settings, enter your <strong>Odoo database URL</strong> in the <b>CORS Origins</b> field.
+                                </li>
+                            </ul>
+                            <div class="d-flex align-items-center justify-content-center gap-2 bg-100 border rounded p-3 mb-4 fs-5">
+                                <code class="text-dark user-select-all m-0"><t t-out="window.location.origin"/></code>
+                                <CopyButton
+                                    content="window.location.origin"
+                                    className="'btn-sm btn-outline-secondary border-0'"
+                                    icon="'content_copy'"
+                                    successText.translate="Copied!"
+                                />
+                            </div>
+                            <img src="/timesheet_grid/static/img/aw-cors-setting.png"
+                                alt="CORS Settings in ActivityWatch"
+                                class="img-fluid border rounded shadow-sm d-block mb-4"
+                            />
+                            <div class="card rounded bg-white-75 border-0 mb-2">
+                                <div
+                                    class="card-body d-flex justify-content-between align-items-center cursor-pointer"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#firefoxExtensionCollapse"
+                                    aria-expanded="false"
+                                    aria-controls="devCollapse"
+                                >
+                                    <h3 class="h5 m-0">Firefox extension (only if used)</h3>
+                                    <i class="oi text-muted" data-icon="expand_more"/>
+                                </div>
+
+                                <div id="firefoxExtensionCollapse" class="collapse">
+                                    <div class="card-body pt-0">
+                                        <p>If you use the ActivityWatch Firefox extension, follow these steps to allow it to connect and track your activity.</p>
+                                        <ol>
+                                            <li>
+                                                Open the Firefox extensions page: <br/>
+                                                <a class="btn btn-link m-0 p-0" target="_blank" href="about:debugging#/runtime/this-firefox">about:debugging#/runtime/this-firefox</a>
+                                            </li>
+                                            <li>
+                                                Find the ActivityWatch extension and copy its <b>Manifest URL</b> <br/>
+                                                <code>moz-extension://abcd1234/manifest.json</code> <i>(example)</i>
+                                            </li>
+                                            <li>
+                                                Open the ActivityWatch settings and paste the Manifest URL into the <b>CORS Regex</b> field.
+                                            </li>
+                                            <li>
+                                                Remove /manifest.json from the URL so it looks like this: <br/>
+                                                <code>moz-extension://abcd1234</code> <i>(example)</i>
+                                            </li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+
+                        <t t-if="this.state.step === 4">
+                            <h2 class="h3 mb-4">Restart the Server <span class="text-muted fs-5">(Step <t t-out="currentStep"/> of <t t-out="totalStep"/>)</span></h2>
+                            <p class="mb-4">Click the Odoo icon in your system tray (usually in the top bar or bottom right of your screen), then restart the server.</p>
+                            <img src="/timesheet_grid/static/img/aw-odoo-systray.png"
+                                alt="Odoo Systray Icon"
+                                style="max-width: 150px;"
+                                class="img-fluid border rounded shadow-sm mx-auto d-block mb-2"
+                            />
+                        </t>
+
+                        <t t-if="this.state.step === 5">
+                            <h2 class="h3 mb-4">Allow Browser Access <span class="text-muted fs-5">(Step <t t-out="currentStep"/> of <t t-out="totalStep"/>)</span></h2>
+                            <p class="mb-2">Your browser may block connections to apps or services running on your computer.</p>
+                            <p class="mb-4">If prompted, allow access so the Assistant can detect and connect to ActivityWatch. Most browsers will prompt automatically when needed.</p>
+                            <img src="/timesheet_grid/static/img/aw-browser-permission.png"
+                                alt="Browser Permission Prompt"
+                                class="img-fluid border rounded shadow-sm mx-auto d-block mb-2"
+                            />
+                        </t>
+
+                        <t t-if="this.state.step === 6">
+                            <h2 class="h3 mb-4">Complete Setup <span class="text-muted fs-5">(Step <t t-out="currentStep"/> of <t t-out="totalStep"/>)</span></h2>
+                            <p class="mb-2">The Assistant is ready to track your activity. 🎉</p>
+                            <p class="mb-2">Click <b>"Test Connection"</b> to verify that everything is working.</p>
+                        </t>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top flex-shrink-0">
+                        <div class="d-flex gap-2">
+                            <button t-if="this.state.step === 3" class="btn btn-primary" t-on-click="this.onConfigureNow">Open Settings</button>
+                            <button t-if="this.state.step === 6" class="btn btn-primary" t-on-click="this.props.onTestConnection">Test Connection</button>
+                        </div>
+                        <div class="d-flex gap-2 ms-auto">
+                            <button t-if="this.state.step > 1" class="btn btn-secondary" t-on-click="this.onPrev">Previous</button>
+                            <button t-if="this.state.step === 6" class="btn btn-secondary" t-on-click="this.onDiscard">Close</button>
+                            <button t-if="this.state.step &lt; 6" class="btn btn-primary px-4" t-on-click="this.onNext">Next</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Dialog>
+    </t>
+    <t t-name="timesheet_grid.TestConnectionDialog">
+        <Dialog
+            title.translate="Test Connection"
+            size="this.props.awServerStatus === 'connected' ? 'md' : 'lg'"
+            footer="false"
+        >
+            <div t-if="this.props.awServerStatus === 'connected'" class="text-center p-4">
+                <i class="oi oi-4x oi-filled text-success mb-3" data-icon="check_circle"/>
+                <h2 class="h4">Connection Successful</h2>
+                <div t-if="this.props.activeProjectName" class="mt-2 fw-bold text-success">
+                    Your current project is "<t t-out="this.props.activeProjectName"/>" since <t t-out="this.props.activeProjectSince"/>.
+                </div>
+                <p>
+                    You can check ActivityWatch in action from
+                    <a href="http://localhost:5600/#/timeline" target="_blank">http://localhost:5600/#/timeline</a>
+                </p>
+            </div>
+
+            <div t-else="" class="text-start">
+                <div class="alert alert-danger d-flex align-items-center mb-4">
+                    <i class="oi oi-2x me-3" data-icon="warning"/>
+                    <div>
+                        <h2 class="h5 mb-1">
+                            <t t-if="this.props.awServerStatus === 'unauthorized'">ActivityWatch is installed, but needs configuration.</t>
+                            <t t-else="">Unable to Connect to ActivityWatch</t>
+                        </h2>
+                        <p class="mb-0">
+                            <t t-if="this.props.awServerStatus === 'unauthorized'">Your browser is blocked from connecting to the tracker. Don’t worry — here’s how to fix it.</t>
+                            <t t-else="">We couldn’t connect to ActivityWatch to retrieve your activities. Don’t worry — here’s how to fix it.</t>
+                        </p>
+                    </div>
+                </div>
+
+                <ol class="mb-0 ps-3">
+                    <li t-if="this.props.awServerStatus !== 'unauthorized'" class="mb-4">
+                        <h3 class="h6 fw-bold mb-1">Check Installation</h3>
+                        <p class="mb-2">Make sure ActivityWatch is installed.</p>
+                        <p class="mb-2">To test, open your browser and go to: <br/> <a href="http://localhost:5600" target="_blank">http://localhost:5600</a></p>
+                        <p class="mb-2">You should see a summary page of your activities.</p>
+                        <div class="d-flex flex-column align-items-start gap-1">
+                            <t t-if="this.os === 'linux'">
+                                <div class="dropdown">
+                                    <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Download for Linux
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item cursor-pointer" t-on-click="() => this.onInstall('linux_jammy')">Ubuntu 22.04 (Jammy)</a></li>
+                                        <li><a class="dropdown-item cursor-pointer" t-on-click="() => this.onInstall('linux_noble')">Ubuntu 24.04 (Noble)</a></li>
+                                    </ul>
+                                </div>
+                            </t>
+
+                            <t t-else="">
+                                <button
+                                    class="btn btn-secondary btn-sm"
+                                    t-on-click="() => this.onInstall('windows')"
+                                    t-att-class="{ disabled: this.os !== 'windows' }"
+                                >
+                                    Download for Windows
+                                </button>
+                            </t>
+
+                            <a href="https://nightly.odoo.com/aw/"
+                               target="_blank"
+                               class="small text-nowrap"
+                               title="If this isn’t the right installer, you can find other versions here.">
+                                Other platforms
+                            </a>
+                        </div>
+                    </li>
+                    <li t-if="this.props.awServerStatus !== 'unauthorized' and os === 'linux'" class="mb-4">
+                        <h3 class="h6 fw-bold mb-1">Restart Your Computer</h3>
+                        <p class="mb-0">After installing ActivityWatch, a restart may be required.</p>
+                    </li>
+                    <li class="mb-4">
+                        <h3 class="h6 fw-bold mb-1">Configure CORS</h3>
+                        <p class="mb-2">To help the Assistant automatically suggest your timesheet entries, your browser needs to be able to communicate with your local ActivityWatch server.</p>
+                        <ul class="mb-3 ps-3">
+                            <li class="mb-1">Click <strong>Configure CORS</strong> below to open the ActivityWatch website.</li>
+                            <li class="mb-1">
+                                Under <strong>Server</strong> settings, enter your <strong>Odoo database URL</strong> in the <b>CORS Origins</b> field.
+                            </li>
+                        </ul>
+                        <div class="mb-2 d-flex align-items-center gap-2">
+                            <code class="bg-100 px-2 py-1 rounded text-dark user-select-all m-0"><t t-out="this.originUrl"/></code>
+                            <CopyButton
+                                content="this.originUrl"
+                                className="'btn-sm btn-outline-secondary border-0 p-1'"
+                                icon="'content_copy'"
+                                successText.translate="Copied!"
+                            />
+                        </div>
+                        <img src="/timesheet_grid/static/img/aw-cors-setting.png"
+                            alt="CORS Settings in ActivityWatch"
+                            class="img-fluid border rounded d-block shadow-sm mb-2"
+                        />
+
+                        <h4 class="h6 fw-bold mt-4">Firefox extension (only if used)</h4>
+                        <p>If you use the ActivityWatch Firefox extension, follow these steps to allow it to connect and track your activity.</p>
+                        <ol>
+                            <li>
+                                Open the Firefox extensions page: <br/>
+                                <a class="btn btn-link m-0 p-0" target="_blank" href="about:debugging#/runtime/this-firefox">about:debugging#/runtime/this-firefox</a>
+                            </li>
+                            <li>
+                                Find the ActivityWatch extension and copy its <b>Manifest URL</b> <br/>
+                                <code>moz-extension://abcd1234/manifest.json</code> <i>(example)</i>
+                            </li>
+                            <li>
+                                Open the ActivityWatch settings and paste the Manifest URL into the <b>CORS Regex</b> field.
+                            </li>
+                            <li>
+                                Remove /manifest.json from the URL so it looks like this: <br/>
+                                <code>moz-extension://abcd1234</code> <i>(example)</i>
+                            </li>
+                        </ol>
+                        <button class="btn btn-secondary btn-sm my-2" t-on-click="this.onConfigureCORS">Configure CORS</button>
+                    </li>
+                    <li class="mb-4">
+                        <h3 class="h6 fw-bold mb-1">Restart Server</h3>
+                        <p class="mb-1">Click the Odoo icon in your system tray (usually in the top bar of your screen), then restart the server.</p>
+                        <img src="/timesheet_grid/static/img/aw-odoo-systray.png"
+                            alt="Odoo Systray Icon"
+                            style="max-width: 150px;"
+                            class="img-fluid border rounded d-block shadow-sm"
+                        />
+                    </li>
+                    <li class="mb-4" t-if="this.props.awServerStatus !== 'unauthorized'">
+                        <h3 class="h6 fw-bold mb-1">Allow Browser Access</h3>
+                        <p class="mb-0">
+                            Your browser may block connections to apps or services running on your computer. Open your browser settings and allow access to local apps or services so the Assistant can detect and connect to ActivityWatch.
+                            <i class="oi oi-filled ms-1 cursor-pointer" data-icon="info" title="How to enable this permission" t-on-click="() => this.props.openAppsOnDeviceDialog()" role="button"/>
+                        </p>
+                    </li>
+                    <li class="mb-2">
+                        <h3 class="h6 fw-bold mb-1">Need Help?</h3>
+                        <p class="mb-3">If you’re still having trouble, check our help guides or contact support.</p>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary" t-on-click="this.props.onTestConnection">Test Connection</button>
+                            <DocumentationLink path="'/applications/services/timesheets/timesheet_assistant.html'" label.translate="Need Help" class="'btn btn-secondary'"/>
+                            <button class="btn btn-secondary" t-on-click="this.props.close">Close</button>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+        </Dialog>
+    </t>
+    <t t-name="timesheet_grid.AppsOnDevicePermissionDialog">
+        <Dialog title="''" size="'md'" contentClass="'o-aw-AppsOnDevicePermissionDialog'">
+            <div class="d-flex align-items-center justify-content-between gap-4" t-att-class="this.ui.isSmall ? 'flex-column': 'flex-row pb-2'">
+                <div t-att-class="this.ui.isSmall ? 'w-100': 'w-50'">
+                    <t t-call="timesheet_grid.AppsOnDevicePermissionDialog.illustrationAnimated"/>
+                </div>
+
+                <div class="d-flex flex-column gap-3">
+                    <h2 class="mb-0">Enable ‘Apps on Device’ Permission</h2>
+                    <ol class="ps-3 fs-6 d-flex flex-column gap-2 text-muted" t-attf-style="width: {{ this.ui.isSmall ? '100%' : '85%' }};">
+                        <li>
+                            Click the
+                            <t t-call="timesheet_grid.AppsOnDevicePermissionDialog.slidersIcon"/>
+                            page info icon in your browser's address bar
+                        </li>
+                        <li>Turn on the 'Apps on Device' permission</li>
+                    </ol>
+                </div>
+
+            </div>
+        </Dialog>
+    </t>
+
+    <t t-name="timesheet_grid.AppsOnDevicePermissionDialog.illustrationAnimated">
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="o-aw-AppsOnDevicePermissionDialog-illustrationAnimated" role="img" aria-label="Permissions Toggle - Animated illustration" width="100%" height="auto" viewBox="0 0 264 250" fill="none">
+            <title>Permissions Toggle</title>
+            <description>Animated illustration showing toggle for Apps on Device permission</description>
+            <g>
+                <path d="M281 1H7C3.68629 1 1 3.68629 1 7V253" stroke="var(--border-color)" stroke-width="2"/>
+
+                <g>
+                    <rect x="27" y="119" width="24" height="16" rx="2" stroke="var(--primary)" stroke-width="2" fill="none" stroke-linejoin="round"/>
+                    <path d="M39 135v4m-8 0h16" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+                </g>
+
+                <g>
+                    <rect class="o-aw-AppsOnDevicePermissionDialog-illustrationAnimated-toggleRect" x="94" y="116" width="45" height="24" rx="12" fill="var(--gray-300)"/>
+                    <circle class="o-aw-AppsOnDevicePermissionDialog-illustrationAnimated-toggleCircle" cx="106" cy="128" r="10" fill="#ffffff"/>
+                </g>
+
+                <path d="M299 38.7333H227.173C221.65 38.7333 217.173 34.2562 217.173 28.7333V17C217.173 11.4772 212.695 7 207.173 7H108.934C103.411 7 98.9339 11.4771 98.9339 17V28.7333C98.9339 34.2562 94.4568 38.7333 88.9339 38.7333H3M3 82L299 81.2237" stroke="var(--gray-300)" stroke-width="2"/>
+                <g>
+                    <path d="M30 60.5H18M18 60.5L22.8649 65M18 60.5L22.8649 56" stroke="var(--border-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M48 60H59M59 60L54.5405 64.5M59 60L54.5405 55.5" stroke="var(--border-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M91 60.1179C91 61.3024 90.559 62.4464 89.7592 63.3369C88.9594 64.2274 87.8553 64.8036 86.6526 64.9582C85.45 65.1128 84.2308 64.8352 83.2222 64.1772C82.2135 63.5192 81.4843 62.5256 81.1704 61.3815C80.8564 60.2374 80.9791 59.0209 81.5156 57.9587C82.0522 56.8964 82.9659 56.0608 84.0866 55.6075C85.2073 55.1543 86.4585 55.1143 87.6072 55.495C88.7559 55.8757 89.7236 56.6512 90.3301 57.6769M90.3301 57.6769H87.6072M90.3301 57.6769V55" stroke="var(--border-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <g>
+                        <rect x="171" y="47" width="120" height="26" fill="var(--gray-300)" stroke="var(--border-color)" stroke-width="2"/>
+                        <circle cx="145" cy="60.5" r="34" fill="var(--body-bg)" stroke="var(--primary)" stroke-width="2"/>
+                        <path d="M165.947 35C173.306 41.0523 178 50.2279 178 60.5C178 71.9795 172.137 82.0882 163.244 88H143.473V87.9619C129.296 87.261 118 75.6956 118 61.5C118 47.3045 129.296 35.7391 143.473 35.0381V35H165.947Z" fill="var(--gray-300)"/>
+                        <circle cx="145" cy="61.7496" r="21" fill="var(--body-bg)"/>
+                        <g>
+                            <circle cx="135.333" cy="55.0829" r="3.33333" stroke="var(--primary)" stroke-width="3"/>
+                            <path d="M144.5 55.0829L157 55.0829" stroke="var(--primary)" stroke-width="3" stroke-linecap="round"/>
+                            <circle cx="3.33333" cy="3.33333" r="3.33333" transform="matrix(-1 0 0 1 157 65.0829)" stroke="var(--primary)" stroke-width="3"/>
+                            <path d="M144.5 68.4163H132" stroke="var(--primary)" stroke-width="3" stroke-linecap="round"/>
+                        </g>
+                    </g>
+                </g>
+                <path d="M160.387 73.9249C160.751 73.7657 161.175 73.8367 161.467 74.1065L179.036 90.3575C179.283 90.5866 179.399 90.9253 179.343 91.2579C179.286 91.5906 179.066 91.8727 178.757 92.0079L172.914 94.5606L177.038 103.995V103.996C177.748 105.622 177.007 107.517 175.381 108.229C173.754 108.94 171.858 108.197 171.147 106.57L167.023 97.1358L161.181 99.6895C160.872 99.8246 160.516 99.7942 160.233 99.6094C159.951 99.4246 159.781 99.1099 159.781 98.7725L159.787 74.8409C159.787 74.4437 160.023 74.0841 160.387 73.9249Z" fill="var(--white)" stroke="var(--gray-400)" stroke-width="2" stroke-linejoin="round"/>
+                <g>
+                    <circle cx="40" cy="21" r="5" fill="var(--border-color)"/>
+                    <circle cx="60" cy="21" r="5" fill="var(--border-color)"/>
+                    <circle cx="20" cy="21" r="5" fill="var(--border-color)"/>
+                </g>
+            </g>
+        </svg>
+    </t>
+
+    <t t-name="timesheet_grid.AppsOnDevicePermissionDialog.slidersIcon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+        >
+            <path d="M14 17H5"></path>
+            <path d="M19 7h-9"></path>
+            <circle cx="17" cy="17" r="3"></circle>
+            <circle cx="7" cy="7" r="3"></circle>
+        </svg>
+    </t>
+</templates>

@@ -1,0 +1,53 @@
+{
+    'name': 'Avantgarde Theme',
+    'description': 'Editorial side-grid layout under a hamburger nav, flowing into a dense features wall, carousel showcase, and chronological timeline before a quadrant block. Feature-heavy with editorial pacing rather than long-form passages / suited for design studios, art and culture magazines, creative agencies, and trend-driven blogs',
+    'category': 'Theme/Creative',
+    'summary': 'Design, Fine Art, Artwork, Creative, Creativity, Galleries, Trends, Shows, Magazines, Blogs',
+    'sequence': 150,
+    'version': '2.0.0',
+    'data': [
+        'data/generate_primary_template.xml',
+        'data/ir_asset.xml',
+        'views/images_library.xml',
+        'views/customizations.xml',
+    ],
+    'images': [
+        'static/description/poster.webp',
+        'static/description/avantgarde_screenshot.webp',
+    ],
+    'configurator_snippets': {
+        'homepage': ['s_sidegrid', 's_features_wall', 's_carousel', 's_timeline', 's_quadrant'],
+    },
+    'configurator_snippets_addons': {
+        'website_sale': {
+            'homepage': [
+                ('website_sale.s_dynamic_snippet_category_list', 'after', 's_carousel'),
+            ],
+        },
+    },
+    'theme_customizations': {
+        'website_sale.s_dynamic_snippet_category_list': {
+            'data_attributes': {
+                'columns': '2',
+                'alignment': 'right',
+            },
+            'add_classes': [
+                'pt88', 'pb88',
+                {
+                    's_dynamic_snippet_title': 's_dynamic_snippet_title_aside col-lg-3 flex-lg-column justify-content-lg-start'
+                },
+            ],
+            'remove_classes': [
+                'pt64', 'pb64',
+            ],
+        },
+    },
+    'depends': ['website'],
+    'author': 'Odoo S.A.',
+    'license': 'LGPL-3',
+    'assets': {
+        'website.assets_editor': [
+            'theme_avantgarde/static/src/js/tour.js',
+        ],
+    }
+}

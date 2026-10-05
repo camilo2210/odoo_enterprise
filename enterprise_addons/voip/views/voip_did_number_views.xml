@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="voip_did_number_form_view" model="ir.ui.view">
+        <field name="name">voip.did.number.form</field>
+        <field name="model">voip.did.number</field>
+        <field name="arch" type="xml">
+            <form string="Phone Number" create="False" duplicate="false">
+                <field name="has_pending_action_requirement" invisible="True"/>
+                <field name="requirement_review_state" invisible="True"/>
+                <header>
+                    <button name="action_open_submit_requirements" type="object" string="Update Requirements"
+                            class="btn-primary" icon="description" icon_class="oi-filled"
+                            invisible="not (requirement_group_id and state == 'pending' and requirement_review_state == 'action_required')"/>
+                    <button name="action_open_submit_requirements" type="object" string="Update Requirements"
+                            class="btn-secondary" icon="description" icon_class="oi-filled"
+                            invisible="not (requirement_group_id and state == 'pending' and requirement_review_state != 'action_required')"/>
+                    <button name="action_set_as_main_number" type="object" string="Set as Default Outgoing Number" class="btn-secondary" invisible="is_default_outgoing_number or state != 'active'"/>
+                    <button name="action_release_number" type="object" string="Release Number" class="btn-danger" icon="close" invisible="state not in ('active', 'pending')" confirm="This will permanently release this phone number back to the carrier. This cannot be undone. Continue?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="ordering,pending,active"/>
+                </header>
+                <div class="alert alert-warning" role="alert"
+                     invisible="not has_pending_action_requirement">
+                    <strong>Identity verification required.</strong>
+                    This number is waiting for regulatory approval. Click
+                    <strong>Update Requirements</strong> above and complete
+                    the identity verification step to activate this number.
+                </div>
+                <div class="alert alert-warning" role="alert"
+                     invisible="not requirement_group_id or state != 'pending' or requirement_review_state == 'action_required'">
+                    <strong>Your order is Under Review.</strong>
+                    You will receive messages via this chatter if any required document gets rejected.
+                    Update requirements until all documents are approved.
+                </div>
+                <div class="alert alert-warning" role="alert"
+                     invisible="requirement_group_id or state != 'pending'">
+                    <strong>Your order is Under Review.</strong>
+                    You will be notified of any change via this chatter.
+                </div>
+                <div class="alert alert-danger" role="alert"
+                     invisible="not requirement_group_id or state != 'pending' or requirement_review_state != 'action_required'">
+                    Some requirements have been rejected.
+                    Review the guidelines in the chatter, then update the requirements.
+                </div>
+                <div class="alert alert-danger" role="alert"
+                     invisible="state != 'failure'">
+                    <strong>This order failed.</strong>
+                    Review the latest chatter message, then return to Phone Numbers and search again.
+                </div>
+                <div class="alert alert-warning d-flex justify-content-between align-items-center" role="alert"
+                     invisible="state != 'suspended'">
+                    <span>
+                        <strong>This number is suspended due to insufficient credits.</strong>
+                        Calls are blocked until you top up. Add credits to reactivate it.
+                    </span>
+                    <button name="action_buy_credits" type="object" string="Buy Credits"
+                            class="btn-primary flex-shrink-0" icon="open_in_new"/>
+                </div>
+                <sheet>
+                    <field name="is_default_outgoing_number" invisible="True"/>
+                    <div class="float-end badge rounded-pill fw-bold text-bg-info"
+                         invisible="not is_default_outgoing_number"
+                         data-tooltip="One (and only one) number must be the default outgoing number. It is used as a fallback outgoing number for users who have an extension and no phone number."
+                         aria-label="One (and only one) number must be the default outgoing number. It is used as a fallback outgoing number for users who have an extension and no phone number.">Default Outgoing Number</div>
+                    <div class="oe_title">
+                        <label for="did_number"/>
+                        <h1>
+                            <field name="did_number" readonly="True"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="destination_ref" widget="voip_extension_destination" options="{'no_quick_create': True}" invisible="state in ('released', 'failure')"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="voip_did_number_list_view" model="ir.ui.view">
+        <field name="name">voip.did.number.list</field>
+        <field name="model">voip.did.number</field>
+        <field name="arch" type="xml">
+            <list string="Phone Numbers" create="False" open_form_view="1" decoration-warning="has_pending_action_requirement" js_class="voip_did_number_list" duplicate="false">
+                <header>
+                    <button name="%(action_voip_did_number_search_wizard)d" type="action" string="Buy" display="always" class="btn-primary"/>
+                    <button name="action_refresh_number_statuses" type="object" string="Refresh"
+                            title="Ask the phone service for the latest status of every number."
+                            display="always"/>
+                </header>
+                <field name="has_pending_action_requirement" column_invisible="1"/> <!-- Required in the list for decoration-warning -->
+                <field name="country_id" column_invisible="True"/>
+                <field name="country_flag_url" column_invisible="True"/>
+                <field name="did_number" string="Number" readonly="True" widget="voip_flag_phone" class="d-flex align-items-center"/>
+                <field name="destination_ref" widget="voip_extension_destination" options="{'no_quick_create': True}" invisible="state in ('released', 'failure')"/>
+                <field name="main_number_status" column_invisible="True"/>
+                <button type="button" string="Default Outgoing Number" class="badge rounded-pill fw-bold text-bg-info px-2 py-1"
+                        invisible="main_number_status != 'main'"
+                        title="One (and only one) number must be the default outgoing number. It is used as a fallback outgoing number for users who have an extension and no phone number."
+                        aria-label="One (and only one) number must be the default outgoing number. It is used as a fallback outgoing number for users who have an extension and no phone number."/>
+                <field name="state" string="Status"
+                       decoration-success="state == 'active'"
+                       decoration-danger="state in ('released', 'suspended', 'failure')"
+                       decoration-warning="state in ('ordering', 'pending')"
+                       readonly="True"
+                       widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="voip_did_number_search_view" model="ir.ui.view">
+        <field name="name">voip.did.number.search</field>
+        <field name="model">voip.did.number</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="did_number"/>
+                <filter string="Active" name="active" domain="[('state', '=', 'active')]"/>
+                <filter string="Under Review" name="pending" domain="[('state', '=', 'pending')]"/>
+                <filter string="Suspended" name="suspended" domain="[('state', '=', 'suspended')]"/>
+                <filter string="Failed" name="failure" domain="[('state', '=', 'failure')]"/>
+                <group>
+                    <filter string="Status" name="group_by_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_voip_did_number" model="ir.actions.act_window">
+        <field name="name">Phone Numbers</field>
+        <field name="res_model">voip.did.number</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

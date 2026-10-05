@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="stock_barcode.KanbanRenderer" t-inherit="web.KanbanRenderer">
+        <xpath expr="//div[hasclass('o_kanban_renderer')]" position="before">
+            <ul t-if="this.displayTransferProtip &amp;&amp; this.batchEnabled" class="o_stock_barcode_picking_tabs nav nav-tabs flex-nowrap overflow-x-auto overflow-y-hidden">
+                <li class="o_regular_picking nav-item flex-basis-50 text-nowrap text-center">
+                    <a class="nav-link fs-4" href="#" t-on-click="this.displayPickings"
+                       t-att-class="this.resModel == 'stock.picking' ? 'active fw-bold' : ''"
+                       t-attf-aria-current="{{this.resModel == 'stock.picking' &amp;&amp; 'page'}}">
+                        Transfers
+                        <span t-if="this.resModel != 'stock.picking'" t-out="this.otherRecordsCount"
+                              class="ms-2 badge rounded-pill text-bg-500"/>
+                    </a>
+                </li>
+                <li class="o_batch_picking nav-item flex-basis-50 text-nowrap text-center">
+                    <a class="nav-link fs-4" href="#" t-on-click="this.displayBatches"
+                       t-att-class="this.resModel == 'stock.picking.batch' ? 'active fw-bold' : ''"
+                       t-attf-aria-current="{{this.resModel == 'stock.picking.batch' &amp;&amp; 'page'}}">
+                        Batches
+                        <span t-if="this.resModel != 'stock.picking.batch'" t-out="this.otherRecordsCount"
+                              class="ms-2 badge rounded-pill text-bg-500"/>
+                    </a>
+                </li>
+            </ul>
+            <div class="mb-3">
+                <div t-if="this.resModel === 'stock.picking.type'">
+                    <StockBarcodeMainScanner />
+                </div>
+                <div t-else="">
+                    <div class="o_kanban_tip_filter">
+                        <BarcodeView
+                            facingMode="'environment'"
+                            onInputSubmit.bind="this._onScannerResult"
+                            onResult.bind="this._onScannerResult"
+                            onError.bind="this._onScannerError"
+                        >
+                            <t t-set-slot="barcode_preview">
+                                <div class="o_barcode_view_info">
+                                    <span t-if="this.displayTransferProtip" t-out="this.transferTip"/>
+                                </div>
+                            </t>
+                            <t t-set-slot="barcode_open_button">
+                                <button class="o_stock_mobile_barcode o_barcode_button">
+                                    <i class="oi text-light" data-icon="barcode" role="img"/>
+                                </button>
+                            </t>
+                        </BarcodeView>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </t>
+
+</templates>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+
+<t t-name="web_studio.NewButtonBoxDialog">
+    <Dialog size="'sm'" title.translate="Add a Button" contentClass="'o_web_studio_new_button_dialog'">
+        <div class="grid gap-3" style="grid-template-columns: fit-content(150px) minmax(0, 1fr)">
+            <label class="fw-bold o_form_label"
+                t-att-class="this.invalidClass('field_id')">Related field
+                <sup class="p-1 ms-1 text-info" data-tooltip="Select a M2O field from another model pointing to the current model">?</sup>
+            </label>
+            <div class="o_required_modifier">
+                <Many2XAutocomplete
+                    value="this.fields.field_id()?.display_name"
+                    resModel="'ir.model.fields'"
+                    fieldString.translate="Field"
+                    update.bind="this.update"
+                    activeActions="{}"
+                    getDomain.bind="this.getDomain"
+                    isToMany="false"
+                />
+            </div>
+
+            <label class="fw-bold o_form_label" t-att-class="this.invalidClass('label')">Label</label>
+            <input class="o_input o_required_modifier" name="string" type="text" placeholder="My Button" t-att-value="this.fields.label()" t-on-change="(ev) => this.fields.label.set(ev.target.value)"/>
+
+            <label class="fw-bold">Icon</label>
+            <StudioIconSelector
+                className="'btn btn-secondary'"
+                value="this.fields.icon()"
+                onSelect="(value) => this.fields.icon.set(value)"
+            >
+                <i class="oi" t-att-data-icon="this.fields.icon()"/>
+            </StudioIconSelector>
+        </div>
+        <t t-set-slot="footer">
+            <button t-attf-class="btn btn-primary" t-on-click.stop="this.onConfirm">Add</button>
+            <button class="btn btn-secondary" t-on-click.stop="this.props.close">Discard</button>
+        </t>
+    </Dialog>
+</t>
+
+</templates>

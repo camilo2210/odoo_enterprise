@@ -1,0 +1,146 @@
+<?xml version="1.0"?>
+<templates>
+<t t-name="voip.StatusMenu">
+    <Dropdown state="this.dropdownState" position="'bottom-end'" beforeOpen="() => this.refreshMemberships(true)">
+        <button class="o-voip-StatusMenu-badge btn btn-light align-items-center d-flex p-2" t-att-class="{ 'o-voip-StatusMenu-callStatus': this.isInCall }" t-att-title="this.isInCall ? this.props.callStatus.title : this.badgeTitle">
+            <t t-if="this.isInCall">
+                <i class="oi me-1" t-attf-class="{{ this.props.callStatus.iconClasses }}" t-att-class="{ 'o-voip-RingingAnimation': this.props.callStatus.isRinging }" t-att-data-icon="this.props.callStatus.icon" aria-hidden="true"/>
+                <span class="fw-bolder" t-out="this.props.callStatus.text"/>
+            </t>
+            <t t-else="">
+                <i t-if="this.voip.microphoneError" class="oi oi-filled text-danger" aria-hidden="true">error</i>
+                <i t-else="" class="oi oi-filled" t-att-class="this.statusIconClass" t-out="this.statusIcon" aria-hidden="true"></i>
+                <span class="ms-2" t-out="this.statusText"/>
+                <span t-if="this.hasLoggedQueue" class="ms-2 text-primary" role="img" t-att-title="this.queueIndicatorTitle" t-att-aria-label="this.queueIndicatorTitle">
+                    <i class="oi" aria-hidden="true">headphones</i>
+                </span>
+            </t>
+        </button>
+        <t t-set-slot="content">
+            <DropdownItem t-if="!this.isInCall and this.canBuyNumber" class="'o-voip-StatusMenu-buyNumber d-flex align-items-center gap-2'" onSelected.bind="this.openPhoneNumberPurchaseWizard">
+                <i class="oi oi-fw" aria-hidden="true">add_shopping_cart</i>
+                Buy a number
+            </DropdownItem>
+            <DropdownItem t-if="this.canRequestNumber" class="'o-voip-StatusMenu-requestNumber d-flex align-items-center gap-2'" onSelected.bind="this.openPhoneNumberRequestWizard">
+                <i class="oi oi-fw" aria-hidden="true">mail</i>
+                Request a number
+            </DropdownItem>
+            <Dropdown t-if="this.myNumbers.length or this.sharedNumbers.length">
+                <div class="o-voip-StatusMenu-myNumbers d-flex align-items-center gap-2">
+                    <i class="oi oi-fw" aria-hidden="true">dialpad</i>
+                    My numbers
+                </div>
+                <t t-set-slot="content">
+                    <t t-foreach="this.myNumbers" t-as="number" t-key="number.raw">
+                        <div t-if="number.title" class="d-flex align-items-center justify-content-between gap-3 px-3 pt-1">
+                            <span class="text-muted smaller" t-out="number.title"/>
+                            <label t-if="number.showAutoSelect" class="form-check form-switch d-flex align-items-center gap-2 mb-0" data-tooltip="Odoo auto-selects your outgoing number to match the country of the callee.">
+                                <span class="text-muted smaller">Auto-select</span>
+                                <input type="checkbox" class="form-check-input m-0" t-att-checked="this.voip.autoSelectCallerId" t-on-change="(ev) => this.toggleAutoSelectCallerId(ev.target.checked)"/>
+                            </label>
+                        </div>
+                        <div class="o-voip-StatusMenu-number d-flex align-items-center justify-content-between gap-3 px-3 py-1" t-att-class="{'o-voip-StatusMenu-number--selectable': number.isSelectable}">
+                            <button t-if="number.isSelectable" type="button" class="btn border-0 d-flex align-items-center flex-wrap flex-grow-1 p-0 text-start" t-on-click="() => this.selectCallerId(number.raw)">
+                                <img t-if="number.flagUrl" class="o-voip-countryFlag me-1" t-att-src="number.flagUrl" t-att-alt="number.countryName"/>
+                                <span class="o-voip-StatusMenu-numberValue" t-out="number.formatted"/>
+                                <span t-if="number.statusBadge" class="badge rounded-pill text-bg-warning ms-1" t-out="number.statusBadge"/>
+                                <span t-if="number.isCallerId" class="badge rounded-pill text-bg-info ms-1">Your caller ID</span>
+                            </button>
+                            <span t-else="" class="d-flex align-items-center flex-wrap">
+                                <span class="o-voip-StatusMenu-numberValue" t-out="number.formatted"/>
+                                <span t-if="number.isCallerId" class="badge rounded-pill text-bg-info ms-1">Your caller ID</span>
+                            </span>
+                            <span t-on-click.stop="">
+                                <CopyButton
+                                    className="'o-voip-StatusMenu-copy btn-sm border-0 p-1'"
+                                    content="number.raw"
+                                    icon="'content_copy'"
+                                    successText.translate="Copied!"
+                                />
+                            </span>
+                        </div>
+                    </t>
+                    <div t-if="this.sharedNumbers.length" class="text-muted smaller px-3 pt-1">Shared numbers</div>
+                    <div t-foreach="this.sharedNumbers" t-as="number" t-key="number.raw" class="o-voip-StatusMenu-number o-voip-StatusMenu-number--selectable d-flex align-items-center justify-content-between gap-3 px-3 py-1">
+                        <button type="button" class="btn border-0 d-flex align-items-center flex-wrap flex-grow-1 gap-1 p-0 text-start" t-on-click="() => this.selectCallerId(number.raw)">
+                            <img t-if="number.flagUrl" class="o-voip-countryFlag me-1" t-att-src="number.flagUrl" t-att-alt="number.countryName"/>
+                            <i class="oi oi-fw" t-att-class="this.getSharedNumberIconClass(number)" t-out="this.getSharedNumberIcon(number)" t-att-title="this.getSharedNumberLabel(number)" t-att-aria-label="this.getSharedNumberLabel(number)"/>
+                            <span class="o-voip-StatusMenu-numberValue" t-out="number.formatted"/>
+                            <span t-if="number.isCallerId" class="badge rounded-pill text-bg-info ms-1">Your caller ID</span>
+                        </button>
+                        <span t-on-click.stop="">
+                            <CopyButton className="'o-voip-StatusMenu-copy btn-sm border-0 p-1'" content="number.raw" icon="'content_copy'" successText.translate="Copied!"/>
+                        </span>
+                    </div>
+                </t>
+            </Dropdown>
+            <a t-if="!this.isInCall and this.voip.config.buyCreditsUrl" t-att-href="this.voip.config.buyCreditsUrl" target="_blank" class="o-voip-StatusMenu-buyCredits dropdown-item d-flex align-items-center gap-2">
+                <i class="oi oi-fw text-primary" aria-hidden="true">credit_card</i>
+                Buy Credits
+            </a>
+            <Dropdown t-if="this.isAvailable">
+                <div class="o-voip-StatusMenu-dnd d-flex align-items-start gap-2">
+                    <i class="oi oi-filled oi-fw text-danger mt-1" aria-hidden="true">phone_disabled</i>
+                    <div>
+                        <p class="m-0">Do Not Disturb</p>
+                        <p class="mb-0 me-3 text-muted smaller">Incoming calls will be muted</p>
+                    </div>
+                </div>
+                <t t-set-slot="content">
+                    <t t-foreach="this.settings.MUTES" t-as="dndDuration" t-key="dndDuration.label">
+                        <DropdownItem onSelected="() => this.userSettings.setVoipDoNotDisturb(dndDuration.value)">
+                            <t t-out="this.getDndDurationName(dndDuration)"/>
+                        </DropdownItem>
+                    </t>
+                </t>
+            </Dropdown>
+            <DropdownItem t-else="" class="'o-voip-StatusMenu-dnd d-flex align-items-start gap-2'" onSelected="() => this.userSettings.setVoipDoNotDisturb(0)">
+                <i class="oi oi-fw oi-filled text-success mt-1" aria-hidden="true">phone</i>
+                <div>
+                    <p class="m-0">Turn off Do Not Disturb</p>
+                    <p t-if="this.dndExpiryText" class="mb-0 text-muted smaller" t-out="this.dndExpiryText"/>
+                </div>
+            </DropdownItem>
+            <Dropdown t-if="this.isOdooPhoneProduction and this.state.memberships.length">
+                <div class="o-voip-StatusMenu-queues d-flex align-items-center gap-2">
+                    <i class="oi oi-fw" aria-hidden="true">headphones</i>
+                    Queues
+                </div>
+                <t t-set-slot="content">
+                    <div t-foreach="this.state.memberships" t-as="membership" t-key="membership.id" class="d-flex align-items-center justify-content-between gap-3 px-3 py-1">
+                        <span class="text-truncate" t-out="membership.queue_name"/>
+                        <button type="button" class="o-voip-StatusMenu-queueToggle btn btn-sm flex-shrink-0" t-att-class="membership.is_logged ? 'btn-secondary' : 'btn-primary'" t-att-disabled="this.state.pendingAgentIds.has(membership.id)" t-on-click="() => this.toggleMembership(membership)">
+                            <t t-if="membership.is_logged">Leave</t>
+                            <t t-else="">Join</t>
+                        </button>
+                    </div>
+                </t>
+            </Dropdown>
+            <Dropdown t-if="this.showAudioSettings">
+                <div class="o-voip-StatusMenu-audioSettings d-flex align-items-center gap-2">
+                    <i class="oi oi-filled oi-fw" t-att-class="{'oi-filled text-danger': this.voip.microphoneError}" t-out="this.voip.microphoneError ? 'error' : 'volume_up'" aria-hidden="true"/>
+                    Audio settings
+                </div>
+                <t t-set-slot="content">
+                    <div class="o-voip-AudioDeviceSelector-menu d-flex flex-column gap-2 p-2">
+                        <span class="text-muted small">Microphone</span>
+                        <DeviceSelect kind="'audioinput'" permissionDialogConfiguration="this.voip.softphone.audioPermissionDialogConfiguration"/>
+                        <span class="text-muted small mt-1">Call speakers</span>
+                        <div class="o-voip-AudioDeviceSelector-callOutput">
+                            <DeviceSelect kind="'audiooutput'" permissionDialogConfiguration="this.voip.softphone.audioPermissionDialogConfiguration"/>
+                        </div>
+                        <span class="text-muted small mt-1">Ringtone</span>
+                        <div class="o-voip-AudioDeviceSelector-ringtoneOutput">
+                            <DeviceSelect kind="'audiooutput'" settingName="'ringtoneOutputDeviceId'" permissionDialogConfiguration="this.voip.softphone.audioPermissionDialogConfiguration"/>
+                        </div>
+                    </div>
+                </t>
+            </Dropdown>
+            <DropdownItem t-elif="this.props.showAudioActivation and this.voip.microphoneError" class="'o-voip-StatusMenu-enableAudio d-flex align-items-center gap-2'" onSelected.bind="this.showAudioPermissionDialog">
+                <i class="oi oi-filled oi-fw text-danger" aria-hidden="true">error</i>
+                Enable Audio
+            </DropdownItem>
+        </t>
+    </Dropdown>
+</t>
+</templates>

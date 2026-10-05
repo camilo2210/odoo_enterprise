@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="timesheet_grid.TimesheetInlineForm">
+        <Record
+            fields="this.staticTimerService.timesheetTimerFields"
+            activeFields="this.activeFields"
+            resModel="this.model"
+            resId="this.recordData?.id"
+            mode="'edit'"
+            t-slot-scope="data"
+            values="this.recordData"
+            context="this.props.context"
+            hooks="this.recordHooks"
+        >
+            <div class="w-100" t-on-keydown="(ev) => this.onKeydown(ev, data.record)">
+                <div class="o_group o_timesheet_inline_form align-items-start">
+                    <div class="o_inner_group d-grid">
+                        <div class="o_cell o_wrap_label text-break text-900">
+                            <label class="o_form_label" name="name_label">
+                                Description
+                            </label>
+                        </div>
+                        <div class="o_cell o_wrap_input o_wrap_input_full_width mb-2 mb-sm-0" name="description_field" t-ref="this.descriptionFieldRef">
+                            <Field name="'name'"
+                                fieldInfo="this.activeFields.name"
+                                record="data.record"
+                                class="'field-description w-100'"
+                            />
+                        </div>
+                        <div class="o_cell o_wrap_label text-break text-900">
+                            <label class="o_form_label" name="project_id_label">
+                                Project
+                            </label>
+                        </div>
+                        <div class="o_cell o_wrap_input o_wrap_input_full_width mb-2 mb-sm-0" name="project_field">
+                            <Field name="'project_id'"
+                            fieldInfo="this.activeFields.project_id"
+                            record="data.record"
+                            class="'w-100'"
+                            />
+                        </div>
+                        <div class="o_cell o_wrap_label text-break text-900" name="task_id_label_container">
+                            <label class="o_form_label" name="task_id_label">
+                                Task
+                            </label>
+                        </div>
+                        <div class="o_cell o_wrap_input o_wrap_input_full_width mb-2 mb-sm-0" name="task_field">
+                            <Field name="'task_id'"
+                                fieldInfo="this.activeFields.task_id"
+                                record="data.record"
+                                class="'w-100'"
+                                t-key="data.record.data.project_id.id"
+                            />
+                        </div>
+                        <div class="o_cell o_wrap_label text-break text-900">
+                            <label class="o_form_label" name="unit_amount_label">
+                                Time
+                            </label>
+                        </div>
+                        <div name="unit_amount_field_container" class="o_cell o_wrap_input o_field_widget mb-2 mb-sm-0" t-att-class="{'o_wrap_input_full_width': this.uiService.isSmall}">
+                            <Field name="'unit_amount'"
+                                fieldInfo="this.activeFields.unit_amount"
+                                record="data.record"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap mt-2">
+                    <button type="button"
+                        name="save_btn"
+                        class="btn btn-primary w-100 w-sm-auto"
+                        t-att-class="{'disabled': this.state.disabledButtons}"
+                        t-on-click="() => this.onSave(data.record)"
+                        data-hotkey="s"
+                    >
+                        <t t-if="this.saveButtonText" t-out="this.saveButtonText"/>
+                        <t t-else="">Save</t>
+                    </button>
+                    <button
+                        type="button"
+                        name="discardButton"
+                        class="btn btn-secondary w-100 w-sm-auto"
+                        t-on-click="() => this.onDiscard(data.record)"
+                        data-hotkey="j"
+                    >
+                        <t t-out="this.discardButtonText"/>
+                    </button>
+                    <button t-if="this.props.data?.id"
+                        type="button"
+                        class="btn btn-danger w-100 w-sm-auto ms-sm-auto"
+                        t-on-click="() => this.onDelete(data.record)"
+                        data-hotkey="x"
+                    >
+                        <i class="oi" data-icon="close"/>
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </Record>
+    </t>
+
+</templates>

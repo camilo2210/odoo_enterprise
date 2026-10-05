@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="voip_res_users_settings_view_form" model="ir.ui.view">
+        <field name="name">VoIP User Settings</field>
+        <field name="model">res.users.settings</field>
+        <field name="inherit_id" ref="mail.res_users_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/sheet/notebook" position="before">
+                <group name="voip_user_settings" string="Phone Configuration">
+                    <group>
+                        <group>
+                            <field name="uses_odoo_provider" invisible="1"/>
+                            <field name="can_manage_pbx_extension" invisible="1"/>
+                            <field name="has_assigned_did_number" invisible="1"/>
+                            <field name="voip_provider_id" string="Provider" groups="voip.group_voip_admin" options="{'no_open': 1, 'no_create': 1, 'no_edit': 1}"/>
+                            <field name="voip_provider_id" string="Provider" groups="!voip.group_voip_admin" domain="[('mode', '=', 'prod')]" options="{'no_open': 1, 'no_create': 1, 'no_edit': 1}"/>
+                            <div class="text-muted" invisible="uses_odoo_provider or not pbx_extension_number">
+                                Select <em>Odoo Phone Service</em> to make <span invisible="has_assigned_did_number">internal </span>calls
+                            </div>
+                            <field name="pbx_extension_number" invisible="not uses_odoo_provider" readonly="not can_manage_pbx_extension" placeholder="e.g. 1000"/>
+                            <field name="voip_username" invisible="uses_odoo_provider"/>
+                            <field name="voip_secret" password="True" invisible="uses_odoo_provider"/>
+                            <button name="%(voip_call_action_history)d" string="View call history" type="action" class="btn btn-secondary btn-sm" icon="phone"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="external_device_number" placeholder="1234 or +14155550123"/>
+                        <field name="how_to_call_on_mobile" widget="radio"/>
+                    </group>
+                    <group colspan="2">
+                        <group string="On No Answer" colspan="2" groups="base.group_user">
+                            <div class="d-flex align-items-baseline gap-2" colspan="2">
+                                <field name="voip_no_answer_destination_type" nolabel="1" class="oe_inline"/>
+                                <span invisible="voip_no_answer_destination_type != 'forward'">after</span>
+                                <field name="voip_no_answer_timeout" nolabel="1" class="oe_inline" invisible="voip_no_answer_destination_type != 'forward'"/>
+                                <span invisible="voip_no_answer_destination_type != 'forward'">seconds to</span>
+                                <field name="voip_no_answer_immediate_destination" nolabel="1" class="oe_inline flex-grow-1" invisible="voip_no_answer_destination_type != 'forward' or voip_no_answer_timeout != 0" required="voip_no_answer_destination_type == 'forward' and voip_no_answer_timeout == 0" placeholder="1234 or +14155550123"/>
+                                <field name="voip_no_answer_destination_kind" nolabel="1" class="oe_inline" invisible="voip_no_answer_destination_type != 'forward' or voip_no_answer_timeout == 0"/>
+                                <field name="voip_no_answer_destination_ref" widget="voip_pbx_forward_destination_ref" options="{'kind_field': 'voip_no_answer_destination_kind'}" nolabel="1" class="oe_inline flex-grow-1" invisible="voip_no_answer_destination_type != 'forward' or voip_no_answer_timeout == 0 or voip_no_answer_destination_kind in (False, 'external')" required="voip_no_answer_destination_type == 'forward' and voip_no_answer_timeout != 0 and voip_no_answer_destination_kind not in (False, 'external')"/>
+                                <field name="voip_no_answer_outcall_number" nolabel="1" class="oe_inline flex-grow-1" invisible="voip_no_answer_destination_type != 'forward' or voip_no_answer_timeout == 0 or voip_no_answer_destination_kind != 'external'" required="voip_no_answer_destination_type == 'forward' and voip_no_answer_timeout != 0 and voip_no_answer_destination_kind == 'external'" placeholder="+14155550123"/>
+                            </div>
+                        </group>
+                        <group string="On Busy" colspan="2" groups="base.group_user">
+                            <div class="d-flex align-items-baseline gap-2" colspan="2">
+                                <field name="voip_busy_destination_type" nolabel="1" class="oe_inline"/>
+                                <span invisible="voip_busy_destination_type != 'forward'">to</span>
+                                <field name="voip_busy_destination_kind" nolabel="1" class="oe_inline" invisible="voip_busy_destination_type != 'forward'"/>
+                                <field name="voip_busy_destination_ref" widget="voip_pbx_forward_destination_ref" options="{'kind_field': 'voip_busy_destination_kind'}" nolabel="1" class="oe_inline flex-grow-1" invisible="voip_busy_destination_type != 'forward' or voip_busy_destination_kind in (False, 'external')" required="voip_busy_destination_type == 'forward' and voip_busy_destination_kind not in (False, 'external')"/>
+                                <field name="voip_busy_outcall_number" nolabel="1" class="oe_inline flex-grow-1" invisible="voip_busy_destination_type != 'forward' or voip_busy_destination_kind != 'external'" required="voip_busy_destination_type == 'forward' and voip_busy_destination_kind == 'external'" placeholder="+14155550123"/>
+                            </div>
+                            <field name="voip_ring_concurrent_calls"/>
+                        </group>
+                        <group string="On Disconnected" colspan="2" groups="base.group_user">
+                            <div class="d-flex align-items-baseline gap-2" colspan="2">
+                                <field name="voip_disconnected_destination_type" nolabel="1" class="oe_inline"/>
+                                <span invisible="voip_disconnected_destination_type != 'forward'">to</span>
+                                <field name="voip_disconnected_destination_kind" nolabel="1" class="oe_inline" invisible="voip_disconnected_destination_type != 'forward'"/>
+                                <field name="voip_disconnected_destination_ref" widget="voip_pbx_forward_destination_ref" options="{'kind_field': 'voip_disconnected_destination_kind'}" nolabel="1" class="oe_inline flex-grow-1" invisible="voip_disconnected_destination_type != 'forward' or voip_disconnected_destination_kind in (False, 'external')" required="voip_disconnected_destination_type == 'forward' and voip_disconnected_destination_kind not in (False, 'external')"/>
+                                <field name="voip_disconnected_outcall_number" nolabel="1" class="oe_inline flex-grow-1" invisible="voip_disconnected_destination_type != 'forward' or voip_disconnected_destination_kind != 'external'" required="voip_disconnected_destination_type == 'forward' and voip_disconnected_destination_kind == 'external'" placeholder="+14155550123"/>
+                            </div>
+                        </group>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

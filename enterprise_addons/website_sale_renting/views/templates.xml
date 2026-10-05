@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="rental_products_price" inherit_id="website_sale.product_price" name="Rental Product Price">
+        <div name="product_price_container" position="inside">
+            <span
+                t-if="combination_info.get('is_rental')"
+                class="o_renting_details fs-6 fw-normal text-muted"
+            >
+                <span>/</span>
+                <span
+                    class="o_renting_duration"
+                    t-out="
+                        combination_info['rental_duration'] > 1 and
+                        combination_info['rental_duration']
+                        or ''
+                    "
+                />
+                <span class="o_renting_unit" t-out="combination_info['rental_unit']"/>
+            </span>
+        </div>
+    </template>
+
+    <template id="rental_product" inherit_id="website_sale.product" name="Select pickup Date and Return Date">
+        <xpath expr="//div[@id='product_details']//t[@name='variant_info']" position="after">
+            <div
+                t-if="combination_info.get('is_rental') and not combination_info['prevent_sale']"
+                class="o_wsale_product_details_content_section o_wsale_product_details_content_section_renting mb-4"
+            >
+                <div
+                    class="align-middle input-group-lg o_website_sale_daterange_picker variant_attribute"
+                    t-att-data-rental-duration-unit="product.rent_periodicity"
+                >
+                    <t
+                        t-set="periodIsSet"
+                        t-value="request.cart.has_rentable_lines and request.cart.order_line.filtered('is_rental').product_id != product"
+                    />
+                    <t t-set="disclaimer">
+                        The period must be the same for all the products in your cart. Go to your cart to change it or create different orders.
+                    </t>
+                    <t
+                        t-set="current_image_cols"
+                        t-value="8"
+                    />
+                    <t t-set="format" t-value="website._format_date"/>
+                    <div class="attribute_name">
+                        <strong>Rental Period</strong>
+                        <span
+                            t-if="not website._is_customer_in_the_same_timezone()"
+                            class="ms-1 o_not_editable"
+                            t-out="website._get_utc_offset(website.tz)"
+                        />
+                        <i
+                            t-attf-class="o_rental_info_message oi #{not periodIsSet and 'd-none'} ms-2 text-info o_not_editable"
+                            data-icon="info"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            data-bs-delay="0"
+                            t-att-title="disclaimer"
+                            role="tooltip"
+                        />
+                    </div>
+                    <div class="oe_unremovable w-100 o_not_editable">
+                        <div class="s_website_form_datetime date o_daterange_picker">
+                            <div t-attf-class="d-flex gap-2 align-items-center">
+                                <div class="input-group">
+                                    <input
+                                        id="rental_product_start_date"
+                                        type="text"
+                                        name="renting_start_date"
+                                        placeholder="Start date"
+                                        class="o_website_sale_daterange_picker_input form-control"
+                                        t-att-disabled="periodIsSet"
+                                        t-att-value="format(combination_info['default_start_date'])"
+                                        t-att-data-start-datetime="combination_info['default_start_date']"
+                                    />
+                                    <label for="rental_product_start_date" class="input-group-text input-group-text-subtle d-flex align-items-center">
+                                        <i class="oi oi-filled" data-icon="calendar_today" role="img"/>
+                                    </label>
+                                </div>
+                                <i t-attf-class="oi" data-icon="east" role="presentation"/>
+                                <div class="input-group">
+                                    <input
+                                        id="rental_product_end_date"
+                                        type="text"
+                                        name="renting_end_date"
+                                        placeholder="End date"
+                                        class="o_website_sale_daterange_picker_input form-control"
+                                        t-att-disabled="periodIsSet"
+                                        t-att-value="format(combination_info['default_end_date'])"
+                                        t-att-data-end-datetime="combination_info['default_end_date']"
+                                    />
+                                    <label for="rental_product_end_date" class="input-group-text input-group-text-subtle d-flex align-items-center">
+                                        <i class="oi oi-filled" data-icon="calendar_today" role="img"/>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <t
+                            t-set="can_select_hours"
+                            t-value="product.rent_periodicity == 'hours'"
+                        />
+                        <div t-if="can_select_hours" id="rental_time_selectors" t-attf-class="d-flex gap-2 align-items-center mt-3 d-none">
+                            <label for="rental_product_start_time" class="form-label mb-0 flex-shrink-0">Pickup time</label>
+                            <select
+                                id="rental_product_start_time"
+                                name="rental_start_time"
+                                class="o_website_sale_daterange_picker_input form-select form-select-sm flex-grow-1"
+                                t-att-disabled="periodIsSet"
+                            />
+                            <i class="oi flex-shrink-0" data-icon="east" role="presentation"/>
+                            <label for="rental_product_end_time" class="form-label mb-0 flex-shrink-0">Return time</label>
+                            <select
+                                id="rental_product_end_time"
+                                name="rental_end_time"
+                                class="o_website_sale_daterange_picker_input form-select form-select-sm flex-grow-1"
+                                t-att-disabled="periodIsSet"
+                            />
+                        </div>
+                        <div class="o_renting_warning invalid-feedback" role="alert">
+                            <i class="oi" data-icon="warning" role="img" aria-label="Warning"/>
+                            <span name="renting_warning_message"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="products_item" inherit_id="website_sale.products_item">
+        <t name="product_base_price" position="after">
+            <span
+                t-if="product.rent_periodicity and template_price_vals['rental_duration'] and not website._prevent_product_sale(product, not template_price_vals['price_reduce'])"
+                class="h6"
+            >
+                <span>/</span>
+                <span t-if="template_price_vals['rental_duration'] > 1" t-out="template_price_vals['rental_duration']"/>
+                <span t-out="template_price_vals['rental_unit']"/>
+            </span>
+        </t>
+    </template>
+
+    <template id="rental_search_result_price">
+        <t t-out="price"
+           t-options="{'widget': 'monetary', 'display_currency': currency}"/>
+        <small>/</small>
+        <small t-if="duration > 1" t-out="duration"/>
+        <small t-out="unit"/>
+    </template>
+
+    <template id="cart_lines" inherit_id="website_sale.cart_lines">
+        <xpath expr="//t[@t-call='website_sale.cart_line_description_following_lines']" position="before">
+            <div t-if="line.is_rental" t-out="line._get_rental_pricing_description()" class="text-muted d-md-block small"/>
+        </xpath>
+    </template>
+
+    <template id="cart_summary" inherit_id="website_sale.cart_summary_content">
+        <td name="website_sale_cart_summary_product_name" position="inside">
+            <div t-if="line.is_rental"
+                 t-out="line._get_rental_pricing_description()"
+                 class="d-md-block small text-muted"/>
+        </td>
+    </template>
+
+    <template id="cart_summary_content" inherit_id="website_sale.cart_summary_content">
+        <div name="order_lines" position="after">
+            <div
+                t-if="website_sale_order.has_rentable_lines"
+                class="py-3 mx-n3 mx-lg-0 px-3 px-lg-0 border-bottom"
+            >
+                <h6 class="attribute_name">Rental Period</h6>
+                <div class="oe_unremovable d-flex gap-1 align-items-center w-100 text-muted">
+                    <span t-out="website_sale_order._to_order_tz(website_sale_order.rental_start_date).replace(tzinfo=None)"
+                          widget="datetime"
+                          class="o_not_editable"/>
+                    <i class="oi" data-icon="east"/>
+                    <span t-out="website_sale_order._to_order_tz(website_sale_order.rental_return_date).replace(tzinfo=None)"
+                          widget="datetime"
+                          class="o_not_editable"/>
+                </div>
+                <t t-if="not website_sale_order.website_id._is_customer_in_the_same_timezone()">
+                    (<t t-out="website_sale_order.website_id.tz"/>)
+                </t>
+            </div>
+        </div>
+    </template>
+
+    <template id="cart" inherit_id="website_sale.shorter_cart_summary">
+        <xpath expr="//div[@name='o_cart_total_card_body']/t" position="before">
+            <div
+                t-if="website_sale_order.is_rental_order"
+                id="cart_rental_period"
+                class="o_website_sale_daterange_picker mb-3 mb-lg-2 pb-lg-3"
+                t-att-data-rental-duration-unit="'hours' if website_sale_order._is_renting_possible_in_hours() else 'days'"
+            >
+                <t t-set="website" t-value="website_sale_order.website_id"/>
+                <t t-set="format" t-value="website._format_date"/>
+                <h6>Rental period</h6>
+                <div class="oe_unremovable w-100">
+                    <div class="s_website_form_datetime date o_daterange_picker" data-target-input="nearest">
+                        <div class="d-flex gap-2 align-items-center flex-column">
+                            <div class="input-group">
+                                <input
+                                    id="website_sale_order_renting_start_date"
+                                    type="text"
+                                    name="renting_start_date"
+                                    class="o_website_sale_daterange_picker_input form-control"
+                                    placeholder="Start date"
+                                    t-att-value="format(website_sale_order.rental_start_date)"
+                                    t-att-data-start-datetime="website_sale_order.rental_start_date"
+                                />
+                                <label for="website_sale_order_renting_start_date" class="input-group-text input-group-text-subtle d-flex align-items-center">
+                                    <i class="oi oi-filled" data-icon="calendar_today" role="img"/>
+                                </label>
+                            </div>
+                            <div class="input-group">
+                                <input
+                                    id="website_sale_order_renting_end_date"
+                                    type="text"
+                                    name="renting_end_date"
+                                    class="o_website_sale_daterange_picker_input form-control"
+                                    placeholder="End date"
+                                    t-att-value="format(website_sale_order.rental_return_date)"
+                                    t-att-data-end-datetime="website_sale_order.rental_return_date"
+                                />
+                                <label for="website_sale_order_renting_end_date" class="input-group-text input-group-text-subtle d-flex align-items-center">
+                                    <i class="oi oi-filled" data-icon="calendar_today" role="img"/>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <t
+                        t-set="can_select_hours"
+                        t-value="website_sale_order._is_renting_possible_in_hours()"
+                    />
+                    <div t-if="can_select_hours" id="rental_time_selectors" t-attf-class="d-flex gap-2 align-items-center mt-3 d-none">
+                        <label for="rental_cart_start_time" class="form-label mb-0 flex-shrink-0">Pickup</label>
+                        <select
+                            id="rental_cart_start_time"
+                            name="rental_start_time"
+                            class="form-select form-select-sm flex-grow-1"
+                            t-att-disabled="periodIsSet"
+                        />
+                        <i class="oi flex-shrink-0" data-icon="east" role="presentation"/>
+                        <label for="rental_cart_end_time" class="form-label mb-0 flex-shrink-0">Return</label>
+                        <select
+                            id="rental_cart_end_time"
+                            name="rental_end_time"
+                            class="form-select form-select-sm flex-grow-1"
+                            t-att-disabled="periodIsSet"
+                        />
+                    </div>
+                    <div class="o_renting_warning invalid-feedback" role="alert">
+                        <i class="oi" data-icon="warning" role="img" aria-label="Warning"/>
+                        <span name="renting_warning_message"/>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- TODO: reomve constrain -->
+    <template id="base_unit_price" inherit_id="website_sale.base_unit_price">
+        <xpath expr="//t" position="attributes">
+            <attribute name="t-if">not product.rent_periodicity</attribute>
+        </xpath>
+    </template>
+
+    <template id="suggested_products_list" inherit_id="website_sale.suggested_products_list">
+        <span name="suggested_product_price" position="after">
+            <span t-if="combination_info.get('is_rental') and combination_info['rental_duration']" class="h6">
+                <span class="ps-1">/</span>
+                <span t-if="combination_info['rental_duration'] > 1" t-out="combination_info['rental_duration']"/>
+                <span t-out="combination_info['rental_unit']"/>
+            </span>
+        </span>
+    </template>
+
+    <template id="website_sale_renting.shop_rental_datepicker_opt" active="False"/>
+
+    <template id="website_sale_renting.datepicker">
+        <div
+            id="o_website_sale_daterange_picker"
+            class="o_website_sale_daterange_picker o_website_sale_shop_daterange_picker o_not_editable position-relative flex-grow-1"
+            data-rental-duration-unit="hours"
+        >
+            <t t-set="wso" t-value="request.cart"/>
+            <t t-set="format" t-value="website._format_date"/>
+            <div class="s_website_form_datetime date o_daterange_picker mb-0">
+                <div>
+                    <div
+                        t-if="periodIsSet"
+                        role="alert"
+                        class="o_rental_info_message alert alert-light d-md-none mb-1 border small"
+                    >
+                        <div class="d-flex gap-2">
+                            <i class="oi mt-1 text-info" data-icon="info" role="img"/>
+                            <div>
+                                The period must be the same for all the products in your cart. <a href="/shop/cart" class="alert-link" title="Go to your cart">Go to your cart</a> to change it or create different orders.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-group mb-2 mb-md-0">
+                        <label
+                            t-att-for="_rentingStartDate"
+                            class="input-group-text input-group-text-subtle pe-0 border-light text-bg-light cursor-pointer"
+                        >
+                            <i class="oi oi-filled text-reset" data-icon="calendar_today" role="img"/>
+                        </label>
+                        <input
+                            t-att-id="_rentingStartDate"
+                            type="text"
+                            name="renting_start_date"
+                            class="o_website_sale_daterange_picker_input o_has_separator form-control flex-grow-1 border-light border text-bg-light z-1"
+                            placeholder="Start date"
+                            size="16"
+                            t-att-value="format(start_date) if start_date else ''"
+                        />
+                        <input
+                            t-att-id="_rentingEndDate"
+                            type="text"
+                            name="renting_end_date"
+                            class="o_website_sale_daterange_picker_input form-control flex-grow-1 m-0 border-light border border-end-0 text-bg-light z-0"
+                            placeholder="End date"
+                            size="16"
+                            t-att-value="format(end_date) if end_date else ''"
+                        />
+                        <button
+                            class="input-group-text input-group-text-subtle border-light text-bg-light ps-0 clear-daterange" t-if="start_date and end_date"
+                        >
+                            <i class="oi text-reset" data-icon="close_small" role="img"/>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="o_renting_warning invalid-tooltip" role="alert">
+                <i class="oi" data-icon="warning" role="img" aria-label="Warning"/>
+                <span name="renting_warning_message"/>
+            </div>
+        </div>
+    </template>
+
+    <template id="website_sale_renting.products" name="Datepicker" inherit_id="website_sale.products">
+        <xpath expr="//div[hasclass('products_header')]" position="before">
+            <t t-if="is_view_active('website_sale_renting.shop_rental_datepicker_opt')" t-set="is_rental_datepicker_active" t-value="True"/>
+        </xpath>
+        <xpath expr="//div[hasclass('products_header')]" position="attributes">
+            <attribute name="t-if"/>
+            <attribute name="t-attf-class">products_header d-flex gap-1 gap-lg-2 gap-xl-3 {{is_rental_datepicker_active and 'flex-wrap flex-xxl-nowrap'}}</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('o_wsale_products_header_inner')]" position="attributes">
+            <attribute name="t-if">not opt_wsale_floating_bar</attribute>
+        </xpath>
+        <!-- Add rental datepicker to the product header -->
+        <xpath expr="//div[hasclass('o_wsale_products_header_inner')]" position="before">
+            <t t-if="is_view_active('website_sale_renting.shop_rental_datepicker_opt')">
+                <t t-set="periodIsSet" t-value="request.cart.has_rentable_lines"/>
+                <t t-set="disclaimer">The period must be the same for all the products in your cart. Go to your cart to change it or create different orders.</t>
+                <div
+                    t-attf-class="website_sale_renting_wrap d-flex align-items-center w-100 w-md-auto {{opt_wsale_floating_bar and 'ms-auto'}}"
+                >
+                    <p
+                        t-if="opt_wsale_floating_bar"
+                        class="d-none d-md-block mb-0 me-2 small fw-bold"
+                    >
+                        Rental Period
+                    </p>
+                    <t t-call="website_sale_renting.datepicker"
+                        _rentingStartDate.f="o_wsale_aside_renting_start_date"
+                        _rentingEndDate.f="o_wsale_aside_renting_end_date"/>
+                    <i
+                        t-attf-class="o_rental_info_message oi #{not periodIsSet and 'd-none' or 'd-none d-md-flex'} align-items-center px-1 text-info"
+                        data-icon="info"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="bottom"
+                        data-bs-delay="0"
+                        t-att-title="disclaimer"
+                        role="tooltip"
+                    />
+                </div>
+            </t>
+        </xpath>
+        <xpath expr="//div[contains(@t-attf-class, 'o_wsale_products_header_dropdown_wrap')]" position="attributes">
+            <attribute name="t-attf-class" add="{{is_rental_datepicker_active and 'ms-auto'}}" separator=" "/>
+        </xpath>
+    </template>
+
+    <template id="website_sale_renting_search_box_input" inherit_id="website.website_search_box">
+        <xpath expr="//input[@name='search']" position="attributes">
+            <attribute name="t-att-size">10 if search_type == 'products' else False</attribute>
+        </xpath>
+    </template>
+</odoo>

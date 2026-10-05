@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+
+    <t t-name="spreadsheet_edition.GlobalFilterItem">
+        <t t-set="filter" t-value="this.props.filter"/>
+        <div class="py-1 px-2 d-flex flex-column shadow-sm pivot-dimension mb-2 w-100 rounded border">
+            <div class="d-flex flex-row justify-content-between align-items-center">
+                <div class="d-flex align-items-center overflow-hidden text-nowrap">
+                    <i class="oi me-2" t-att-class="this.getFilterIconClass(filter.type)" t-att-data-icon="this.getFilterIcon(filter.type)"/>
+                    <span t-out="filter.label" class="o-fw-bold o_side_panel_filter_label"/>
+                </div>
+                <div t-if="!this.env.model.getters.isReadonly()" class="px-1" t-on-pointerdown.stop="">
+                    <CogWheelMenu items="this.cogWheelMenuItems"/>
+                </div>
+            </div>
+            <div class="py-1 d-flex flex-row align-items-end w-100">
+                <GlobalFilterInput
+                    filter="filter"
+                    setGlobalFilterValue.bind="this.setGlobalFilterValue"
+                    updateOperator.bind="this.updateOperator"
+                    globalFilterValue="this.state.value"
+                    searchableParentRelations="this.props.searchableParentRelations"/>
+                <i t-att-class="this.hasClearButton ? 'visible' : 'invisible'"
+                    class="btn btn-link px-1 oi text-danger"
+                    data-icon="close"
+                    title="Clear"
+                    t-on-click="this.clearFilter"/>
+            </div>
+        </div>
+    </t>
+
+</templates>

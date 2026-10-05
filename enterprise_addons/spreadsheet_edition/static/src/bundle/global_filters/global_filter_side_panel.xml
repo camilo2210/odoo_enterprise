@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+
+    <div t-name="spreadsheet_edition.GlobalFiltersSidePanel" class="o_spreadsheet_global_filters_side_panel h-100">
+        <div class="h-100 overflow-auto" t-ref="this.filtersListRef">
+            <Section t-if="this.filters.length">
+                <div class="pivot_filter_section w-100 o-filter-drag-handle h-100 cursor-pointer"
+                    t-foreach="this.filters"
+                    t-as="filter"
+                    t-key="'filter_' + filter.id"
+                    t-att-class="{ 'o-filter-dragging': this.dnd.draggedItemId === filter.id }"
+                    t-att-style="this.getFilterItemStyle(filter)"
+                    t-on-pointerdown="(ev) => this.startDragAndDrop(filter, ev)"
+                    >
+                    <GlobalFilterItem
+                        filter="filter"
+                        searchableParentRelations="this.searchableParentRelations"
+                        onOpenEditor.bind="this.openEditor"
+                        onDeleteFilter.bind="this.deleteFilter"
+                    />
+                </div>
+            </Section>
+            <div t-if="!this.isReadonly" class="o-section">
+                <div class="o_add_filter o-section-title">Create filter</div>
+                <div class="o_filter_buttons_wrap grid">
+                    <button t-on-click="this.newDate" class="o-button o_global_filter_new_time">
+                        <i class="oi oi-filled me-2" data-icon="calendar_today"/>
+                        <span>Date</span>
+                    </button>
+                    <button t-if="this.hasDataSources()" t-on-click="this.newRelation" class="o-button o_global_filter_new_relation">
+                        <i class="oi me-2" data-icon="link"/>
+                        <span>Relation</span>
+                    </button>
+                    <button t-on-click="this.newText" class="o-button o_global_filter_new_text">
+                        <i class="oi me-2" data-icon="text_fields"/>
+                        <span>Text</span>
+                    </button>
+                    <button t-on-click="this.newBoolean" class="o-button o_global_filter_new_boolean">
+                        <i class="oi me-2" data-icon="toggle_off"/>
+                        <span>Yes/No</span>
+                    </button>
+                    <button t-if="this.hasDataSources()" t-on-click="this.newSelection" class="o-button o_global_filter_new_selection">
+                        <i class="oi me-2" data-icon="arrow_drop_down"/>
+                        <span>Selection</span>
+                    </button>
+                    <button t-on-click="this.newNumeric" class="o-button o_global_filter_new_numeric">
+                        <i class="oi me-2" data-icon="tag"/>
+                        <span>Numeric</span>
+                    </button>
+                </div>
+            </div>
+            <GlobalFilterSuggestions t-if="!this.isReadonly"/>
+        </div>
+    </div>
+</templates>

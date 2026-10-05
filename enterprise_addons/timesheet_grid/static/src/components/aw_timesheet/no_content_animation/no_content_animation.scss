@@ -1,0 +1,409 @@
+// Every element animates itself. All of them last $o-aw-nc-timeline, so they
+// stay in step.
+//
+// Steps 1 to 4: one activity per step. A timesheet row is added at each step.
+// Step 5: the left screen leaves, the right screen centers and opens to show
+// the captured time.
+// Step 6: the title, then a bullet every 0.5s. The step lasts exactly as long
+// as that takes, so the next one is the pause and nothing else.
+// Step 7: paused on the final frame, long enough to read the message.
+// Step 8: the rewind.
+//
+// Keyframes only take percentages. Two helpers convert seconds for them, so the
+// timings stay easy to tweak.
+// - o-aw-get-step($n): where step $n starts.
+// - o-aw-get-percentage($s): how long a move gets.
+// `o-aw-get-step(2) + o-aw-get-percentage(0.3)` = "0.3s after step 2 begins".
+//
+// To tweak the timings, change seconds. Never percentages.
+// - A step: its number below.
+// - A move: its o-aw-get-percentage() offset.
+// - The pause on the final frame: the second to last number.
+// - The wrap back to the start: the last one.
+$o-aw-nc-step-seconds: 3 3 3 3 1.5 1.85 3 0.6;
+
+@function o-aw-sum($numbers) {
+	$total: 0;
+
+	@each $number in $numbers {
+		$total: $total + $number;
+	}
+
+	@return $total;
+}
+
+$o-aw-nc-timeline-seconds: o-aw-sum($o-aw-nc-step-seconds);
+$o-aw-nc-timeline: $o-aw-nc-timeline-seconds * 1s;
+
+// Where a step begins, as a percentage of the loop.
+@function o-aw-get-step($step) {
+	$elapsed: 0;
+
+	@if $step > 1 {
+		@for $i from 1 through ($step - 1) {
+			$elapsed: $elapsed + nth($o-aw-nc-step-seconds, $i);
+		}
+	}
+
+	@return percentage($elapsed / $o-aw-nc-timeline-seconds);
+}
+
+// A duration as a percentage of the loop.
+@function o-aw-get-percentage($seconds) {
+	@return percentage($seconds / $o-aw-nc-timeline-seconds);
+}
+
+.o_aw_nc_container {
+	$-activity-box-width: 16rem;
+	// The line runs under the screen on either side, so it takes less room than
+	// it is long. Only the span between the screens counts towards the layout.
+	$-flow-line-width: 6rem;
+	$-flow-line-inset: 1.5rem;
+	$-flow-line-span: $-flow-line-width - $-flow-line-inset * 2;
+	$-screen-height: 12rem;
+	$-screen-border: o-to-rem($border-width) * 2;
+	$-header-height: 2.875rem;
+	$-total-height: 3rem;
+	$-total-padding: o-to-rem(map-get($spacers, 2));
+	$-activities: 4;
+	$-row-height: 2.5rem;
+	$-row-gap: o-to-rem(map-get($spacers, 1));
+	$-pitch: $-row-height + $-row-gap;
+	$-list-height: $-activities * $-pitch - $-row-gap;
+	$-screen-height-open: $-screen-border + $-header-height + $-list-height + $-total-height;
+	$-label-height: 2.25rem;
+	$-label-padding: o-to-rem(map-get($spacers, 2));
+
+	$-captured: o-aw-get-step(5);
+	$-title: o-aw-get-step(6);
+	$-rewind: o-aw-get-step(8);
+
+	--AwNoContent-active-color: #{$o-action};
+	--AwNoContent__screen-background: #{$o-view-background-color};
+
+	.o_aw_nc_animation {
+		--AwNoContent-gap: #{map-get($spacers, 1)};
+
+		column-gap: var(--AwNoContent-gap);
+		animation: aw_nc_center $o-aw-nc-timeline infinite;
+		animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+
+		@include media-breakpoint-up(xxl) {
+			--AwNoContent-gap: #{map-get($spacers, 3)};
+		}
+	}
+
+	// Calculates (left screen + flow line + 2 gaps) / -2, to center the right
+	// screen at step 5.
+	@keyframes aw_nc_center {
+		0%,
+		#{$-captured} {
+			transform: translateX(0);
+		}
+		#{$-captured + o-aw-get-percentage(0.6)},
+		#{$-rewind} {
+			transform: translateX(
+				calc(
+					(#{$-activity-box-width} + #{$-flow-line-span} + 2 * var(--AwNoContent-gap)) /
+						-2
+				)
+			);
+		}
+		100% {
+			transform: translateX(0);
+		}
+	}
+
+	.o_aw_nc_col {
+		flex: 0 0 $-activity-box-width;
+		// Hides the line's ends.
+		z-index: 1;
+	}
+
+	// The left screen, the flow line and the labels leave together at step 5.
+	.o_aw_nc_col_activities,
+	.o_aw_nc_line,
+	.o_aw_nc_step_label {
+		animation: aw_nc_leave $o-aw-nc-timeline infinite;
+		animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	@keyframes aw_nc_leave {
+		0%,
+		#{$-captured} {
+			opacity: 1;
+			transform: translateX(0) scale(1);
+		}
+		#{$-captured + o-aw-get-percentage(0.6)},
+		#{$-rewind} {
+			opacity: 0;
+			transform: translateX(-1rem) scale(0.96);
+		}
+		100% {
+			opacity: 1;
+			transform: translateX(0) scale(1);
+		}
+	}
+
+	.o_aw_nc_activities_screen,
+	.o_aw_nc_timesheets_screen {
+		height: $-screen-height;
+	}
+
+	// Left screen
+	.o_aw_nc_activities_entry {
+		width: $-activity-box-width;
+	}
+
+	// Left screen's contents: four activities, sliding left one per step.
+	.o_aw_nc_activities_scroller {
+		height: 100%;
+		width: $-activity-box-width * $-activities;
+		animation: aw_nc_screens $o-aw-nc-timeline infinite;
+		animation-timing-function: ease-out;
+	}
+
+	// Slide left screen content and reset.
+	@keyframes aw_nc_screens {
+		0% {
+			transform: translateX(0);
+		}
+		@for $step from 1 through $-activities {
+			#{o-aw-get-step($step) + o-aw-get-percentage(0.3)},
+			#{o-aw-get-step($step + 1)} {
+				transform: translateX($-activity-box-width * -1 * ($step - 1));
+			}
+		}
+		#{$-captured + o-aw-get-percentage(0.3)},
+		#{$-captured + o-aw-get-percentage(0.6)} {
+			transform: translateX($-activity-box-width * -1 * $-activities);
+		}
+		#{$-captured + o-aw-get-percentage(1.2)},
+		100% {
+			transform: translateX(0);
+		}
+	}
+
+	// Flow line
+	.o_aw_nc_line {
+		height: $-screen-height;
+		width: $-flow-line-width;
+		margin-inline: $-flow-line-inset * -1;
+	}
+
+	.o_aw_nc_line_flow {
+		height: 2px;
+		background: var(--gray-300);
+
+		&:before {
+			content: "";
+			position: absolute;
+			top: 0;
+			left: -100%;
+			width: 40%;
+			height: 100%;
+			background: linear-gradient(
+				90deg,
+				transparent,
+				var(--AwNoContent-active-color),
+				transparent
+			);
+			animation: aw_nc_flow_pulse 1s ease-in-out infinite;
+		}
+	}
+
+	@keyframes aw_nc_flow_pulse {
+		0% {
+			transform: translateX(0);
+		}
+		100% {
+			transform: translateX(500%);
+		}
+	}
+
+	// Right screen
+	.o_aw_nc_timesheets_screen {
+		animation: aw_nc_timesheets_border_blink $o-aw-nc-timeline infinite,
+			aw_nc_timesheets_open $o-aw-nc-timeline ease-in infinite;
+
+		> .card-header {
+			height: $-header-height;
+		}
+
+		> .o_aw_nc_timesheets_entries_wrapper {
+			flex: 1;
+		}
+
+		> .card-footer {
+			height: 0;
+			padding-top: 0;
+			padding-bottom: 0;
+			opacity: 0;
+			animation: aw_nc_timesheets_total $o-aw-nc-timeline infinite;
+			animation-timing-function: ease-in;
+		}
+	}
+
+	.o_aw_nc_timesheets_entries {
+		gap: $-row-gap;
+		animation: aw_nc_entry_slide $o-aw-nc-timeline infinite;
+		animation-timing-function: ease-in-out;
+	}
+
+	.o_aw_nc_timesheets_entry {
+		height: $-row-height;
+	}
+
+	@keyframes aw_nc_timesheets_border_blink {
+		0% {
+			border-color: var(--card-border-color);
+		}
+		@for $step from 2 through $-activities {
+			#{o-aw-get-step($step) - o-aw-get-percentage(0.05)} {
+				border-color: var(--card-border-color);
+			}
+			#{o-aw-get-step($step)} {
+				border-color: var(--AwNoContent-active-color);
+			}
+			#{o-aw-get-step($step) + o-aw-get-percentage(0.8)} {
+				border-color: var(--card-border-color);
+			}
+		}
+		100% {
+			border-color: var(--card-border-color);
+		}
+	}
+
+	@keyframes aw_nc_entry_slide {
+		0% {
+			transform: translateY($-pitch * -1 * ($-activities - 1));
+		}
+		@for $step from 1 through $-activities {
+			#{o-aw-get-step($step) + o-aw-get-percentage(0.2)},
+			#{o-aw-get-step($step + 1)} {
+				transform: translateY($-pitch * -1 * ($-activities - $step));
+			}
+		}
+		#{$-rewind} {
+			transform: translateY(0);
+		}
+		100% {
+			transform: translateY($-pitch * -1 * ($-activities - 1));
+		}
+	}
+
+	@for $step from 2 through ($-activities + 1) {
+		@keyframes aw_nc_entry_fade_in_#{$step} {
+			0%,
+			#{o-aw-get-step($step)} {
+				opacity: 0;
+			}
+			#{o-aw-get-step($step) + o-aw-get-percentage(0.3)},
+			#{$-rewind} {
+				opacity: 1;
+			}
+			100% {
+				opacity: 0;
+			}
+		}
+		@keyframes aw_nc_entry_fade_out_#{$step} {
+			0%,
+			#{o-aw-get-step($step)} {
+				opacity: 1;
+			}
+			#{o-aw-get-step($step) + o-aw-get-percentage(0.3)},
+			#{$-rewind} {
+				opacity: 0;
+			}
+			100% {
+				opacity: 1;
+			}
+		}
+
+		.o_aw_nc_entry_fade_in_#{$step} {
+			opacity: 0;
+			animation: aw_nc_entry_fade_in_#{$step} $o-aw-nc-timeline infinite;
+		}
+
+		.o_aw_nc_entry_fade_out_#{$step} {
+			animation: aw_nc_entry_fade_out_#{$step} $o-aw-nc-timeline infinite;
+		}
+	}
+
+	@keyframes aw_nc_timesheets_open {
+		0%,
+		#{$-captured} {
+			height: $-screen-height;
+		}
+		#{$-captured + o-aw-get-percentage(0.6)},
+		#{$-rewind} {
+			height: $-screen-height-open;
+		}
+		100% {
+			height: $-screen-height;
+		}
+	}
+
+	@keyframes aw_nc_timesheets_total {
+		0%,
+		#{$-captured} {
+			height: 0;
+			padding-top: 0;
+			padding-bottom: 0;
+			opacity: 0;
+		}
+		#{$-captured + o-aw-get-percentage(0.6)},
+		#{$-rewind} {
+			height: $-total-height;
+			padding-top: $-total-padding;
+			padding-bottom: $-total-padding;
+			opacity: 1;
+		}
+		100% {
+			height: 0;
+			padding-top: 0;
+			padding-bottom: 0;
+			opacity: 0;
+		}
+	}
+
+	.o_aw_nc_step_label {
+		min-height: $-label-height;
+		padding-top: $-label-padding;
+	}
+
+	.o_aw_nc_final_title {
+		opacity: 0;
+		animation: aw_nc_final_title $o-aw-nc-timeline infinite;
+	}
+
+	.o_aw_nc_final_bullet {
+		opacity: 0;
+
+		@for $-i from 1 through 3 {
+			&:nth-child(#{$-i}) {
+				animation: aw_nc_final_bullet_#{$-i} $o-aw-nc-timeline infinite;
+			}
+		}
+	}
+
+	@each $-name, $-at in (title: $-title, bullet_1: $-title + o-aw-get-percentage(0.5),
+    bullet_2: $-title + o-aw-get-percentage(1), bullet_3: $-title + o-aw-get-percentage(1.5)){
+		@keyframes aw_nc_final_#{$-name} {
+			0%,
+			#{$-at} {
+				opacity: 0;
+				transform: translateY(6px);
+			}
+			#{$-at + o-aw-get-percentage(0.35)},
+			#{$-rewind} {
+				opacity: 1;
+				transform: translateY(0);
+			}
+			100% {
+				opacity: 0;
+				transform: translateY(6px);
+			}
+		}
+	}
+}

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+
+    <div t-name="spreadsheet_edition.DateFilterEditorSidePanel" class="o_spreadsheet_filter_editor_side_panel" data-id="date-filter-panel">
+        <Section title.translate="Label">
+            <TextInput
+                placeholder="this.store.labelPlaceholder"
+                class="'o_global_filter_label' + (this.store.missingLabelError ? ' o_field_invalid' : '')"
+                value="this.store.filter.label"
+                onChange.bind="this.setLabel"
+                autofocus="true"
+            />
+        </Section>
+        <t t-if="this.store.isValid">
+            <Section title.translate="Default value" class="'o-default-value-section'">
+                <DefaultDateValue value="this.store.filter.defaultValue"
+                                update.bind="this.updateDefaultValue"/>
+            </Section>
+            <t t-if="this.store.shouldDisplayFieldMatching">
+                <SidePanelCollapsible isInitiallyCollapsed="!this.store.isNew" title.translate="Field matching">
+                    <t t-set-slot="content">
+                        <Section class="'pt-0'">
+                            <FilterEditorFieldMatching
+                                fieldMatchings="this.store.fieldsMatching"
+                                selectField.bind="this.onSelectedField"
+                                filterModelFieldSelectorField="this.store.filterModelFieldSelectorField"
+                                onOffsetSelected.bind="this.onOffsetSelected"
+                            />
+                        </Section>
+                    </t>
+                </SidePanelCollapsible>
+            </t>
+        </t>
+        <Section t-else="1">
+            <ValidationMessages messages="[this.invalidModel]" msgType="'error'"/>
+        </Section>
+        <GlobalFilterFooter t-props="this.footerProps"/>
+    </div>
+</templates>

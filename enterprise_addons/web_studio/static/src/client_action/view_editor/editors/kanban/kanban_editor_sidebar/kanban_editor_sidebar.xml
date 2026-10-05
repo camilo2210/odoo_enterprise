@@ -1,0 +1,112 @@
+<templates>
+
+    <t t-name="web_studio.ViewEditor.KanbanEditorSidebar">
+        <InteractiveEditorSidebar>
+            <t t-set-slot="new">
+                <ViewStructures structures="this.constructor.viewStructures" />
+                <ExistingFields resModel="this.viewEditorModel.resModel" fields="this.viewEditorModel.fields" fieldsInArch="this.viewEditorModel.fieldsInArch" folded="false"/>
+            </t>
+            <t t-set-slot="view" isDefault="true">
+                <Property
+                    name="'create'"
+                    type="'boolean'"
+                    value="this.archInfo.activeActions.create === true"
+                    onChange.bind="this.editAttribute"
+                >
+                    Can Create
+                </Property>
+                <Property
+                    name="'quick_create'"
+                    type="'boolean'"
+                    value="this.archInfo.activeActions.quickCreate === true"
+                    onChange.bind="this.editAttribute"
+                >
+                    Quick Create
+                </Property>
+                <Property
+                    name="'sort_by'"
+                    type="'selection'"
+                    value="this.defaultOrder.name or null"
+                    onChange.bind="this.setSortBy"
+                    childProps="{ choices: this.sortChoices, required: false }"
+                >
+                    Sort By
+                </Property>
+                <Property
+                    t-if="this.defaultOrder.name"
+                    name="'sort_order'"
+                    type="'selection'"
+                    value="this.defaultOrder.asc ? 'asc' : 'desc'"
+                    onChange.bind="this.setOrder"
+                    childProps="{ choices: this.orderChoices }"
+                >
+                    Order
+                </Property>
+                <t t-call="web_studio.ViewEditor.ShowInvisibleToggler" />
+                <Property
+                    name="'can_open'"
+                    type="'boolean'"
+                    value="this.archInfo.canOpenRecords !== false"
+                    onChange.bind="this.editAttribute"
+                >
+                    Open Record On Click
+                </Property>
+                <t t-if="this.canCustomSumField">
+                    <Property
+                        name="'sum_field'"
+                        type="'selection'"
+                        value="this.sumFieldValue"
+                        childProps="this.sumFieldProps()"
+                        onChange.bind="this.editSumField"
+                    >
+                        Sum Field
+                    </Property>
+                </t>
+                <Property
+                    name="'highlight_color'"
+                    type="'selection'"
+                    value="this.archInfo.cardColorField or null"
+                    childProps="this.colorField"
+                    onChange.bind="this.editColor"
+                >
+                    Highlight Color Field
+                </Property>
+                <Property
+                    name="'default_group_by'"
+                    type="'selection'"
+                    value="this.viewEditorModel.studioViewProps.defaultGroupBy.length and this.viewEditorModel.studioViewProps.defaultGroupBy[0]"
+                    childProps="this.defaultGroupBy"
+                    onChange.bind="this.editDefaultGroupBy"
+                >
+                    Default Group By
+                </Property>
+                <t t-if="this.canCustomFoldField">
+                    <Property
+                        name="'group_expand'"
+                        type="'boolean'"
+                        value="this.state.groupByField.group_expand"
+                        onChange.bind="this.editGroupExpand"
+                    >
+                        Expand Groups
+                    </Property>
+                </t>
+                <t t-if="this.canCustomFoldField and this.state.groupByField.group_expand and this.state.fieldsForFold.length">
+                    <Property
+                        name="'fold_name'"
+                        type="'selection'"
+                        value="this.state.foldField.fold_name and this.state.foldField.fold_name or null"
+                        childProps="this.foldFields"
+                        onChange.bind="this.editFoldField"
+                    >
+                        Fold By
+                    </Property>
+                </t>
+                <SidebarViewToolbox onMore="this.props.openViewInForm" canEditXml="!this.env.viewEditorModel.isEditingSubview" openDefaultValues="this.props.openDefaultValues" />
+            </t>
+            <t t-set-slot="properties">
+                <Properties propertiesComponents="this.propertiesComponents"/>
+            </t>
+        </InteractiveEditorSidebar>
+    </t>
+
+</templates>

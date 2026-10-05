@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- TDE NOTE: this should not be a mail template -->
+        <record id="email_template_website_scrapped" model="mail.template">
+            <field name="name">Website Scraped</field>
+            <field name="model_id" ref="website_generator.model_website_generator_request"/>
+            <field name="email_from">{{ ctx.get('email_to') }}</field>
+            <field name="email_to">{{ ctx.get('email_to') }}</field>
+            <field name="use_default_to" eval="False"/>
+            <field name="subject">{{ ctx.get('subject') }}</field>
+            <field name="body_html" type="html">
+                <div>
+                    <t t-if="ctx.get('website_url') and ctx.get('nbr_products_created') and ctx.get('nbr_products_created') &gt; 0 and ctx.get('nbr_blogs_created') and ctx.get('nbr_blogs_created') &gt; 0">
+                        <p><b>Great news!</b> Your website has been generated, and <t t-out="ctx.get('nbr_products_created')"/> products and <t t-out="ctx.get('nbr_blogs_created')"/> blog posts have been created.</p>
+                    </t>
+                    <t t-elif="ctx.get('website_url') and ctx.get('nbr_products_created') and ctx.get('nbr_products_created') &gt; 0">
+                        <p><b>Great news!</b> Your website has been generated and <t t-out="ctx.get('nbr_products_created')"/> product(s) have been created.</p>
+                    </t>
+                    <t t-elif="ctx.get('website_url') and ctx.get('nbr_blogs_created') and ctx.get('nbr_blogs_created') &gt; 0">
+                        <p><b>Great news!</b> Your website has been generated and <t t-out="ctx.get('nbr_blogs_created')"/> blog posts have been created.</p>
+                    </t>
+                    <t t-elif="ctx.get('website_url')">
+                        <p><b>Great news!</b> Your website has been successfully generated.</p>
+                    </t>    
+                    <t t-elif="ctx.get('nbr_products_created') and ctx.get('nbr_products_created') &gt; 0 and ctx.get('nbr_blogs_created') and ctx.get('nbr_blogs_created') &gt; 0">
+                        <p><b>Great news!</b> The import tool successfully created <t t-out="ctx.get('nbr_products_created')"/> products and <t t-out="ctx.get('nbr_blogs_created')"/> blog posts.</p>
+                    </t>
+                    <t t-elif="ctx.get('nbr_products_created') and ctx.get('nbr_products_created') &gt; 0">
+                        <p><b>Great news!</b> The import tool successfully created <t t-out="ctx.get('nbr_products_created')"/> product(s).</p>
+                    </t>
+                    <t t-elif="ctx.get('nbr_blogs_created') and ctx.get('nbr_blogs_created') &gt; 0">
+                        <p><b>Great news!</b> The import tool successfully created <t t-out="ctx.get('nbr_blogs_created')"/> blog post(s).</p>
+                    </t>
+                    <t t-else="">
+                        <p><b>Update:</b> We were unable to generate your website or products this time.</p>
+                        <p>This may happen for a variety of reasons, such as:</p>
+                        <ul>
+                            <li>Protection mechanisms on your website preventing automated access,</li>
+                            <li>Temporary maintenance or limited availability on our servers,</li>
+                            <li>Custom code or configurations on your website that are not fully compatible with our process.</li>
+                        </ul>
+                        <p>Feel free to try again later or contact us if the issue persists — we’re here to help!</p>
+                    </t>
+
+            <t t-if="ctx.get('website_url')">
+                <p>You can access your website by clicking the button below:</p>
+                <div style="margin: 16px 0px 16px 0px;">
+                    <a t-att-href="ctx.get('website_url')"
+                       style="background-color: #875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;">
+                        Go to Website
+                    </a>
+                </div>
+            </t>
+            
+            <p>Thank you for choosing Odoo for your web integration!</p>
+            <p>Best regards,</p>
+            <br></br>
+            <p>Odoo - The best open source website builder.</p>
+            </div>
+            </field>
+        </record>
+    </data>
+</odoo>

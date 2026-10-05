@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+<t t-name="website_generator.WebsiteGeneratorForm">
+    <div class="o_configurator_screen h-100 d-flex flex-column o_website_generator_form">
+        <div class="o_configurator_screen_content d-flex h-100 flex-grow-1">
+            <div class="o_main_content d-flex mh-100 flex-column">
+                <t t-if="this.state.submitted">
+                    <div class="s_website_form_end_message">
+                        <div class="oe_structure">
+                            <section class="s_text_block o_colored_level rounded px-5 text-center" data-snippet="s_text_block">
+                                <i class="oi oi-2x oi-filled mb-3 rounded-circle text-bg-success" data-icon="send" role="img" aria-hidden="true" title="Success"></i>
+                                <h1 t-if="this.state.showSuccessTitle" class="fw-bolder">Your request has been submitted!</h1>
+                                <p class="lead website_generator_form_text_padding" >
+                                    You will receive an <strong>email notification</strong> once your website and/or products are ready.
+                                </p>
+                            </section>
+                        </div>
+                    </div>
+                </t>
+                <t t-else="">
+                    <form class="o_form_view mt-2" t-on-submit="this.makeWebsiteGeneratorRequest" autocomplete="off">
+                        <div class="d-flex mb-4">
+                            <label for="url" class="col-sm-3 col-5 form-check-label"> Website URL </label>
+                            <div class="col-sm-8 col-6">
+                                <input id="url" name="target_url" t-on-input="this.onUrlInput" type="url" required="true"
+                                    class="o_input form-control" placeholder="https://www.odoo.com/"/>
+                            </div>
+                            <div class="col-1 d-flex align-items-center justify-content-start">
+                                <span t-if="this.state.targetUrl and this.state.isValidatingUrl" class="oi oi-lg oi-spin o_we_url_loading mx-2" data-icon="autorenew" title="Loading..."/>
+                                <span t-elif="this.state.targetUrl and this.state.isValidUrl and this.state.showUrlVerificationIcon" class="oi oi-lg o_we_url_success text-success mx-2" data-icon="check" title="The URL is reachable."/>
+                                <span t-elif="this.state.targetUrl and !this.state.isValidUrl and this.state.showUrlVerificationIcon" class="oi oi-lg o_we_url_error text-danger mx-2" data-icon="close" title="The URL is not reachable."/>
+                            </div>
+                        </div>
+
+                        <div class="d-flex mb-4" title="Creates a new website and imports the foreign website pages onto this website.">
+                            <label for="import_website" class="col-sm-3 col-5 form-check-label">Import Website</label>
+                            <div class="col-sm-8 col-6">
+                                <div class="form-switch">
+                                    <input id="import_website" name="import_website" type="checkbox" class="form-check-input" t-model.proxy="this.state.importWebsite" value="true"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex mb-4" title="Imports products found on the website into your Odoo database. This means potentially installing the ecommerce app and creating products.">
+                            <label for="import_products" class="col-sm-3 col-5 form-check-label">Import Products</label>
+                            <div class="col-sm-8 col-6">
+                                <div class="form-switch">
+                                    <input id="import_products" name="import_products" type="checkbox" t-on-change="this.onConfigurationChange"
+                                        class="form-check-input" t-model.proxy="this.state.importProducts" value="true"/>
+                                </div>
+                            </div>
+                            <div class="col-1 d-flex align-items-center justify-content-start">
+                                <span t-if="this.state.importProducts and this.state.showAPISearchingIcon and !this.state.searchingUrlApi" class="oi oi-lg o_we_url_success text-success mx-2" data-icon="check" title="The search for products API is done."/>
+                                <span t-elif="this.state.importProducts and ((this.state.showAPISearchingIcon and this.state.searchingUrlApi) or (this.state.targetUrl and (this.state.isValidatingUrl or this.state.isValidUrl)))" class="oi oi-lg oi-spin o_we_url_loading mx-2" data-icon="autorenew" title="Loading..."/>
+                            </div>
+                        </div>
+
+                        <div t-if="this.state.importProducts" class="d-flex">
+                            <div t-if="this.state.ecommercePlatform == 'shopify'" class="alert alert-info col-11" role="alert">
+                                <i class="oi oi-filled" data-icon="info"/> Shopify API detected.
+                            </div>
+                            <div t-elif="this.state.ecommercePlatform == 'metadata'" class="alert alert-info col-11" role="alert">
+                                <i class="oi oi-filled" data-icon="info"/> No supported API platform detected, we will search the pages for products metadata.
+                            </div>
+                        </div>
+
+                        <t t-if="this.state.ecommercePlatform == 'woocommerce' and this.state.importProducts">
+                            <div class="d-flex">
+                                <div class="alert alert-info col-11" role="alert">
+                                    <i class="oi oi-filled" data-icon="info"/> WooCommerce API detected, please authenticate to import WooCommerce Products.
+                                </div>
+                            </div>
+                            <div class="d-flex mb-4" title="Click to authenticate with WooCommerce.">
+                                <label class="col-sm-3 col-5 form-check-label">
+                                    Authorization
+                                </label>
+                                <div class="col-sm-8 col-6">
+                                    <button type="button" 
+                                            t-on-click="this.handleConnectClick" 
+                                            class="btn btn-secondary w-100">
+                                        <t t-if="this.state.productAPIConnectedDate">
+                                            <i class="oi me-1" data-icon="key"/> Reconnect via WooCommerce
+                                        </t>
+                                        <t t-else="">
+                                            <i class="oi me-1" data-icon="key"/> Connect via WooCommerce
+                                        </t>
+                                    </button>
+                                    <div t-if="this.state.productAPIConnectedDate" class="text-success small mt-1">
+                                        <i class="oi oi-filled me-1" data-icon="check_circle"/> 
+                                        <span>Already connected on <t t-out="this.state.productAPIConnectedDate"/></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+
+                        <t t-if="this.state.ecommercePlatform == 'prestashop' and this.state.importProducts">
+                            <div class="d-flex">
+                                <div class="alert alert-info col-11" role="alert">
+                                    <i class="oi oi-filled" data-icon="info"/> PrestaShop API detected, please provide an API key. For more info, visit: <a t-att-href="this.importWebsiteDocumentationUrl" target="_blank">Odoo's website import documentation</a>
+                                </div>
+                            </div>
+                            <div class="d-flex mb-4" title="Add your PrestaShop API key here">
+                                <label for="prestashop_api_key_id" class="col-sm-3 col-5 form-check-label"> PrestaShop API Key </label>
+                                <div class="col-sm-8 col-6">
+                                    <input id="prestashop_api_key_id" name="prestashop_api_key" type="text"
+                                        class="o_input form-control" minlength="32" maxlength="32" t-on-input="this.onApiKeyInput"/>
+                                    <div t-if="this.state.productAPIConnectedDate" class="text-success small mt-1">
+                                        <i class="oi oi-filled me-1" data-icon="check_circle"/> 
+                                        <span>Already connected on <t t-out="this.state.productAPIConnectedDate"/></span>
+                                    </div>
+                                </div>
+                                <div class="col-1 d-flex align-items-center justify-content-start">
+                                    <t t-if="this.state.showAPIKeyValidatingIcon and !this.state.validatingApiKey">
+                                        <span t-if="this.state.isValidAPIKey" class="oi oi-lg o_we_url_success text-success mx-2" data-icon="check" title="API Key is valid."/>
+                                        <span t-else="" class="oi oi-lg o_we_url_error text-danger mx-2" data-icon="close" title="API Key is not valid"/>
+                                    </t>
+                                    <span t-elif="this.state.showAPIKeyValidatingIcon and this.state.validatingApiKey" class="oi oi-lg oi-spin o_we_url_loading mx-2" data-icon="autorenew" title="Loading..."/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <div class="d-flex mb-4" title="Imports the blogs. This means potentially installing the blogs app.">
+                            <label for="import_blogs" class="col-sm-3 col-5 form-check-label" t-att-class="{'text-muted': !this.state.blogPlatform and this.state.showAPISearchingIcon and !this.state.searchingUrlApi}">
+                                Import Blogs
+                            </label>
+                            <div class="col-sm-8 col-6">
+                                <div class="form-switch">
+                                    <input 
+                                        id="import_blogs" name="import_blogs" type="checkbox" class="form-check-input" t-att-disabled="!this.state.blogPlatform and this.state.showAPISearchingIcon and !this.state.searchingUrlApi" 
+                                        t-model.proxy="this.state.importBlogs" value="true" t-on-change="this.onConfigurationChange"
+                                    />
+                                </div>
+                            </div>
+                            <div class="col-1 d-flex align-items-center justify-content-start">
+                                <t t-if="this.state.importBlogs">
+                                    <t t-if="this.state.showAPISearchingIcon and !this.state.searchingUrlApi">
+                                        <span t-if="this.state.blogPlatform" class="oi oi-lg o_we_url_success text-success mx-2" data-icon="check" title="The search for blogs API is done."/>
+                                        <span t-else="" class="oi oi-lg o_we_url_error text-danger mx-2" data-icon="close" title="No supported blog API found."/>
+                                    </t>
+                                    <span t-elif="(this.state.showAPISearchingIcon and this.state.searchingUrlApi) or (this.state.targetUrl and (this.state.isValidatingUrl or this.state.isValidUrl))" class="oi oi-lg oi-spin o_we_url_loading mx-2" data-icon="autorenew" title="Loading..."/>
+                                </t>
+                            </div>
+                        </div>
+
+                        <div t-if="this.state.importBlogs and this.state.showAPISearchingIcon and !this.state.searchingUrlApi" class="d-flex">
+                            <div t-if="this.state.blogPlatform == 'wordpress'" class="alert alert-info col-11" role="alert">
+                                <i class="oi oi-filled" data-icon="info"/> WordPress Blog API detected.
+                            </div>
+                            <div t-elif="this.state.blogPlatform == ''" class="alert alert-warning col-11" role="alert">
+                                <i class="oi oi-filled" data-icon="info"/> No supported blog API platform detected. No blogs will be imported.
+                            </div>
+                        </div>
+
+                        <t t-if="this.state.blogPlatform == 'ghost' and this.state.importBlogs">
+                            <div class="d-flex">
+                                <div class="alert alert-info col-11" role="alert">
+                                    <i class="oi oi-filled" data-icon="info"/> Ghost API detected, please provide an API key. For more info, visit: <a t-att-href="this.importWebsiteDocumentationUrl" target="_blank">Odoo's website import documentation</a>
+                                </div>
+                            </div>
+                            <div class="d-flex mb-4" title="Add your Ghost API key here">
+                                <label for="ghost_api_key_id" class="col-sm-3 col-5 form-check-label"> Ghost API Key </label>
+                                <div class="col-sm-8 col-6">
+                                    <input id="ghost_api_key_id" name="ghost_api_key" type="text"
+                                        class="o_input form-control" t-on-input="this.onApiKeyInput"/>
+                                    <div t-if="this.state.blogAPIConnectedDate" class="text-success small mt-1">
+                                        <i class="oi oi-filled me-1" data-icon="check_circle"/>
+                                        <span>Already connected on <t t-out="this.state.blogAPIConnectedDate"/></span>
+                                    </div>
+                                </div>
+                                <div class="col-1 d-flex align-items-center justify-content-start">
+                                    <t t-if="this.state.showAPIKeyValidatingIcon and !this.state.validatingApiKey">
+                                        <span t-if="this.state.isValidAPIKey" class="oi oi-lg o_we_url_success text-success mx-2" data-icon="check" title="API Key is valid."/>
+                                        <span t-else="" class="oi oi-lg o_we_url_error text-danger mx-2" data-icon="close" title="API Key is not valid"/>
+                                    </t>
+                                    <span t-elif="this.state.showAPIKeyValidatingIcon and this.state.validatingApiKey" class="oi oi-lg oi-spin o_we_url_loading mx-2" data-icon="autorenew" title="Loading..."/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <div t-if="!this.state.importWebsite and (this.state.importProducts or this.state.importBlogs)" class="d-flex mb-4" title="Select the website of which you want to create the products/blogs for.">
+                            <label for="website_selector" class="col-sm-3 col-5 form-check-label">
+                                Website
+                            </label>
+                            <div class="col-sm-8 col-6">
+                                <select id="website_selector" class="form-select" name="website_id">
+                                    <option t-att-value="''">All</option>
+                                    <t t-foreach="this.state.websites" t-as="website" t-key="website.id">
+                                        <option t-att-value="website.id"><t t-out="website.name"/></option>
+                                    </t>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="d-flex">
+                            <div t-if="this.state.importWebsite" class="alert alert-info col-11" role="alert">
+                                <i class="oi oi-filled" data-icon="info"/> The number of pages is limited. If you need more, contact us at <a href="https://www.odoo.com/help" target="_blank">odoo.com/help</a>.
+                            </div>
+                        </div>
+
+                        <div class="d-flex">
+                            <div class="alert alert-info col-11" role="alert">
+                                <i class="oi oi-filled" data-icon="info"/> By clicking "Import my website", you confirm that you are the owner of the website and all associated components (such as images and other content), and you take full responsibility for their use and any potential legal implications.
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary mt-2 align-self-start" t-att-disabled="this.state.submitting or this.state.searchingUrlApi or this.state.isValidatingUrl">
+                            <span t-if="this.state.submitting">Sending request...</span>
+                            <span t-else="">Import my website</span>
+                        </button>
+                    </form>
+                </t>
+            </div>
+        </div>
+    </div>
+</t>
+
+<t t-name="website_generator.WebsiteGeneratorActionWrapper">
+    <div class="website_generator_form_action_padding"> 
+        <t t-call="website_generator.WebsiteGeneratorForm"/>
+    </div>
+</t>
+</templates>

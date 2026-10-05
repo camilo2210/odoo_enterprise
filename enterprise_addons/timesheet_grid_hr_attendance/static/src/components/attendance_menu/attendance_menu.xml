@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="timesheet_grid_hr_attendance.attendance_menu"
+        t-inherit="hr_attendance.attendance_menu" t-inherit-mode="extension">
+        <xpath expr="//Dropdown" position="attributes">
+            <attribute name="menuClass">'o_timesheet_grid_popover p-0'</attribute>
+        </xpath>
+
+        <xpath expr="//div[@name='attendance_menu_header']" position="attributes">
+            <attribute name="t-if">
+                !(this.state.checkedIn and this.state.showTimesheetsSystray)
+            </attribute>
+        </xpath>
+
+        <xpath expr="//div[hasclass('o_att_today_wrap')]" position="before">
+            <div t-if="this.state.checkedIn and this.state.showTimesheetsSystray"
+                class="nav nav-underline nav-justified bg-100 border-bottom px-3"
+                role="tablist">
+                <button type="button"
+                    id="timesheet_recording_tab_button"
+                    class="nav-link text-primary"
+                    t-att-class="{ active: this.state.activeTab === 'timesheets' }"
+                    t-on-click="() => this.openSystrayTab('timesheets')"
+                    role="tab"
+                    aria-controls="timesheet_recording_tab"
+                    t-att-aria-selected="this.state.activeTab === 'timesheets' ? 'true' : 'false'">
+                    Timesheets
+                </button>
+                <button type="button"
+                    id="attendance_review_tab_button"
+                    class="nav-link text-primary"
+                    t-att-class="{ active: this.state.activeTab === 'attendance' }"
+                    t-on-click="() => this.openSystrayTab('attendance')"
+                    role="tab"
+                    aria-controls="attendance_review_tab"
+                    t-att-aria-selected="this.state.activeTab === 'attendance' ? 'true' : 'false'">
+                    Attendance
+                </button>
+                <t t-if="this.state.showAssistant">
+                    <span class="vr text-300 opacity-100"/>
+                    <a name="assistant-link" href="#"
+                        t-on-click.prevent="this.openAssistantAction"
+                        class="btn btn-secondary btn-sm align-self-center my-2">
+                        Assistant <i class="oi" data-icon="open_in_new"/>
+                    </a>
+                </t>
+            </div>
+        </xpath>
+
+        <xpath expr="//div[hasclass('o_att_today_wrap')]/parent::div" position="attributes">
+            <attribute name="class" add="tab-content" separator=" "/>
+        </xpath>
+
+        <xpath expr="//div[hasclass('o_att_today_wrap')]" position="attributes">
+            <attribute name="id">attendance_review_tab</attribute>
+            <attribute name="role">tabpanel</attribute>
+            <attribute name="aria-labelledby">attendance_review_tab_button</attribute>
+            <attribute name="t-if">
+                !this.state.checkedIn or !this.state.showTimesheetsSystray or this.state.isDisplayed
+            </attribute>
+            <attribute name="t-att-class">{
+                'tab-pane fade': this.state.checkedIn and this.state.showTimesheetsSystray,
+                'show active': this.state.activeTab === 'attendance',
+            }</attribute>
+        </xpath>
+
+        <!-- Add timesheet systray content in its own tab when user has attendance and timesheet permissions. -->
+        <xpath expr="//div[hasclass('o_att_today_wrap')]" position="before">
+            <t t-if="this.state.checkedIn and this.state.showTimesheetsSystray">
+                <div id="timesheet_recording_tab" class="tab-pane fade"
+                    t-att-class="{ 'show active': this.state.activeTab === 'timesheets' }"
+                    role="tabpanel" aria-labelledby="timesheet_recording_tab_button">
+                    <t t-call="timesheet_grid.ActivityWatchTimesheetFormWrapper"
+                        formClasses.translate="o_att_timesheet_form mx-0 p-0 bg-transparent">
+                        <TimesheetSystrayContent closeDropdown="() => this.dropdown.close()"
+                                                signInOut="() => this.signInOut()"
+                                                attendanceCheckInPermission="this.state.isDisplayed"/>
+                    </t>
+                </div>
+            </t>
+        </xpath>
+
+        <xpath expr="//div[hasclass('o_att_today_wrap')]" position="inside">
+            <xpath expr="//div[hasclass('o_wrap_btn_sign_out')]" position="move"/>
+        </xpath>
+
+        <xpath expr="//div[hasclass('o_wrap_btn_sign_out')]" position="attributes">
+            <attribute name="class" remove="p-2" add="py-2" separator=" "/>
+        </xpath>
+
+        <!-- Check out matches the timesheet tab footer once both tabs are displayed. -->
+        <xpath expr="//div[hasclass('o_wrap_btn_sign_out')]/button" position="attributes">
+            <attribute name="t-attf-class"/>
+            <attribute name="class">btn</attribute>
+            <attribute name="t-att-class">{
+                'btn-secondary': this.state.checkedIn and this.state.showTimesheetsSystray,
+                'btn-warning flex-grow-1': this.state.checkedIn and !this.state.showTimesheetsSystray,
+                'btn-primary flex-grow-1': !this.state.checkedIn,
+            }</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('o_wrap_btn_sign_out')]/button/i" position="attributes">
+            <attribute name="t-if">!(this.state.checkedIn and this.state.showTimesheetsSystray)</attribute>
+        </xpath>
+
+        <xpath expr="//Dropdown/button/i" position="attributes">
+            <attribute name="t-att-data-hotkey">this.state.checkedIn ? 'shift+r' : false</attribute>
+        </xpath>
+    </t>
+</templates>

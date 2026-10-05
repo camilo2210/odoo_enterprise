@@ -1,0 +1,70 @@
+<odoo>
+    <record id="voip_call_view_form_transcription_state" model="ir.ui.view">
+        <field name="name">voip.call.form.transcription_state</field>
+        <field name="model">voip.call</field>
+        <field name="inherit_id" ref="voip.voip_call_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <field name="transcription_state" class="d-block" widget="voip_ai_transcription_state_banner"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="voip_call_view_form_summary" model="ir.ui.view">
+        <field name="name">voip.call.form.summary</field>
+        <field name="model">voip.call</field>
+        <field name="inherit_id" ref="voip.voip_call_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state' and @widget='voip_call_status_badge']" position="attributes">
+                <attribute name="invisible">is_summary_visible</attribute>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_button_box')]" position="after">
+                <div invisible="not is_summary_visible">
+                    <div class="d-flex flex-column-reverse flex-md-row align-items-center">
+                        <div class="oe_title w-100">
+                            <h1 class="o_outlined">
+                                <field name="summary" placeholder="Summary" class="text-break" widget="text" options="{'line_breaks': False}" nolabel="1"/>
+                            </h1>
+                        </div>
+                        <div class="ms-auto">
+                            <field name="state" widget="voip_call_status_badge" nolabel="1" class="voip-call-badge"/>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="voip_call_view_list_summary" model="ir.ui.view">
+        <field name="name">voip.call.list.summary</field>
+        <field name="model">voip.call</field>
+        <field name="inherit_id" ref="voip.voip_call_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='user_id']" position="after">
+                <field name="summary" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="voip_call_view_list_transcript" model="ir.ui.view">
+        <field name="name">voip.call.list.transcript</field>
+        <field name="model">voip.call</field>
+        <field name="inherit_id" ref="voip.voip_call_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <field name="has_transcript" column_invisible="True"/>  <!-- Needed for voip_call_indicators widget -->
+            </xpath>
+        </field>
+    </record>
+
+    <record id="voip_call_view_search" model="ir.ui.view">
+        <field name="name">voip.call.view.search.inherit.voip_ai</field>
+        <field name="model">voip.call</field>
+        <field name="inherit_id" ref="voip.voip_call_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='has_recording']" position="after">
+                <filter string="Has Transcript" name="has_transcript" domain="[('has_transcript', '=', True)]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

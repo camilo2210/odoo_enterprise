@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="voip_call_group_view_list" model="ir.ui.view">
+        <field name="name">voip.call.group.view.list</field>
+        <field name="model">voip.call.group</field>
+        <field name="arch" type="xml">
+            <list string="Groups" js_class="voip_phone_number_required_list" duplicate="false">
+                <field name="name" width="180"/>
+                <field name="user_ids" widget="many2many_avatar_user" width="400"/>
+                <field name="routing_extension_number" width="100"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="voip_call_group_view_form" model="ir.ui.view">
+        <field name="name">voip.call.group.view.form</field>
+        <field name="model">voip.call.group</field>
+        <field name="arch" type="xml">
+            <form string="Group" duplicate="false">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Group"/>
+                        <h1>
+                            <field name="name" default_focus="1" placeholder="e.g. Salesreps Northeast Region"/>
+                        </h1>
+                    </div>
+                    <field name="is_call_flow_node_configuration" invisible="1"/>
+                    <group>
+                        <group>
+                            <field name="user_ids" widget="many2many_avatar_user" options="{'no_create': True}"/>
+                            <field name="music_on_hold_id" options="{'no_create': True}"/>
+                            <label for="timeout"/>
+                            <div class="o_row">
+                                <field name="timeout" class="oe_inline"/>
+                                <span>seconds</span>
+                                <span invisible="timeout != 0">(no timeout)</span>
+                            </div>
+                            <field name="no_answer_destination_ref" invisible="callflow_id or is_call_flow_node_configuration"/>
+                            <label for="callflow_id" string="Fallback Destinations" invisible="not callflow_id or is_call_flow_node_configuration"/>
+                            <div invisible="not callflow_id or is_call_flow_node_configuration">
+                                <span>Edit on Call Flow </span><field name="callflow_id" class="oe_inline"/><span></span>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="routing_extension_number" placeholder="None" invisible="is_call_flow_node_configuration"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="voip_call_group_view_search" model="ir.ui.view">
+        <field name="name">voip.call.group.view.search</field>
+        <field name="model">voip.call.group</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="routing_extension_number"/>
+                <field name="user_ids" string="User"/>
+                <filter string="Without Extension" name="without_extension" domain="[('has_routing_extension', '=', False)]"/>
+                <filter string="Empty Groups" name="empty_groups" domain="[('user_ids', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_voip_call_group" model="ir.actions.act_window">
+        <field name="name">Groups</field>
+        <field name="res_model">voip.call.group</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder" aria-hidden="true"/>
+            <p>
+                Groups are useful to define all the members of a team. You can then keep your groups
+                up-to-date without touching the logic in other parts of the PBX.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="voip_call_group_menu" name="Groups" parent="voip.voip_pbx_configuration_menu" action="action_voip_call_group" sequence="20" groups="voip.group_voip_admin"/>
+</odoo>

@@ -1,0 +1,132 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="voip_queue_view_list" model="ir.ui.view">
+        <field name="name">voip.queue.view.list</field>
+        <field name="model">voip.queue</field>
+        <field name="arch" type="xml">
+            <list string="Queues" js_class="voip_phone_number_required_list" duplicate="false">
+                <field name="name"/>
+                <field name="routing_extension_number"/>
+                <field name="strategy"/>
+                <field name="resolved_agent_count" string="Agents"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="voip_queue_view_form" model="ir.ui.view">
+        <field name="name">voip.queue.view.form</field>
+        <field name="model">voip.queue</field>
+        <field name="arch" type="xml">
+            <form string="Queue" duplicate="false">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Queue"/>
+                        <h1>
+                            <field name="name" default_focus="1" placeholder="Tech Support"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="is_call_flow_node_configuration" invisible="1"/>
+                            <field name="strategy"/>
+                            <field name="allowed_call_group_ids" widget="many2many_tags"/>
+                            <field name="allowed_user_ids" widget="many2many_avatar_user" domain="[('share', '=', False)]" options="{'no_create': True}"/>
+                            <label for="agent_connect_code"/>
+                            <div class="o_row">
+                                <span class="text-muted" invisible="agent_connect_code">Auto-generated</span>
+                                <field name="agent_connect_code" readonly="1" nolabel="1"/>
+                            </div>
+                            <label for="agent_disconnect_code"/>
+                            <div class="o_row">
+                                <span class="text-muted" invisible="agent_disconnect_code">Auto-generated</span>
+                                <field name="agent_disconnect_code" readonly="1" nolabel="1"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="routing_extension_number" placeholder="None" invisible="is_call_flow_node_configuration"/>
+                            <field name="music_on_hold_id" options="{'no_create': True}" placeholder="Default"/>
+                            <label for="agent_timeout"/>
+                            <div class="o_row">
+                                <field name="agent_timeout" class="oe_inline"/>
+                                <span>seconds</span>
+                            </div>
+                            <label for="queue_timeout"/>
+                            <div class="o_row">
+                                <field name="queue_timeout" class="oe_inline"/>
+                                <span>seconds</span>
+                            </div>
+                            <label for="no_answer_destination_ref" invisible="callflow_id or is_call_flow_node_configuration"/>
+                            <div class="position-relative" invisible="callflow_id or is_call_flow_node_configuration">
+                                <field name="no_answer_destination_ref" nolabel="1"/>
+                                <span class="position-absolute top-0 start-0 text-muted pe-none" invisible="no_answer_destination_ref">Hang up</span>
+                            </div>
+                            <label for="busy_destination_ref" invisible="callflow_id or is_call_flow_node_configuration"/>
+                            <div class="position-relative" invisible="callflow_id or is_call_flow_node_configuration">
+                                <field name="busy_destination_ref" nolabel="1"/>
+                                <span class="position-absolute top-0 start-0 text-muted pe-none" invisible="busy_destination_ref">Hang up</span>
+                            </div>
+                            <label for="callflow_id" string="Fallback Destinations" invisible="not callflow_id or is_call_flow_node_configuration"/>
+                            <div invisible="not callflow_id or is_call_flow_node_configuration">
+                                <span>Edit on Call Flow </span><field name="callflow_id" class="oe_inline"/><span></span>
+                            </div>
+                        </group>
+                    </group>
+                    <notebook class="o_voip_queue_notebook">
+                        <page name="Agents" string="Allowed Agents">
+                            <field name="agent_ids" readonly="1">
+                                <list default_order="status_sort_order, sequence, id">
+                                    <field name="status_sort_order" column_invisible="True"/>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="user_id" widget="many2one_avatar_user"/>
+                                    <field name="status" widget="badge" decoration-success="status in ('in_call', 'available')" decoration-danger="status in ('paused', 'unavailable', 'logged_out')" decoration-muted="status == 'unknown'"/>
+                                    <field name="pause_reason" optional="hide"/>
+                                    <field name="status_last_sync" optional="hide"/>
+                                    <field name="agent_number" groups="base.group_system"/>
+                                    <field name="is_logged" column_invisible="True"/>
+                                    <button name="action_login_to_queue" type="object" string="Connect" icon="login" invisible="is_logged" groups="voip.group_voip_admin"/>
+                                    <button name="action_logoff_from_queue" type="object" string="Disconnect" icon="logout" invisible="not is_logged" groups="voip.group_voip_admin"/>
+                                </list>
+                            </field>
+                            <button name="action_refresh_agent_statuses" type="object" string="Refresh Agents List" class="btn btn-secondary mt-2" icon="refresh"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="voip_queue_view_kanban" model="ir.ui.view">
+        <field name="name">voip.queue.view.kanban</field>
+        <field name="model">voip.queue</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" duplicate="false">
+                <templates>
+                    <t t-name="card">
+                        <field name="name" class="fw-bold fs-5"/>
+                        <div class="text-muted mt-1">
+                            <field name="resolved_agent_count"/> agents
+                        </div>
+                        <field name="is_current_user_agent" invisible="1"/>
+                        <field name="is_current_user_logged" invisible="1"/>
+                        <footer class="mt-3">
+                            <button name="action_join_queue" type="object" string="Join" class="btn btn-primary" invisible="not is_current_user_agent or is_current_user_logged"/>
+                            <button name="action_leave_queue" type="object" string="Leave" class="btn btn-secondary" invisible="not is_current_user_agent or not is_current_user_logged"/>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="action_voip_queue" model="ir.actions.act_window">
+        <field name="name">Queues</field>
+        <field name="res_model">voip.queue</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder" aria-hidden="true"/>
+            <p>Queues keep callers waiting and connect them with available agents.</p>
+        </field>
+    </record>
+
+    <menuitem id="voip_queue_menu" name="Queues" parent="voip.voip_pbx_configuration_menu" action="action_voip_queue" sequence="21" groups="voip.group_voip_admin"/>
+</odoo>

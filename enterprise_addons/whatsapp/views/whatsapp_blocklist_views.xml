@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="whatsapp_blocklist_view_list" model="ir.ui.view">
+        <field name="name">whatsapp.blocklist.view.list</field>
+        <field name="model">whatsapp.blocklist</field>
+        <field name="arch" type="xml">
+            <list duplicate="false">
+                <field name="number"/>
+                <field name="wa_account_id"/>
+            </list>
+        </field>
+    </record>
+    <record id="whatsapp_blocklist_view_form" model="ir.ui.view">
+        <field name="name">whatsapp.blocklist.view.form</field>
+        <field name="model">whatsapp.blocklist</field>
+        <field name="arch" type="xml">
+            <form duplicate="false">
+                <header invisible="not id">
+                    <button name="button_block_number" type="object" string="Block Number" class="btn btn-primary" invisible="active"/>
+                    <button name="button_unblock_number" type="object" string="Unblock Number" class="btn btn-primary" invisible="not active"/>
+                </header>
+                <sheet>
+                    <div class="badge rounded-pill text-bg-danger float-end fs-6 border-0" invisible="active">Archived</div>
+                    <group>
+                        <field name="number" readonly="active and id"/>
+                        <field name="wa_account_id" readonly="active and id"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="whatsapp_blocklist_view_search" model="ir.ui.view">
+        <field name="name">whatsapp.blocklist.view.search</field>
+        <field name="model">whatsapp.blocklist</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="number"/>
+                <separator/>
+                <filter string="Archived" name="filter_archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Account" name="groupby_wa_account_id" domain="[]" context="{'group_by': 'wa_account_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="whatsapp_blocklist_action" model="ir.actions.act_window">
+        <field name="name">WhatsApp Blocklist</field>
+        <field name="res_model">whatsapp.blocklist</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_blocked':1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Manage WhatsApp numbers and block or unblock them.
+            </p>
+        </field>
+    </record>
+</odoo>

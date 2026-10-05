@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="employee_no_phone_list_wizard" model="ir.ui.view">
+        <field name="name">planning.send.employee.no.phone.wizard.whatsapp</field>
+        <field name="model">planning.send</field>
+        <field name="inherit_id" ref="planning.employee_no_email_list_wizard"/>
+        <field name="arch" type="xml">
+            <form position="inside">
+                <field name="sending_medium" invisible="1"/> <!-- Used to activate/deactivate whatsapp features -->
+            </form>
+            <xpath expr="//p" position="attributes">
+                <attribute name="invisible">sending_medium == 'whatsapp'</attribute>
+            </xpath>
+            <xpath expr="//p" position="after">
+                <p invisible="sending_medium != 'whatsapp'">
+                    Please add a work phone number for the following employee(s) so that they can receive their planning:
+                </p>
+             </xpath>
+
+            <xpath expr="//field[@name='employees_no_email']/list/field[@name='work_email']" position="attributes">
+                <attribute name="column_invisible">parent.sending_medium == 'whatsapp'</attribute>
+                <attribute name="required">parent.sending_medium != 'whatsapp'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='employees_no_email']/list/field[@name='work_email']" position="after">
+                <field name="work_phone" widget="phone" required="parent.sending_medium == 'whatsapp'" column_invisible="parent.sending_medium != 'whatsapp'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

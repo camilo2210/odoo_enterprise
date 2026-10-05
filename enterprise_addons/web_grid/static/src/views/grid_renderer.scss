@@ -1,0 +1,112 @@
+// These variables should be moved to a seperate file `grid_renderer.variables.scss`
+// These values are hard coded in grid_renderer.js
+$o-web-grid-first-column-width: 3rem;
+$o-web-grid-cell-minwidth: 10ch;
+$o-web-grid-column-gutter: map-get($spacers, 1); // 4px on each side of a column
+
+@mixin o-grid-zindex($level) {
+    z-index: map-get(
+        (
+            interact: 20,
+            // Top-most elements
+            top: 30,
+        ),
+        $level
+    );
+}
+
+.o_grid_renderer {
+    height: inherit;
+
+    .o_grid_grid {
+        min-width: fit-content;
+    }
+
+    // Columns are separated using a border inside the cells instead of a column-gap
+    // to prevent the background from being visible underneath.
+    .o_grid_column_cell {
+        border-inline: $o-web-grid-column-gutter solid var(--o-grid-column-gutter-color, #{$o-view-background-color});
+
+        // Paint the border with a pseudo element to prevent the gutter from appearing
+        &.o_grid_section, &.o_grid_column_total:not(.o_grid_bar_chart_container) {
+            &::before {
+                @include o-position-absolute($top: 0);
+
+                content: "";
+                inset-inline: calc(-1 * #{$o-web-grid-column-gutter});
+                border-top: $border-width solid $border-color;
+            }
+        }
+    }
+
+    // Compensate the border inline value for columns that touch left/right panels
+    .o_grid_first_cell {
+        margin-inline-end: calc(-1 * #{$o-web-grid-column-gutter});
+    }
+
+    .o_grid_last_cell {
+        margin-inline-start: calc(-1 * #{$o-web-grid-column-gutter});
+    }
+
+    // Prevent the section from being sliced by the border inline
+    .o_grid_section {
+        --o-grid-column-gutter-color: #{$o-gray-200};
+    }
+
+    // Inset edited/hovered cell with the same value as the border inline
+    .o_grid_cell {
+        margin-inline: $o-web-grid-column-gutter;
+    }
+
+    .o_grid_column_title {
+        @include o-grid-zindex(interact);
+
+        > .o_grid_cell_overlay_today {
+            // Clipped instead of inset, to line up with the gutters of the
+            // column underneath
+            clip-path: inset(0 $o-web-grid-column-gutter round #{$border-radius-lg} #{$border-radius-lg} 0 0);
+        }
+
+        span {
+            white-space: pre-line;
+        }
+    }
+
+    .o_grid_row_title, .o_grid_section_title {
+        @include o-grid-zindex(interact);
+    }
+
+    .o_grid_highlighted, .o_grid_row_highlighted {
+        .o_grid_cell_overlay {
+            background: rgba($o-enterprise-action-color, $table-hover-bg-factor);
+        }
+        .o_grid_cell_overlay_today {
+            background: rgba($o-enterprise-action-color, $table-hover-bg-factor * 2);
+        }
+    }
+
+    .o_grid_section ~ .o_grid_row.o_grid_row_title {
+        padding-left: calc(#{map-get($spacers, 3)} + #{$o-avatar-size} + #{map-get($spacers, 1)}) !important;
+    }
+
+    .o_grid_row_title {
+        .o_form_uri {
+            @include text-truncate();
+            @include o-hover-text-color($body-color, $o-action);
+            max-width: 300px;
+        }
+    }
+
+    .o_grid_grid .o_input {
+        text-align: center;
+        padding: 0;
+    }
+
+    .o_grid_navigation_wrap {
+        @include o-grid-zindex(top);
+    }
+
+    .o_grid_column_total {
+        background-image: linear-gradient(to bottom, transparent, $o-view-background-color);
+    }
+}

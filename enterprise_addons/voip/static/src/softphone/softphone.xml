@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<templates>
+
+<t t-name="voip.Softphone">
+    <article t-ref="this.softphoneRef" class="o-voip-Softphone d-flex flex-column border d-print-none overflow-hidden shadow" t-att-class="{ 'o-mobile': this.isOnSmallDevice, 'mb-2 ms-2 rounded': !this.isOnSmallDevice, 'o-voip-calling': this.frontSession or this.userAgent.hasCallInvitation, 'bg-view': !(this.frontSession or this.userAgent.hasCallInvitation) }">
+        <header class="d-flex align-items-center justify-content-between gap-1 p-2" t-att-class="{ 'border-bottom': this.frontSession or this.userAgent.hasCallInvitation, 'shadow-sm': !(this.frontSession or this.userAgent.hasCallInvitation) }">
+            <div class="d-flex align-items-center">
+                <button t-if="this.isTransferConfirmation" type="button" class="btn btn-secondary d-flex p-2 me-1" title="Back" aria-label="Back" t-on-click="this.onClickCancelTransfer">
+                    <i class="oi" data-icon="west" aria-hidden="true"/>
+                </button>
+                <StatusMenu callStatus="this.callStatus" isUserVoipAdmin="this.isUserVoipAdmin" showAudioActivation="this.showAudioActivation" showDeviceSelection="this.showDeviceSelection"/>
+            </div>
+
+            <div class="d-flex align-items-center gap-1">
+                <button class="btn btn-light d-flex p-2 opacity-25 opacity-100-hover" title="Hide" t-on-click="this.onClickClose" data-hotkey="shift+s">
+                    <i class="oi" data-icon="minimize" aria-hidden="true"/>
+                </button>
+            </div>
+        </header>
+        <div class="o-voip-Softphone-main position-relative d-flex flex-column flex-grow-1 o-min-height-0">
+            <CallInvitation t-if="this.userAgent.hasCallInvitation" callInvitationSession="this.userAgent.callInvitationSession"/>
+            <InCallView t-elif="this.frontSession" frontSession="this.frontSession" backSessions="this.backSessions"/>
+            <t t-else="">
+                <t t-if="this.softphone.callSummary.session">
+                    <CallSummary session="this.softphone.callSummary.session"/>
+                </t>
+                <t t-else="">
+                    <section class="o-voip-Softphone-content d-flex flex-column flex-grow-1 o-min-height-0">
+                        <div t-if="this.voip.softphoneStatusNotice" class="alert alert-info d-flex gap-2 align-items-baseline m-1 mb-0 p-2">
+                            <i class="oi oi-filled" aria-hidden="true" data-icon="info"/>
+                            <span class="flex-grow-1 small" t-out="this.voip.softphoneStatusNotice"/>
+                            <a t-if="this.voip.config.buyCreditsUrl" t-att-href="this.voip.config.buyCreditsUrl" target="_blank" class="btn btn-sm btn-primary text-nowrap">Buy Credits</a>
+                        </div>
+                        <div t-if="this.userAgent.hasRemoteActiveCalls" class="alert alert-info d-flex gap-2 align-items-center m-1 mb-0 p-2">
+                            <p class="mb-0 text-truncate">
+                                <i class="oi oi-filled me-2" data-icon="info"/>
+                                <span class="small">Active call(s) on another device</span>
+                            </p>
+                            <button t-if="!this.userAgent.hasTransferInProgress" type="button" class="btn btn-primary btn-sm flex-shrink-0 ms-auto" t-on-click="this.onClickSwitchHere">Switch here</button>
+                        </div>
+                        <History t-if="this.activeTab === 'recent'" t-key="this.softphone.historyRefreshKey"/>
+                        <Dialer t-elif="this.activeTab === 'dialer'" state="this.softphone.dialer"/>
+                        <Agenda t-elif="this.activeTab === 'activities'"/>
+                    </section>
+                </t>
+                <nav class="o-voip-Softphone-nav d-flex gap-2 border-top p-2 z-1">
+                    <button t-foreach="this.tabs" t-as="tab" t-key="tab.id" class="o-voip-Softphone-navItem btn btn-link w-100 d-flex flex-column align-items-stretch rounded border-0 p-2" t-att-class="{ 'active': this.activeTab === tab.id and !this.softphone.callSummary.isShown, 'text-reset': this.activeTab !== tab.id or this.softphone.callSummary.isShown }" t-on-click="() => this.onClickTab(tab.id)" t-att-data-tab="tab.id" t-att-tabindex="this.activeTab === tab.id ? '-1' : undefined">
+                        <i class="oi rounded-pill p-2" t-att-data-icon="tab.icon" aria-hidden="true"/>
+                        <span t-out="tab.name" class="mt-auto text-break smaller"/>
+                    </button>
+                </nav>
+            </t>
+            <t t-if="this.voip.error">
+                <ErrorScreen isBlocking="this.voip.error.isBlocking" isConnecting="this.voip.error.isConnecting" message="this.voip.error.message" technical="this.voip.error.technical" technicalExtra="this.voip.error.technicalExtra" buyCreditsUrl="this.voip.error.buyCreditsUrl"/>
+            </t>
+        </div>
+    </article>
+</t>
+
+</templates>

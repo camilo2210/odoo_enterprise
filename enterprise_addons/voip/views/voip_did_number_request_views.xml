@@ -1,0 +1,149 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="voip_did_number_request_list_view" model="ir.ui.view">
+        <field name="name">voip.did.number.request.list</field>
+        <field name="model">voip.did.number.request</field>
+        <field name="arch" type="xml">
+            <list string="Number Requests" create="False" delete="False" duplicate="false" open_form_view="1">
+                <field name="create_date" string="Requested On"/>
+                <field name="country_id"/>
+                <field name="did_number_type"/>
+                <field name="quantity"/>
+                <field name="area_code" optional="hide"/>
+                <field name="requested_by_id"/>
+                <field name="state" string="Status" widget="badge"
+                       decoration-success="state == 'ordered'"
+                       decoration-warning="state in ('pending', 'processing', 'hold')"
+                       decoration-danger="state in ('exception', 'failed')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="voip_did_number_request_search_view" model="ir.ui.view">
+        <field name="name">voip.did.number.request.search</field>
+        <field name="model">voip.did.number.request</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="provider_order_id"/>
+                <field name="country_id"/>
+                <field name="requested_by_id"/>
+                <filter name="pending" string="Pending"
+                        domain="[('state', 'in', ('pending', 'processing', 'hold'))]"/>
+                <filter name="action_required" string="Action Required"
+                        domain="[('state', '=', 'exception')]"/>
+                <filter name="ordered" string="Ordered" domain="[('state', '=', 'ordered')]"/>
+                <filter name="failed" string="Failed" domain="[('state', '=', 'failed')]"/>
+                <group>
+                    <filter name="group_by_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_by_country" string="Country" context="{'group_by': 'country_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="voip_did_number_request_form_view" model="ir.ui.view">
+        <field name="name">voip.did.number.request.form</field>
+        <field name="model">voip.did.number.request</field>
+        <field name="arch" type="xml">
+            <form string="Number Request" create="False" delete="False" duplicate="false">
+                <header>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="pending,processing"/>
+                </header>
+                <sheet>
+                    <field name="requirement_group_id" invisible="True"/>
+                    <div class="alert alert-info" role="alert"
+                         invisible="state not in ('pending', 'processing')">
+                        <strong>Odoo is sourcing your numbers.</strong>
+                        You will not be charged until you approve a proposal and the request is fulfilled.
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="state != 'exception'">
+                        <strong>More information is required.</strong>
+                        Review and reply below within five business days to avoid automatic cancellation.
+                        <button name="action_open_requirements" type="object" string="Review Requirements"
+                                class="btn-secondary btn-sm ms-2" invisible="not requirement_group_id"/>
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="state != 'hold'">
+                        <strong>Your decision is needed.</strong>
+                        Review any proposed numbers and reply below within five business days.
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="state != 'failed'">
+                        <strong>This request could not be fulfilled.</strong>
+                        Review the latest message below for details.
+                    </div>
+                    <div class="alert alert-success" role="alert" invisible="state != 'ordered'">
+                        <strong>This request has been processed.</strong>
+                        Phone numbers appear below as their individual orders complete.
+                    </div>
+                    <group string="Request Details">
+                        <group>
+                            <field name="country_id"/>
+                            <field name="did_number_type"/>
+                            <field name="quantity"/>
+                            <field name="area_code"/>
+                        </group>
+                        <group>
+                            <field name="create_date" string="Requested On"/>
+                            <field name="requested_by_id"/>
+                            <field name="provider_order_id"
+                                   invisible="not provider_order_id"
+                                   widget="CopyClipboardChar"/>
+                        </group>
+                    </group>
+                    <group string="Proposed Phone Numbers" invisible="not candidate_numbers">
+                        <field name="candidate_numbers" nolabel="True" readonly="True" colspan="2"/>
+                        <div class="alert alert-warning" role="alert" colspan="2"
+                             invisible="state not in ('exception', 'hold')">
+                            These numbers are not charged yet. Reply below to approve or decline them.
+                        </div>
+                    </group>
+                    <group string="Purchased Phone Numbers" invisible="not number_ids">
+                        <field name="number_ids" nolabel="True" readonly="True">
+                            <list create="False" delete="False">
+                                <field name="did_number"/>
+                                <field name="destination_ref"/>
+                                <field name="state" widget="badge"
+                                       decoration-success="state == 'active'"
+                                       decoration-warning="state in ('ordering', 'pending')"
+                                       decoration-danger="state in ('failure', 'released', 'suspended')"/>
+                            </list>
+                        </field>
+                    </group>
+                    <group string="Contact Odoo's Phone Carrier">
+                        <div class="text-muted" colspan="2">
+                            Use this box to communicate with Odoo's phone carrier about this request and eventually confirm your order. Messages are recorded in the chatter.
+                        </div>
+                        <field name="new_comment" widget="voip_number_request_comment"
+                               placeholder="I have updated the proof of address with a more recent bill..."/>
+                        <button name="action_send_comment" type="object" string="Send Message"
+                                class="btn-primary" invisible="not new_comment"/>
+                        <button name="action_send_comment" type="object" string="Send Message"
+                                class="btn-primary" disabled="disabled" invisible="new_comment"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_voip_did_number_request" model="ir.actions.act_window">
+        <field name="name">Number Requests</field>
+        <field name="res_model">voip.did.number.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="voip_did_number_request_search_view"/>
+        <field name="help" type="html">
+            <div>
+                <div class="position-relative mb-3">
+                    <span class="o_view_nocontent_voip_bg_shape o_view_nocontent_voip_number_bg position-absolute bg-primary"/>
+                    <img class="position-relative mw-100" src="/voip/static/src/img/voip_phone_number.svg" alt="Phone numbers"/>
+                </div>
+                <h2>No number requests found</h2>
+                <p>
+                    Search for a number to buy. If none are available,<br/>
+                    click Request Numbers to submit a request and track it here.
+                </p>
+                <a href="#" type="action" name="%(action_voip_did_number_search_wizard)d" class="btn btn-primary">Buy a Number</a>
+            </div>
+        </field>
+    </record>
+</odoo>

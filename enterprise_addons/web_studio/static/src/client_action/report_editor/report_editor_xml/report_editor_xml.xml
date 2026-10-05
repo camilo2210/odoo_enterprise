@@ -1,0 +1,84 @@
+<templates>
+
+<t t-name="web_studio.ReportEditorXml">
+    <div class="o-web-studio-report-editor-xml h-100 ps-2">
+        <ResizablePanel class="'o_web_studio_xml_editor h-100'" initialWidth="this.editorInitialWidth" minWidth="50">
+            <div class="o-web-studio-report-editor-code-editor-header w-100 p-2 d-flex gap-1 justify-content-end gap-1 overflow-auto">
+                <button
+                    t-if="this.canEditDiff()"
+                    class="btn btn-flat"
+                    type="button"
+                    name="view_diff"
+                    t-on-click="() => this.toggleDiff()"
+                    title="See what changes have been made to this view"
+                >History</button>
+                <button class="btn btn-flat" type="button" t-on-click="this.onFormat">Format</button>
+                <TranslationButton
+                    t-if="this.resourcesPlugin.currentResourceId()"
+                    t-props="this.translateButtonProps()"
+                />
+            </div>
+            <IrUiViewCodeEditor
+                mode="'qweb'"
+                theme="'monokai'"
+                class="'o_web_studio_code_editor flex-grow-1 h-auto'"
+                modeOptions="{ highlightRulesConfig: { readonlyAttributes: ['o-diff-key', 'lock-id'] }}"
+                sessionId="this.resourcesPlugin.currentResourceId()"
+                value="this.xmlCode()"
+                onChange.bind="this.onCodeChange"
+                editorState="this.codeEditorState"
+                invalidLocators="this.resourcesPlugin.currentResource()?.invalid_locators or undefined"
+            />
+        </ResizablePanel>
+    </div>
+    <div class="h-100 position-relative overflow-auto flex-grow-1">
+        <ReportEditorIframe onIframeLoaded.bind="this.onIframeLoaded"/>
+    </div>
+</t>
+
+<t t-name="web_studio.ReportEditorXml.ResourceSelector">
+    <OptionsContainer name.translate="Structure" containerClass="'p-0 gap-0'">
+        <t t-foreach="this.resourcesPlugin.mainResources()" t-as="mainResource" t-key="`${mainResource.name} (${mainResource.xml_id})`">
+            <t t-set="resource" t-value="mainResource"/>
+            <t t-call="web_studio.ReportEditorXml.ResourceButton"/>
+            <div t-if="this.resourcesPlugin.subResources()[mainResource.id]" class="o-web-studio-report-editor-xml-sub-resources d-flex flex-column w-100 position-relative">
+                <t
+                    t-foreach="this.resourcesPlugin.subResources()[mainResource.id]"
+                    t-as="subResource"
+                    t-key="`${subResource_value.name} (${subResource_value.xml_id})`"
+                >
+                    <t t-set="resource" t-value="subResource_value"/>
+                    <t t-call="web_studio.ReportEditorXml.ResourceButton"/>
+                </t>
+            </div>
+        </t>
+    </OptionsContainer>
+    <OptionsContainer t-if="this.resourcesPlugin.customResources().length > 0" name.translate="Customizations" containerClass="'p-0 gap-0'">
+        <button
+            t-foreach="this.resourcesPlugin.customResources()"
+            t-as="resource"
+            t-key="`${resource.name} (${resource.xml_id})`"
+            class="o-web-studio-report-editor-xml-resource btn btn-flat d-flex flex-nowrap align-items-center rounded-0 w-100 py-2"
+            t-att-class="{ active: resource.id === this.resourcesPlugin.currentResourceId() }"
+            t-on-click="() => this.resourcesPlugin.currentResource.set(resource)"
+            t-att-name="resource.xml_id"
+        >
+            <div class="text-truncate" t-out="resource.name"/>
+            <i t-if="this.resourcesPlugin.isResourceDirty(resource)" class="oi oi-filled ms-2" data-icon="circle" title="Unsaved changes"/>
+        </button>
+    </OptionsContainer>
+</t>
+
+<t t-name="web_studio.ReportEditorXml.ResourceButton">
+    <button
+        class="o-web-studio-report-editor-xml-resource position-relative btn btn-flat d-flex flex-nowrap align-items-center rounded-0 w-auto py-2"
+        t-att-class="{ active: resource.id === this.resourcesPlugin.currentResourceId() }"
+        t-on-click="() => this.resourcesPlugin.currentResource.set(resource)"
+        t-att-name="resource.xml_id"
+    >
+        <div class="text-truncate" t-out="resource.name"/>
+        <i t-if="this.resourcesPlugin.isResourceDirty(resource)" class="oi oi-filled ms-2" data-icon="circle" title="Unsaved changes"/>
+    </button>
+</t>
+
+</templates>
