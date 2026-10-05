@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <template id="l10n_br_edi_pos.pos_order_receipt_header" inherit_id="point_of_sale.pos_order_receipt_header">
+            <div name="header" position="before">
+                <div t-if="conditions.get('l10n_br_is_nfce')" class="w-100 text-center">
+                   <t t-if="extra_data.get('l10n_br_edi_avatax_data')">
+                       <div t-if="extra_data['l10n_br_edi_avatax_data'].get('state_tax_id')">
+                        IE: <span t-out="extra_data['l10n_br_edi_avatax_data']['state_tax_id']" />
+                       </div>
+                       <div t-if="extra_data['l10n_br_edi_avatax_data'].get('establishment_full_address')">
+                        <span t-out="extra_data['l10n_br_edi_avatax_data']['establishment_full_address']" />
+                    </div>
+                          <div t-if="conditions.get('l10n_br_avalara_environment_sandbox') ">ISSUED IN SANDBOX ENVIRONMENT - WITHOUT FISCAL VALUE</div>
+                          <div>Auxiliary Document of Consumer Invoice</div>
+                   </t>
+                   <div t-else="" class="text-center">RECEIPT WITHOUT FISCAL VALUE</div>
+                </div>
+            </div>
+        </template>
+
+        <template id="l10n_br_edi_pos.pos_order_receipt" inherit_id="point_of_sale.pos_order_receipt">
+            <div name="prices" position="inside">
+                <div t-if="conditions.get('l10n_br_is_nfce') and extra_data.get('l10n_br_edi_avatax_data')">
+                    <div>
+                        Total number of items:
+                        <span class="pos-receipt-right-align" t-out="extra_data['l10n_br_edi_avatax_data']['items_count']"/>
+                    </div>
+                </div>
+            </div>
+            <tr name="taxes_line" position="attributes">
+                <attribute name="t-att-class" add="{'d-none': conditions.get('l10n_br_is_nfce') and extra_data.get('l10n_br_edi_avatax_data')}" />
+            </tr>
+        </template>
+
+        <template id="l10n_br_edi_pos.pos_order_receipt_footer" inherit_id="point_of_sale.pos_order_receipt_footer">
+            <div name="footer" position="after">
+                <div t-if="conditions.get('l10n_br_is_nfce') and extra_data.get('l10n_br_edi_avatax_data')">
+                    <t t-set="avatax_header" t-value="extra_data['l10n_br_edi_avatax_data']['header']"/>
+
+                    <div t-if="avatax_header.get('goods')" class="mt-2 mb-2 text-center">
+                        <div>Check using the access key on:</div>
+                        <div t-out="avatax_header['goods']['urlKey']" />
+                    </div>
+
+                    <div class="mt-2 mb-2 text-center">
+                        <div class="text-center m-2" t-out="extra_data['l10n_br_edi_avatax_data']['formatted_key']" />
+                    </div>
+
+                    <div class="text-center my-2" t-if="partner and avatax_header.get('locations')">
+                        <t t-set="entity" t-value="extra_data['l10n_br_edi_avatax_data']['header']['locations']['entity']"/>
+                        <t t-set="address" t-value="entity['address']"/>
+
+                        <span t-out="partner['name']"/> -
+                        <span t-out="extra_data['partner_vat_label']"/> -
+                        <span t-out="avatax_header['locations']['entity']['federalTaxId']"/> -
+                        <span t-out="extra_data['l10n_br_edi_avatax_data']['entity_full_address']" />
+                    </div>
+                    <div class="text-center my-2" t-else="">
+                        Unidentified customer - CPF 000.000.000-00
+                    </div>
+
+                    <div class="text-center my-2">
+                        <div>
+                            NFC-e nº <span t-out="avatax_header['invoiceNumber']"/> Series <span t-out="avatax_header['invoiceSerial']"/> <span t-out="avatax_header['transactionDate']"/>
+                        </div>
+                        <div>
+                            Authorization Protocol Number: <span t-out="order['l10n_br_edi_protocol_authorization_number']"/>
+                        </div>
+                        <div>
+                            Authorization Date: <span t-out="order['l10n_br_edi_authorization_date']"/>
+                        </div>
+                    </div>
+
+                    <div t-if="conditions.get('l10n_br_avalara_environment_sandbox')" class="text-center">
+                        <span>ISSUED IN SANDBOX ENVIRONMENT - WITHOUT FISCAL VALUE</span>
+                    </div>
+
+                    <div class="text-center">--------------------------------</div>
+                    <div class="mt-3 text-center">
+                        <img t-if="extra_data['l10n_br_edi_avatax_data']['qr_code_data']" t-att-src="extra_data['l10n_br_edi_avatax_data']['qr_code_data']" />
+                    </div>
+                </div>
+            </div>
+        </template>
+    </data>
+</odoo>

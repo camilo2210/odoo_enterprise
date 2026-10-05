@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="l10n_ch_hr_payroll.SalaryResultWidgetTemplate">
+        <div class="o_swissdec_widget">
+            <t t-set="institution_result" t-value="this.result"/>
+            <t t-if="institution_result">
+                <t t-if="institution_result.Error">
+                    <t t-call="l10n_ch_hr_payroll.SwissdecError" swissdec_error="institution_result.Error"/>
+                </t>
+                <div t-elif="institution_result.Success" class="alert alert-success o_swissdec_alert" role="status">
+                    <i class="oi oi-fw oi-filled" data-icon="check_circle" aria-hidden="true"/>
+                    <div class="o_swissdec_alert_content">
+                        <div class="fw-bold">Success</div>
+                        <div t-if="institution_result.Success.ChangesConsideredUpTo">Changes Considered up to: <t t-out="this.format.date(institution_result.Success.ChangesConsideredUpTo)"/></div>
+                    </div>
+                </div>
+                <div t-elif="institution_result.Processing" class="alert alert-info o_swissdec_alert" role="status">
+                    <i class="oi oi-fw" data-icon="hourglass_top" aria-hidden="true"/>
+                    <div class="o_swissdec_alert_content">
+                        <div class="fw-bold">Processing</div>
+                        <div>Your request is being processed by the Institution</div>
+                        <div t-if="institution_result.Processing.ExpectedAvailability">Expected Delivery Date: <t t-out="this.format.date(institution_result.Processing.ExpectedAvailability)"/></div>
+                    </div>
+                </div>
+                <div t-elif="institution_result.CompletionReleaseIsMissing" class="alert alert-warning o_swissdec_alert" role="status">
+                    <i class="oi oi-fw" data-icon="warning" aria-hidden="true"/>
+                    <div class="o_swissdec_alert_content">
+                        <div class="fw-bold">Completion Release Missing</div>
+                        <div>The completion release information is missing and required by the Institution.</div>
+                    </div>
+                </div>
+                <div t-elif="institution_result.NotSupported" class="alert alert-light o_swissdec_alert" role="status">
+                    <i class="oi oi-fw" data-icon="block" aria-hidden="true"/>
+                    <div class="o_swissdec_alert_content">
+                        <div class="fw-bold">Not Supported</div>
+                        <div>This operation is not supported by the institution.</div>
+                    </div>
+                </div>
+
+                <SwissdecNotification t-if="institution_result.Warning" type="'warning'" notifications="institution_result.Warning.Notification"/>
+                <SwissdecNotification t-if="institution_result.Info" type="'info'" notifications="institution_result.Info.Notification"/>
+
+                <t t-set="institution_answer" t-value="this.answer"/>
+                <div t-if="institution_answer" class="o_swissdec_columns">
+                    <t t-call="l10n_ch_hr_payroll.SalaryResultInstitution"/>
+                    <t t-if="institution_answer.AddresseeContext">
+                        <t t-call="l10n_ch_hr_payroll.SwissdecContext" swissdec_context="institution_answer.AddresseeContext"/>
+                    </t>
+                </div>
+
+                <t t-if="institution_result.Success">
+                    <t t-call="l10n_ch_hr_payroll.SalaryResultSuccess" success="institution_result.Success"/>
+                </t>
+            </t>
+            <div t-else="" class="text-muted">No data available</div>
+        </div>
+    </t>
+
+    <t t-name="l10n_ch_hr_payroll.SalaryResultInstitution">
+        <t t-set="institution" t-value="institution_answer.Institution or {}"/>
+        <t t-set="institution_domain" t-value="this.institutionDomain"/>
+        <dl class="o_swissdec_fields">
+            <t t-if="institution_domain === 'AHV-AVS'">
+                <t t-if="institution['AK-CC-BranchNumber']">
+                    <dt>Institution ID</dt>
+                    <dd t-out="institution['AK-CC-BranchNumber']"/>
+                </t>
+                <t t-if="institution['AK-CC-CustomerNumber']">
+                    <dt>Customer Number</dt>
+                    <dd t-out="institution['AK-CC-CustomerNumber']"/>
+                </t>
+            </t>
+            <t t-elif="institution_domain === 'FAK-CAF'">
+                <t t-if="institution['FAK-CAF-BranchNumber']">
+                    <dt>Institution ID</dt>
+                    <dd t-out="institution['FAK-CAF-BranchNumber']"/>
+                </t>
+                <t t-if="institution['FAK-CAF-CustomerNumber']">
+                    <dt>Customer Number</dt>
+                    <dd t-out="institution['FAK-CAF-CustomerNumber']"/>
+                </t>
+            </t>
+            <t t-elif="['UVG-LAA', 'UVGZ-LAAC', 'KTG-AMC', 'BVG-LPP'].includes(institution_domain)">
+                <t t-if="institution.InsuranceCompanyName">
+                    <dt>Institution Name</dt>
+                    <dd t-out="institution.InsuranceCompanyName"/>
+                </t>
+                <t t-if="institution.InsuranceID">
+                    <dt>Institution ID</dt>
+                    <dd t-out="institution.InsuranceID"/>
+                </t>
+                <t t-if="institution.CustomerIdentity">
+                    <dt>Customer Number</dt>
+                    <dd t-out="institution.CustomerIdentity"/>
+                </t>
+                <t t-if="institution.ContractIdentity">
+                    <dt>Contract Number</dt>
+                    <dd t-out="institution.ContractIdentity"/>
+                </t>
+                <t t-if="institution.PayrollUnit">
+                    <dt>Payroll Unit</dt>
+                    <dd t-out="institution.PayrollUnit"/>
+                </t>
+            </t>
+            <t t-elif="['TaxAtSource', 'TaxCrossborder'].includes(institution_domain)">
+                <t t-if="institution.CantonID">
+                    <dt>Canton</dt>
+                    <dd t-out="institution.CantonID"/>
+                </t>
+                <t t-if="institution.CustomerIdentity">
+                    <dt>Customer Number</dt>
+                    <dd t-out="institution.CustomerIdentity"/>
+                </t>
+                <t t-if="institution.PayrollUnit">
+                    <dt>Payroll Unit</dt>
+                    <dd t-out="institution.PayrollUnit"/>
+                </t>
+            </t>
+            <t t-elif="institution_domain === 'Tax' and institution_answer.InstitutionCantonID">
+                <dt>Canton</dt>
+                <dd t-out="institution_answer.InstitutionCantonID"/>
+            </t>
+        </dl>
+    </t>
+
+    <t t-name="l10n_ch_hr_payroll.SalaryResultSuccess">
+        <!-- LPP results carry their notifications in the success itself -->
+        <SwissdecNotification t-if="success.Warning" type="'warning'" notifications="success.Warning.Notification"/>
+        <SwissdecNotification t-if="success.Info" type="'info'" notifications="success.Info.Notification"/>
+
+        <t t-set="avs" t-value="success['AHV-AVS-QuittanceWithoutCompletion']"/>
+        <t t-if="avs">
+            <div class="o_horizontal_separator mt-4 mb-3 text-uppercase fw-bolder small">AHV-AVS Quittance</div>
+            <dl class="o_swissdec_fields">
+                <t t-if="avs['Total-AHV-AVS-Incomes']">
+                    <dt>Total AVS Incomes</dt>
+                    <dd t-out="this.format.amount(avs['Total-AHV-AVS-Incomes'])"/>
+                </t>
+                <t t-if="avs['Total-AHV-AVS-Open']">
+                    <dt>Total AVS Exempt</dt>
+                    <dd t-out="this.format.amount(avs['Total-AHV-AVS-Open'])"/>
+                </t>
+                <t t-if="avs['Total-ALV-AC-Incomes']">
+                    <dt>Total AC Incomes</dt>
+                    <dd t-out="this.format.amount(avs['Total-ALV-AC-Incomes'])"/>
+                </t>
+                <t t-if="avs['Total-ALVZ-ACS-Incomes']">
+                    <dt>Total ACS Incomes</dt>
+                    <dd t-out="this.format.amount(avs['Total-ALVZ-ACS-Incomes'])"/>
+                </t>
+                <t t-if="avs['Total-ALV-AC-Open']">
+                    <dt>Total AC Exempt</dt>
+                    <dd t-out="this.format.amount(avs['Total-ALV-AC-Open'])"/>
+                </t>
+                <t t-if="avs['Total-FLG-LFA-Incomes']">
+                    <dt>Total LFA Incomes</dt>
+                    <dd t-out="this.format.amount(avs['Total-FLG-LFA-Incomes'])"/>
+                </t>
+                <t t-if="avs['Total-FLG-LFA-FamilyIncome-Supplement']">
+                    <dt>Total LFA Family Income Supplement</dt>
+                    <dd t-out="this.format.amount(avs['Total-FLG-LFA-FamilyIncome-Supplement'])"/>
+                </t>
+            </dl>
+        </t>
+
+        <t t-set="laa" t-value="success['UVG-LAA-QuittanceWithoutCompletion']"/>
+        <t t-if="laa">
+            <div class="o_horizontal_separator mt-4 mb-3 text-uppercase fw-bolder small">UVG-LAA Quittance</div>
+            <dl class="o_swissdec_fields">
+                <t t-if="laa.NumberOfFemalePersons != null">
+                    <dt>Number of Female Persons</dt>
+                    <dd t-out="laa.NumberOfFemalePersons"/>
+                </t>
+                <t t-if="laa.NumberOfMalePersons != null">
+                    <dt>Number of Male Persons</dt>
+                    <dd t-out="laa.NumberOfMalePersons"/>
+                </t>
+                <t t-if="laa['UVG-LAA-MasterTotal']">
+                    <dt>Master Total</dt>
+                    <dd t-out="this.format.amount(laa['UVG-LAA-MasterTotal'])"/>
+                </t>
+            </dl>
+            <t t-set="branch_totals" t-value="this.toList(laa['UVG-LAA-BranchTotals']?.['UVG-LAA-BranchTotal'])"/>
+            <div t-if="branch_totals.length" class="table-responsive">
+                <table class="table table-sm o_swissdec_table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">Branch</th>
+                            <th colspan="2" class="text-center">Female Totals</th>
+                            <th colspan="2" class="text-center">Male Totals</th>
+                        </tr>
+                        <tr>
+                            <th class="text-end">BU-AP-Total</th>
+                            <th class="text-end">NBU-BU-ANP-AP-Total</th>
+                            <th class="text-end">BU-AP-Total</th>
+                            <th class="text-end">NBU-BU-ANP-AP-Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="branch_totals" t-as="branch" t-key="branch_index">
+                            <td t-out="branch.BranchIdentifier"/>
+                            <td class="text-end" t-out="this.format.amount(branch['Female-Totals']?.['BU-AP-Total'])"/>
+                            <td class="text-end" t-out="this.format.amount(branch['Female-Totals']?.['NBU-BU-ANP-AP-Total'])"/>
+                            <td class="text-end" t-out="this.format.amount(branch['Male-Totals']?.['BU-AP-Total'])"/>
+                            <td class="text-end" t-out="this.format.amount(branch['Male-Totals']?.['NBU-BU-ANP-AP-Total'])"/>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </t>
+
+        <t t-set="laac" t-value="success['UVGZ-LAAC-QuittanceWithoutCompletion']"/>
+        <t t-if="laac">
+            <div class="o_horizontal_separator mt-4 mb-3 text-uppercase fw-bolder small">UVGZ-LAAC Quittance</div>
+            <t t-call="l10n_ch_hr_payroll.SalaryResultCategoryTotals"
+               master_total="laac['UVGZ-LAAC-MasterTotal']"
+               category_totals="this.toList(laac['UVGZ-LAAC-CategoryTotals']?.['UVGZ-LAAC-CategoryTotal'])"/>
+        </t>
+
+        <t t-set="ijm" t-value="success['KTG-AMC-QuittanceWithoutCompletion']"/>
+        <t t-if="ijm">
+            <div class="o_horizontal_separator mt-4 mb-3 text-uppercase fw-bolder small">KTG-AMC Quittance</div>
+            <t t-call="l10n_ch_hr_payroll.SalaryResultCategoryTotals"
+               master_total="ijm['KTG-AMC-MasterTotal']"
+               category_totals="this.toList(ijm['KTG-AMC-CategoryTotals']?.['KTG-AMC-CategoryTotal'])"/>
+        </t>
+
+        <t t-set="caf" t-value="success['FAK-CAF-QuittanceWithoutCompletion']"/>
+        <t t-if="caf">
+            <div class="o_horizontal_separator mt-4 mb-3 text-uppercase fw-bolder small">FAK-CAF Quittance</div>
+            <t t-set="canton_totals" t-value="this.toList(caf['Total-FAK-CAF-PerCanton'])"/>
+            <div t-if="canton_totals.length" class="table-responsive">
+                <table class="table table-sm o_swissdec_table">
+                    <thead>
+                        <tr>
+                            <th>Canton</th>
+                            <th class="text-end">Total Contributory Salary</th>
+                            <th class="text-end">Total Family Income Supplement</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="canton_totals" t-as="canton_total" t-key="canton_total_index">
+                            <td t-out="canton_total.Canton"/>
+                            <td class="text-end" t-out="this.format.amount(canton_total['Total-FAK-CAF-ContributorySalary'])"/>
+                            <td class="text-end" t-out="this.format.amount(canton_total['Total-FAK-CAF-FamilyIncomeSupplement'])"/>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </t>
+
+        <t t-set="tax" t-value="success.TaxQuittance"/>
+        <t t-if="tax">
+            <div class="o_horizontal_separator mt-4 mb-3 text-uppercase fw-bolder small">Tax Quittance</div>
+            <dl class="o_swissdec_fields">
+                <t t-if="tax['NumberOf-TaxSalary-Tags'] != null">
+                    <dt>Number of Wage Statements</dt>
+                    <dd t-out="tax['NumberOf-TaxSalary-Tags']"/>
+                </t>
+                <t t-if="tax['NumberOf-TaxAnnuity-Tags'] != null">
+                    <dt>Number of Pension Statements</dt>
+                    <dd t-out="tax['NumberOf-TaxAnnuity-Tags']"/>
+                </t>
+                <t t-if="tax['NumberOf-OwnershipRightDetail-Tags'] != null">
+                    <dt>Number of Ownership Right Details</dt>
+                    <dd t-out="tax['NumberOf-OwnershipRightDetail-Tags']"/>
+                </t>
+            </dl>
+        </t>
+
+        <t t-foreach="[success.TaxAtSourceQuittanceWithoutCompletion, success.TaxAtSourceDeclarationQuittance]" t-as="tax_at_source" t-key="tax_at_source_index">
+            <t t-if="tax_at_source">
+                <div class="o_horizontal_separator mt-4 mb-3 text-uppercase fw-bolder small">Tax At Source Quittance</div>
+                <t t-set="corrections" t-value="this.toList(tax_at_source.CorrectionMonth)"/>
+                <div class="table-responsive">
+                    <table class="table table-sm o_swissdec_table">
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th class="text-end">Taxable Earning</th>
+                                <th class="text-end">Tax At Source</th>
+                                <th class="text-end">Commission</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-if="tax_at_source.TotalMonth">
+                                <tr class="o_swissdec_group_row">
+                                    <td colspan="4">Totals for Current Month</td>
+                                </tr>
+                                <tr>
+                                    <td t-out="this.format.month(tax_at_source.TotalMonth.CurrentMonth)"/>
+                                    <td class="text-end" t-out="this.format.amount(tax_at_source.TotalMonth.TotalTaxableEarning)"/>
+                                    <td class="text-end" t-out="this.format.amount(tax_at_source.TotalMonth.TotalTaxAtSource)"/>
+                                    <td class="text-end" t-out="this.format.amount(tax_at_source.TotalMonth.TotalCommission)"/>
+                                </tr>
+                            </t>
+                            <t t-if="corrections.length">
+                                <tr class="o_swissdec_group_row">
+                                    <td colspan="4">Corrections by Month</td>
+                                </tr>
+                                <tr t-foreach="corrections" t-as="correction" t-key="correction_index">
+                                    <td t-out="this.format.month(correction.Month)"/>
+                                    <td class="text-end" t-out="this.format.amount(correction.TotalTaxableEarning)"/>
+                                    <td class="text-end" t-out="this.format.amount(correction.TotalTaxAtSource)"/>
+                                    <td class="text-end" t-out="this.format.amount(correction.TotalCommission)"/>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+
+        <t t-set="crossborder" t-value="success.TaxCrossborderQuittanceWithoutCompletion"/>
+        <t t-if="crossborder">
+            <div class="o_horizontal_separator mt-4 mb-3 text-uppercase fw-bolder small">Crossborder Declaration Quittance</div>
+            <dl class="o_swissdec_fields">
+                <t t-if="crossborder.Period">
+                    <dt>Period</dt>
+                    <dd t-out="this.format.period(crossborder.Period)"/>
+                </t>
+                <t t-if="crossborder.TaxAtSourceCanton">
+                    <dt>Canton</dt>
+                    <dd t-out="crossborder.TaxAtSourceCanton"/>
+                </t>
+                <t t-if="crossborder.TaxableEarning">
+                    <dt>Total Taxable Earning</dt>
+                    <dd t-out="this.format.amount(crossborder.TaxableEarning)"/>
+                </t>
+            </dl>
+        </t>
+
+        <t t-call="l10n_ch_hr_payroll.SalaryResultStaff"/>
+    </t>
+
+    <!-- Requires `category_totals` and `master_total` (UVGZ-LAAC and KTG-AMC quittances) -->
+    <t t-name="l10n_ch_hr_payroll.SalaryResultCategoryTotals">
+        <dl class="o_swissdec_fields">
+            <t t-if="master_total">
+                <dt>Master Total</dt>
+                <dd t-out="this.format.amount(master_total)"/>
+            </t>
+        </dl>
+        <div t-if="category_totals.length" class="table-responsive">
+            <table class="table table-sm o_swissdec_table">
+                <thead>
+                    <tr>
+                        <th>Category Code</th>
+                        <th class="text-end">Female Total</th>
+                        <th class="text-end">Male Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="category_totals" t-as="category_total" t-key="category_total_index">
+                        <td t-out="category_total.CategoryCode"/>
+                        <td class="text-end" t-out="this.format.amount(category_total['Female-Total'])"/>
+                        <td class="text-end" t-out="this.format.amount(category_total['Male-Total'])"/>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </t>
+
+    <t t-name="l10n_ch_hr_payroll.SalaryResultStaff">
+        <t t-set="staff_persons" t-value="this.persons"/>
+        <t t-if="staff_persons.length">
+            <t t-set="staff_columns" t-value="this.staffColumns"/>
+            <div class="o_horizontal_separator mt-4 mb-3 text-uppercase fw-bolder small">Staff Overview</div>
+            <div class="table-responsive">
+                <table class="table table-sm o_swissdec_table">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th t-if="staff_columns.employeeNumber">Employee Number</th>
+                            <th>Date of Birth</th>
+                            <th t-if="staff_columns.sex">Sex</th>
+                            <th t-if="staff_columns.nationality">Nationality</th>
+                            <th t-if="staff_columns.declaration">Declaration</th>
+                            <th t-if="staff_columns.process" class="text-end">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="staff_persons" t-as="person" t-key="person_index">
+                            <tr>
+                                <t t-call="l10n_ch_hr_payroll.SwissdecEmployeeCell" employee="person"/>
+                                <td t-if="staff_columns.employeeNumber" t-out="person.EmployeeNumber"/>
+                                <td class="text-nowrap" t-out="this.format.date(person.DateOfBirth)"/>
+                                <td t-if="staff_columns.sex" t-out="person.Sex"/>
+                                <td t-if="staff_columns.nationality" t-out="person.Nationality"/>
+                                <td t-if="staff_columns.declaration">
+                                    <t t-call="l10n_ch_hr_payroll.SwissdecDeclarationEvents"
+                                       events="this.format.declarationEvents(person.DeclarationCategory)"/>
+                                </td>
+                                <td t-if="staff_columns.process" class="text-end">
+                                    <span t-if="person.Process === 'finished'" class="badge rounded-pill text-bg-success">Finished</span>
+                                    <span t-elif="person.Process === 'provisional'" class="badge rounded-pill text-bg-info">Provisional</span>
+                                    <span t-elif="person.Process === 'manual'" class="badge rounded-pill text-bg-warning">Manual</span>
+                                    <span t-elif="person.Process === 'reject'" class="badge rounded-pill text-bg-danger">Rejected</span>
+                                    <span t-elif="person.Process" class="badge rounded-pill text-bg-300" t-out="person.Process"/>
+                                </td>
+                            </tr>
+                            <t t-call="l10n_ch_hr_payroll.SwissdecNotificationRows"
+                               notification_rows="this.getPersonNotifications(person)"
+                               notification_colspan="this.getStaffNotificationColspan(staff_columns)"/>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+
+            <t t-set="contribution_rows" t-value="this.contributionRows"/>
+            <t t-if="contribution_rows.length">
+                <div class="o_swissdec_subtitle">LPP Contributions</div>
+                <div class="table-responsive">
+                    <table class="table table-sm o_swissdec_table">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Valid As Of</th>
+                                <th>Code</th>
+                                <th class="text-end">Employee Contributions</th>
+                                <th class="text-end">Employer Contributions</th>
+                                <th class="text-end">Third Party Contributions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="contribution_rows" t-as="row" t-key="row_index">
+                                <tr>
+                                    <t t-call="l10n_ch_hr_payroll.SwissdecEmployeeCell" employee="row.isFirst and row.person"/>
+                                    <td class="text-nowrap" t-out="this.format.date(row.values.ValidAsOf)"/>
+                                    <td t-out="row.values['BVG-LPP-Code']"/>
+                                    <td class="text-end" t-out="this.format.amount(row.values.EmployeeContribution)"/>
+                                    <td class="text-end" t-out="this.format.amount(row.values.EmployerContribution)"/>
+                                    <td class="text-end" t-out="this.format.amount(row.values.ThirdPartyContribution)"/>
+                                </tr>
+                                <t t-call="l10n_ch_hr_payroll.SwissdecNotificationRows"
+                                   notification_rows="row.notifications"
+                                   notification_colspan="5"/>
+                            </t>
+                        </tbody>
+                        <tfoot t-if="contribution_rows.length > 1">
+                            <tr>
+                                <td colspan="3"/>
+                                <td class="text-end" t-out="this.format.total(contribution_rows, 'EmployeeContribution')"/>
+                                <td class="text-end" t-out="this.format.total(contribution_rows, 'EmployerContribution')"/>
+                                <td class="text-end" t-out="this.format.total(contribution_rows, 'ThirdPartyContribution')"/>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </t>
+
+            <t t-set="reversal_rows" t-value="this.taxAtSourceReversalRows"/>
+            <t t-if="reversal_rows.length">
+                <div class="o_swissdec_subtitle">Reversal Details</div>
+                <div class="table-responsive">
+                    <table class="table table-sm o_swissdec_table">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Month</th>
+                                <th>Code</th>
+                                <th class="text-end">Taxable Earning</th>
+                                <th class="text-end">Ascertained Taxable Earning</th>
+                                <th class="text-end">Tax At Source</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="reversal_rows" t-as="row" t-key="row_index">
+                                <tr>
+                                    <t t-call="l10n_ch_hr_payroll.SwissdecEmployeeCell" employee="row.isFirst and row.person"/>
+                                    <td class="text-nowrap">
+                                        <t t-out="this.format.month(row.month)"/>
+                                        <span t-if="row.kind === 'old'" class="badge rounded-pill text-bg-300 ms-1">Old</span>
+                                        <span t-else="" class="badge rounded-pill text-bg-300 ms-1">New</span>
+                                    </td>
+                                    <td t-out="this.format.taxAtSourceCode(row.values.TaxAtSourceCategory)"/>
+                                    <td class="text-end" t-out="this.format.amount(row.values.TaxableEarning)"/>
+                                    <td class="text-end" t-out="this.format.amount(row.values.AscertainedTaxableEarning)"/>
+                                    <td class="text-end" t-out="this.format.amount(row.values.TaxAtSource)"/>
+                                </tr>
+                                <t t-call="l10n_ch_hr_payroll.SwissdecNotificationRows"
+                                   notification_rows="row.notifications"
+                                   notification_colspan="5"/>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+
+            <t t-set="awaited_correction_rows" t-value="this.taxAtSourceAwaitedCorrectionRows"/>
+            <t t-if="awaited_correction_rows.length">
+                <div class="o_swissdec_subtitle">Awaiting Correction From Company</div>
+                <div class="table-responsive">
+                    <table class="table table-sm o_swissdec_table">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Valid As Of</th>
+                                <th>Correct Code</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="awaited_correction_rows" t-as="row" t-key="row_index">
+                                <tr>
+                                    <t t-call="l10n_ch_hr_payroll.SwissdecEmployeeCell" employee="row.isFirst and row.person"/>
+                                    <td class="text-nowrap" t-out="this.format.month(row.values.ValidAsOf)"/>
+                                    <td t-out="this.format.taxAtSourceCode(row.values.TaxAtSourceCategory)"/>
+                                </tr>
+                                <t t-call="l10n_ch_hr_payroll.SwissdecNotificationRows"
+                                   notification_rows="row.notifications"
+                                   notification_colspan="2"/>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </t>
+</templates>

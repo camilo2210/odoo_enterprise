@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_move_form" model="ir.ui.view">
+        <field name="name">account.move.form.l10n_ci_edi</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <header position="after">
+                <div invisible="not l10n_ci_edi_validation_messages">
+                    <field name="l10n_ci_edi_validation_messages" class="o_field_html" widget="actionable_errors" />
+                </div>
+            </header>
+            <xpath expr="//page[@id='invoice_tab']//list/field[@name='analytic_distribution']" position="after">
+                <field name="l10n_ci_edi_fne_item_id" column_invisible="parent.country_code != 'CI' or parent.move_type not in ('out_invoice', 'out_refund')" readonly="parent.move_type == 'out_invoice'" optional="hide"/>
+            </xpath>
+            <div name="journal_div" position="after">
+                <field name="l10n_ci_edi_fne_status" invisible="country_code != 'CI' or move_type not in ('out_invoice', 'out_refund')"/>
+                <field name="l10n_ci_edi_fne_payment_method" 
+                    invisible="country_code != 'CI' or move_type not in ('out_invoice', 'out_refund')"
+                    readonly="state != 'draft'"/>
+            </div>
+            <notebook position="inside">
+                <page id="l10n_ci_edi_tab" string="FNE Details"
+                      invisible="country_code != 'CI' or move_type not in ('out_invoice', 'out_refund')">
+                    <group>
+                        <group string="FNE Information">
+                            <field name="l10n_ci_edi_fne_rne" invisible="move_type == 'out_refund'" readonly="state != 'draft'"/>
+                            <field name="l10n_ci_edi_fne_invoice_id" invisible="move_type == 'out_refund'"/>
+                            <field name="l10n_ci_edi_fne_reference"/>
+                            <field name="l10n_ci_edi_fne_datetime" invisible="move_type == 'out_refund'"/>
+                            <field name="l10n_ci_edi_fne_status"/>
+                        </group>
+                        <group string="QR Code" invisible="not l10n_ci_edi_fne_qrcode">
+                            <field name="l10n_ci_edi_fne_qrcode_img" nolabel="1"/>
+                        </group>
+                    </group>
+                </page>
+            </notebook>
+        </field>
+    </record>
+
+    <record id="view_invoice_tree" model="ir.ui.view">
+        <field name="name">account.invoice.list.l10n_ci_edi</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_invoice_tree"/>
+        <field name="arch" type="xml">
+            <field name="status_in_payment" position="after">
+                <field name="l10n_ci_edi_fne_status"
+                       string="FNE Status"
+                       widget="badge"
+                       decoration-success="l10n_ci_edi_fne_status == 'sent'"
+                       decoration-danger="l10n_ci_edi_fne_status == 'error'"
+                       column_invisible="context.get('default_move_type') not in ('out_invoice', 'out_refund')"
+                       optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_account_invoice_filter" model="ir.ui.view">
+        <field name="name">account.invoice.select.l10n_ci_edi</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_invoice_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search/group/filter[@name='groupy_by_journal']" position="after">
+                <filter name="l10n_ci_edi_fne_status" string="FNE Status" context="{'group_by': 'l10n_ci_edi_fne_status'}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

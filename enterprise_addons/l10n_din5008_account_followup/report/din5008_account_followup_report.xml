@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="report_followup_print_all" inherit_id="account_followup.report_followup_print_all">
+        <t t-call="web.external_layout" position="before">
+            <t t-set="din5008_document_information">
+                <div class="information_block" t-if="doc and doc._name=='res.partner'">
+                    <table>
+                        <tr>
+                            <td>Date:</td>
+                            <td><t t-out="doc.l10n_din5008_date" t-options="{'widget': 'date', 'format': 'dd.MM.yyyy'}"/></td>
+                        </tr>
+                        <t t-set="partner_addr" t-value="doc.env['res.partner'].browse(doc.address_get(['invoice'])['invoice']) or doc"/>
+                        <tr t-if="partner_addr.ref">
+                            <td>Customer ref:</td>
+                            <td><t t-out="partner_addr.ref"/></td>
+                        </tr>
+                    </table>
+                </div>
+            </t>
+            <t t-set="din5008_document_title">
+                <span t-if="doc and doc._name == 'res.partner'">
+                    Payment Reminder
+                </span>
+            </t>
+        </t>
+        <t t-call="web.external_layout" position="attributes">
+            <attribute name="din5008_document_information">din5008_document_information</attribute>
+            <attribute name="din5008_document_title">din5008_document_title</attribute>
+        </t>
+    </template>
+</odoo>

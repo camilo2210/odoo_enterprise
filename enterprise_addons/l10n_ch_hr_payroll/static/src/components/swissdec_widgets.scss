@@ -1,0 +1,142 @@
+// Swissdec widgets (declared salaries, institution responses, dialogs).
+// They reuse the look of form groups and list views, and only rely on theme
+// variables so that they follow the dark mode.
+
+.o_swissdec_widget {
+    // Label / value pairs, laid out like the fields of a form group
+    .o_swissdec_fields {
+        display: grid;
+        grid-template-columns: fit-content(200px) minmax(0, 1fr);
+        gap: map-get($spacers, 2) $o-horizontal-padding;
+        margin-bottom: map-get($spacers, 3);
+
+        &:not(:has(> *)) {
+            display: none;
+        }
+
+        > dt {
+            font-weight: $font-weight-normal;
+        }
+
+        > dd {
+            margin-bottom: 0;
+            overflow-wrap: anywhere;
+        }
+
+        > .o_swissdec_fields_full {
+            grid-column: 1 / -1;
+        }
+
+        @include media-breakpoint-down(sm) {
+            grid-template-columns: minmax(0, 1fr);
+            row-gap: 0;
+
+            > dd {
+                margin-bottom: map-get($spacers, 2);
+            }
+        }
+    }
+
+    // Field lists side by side, like the inner groups of a form group
+    .o_swissdec_columns {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(unquote("min(100%, 320px)"), 1fr));
+        align-items: start;
+        column-gap: $o-horizontal-padding * 2;
+    }
+
+    // Section title outside of a form view, same look as a form <separator/>
+    .o_swissdec_title {
+        box-shadow: 0 $border-width 0 $o-form-separator-color;
+    }
+
+    .o_swissdec_subtitle {
+        margin: map-get($spacers, 3) 0 map-get($spacers, 2);
+        color: $headings-color;
+        font-weight: $font-weight-bold;
+    }
+
+    // Tables, styled like list views
+    .o_swissdec_table {
+        --table-bg: transparent;
+        margin-bottom: map-get($spacers, 3);
+        font-variant-numeric: tabular-nums;
+
+        > thead > tr > th {
+            background-color: $o-webclient-background-color;
+            color: $headings-color;
+            font-weight: $font-weight-bold;
+            vertical-align: bottom;
+            white-space: nowrap;
+        }
+
+        > tbody > tr > td {
+            vertical-align: top;
+        }
+
+        > tbody > tr.o_swissdec_group_row > td {
+            background-color: $o-webclient-background-color;
+            font-weight: $font-weight-bold;
+        }
+
+        > tfoot > tr > td {
+            border-bottom-width: 0;
+            font-weight: $font-weight-bold;
+        }
+
+        // Notifications about the row above them
+        > tbody > tr:has(+ tr.o_swissdec_notification_row) > td {
+            border-bottom-width: 0;
+        }
+
+        > tbody > tr.o_swissdec_notification_row > td {
+            padding-top: 0;
+        }
+    }
+
+    // Dialog questions are sentences: give their labels more room
+    &.o_swissdec_dialog .o_swissdec_fields {
+        grid-template-columns: fit-content(50%) minmax(0, 1fr);
+        max-width: map-get($container-max-widths, lg);
+
+        @include media-breakpoint-down(sm) {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        > dt > label {
+            font-weight: $font-weight-normal;
+        }
+    }
+
+    // Alerts with a leading icon
+    .o_swissdec_alert {
+        display: flex;
+        gap: map-get($spacers, 2);
+
+        // Center the icon (line-height 1) on the first line of text (line-height 1.5)
+        > .oi {
+            flex: 0 0 auto;
+            margin-top: 0.25em;
+        }
+    }
+
+    .o_swissdec_alert_content {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+}
+
+.o_swissdec_interoperability {
+    .o_swissdec_sheet {
+        max-width: map-get($container-max-widths, xl);
+    }
+
+    section + section {
+        border-top: $border-width solid $border-color;
+
+        @include media-breakpoint-up(lg) {
+            border-top: 0;
+            border-left: $border-width solid $border-color;
+        }
+    }
+}

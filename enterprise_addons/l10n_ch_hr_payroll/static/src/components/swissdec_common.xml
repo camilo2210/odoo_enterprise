@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Requires `swissdec_error` (ErrorResponseType); the calling widget must declare SwissdecNotification and `format`. -->
+    <t t-name="l10n_ch_hr_payroll.SwissdecError">
+        <div t-if="swissdec_error.EndUserInformation or swissdec_error.DetailInformation" class="alert alert-danger o_swissdec_alert" role="alert">
+            <i class="oi oi-fw oi-filled" data-icon="cancel" aria-hidden="true"/>
+            <div class="o_swissdec_alert_content">
+                <div class="fw-bold">Error</div>
+                <div t-if="swissdec_error.EndUserInformation" class="text-break text-prewrap" t-out="swissdec_error.EndUserInformation"/>
+                <div t-if="swissdec_error.DetailInformation" class="mt-1 small">
+                    <span class="fw-bold me-1">Details</span>
+                    <span class="text-break text-prewrap" t-out="swissdec_error.DetailInformation"/>
+                </div>
+            </div>
+        </div>
+        <t t-if="swissdec_error.FaultInformation">
+            <t t-set="fault_state" t-value="swissdec_error.FaultInformation.FaultState or {}"/>
+            <div class="o_horizontal_separator mt-4 mb-3 text-uppercase fw-bolder small">Fault Information</div>
+            <t t-call="l10n_ch_hr_payroll.SwissdecContext" swissdec_context="swissdec_error.FaultInformation.FaultContext or {}"/>
+            <SwissdecNotification t-if="fault_state.Error" type="'error'" notifications="fault_state.Error.Notification"/>
+            <SwissdecNotification t-if="fault_state.Warning" type="'warning'" notifications="fault_state.Warning.Notification"/>
+            <SwissdecNotification t-if="fault_state.Info" type="'info'" notifications="fault_state.Info.Notification"/>
+        </t>
+    </t>
+
+    <!-- Requires `swissdec_context` (AddresseeContext or FaultContext). -->
+    <t t-name="l10n_ch_hr_payroll.SwissdecContext">
+        <dl class="o_swissdec_fields">
+            <t t-if="swissdec_context.InstitutionName">
+                <dt>Institution</dt>
+                <dd t-out="swissdec_context.InstitutionName"/>
+            </t>
+            <t t-if="swissdec_context.TransmissionDate">
+                <dt>Transmission Date</dt>
+                <dd t-out="this.format.dateTime(swissdec_context.TransmissionDate)"/>
+            </t>
+            <t t-if="swissdec_context.ResponseID">
+                <dt>Response ID</dt>
+                <dd t-out="swissdec_context.ResponseID"/>
+            </t>
+            <t t-if="swissdec_context.RequestID">
+                <dt>Request ID</dt>
+                <dd t-out="swissdec_context.RequestID"/>
+            </t>
+        </dl>
+    </t>
+
+    <!-- Requires `employee`: the person (its Particulars in the declarations), falsy to leave the cell empty.
+         Optional `employee_name` and `has_missing_value` (some data of the person is missing). -->
+    <t t-name="l10n_ch_hr_payroll.SwissdecEmployeeCell">
+        <td>
+            <t t-if="employee">
+                <div>
+                    <t t-out="employee_name or this.format.personName(employee)"/>
+                    <i t-if="has_missing_value" class="oi text-warning ms-1" data-icon="warning" title="Missing Data"/>
+                </div>
+                <div class="small text-muted" t-out="this.format.socialInsuranceNumber(employee)"/>
+            </t>
+        </td>
+    </t>
+
+    <!-- Requires `events` (see swissdecFormat.declarationEvents) -->
+    <t t-name="l10n_ch_hr_payroll.SwissdecDeclarationEvents">
+        <div t-foreach="events" t-as="event" t-key="event_index" class="text-nowrap">
+            <span class="badge rounded-pill" t-att-class="event.type === 'Entry' ? 'text-bg-success' : event.type === 'Withdrawal' ? 'text-bg-warning' : 'text-bg-info'">
+                <t t-if="event.type === 'Entry'">Entry</t>
+                <t t-elif="event.type === 'Withdrawal'">Withdrawal</t>
+                <t t-else="">Mutation</t>
+            </span>
+            <span class="ms-1" t-out="this.format.date(event.validAsOf)"/>
+            <span t-if="event.reason" class="ms-1 text-muted" t-out="event.reason"/>
+        </div>
+    </t>
+
+    <!-- Requires `notification_rows` (see toNotifications) and `notification_colspan`: rows displayed under a table row -->
+    <t t-name="l10n_ch_hr_payroll.SwissdecNotificationRows">
+        <tr t-foreach="notification_rows" t-as="notification" t-key="notification_index" class="o_swissdec_notification_row">
+            <td/>
+            <td t-att-colspan="notification_colspan">
+                <i class="oi oi-fw me-1" t-att-class="notification.type === 'error' ? 'oi-filled text-danger' : notification.type === 'warning' ? 'text-warning' : 'text-info'" t-att-data-icon="notification.type === 'error' ? 'cancel' : notification.type === 'warning' ? 'warning' : 'info'" aria-hidden="true"/>
+                <span class="text-prewrap" t-out="notification.description"/>
+                <span t-if="notification.code" class="ms-2 small text-muted text-nowrap">Code: <t t-out="notification.code"/></span>
+                <span t-if="notification.qualityLevel" class="ms-2 small text-muted text-nowrap">Quality Level: <t t-out="notification.qualityLevel"/></span>
+            </td>
+        </tr>
+    </t>
+</templates>

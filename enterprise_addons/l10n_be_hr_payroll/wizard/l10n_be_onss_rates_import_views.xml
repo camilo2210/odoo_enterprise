@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_be_onss_rates_import_wizard_view_form" model="ir.ui.view">
+        <field name="name">l10n.be.onss.rates.import.wizard.view.form</field>
+        <field name="model">l10n.be.onss.rates.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Import ONSS Rates File">
+                <sheet>
+                    <group>
+                        <field name="import_mode"/>
+                        <field name="import_all"/>
+                    </group>
+                    <group string="Manual Import" invisible="import_mode == 'automatic'">
+                        <span colspan="2" invisible="import_mode == 'automatic'" class="text-muted">ONSS rates files (.zip format) can be found at https://www.socialsecurity.be/site_fr/employer/applics/dmfa/index.htm</span>
+                        <field name="onss_rates_file_ids" widget="many2many_binary" colspan="2" nolabel="1"/>
+                    </group>
+                    <group invisible="import_mode == 'manual'" string="Automatic Import">
+                        <field name="import_up_to_today"/>
+                        <field name="year" options="{'type': 'number'}"/>
+                        <field name="quarter"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button invisible="import_mode == 'automatic'" name="action_import_files"
+                            string="Import ONSS rates"
+                            type="object"
+                            class="btn-primary"
+                            data-hotkey="q"/>
+                    <button invisible="import_mode == 'manual'" name="action_import_from_website"
+                            string="Import from ONSS website"
+                            type="object"
+                            class="btn-primary"
+                            data-hotkey="w"/>
+                    <button special="cancel" data-hotkey="z" string="Close" type="object" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_be_onss_rates_import_wizard_action" model="ir.actions.act_window">
+        <field name="name">Import ONSS Rates</field>
+        <field name="res_model">l10n.be.onss.rates.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem
+        id="menu_l10n_be_onss_rates_import_wizard"
+        name="Import ONSS Rates"
+        parent="l10n_be_hr_payroll.menu_l10n_be_hr_payroll_configuration"
+        action="l10n_be_onss_rates_import_wizard_action"
+        groups="base.group_no_one"
+        sequence="100"
+    />
+</odoo>

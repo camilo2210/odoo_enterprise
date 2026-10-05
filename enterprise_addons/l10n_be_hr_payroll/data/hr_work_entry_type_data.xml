@@ -1,0 +1,1574 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+
+    <record id="hr_work_entry.be_work_entry_type_attendance" model="hr.work.entry.type">
+        <!-- Attendance is worked time, it is never allocated.
+             Leaving it on shows a "0 remaining out of 0 hours" balance next to the type. -->
+        <field name="requires_allocation">False</field>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+            ref('l10n_be_hr_payroll.PRIVATE_CAR'),
+            ref('l10n_be_hr_payroll.MEAL_VOUCHER'),
+        ])]"/>
+        <field name="leave_right">True</field>
+        <field name="l10n_be_egov3_code">1101001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="dmfa_code">1</field>
+        <field name="description">These are hours paid by the employer
+- ordinary work
+- actually worked
+- not included under another specific benefit code</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_non_taxable_political_service" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.VARIABLE_SALARY_LOSS'),
+        ])]"/>
+        <field name="l10n_be_egov3_code">1101003</field>
+        <field name="l10n_be_egov3_base">periodic</field>
+        <field name="dmfa_code">110</field>
+        <field name="description">This concerns:
+- the declaration of benefits during a mandate as a member of parliament (federal/regional) or the federal/regional government and the period covered by the severance pay
+- the declaration of benefits for protected local representatives
+- benefits related to the severance pay of members of the Permanent Deputation or the Provincial Council (protected and non-protected local representatives).</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_other_presence" model="hr.work.entry.type">
+        <field name="l10n_be_egov3_code">1101999</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="dmfa_code">1</field>
+        <field name="description">These are benefits paid by the employer:
+- not included under another benefit code</field>
+    </record>
+
+    <record id="hr_work_entry.be_work_entry_type_overtime" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('hr_payroll.EXTRA_HOURS'),
+        ])]"/>
+        <field name="l10n_be_egov3_code">1102001</field>
+        <field name="l10n_be_egov3_base">both</field>
+        <field name="dmfa_code">1</field>
+        <field name="description">These are hours paid by the employer:
+- actually worked
+- beyond the established working time limits (legal and/or contractual weekly working hours)
+- whether or not they are voluntary overtime
+- in principle exceptional, temporary, and authorized under certain conditions</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_overtime_no_onss" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('hr_payroll.EXTRA_HOURS'),
+        ])]"/>
+        <field name="l10n_be_egov3_code">1102001</field>
+        <field name="l10n_be_egov3_base">both</field>
+        <field name="dmfa_code">-1</field>
+        <field name="description">These are hours paid by the employer:
+- actually worked
+- beyond the established working time limits (legal and/or contractual weekly working hours)
+- whether or not they are voluntary overtime
+- in principle exceptional, temporary, and authorized under certain conditions</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_overtime_no_onss_horeca" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('hr_payroll.EXTRA_HOURS'),
+        ])]"/>
+        <field name="l10n_be_egov3_code">1102001</field>
+        <field name="l10n_be_egov3_base">both</field>
+        <field name="dmfa_code">80</field>
+        <field name="description">These are hours paid by the employer:
+- actually worked
+- beyond the established working time limits (legal and/or contractual weekly working hours)
+- whether or not they are voluntary overtime
+- in principle exceptional, temporary, and authorized under certain conditions</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_voluntary_overtime_150" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.EXTRA_HOURS'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="request_unit">hour</field>
+        <field name="requires_allocation" eval="False"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_voluntary_overtime_200" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.EXTRA_HOURS'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="request_unit">hour</field>
+        <field name="requires_allocation" eval="False"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_voluntary_overtime_net" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('hr_payroll.EXTRA_HOURS'),
+        ])]"/>
+        <field name="dmfa_code">81</field>
+        <field name="request_unit">hour</field>
+        <field name="requires_allocation" eval="False"/>
+    </record>
+
+    <record id="hr_work_entry.be_work_entry_type_additional_hours" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('hr_payroll.EXTRA_HOURS'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="description">Hours worked beyond the contractual part-time schedule, without exceeding the normal full-time working limits in the company</field>
+    </record>
+
+    <record id="hr_work_entry.be_work_entry_type_additional_hours_50" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('hr_payroll.EXTRA_HOURS'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="description">Hours worked beyond the contractual part-time schedule, without exceeding the normal full-time working limits in the company</field>
+    </record>
+
+    <record id="hr_work_entry.be_work_entry_type_additional_hours_100" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('hr_payroll.EXTRA_HOURS'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="description">Hours worked beyond the contractual part-time schedule, without exceeding the normal full-time working limits in the company</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_paid_compensatory_rest" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="l10n_be_egov3_code">1202001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="dmfa_code">1</field>
+        <field name="description">This is compensatory rest taken by the worker
+- the hours are paid by the employer, but actually worked at another time and are beyond the average annual working time (expressed per week)
+- paid at the time the time off is taken</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_unpaid_compensatory_rest" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="l10n_be_egov3_code">1202002</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="dmfa_code">20</field>
+        <field name="description">This is compensatory rest taken by the worker
+- the hours are paid by the employer at another time, and actually worked beyond the average annual working time (expressed per week)
+- paid at the time of service</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_unpaid_recovered_compensatory_rest" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="l10n_be_egov3_code">1202004</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="dmfa_code">-1</field>
+        <field name="description">This is compensatory rest taken by the worker
+- for hours actually worked and paid by the employer, beyond the actual weekly working hours
+- hours paid at the time of the work</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_sectoral_compensatory_rest" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="l10n_be_egov3_code">1202005</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="dmfa_code">12</field>
+        <field name="description">These are compensatory rest days resulting from sectoral collective agreements on reduced working hours. Compensation for these rest days is paid by third parties, such as a subsistence security fund.
+
+The code can only be used by an employer active in a sector corresponding to the description such as construction, fuel trading and the diamond sector. Only transmit the days actually taken by the worker during the period concerned by the calculation of remuneration.</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_bank_holiday" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1203001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are the 10 public holidays
+- on the date of the public holiday itself, and therefore effectively declared as a public holiday (no benefits)
+- or on the date of the replacement day if the day is not taken on the date of the public holiday.</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_upcomming_public_holiday" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1203001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are the 10 public holidays
+- on the date of the public holiday itself, and therefore effectively declared as a public holiday (no benefits)
+- or on the date of the replacement day if the day is not taken on the date of the public holiday.</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_extra_legal_public_holiday" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1203002</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are regional and sectoral public holidays.
+- taken on the date of the extra-legal public holiday (without benefits)
+- or taken on the date of the replacement day if it is not taken on the date of the public holiday.</field>
+    </record>
+
+    <!-- 086.00 -->
+    <record id="hr_work_entry.l10n_be_work_entry_type_public_holiday_temporary_unemployment_no_onss" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1203003</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are public holidays
+- which fall within a period of temporary unemployment
+- and correspond to a day of unemployment
+- for which the employer pays compensation lower than the normal gross salary
+- without onss.
+        </field>
+    </record>
+
+    <!-- 006.11 -->
+    <record id="hr_work_entry.l10n_be_work_entry_type_public_holiday_temporary_unemployment" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1203003</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are public holidays
+- which fall within a period of temporary unemployment
+- and correspond to a day of unemployment
+- for which the employer pays compensation lower than the normal gross salary.</field>
+        <field name="l10n_be_economic_unemployment" eval="True"/>
+    </record>
+
+    <record id="hr_work_entry.be_work_entry_type_legal_leave" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="leave_right">True</field>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1204001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Holidays within the framework of the coordinated laws of 28 June 1971 on annual holidays for workers, the royal decree of 30 March 1967, the royal decree of 19 November 1998 regulating the annual holidays of certain members of staff of federal administrations (this concerns statutory civil servants), but also holidays according to the regulations specific to administrative bodies (this concerns statutory civil servants).</field>
+        <field name="l10n_be_drs_nature">3.1</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_extra_legal_sectoral_holiday" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1204002</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Extra-legal sectoral holidays are additional days of vacation that workers receive in addition to legal holidays, granted through a collective labor agreement (CLA) at sectoral level.</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_extra_legal" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+            ref('l10n_be_hr_payroll.VARIABLE_SALARY_LOSS'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1204003</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Extra-legal holidays granted by the employer are days of vacation in addition to statutory holidays and granted to the employee by the employer. These days are not required by law, but may be offered as an additional benefit under an employment contract, a collective labor agreement (CLA), or an individual agreement.</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_european" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.DH_85_92_ONSS_BASE'),
+            ref('l10n_be_hr_payroll.DH_WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">14</field>
+        <field name="l10n_be_egov3_code">1204005</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">This code is used for employees when they receive holiday pay from their employer when they start or return to work</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_sailor_time_off" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">102</field>
+        <field name="l10n_be_egov3_code">1204008</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Due to the fact that the seafarers' holiday scheme is organized in a very specific way, vacation days taken are declared under a separate benefit code. Only a few declarants are affected.</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_youth_time_off" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="dmfa_code">73</field>
+        <field name="l10n_be_egov3_code">2204001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Youth vacation: additional vacation for young workers (Law of June 28, 1971 - Article 5); recent graduates (under the age of 25 and employed for at least one month during the year in which they completed their studies) may take youth vacation the following year to supplement their incomplete vacation entitlement. For each day of youth vacation taken, they receive compensation equal to 65% of their capped salary (paid by unemployment insurance).</field>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_wech009_001'),
+            ref('l10n_be_hr_payroll.drs_risk_wech010_001'),
+        ])]"/>
+        <field name="l10n_be_drs_nature">3.4</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_senior_time_off" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="dmfa_code">73</field>
+        <field name="l10n_be_egov3_code">2204001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Senior vacation: additional vacation for workers over the age of fifty (Law of June 28, 1971 - Article 5); the aforementioned employee who returns to work as an employee and is not entitled to four weeks of paid vacation due to a period of full unemployment or disability during the previous year may take senior vacation to supplement their incomplete vacation entitlement. For each day of senior vacation, he receives a senior vacation allowance payable by unemployment insurance equal to 65% of his capped salary.</field>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_wech009_002'),
+            ref('l10n_be_hr_payroll.drs_risk_wech010_002'),
+        ])]"/>
+        <field name="l10n_be_drs_nature">3.4</field>
+    </record>
+
+    <record id="hr_work_entry.be_work_entry_type_sick_leave" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+            ref('l10n_be_hr_payroll.VARIABLE_SALARY_LOSS'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1205003</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Guaranteed daily wage in the event of incapacity for work, fully paid by the employer (excluding incapacity resulting from an occupational illness or accident at work).
+
+These are the hours of absence covered by a guaranteed daily wage
+- as referred to in Article 23, 1° of the Royal Decree of June 10, 2001, providing a uniform definition of concepts relating to working time for social security purposes, pursuant to Article 39 of the Act of July 26, 1996, modernizing social security and ensuring the viability of statutory pension schemes.</field>
+        <field name="leave_right">True</field>
+        <field name="l10n_be_drs_nature">2.6</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_work_incapacity_first_week" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1205002</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Guaranteed salary fully covered by the employer for the period from the 1st to the 7th calendar day of incapacity other than that resulting from an occupational illness or an accident at work.
+
+This applies to hours of absence from work
+- for a maximum period of 7 days
+- as referred to in Article 25 of the Royal Decree of June 10, 2001, providing a uniform definition of concepts relating to working time for social security purposes, pursuant to Article 39 of the Act of July 26, 1996, modernizing social security and ensuring the viability of statutory pension schemes,
+- due to illness (other than an occupational illness) or accident (other than an accident at work or an accident on the way to work),
+- with maintenance of normal pay pursuant to Articles 52, 71, or 112 of the Act of July 3, 1978, on employment contracts</field>
+        <field name="leave_right">True</field>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_zima001_001'),
+        ])]"/>
+        <field name="l10n_be_drs_nature">2.4</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_work_incapacity_sickness_credit" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1205004</field>
+        <field name="l10n_be_egov3_base">both</field>
+        <field name="description">These are hours paid by the employer
+- not worked due to incapacity for work
+- during the sickness credit period specific to the education and public sectors.
+For contract workers in the public and education sectors, it is not the employer but the insurer that pays at the end of the sickness credit period.</field>
+        <field name="leave_right">True</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_work_incapacity_worker_second_week" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REPLACEMENT_REVENUE_BASE'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">10</field>
+        <field name="l10n_be_egov3_code">1205005</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are the 7 days following the first 7 days of temporary complete incapacity for work under ordinary law
+- for which the employer pays a guaranteed salary</field>
+        <field name="leave_right">True</field>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_zima001_001'),
+        ])]"/>
+        <field name="l10n_be_drs_nature">2.5</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_work_incapacity_worker_second_week_short_term_employee" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REPLACEMENT_REVENUE_BASE'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">10</field>
+        <field name="l10n_be_egov3_code">1205005</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are the 7 days following the first 7 days of temporary complete incapacity for work (short term employee) under ordinary law
+- for which the employer pays a guaranteed salary</field>
+        <field name="leave_right">True</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_work_incapacity_worker_after_second_week" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REPLACEMENT_REVENUE_BASE'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">11</field>
+        <field name="l10n_be_egov3_code">1205006</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are the days following the second week of illness or accident - for which the employer pays a supplement in addition to the health insurance coverage.</field>
+        <field name="leave_right">True</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_worker_time_off" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="leave_right">True</field>
+        <field name="dmfa_code">2</field>
+        <field name="l10n_be_egov3_code">1204001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Holidays within the framework of the coordinated laws of 28 June 1971 on annual holidays for workers, the royal decree of 30 March 1967, the royal decree of 19 November 1998 regulating the annual holidays of certain members of staff of federal administrations (this concerns statutory civil servants), but also holidays according to the regulations specific to administrative bodies (this concerns statutory civil servants).</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_common_law_illness_non_attributable_to_worker" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">50</field>
+        <field name="l10n_be_egov3_code">2205001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Incapacity to work due to illness or a common-law accident outside of an adapted AMI work plan.
+Absence not covered by the guaranteed salary for the following reasons:
+- temporary unemployment
+- relapse
+- collective annual leave beginning after the onset of incapacity to work
+- insufficient seniority
+- other reason: for example, generally not entitled to the guaranteed salary (childminders, certain apprentices, etc.)</field>
+        <field name="leave_right">True</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_common_law_illness_attributable_to_worker" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">50</field>
+        <field name="l10n_be_egov3_code">2205002</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Incapacity to work due to illness or a common-law accident outside of an adapted AMI work plan.
+Absence not covered by guaranteed salary due to lack of a medical certificate, late submission of the medical certificate, or failure to attend a checkup.</field>
+        <field name="leave_right">True</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_common_law_illness_after_legal_period" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">50</field>
+        <field name="l10n_be_egov3_code">2205003</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Any other incapacity to work due to illness or a common law accident outside of an adapted AMI work plan and not declared under code 2205001 or code 2205002. Absence not covered by salary.</field>
+        <field name="leave_right">True</field>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_zima001_001'),
+        ])]"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_prophylactic_time_off_maternity_protection" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">51</field>
+        <field name="l10n_be_egov3_code">2205004</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Prophylactic leave is leave intended to prevent the spread of contagious diseases (the worker is covered by the benefits department).
+
+Days of work interruption imposed following contact with a person suffering from a contagious disease (Article 239, § 1 of the Royal Decree of 3 July 1996 implementing the law on compulsory insurance for medical care and benefits, as amended on 14 July 1994).</field>
+        <field name="leave_right">True</field>
+        <field name="requires_allocation" eval="False"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_prophylactic_time_off" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">53</field>
+        <field name="l10n_be_egov3_code">2205004</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Prophylactic leave is leave intended to prevent the spread of contagious diseases (the worker is covered by the benefits department).
+
+Days of work interruption imposed following contact with a person suffering from a contagious disease (Article 239, § 1 of the Royal Decree of 3 July 1996 implementing the law on compulsory insurance for medical care and benefits, as amended on 14 July 1994).</field>
+        <field name="leave_right">True</field>
+        <field name="requires_allocation" eval="False"/>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_zima001_001'),
+        ])]"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_common_law_illness_ami" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">50</field>
+        <field name="l10n_be_egov3_code">2205005</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Incapacity to work due to illness or a common law accident within the framework of an adapted AMI work plan, with the authorization of the medical advisor or a member of the mutual insurance company's multidisciplinary team</field>
+        <field name="leave_right">True</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_work_accident_unpaid" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="dmfa_code">60</field>
+        <field name="l10n_be_egov3_code">2206001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Work-related accidents involving employees covered by the private sector work-related accident scheme, established by the law of April 10, 1971, relating to work-related accidents.
+This code must be reported if the worker is no longer entitled to guaranteed wages. (contributes to holiday rights)</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_work_accident_unassimilated" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED')
+        ])]"/>
+        <field name="dmfa_code">60</field>
+        <field name="l10n_be_egov3_code">2206001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        
+        <field name="description">Work-related accidents involving employees covered by the private sector work-related accident scheme, established by the law of April 10, 1971, relating to work-related accidents.
+This code must be reported if the worker is no longer entitled to guaranteed wages. (doesn't contribute to holiday rights)</field>
+        </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_occupational_disease_unpaid" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="dmfa_code">61</field>
+        <field name="l10n_be_egov3_code">2206001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Occupational illnesses of employees covered by the private sector occupational illness scheme, established by the Coordinated Laws of June 3, 1970, on compensation for occupational illnesses.
+This code must be declared if the worker is no longer entitled to guaranteed wages.</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_work_accident_first_week" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1206002</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Advance payment by the employer of the normal daily wage at 100% for each day the employee would have worked had they not been unable to work. This refers to hours of absence from work
+- for a maximum period of 7 days
+- as referred to in Article 25 of the Royal Decree of 10 June 2001 providing a uniform definition of concepts relating to working time for social security purposes, pursuant to Article 39 of the Act of 26 July 1996 modernizing social security and ensuring the viability of statutory pension schemes,
+- due to occupational illness, work-related accident, or accident on the way to work,
+- with maintenance of normal pay pursuant to Articles 54 or 72 of the Act of 3 July 1978 on employment contracts.</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_work_accident_guaranteed_monthly" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1206003</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Guaranteed salary fully covered by the employer during the first month of incapacity for work due to an occupational illness or accident.
+
+This refers to hours of absence from work
+- referred to in Article 27 of the Royal Decree of June 10, 2001, providing a uniform definition of working time concepts for social security purposes, pursuant to Article 39 of the Act of July 26, 1996, modernizing social security and ensuring the viability of statutory pension schemes, during the first 30 days of incapacity for work due to illness or accident (see Article 70 of the Act of July 3, 1978, relating to employment contracts)
+- due to an occupational illness, an accident at work, or an accident on the way to work,
+- with continued normal pay</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_work_accident_second_week" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REPLACEMENT_REVENUE_BASE'),
+        ])]"/>
+        <field name="dmfa_code">11</field>
+        <field name="l10n_be_egov3_code">1206004</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are hours of absence from work
+- during the 23 calendar days following the 7-day period,
+- due to occupational illness, work-related accident, or accident on the way to work,
+- with continued normal pay pursuant to Articles 54 or 72 of the Act of July 3, 1978, on employment contracts</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_work_accident_second_week_short_term_employee" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REPLACEMENT_REVENUE_BASE'),
+        ])]"/>
+        <field name="dmfa_code">11</field>
+        <field name="l10n_be_egov3_code">1206004</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are hours of absence from work (short term employee)
+- during the 23 calendar days following the 7-day period,
+- due to occupational illness, work-related accident, or accident on the way to work,
+- with continued normal pay pursuant to Articles 54 or 72 of the Act of July 3, 1978, on employment contracts</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_temporary_unemployment_dismissal" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <field name="dmfa_code">70</field>
+        <field name="l10n_be_egov3_code">2207001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Temporary unemployment in the event of dismissal of a protected worker” means the absence of work due to the suspension of the performance of the employment contract when the dismissal has been notified to a staff representative or to a candidate staff representative within the works council or the committee for prevention and protection at work for an urgent reason and this decision is contested before the competent authorities due to non-compliance with the special dismissal rules provided for by the law of 19 March 1991 relating to the special dismissal rules for staff representatives within works councils and committees for safety, hygiene and the improvement of workplaces, as well as for candidate staff representatives.</field>
+        <field name="l10n_be_economic_unemployment" eval="True"/>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_wech002_010'),
+            ref('l10n_be_hr_payroll.drs_risk_wech005_010'),
+        ])]"/>
+    </record>
+
+    <!-- 152.00 -->
+    <record id="hr_work_entry.l10n_be_work_entry_type_temporary_unemployment_incident" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <field name="dmfa_code">70</field>
+        <field name="l10n_be_egov3_code">2207002</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">A technical accident is a specific form of force majeure.
+It is a temporary and unforeseeable event occurring within the company and relating to the company's technical resources and equipment, which temporarily prevents the continued execution of workers' employment contracts. "Temporary unemployment due to a technical incident" means the absence of work due to the suspension of the worker's employment contract pursuant to Article 49 of the Law of July 3, 1978 on employment contracts, with the exception of the period during which the employee retains the right to normal remuneration.</field>
+        <field name="l10n_be_economic_unemployment" eval="True"/>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_wech002_003'),
+            ref('l10n_be_hr_payroll.drs_risk_wech005_003'),
+        ])]"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_temporary_unemployment_force_majeure" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <field name="dmfa_code">70</field>
+        <field name="l10n_be_egov3_code">2207003</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">In order to introduce temporary unemployment due to force majeure, the definition of force majeure must be met.
+Force majeure is defined as a sudden, unforeseeable event, beyond the control of the employer and employees, which renders the performance of the employment contract temporarily and completely impossible.</field>
+        <field name="l10n_be_economic_unemployment" eval="True"/>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_wech002_004'),
+            ref('l10n_be_hr_payroll.drs_risk_wech005_004'),
+        ])]"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_temporary_unemployment_force_majeure_medical" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <field name="dmfa_code">70</field>
+        <field name="l10n_be_egov3_code">2207004</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Temporary unemployment due to force majeure for medical reasons" means:
+1° absence from work due to the suspension of the performance of the employment contract when the worker has been declared fit for work under the legislation relating to compulsory health insurance and benefits but challenges this decision before the competent authorities;
+2° absence from work following the opinion of an occupational physician or a physician recognized by the unemployment office that the worker is temporarily unfit for work in the agreed position.</field>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_wech002_005'),
+            ref('l10n_be_hr_payroll.drs_risk_wech005_005'),
+        ])]"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_temporary_unemployment_collective_closure" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <field name="dmfa_code">70</field>
+        <field name="l10n_be_egov3_code">2207005</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">"Temporary unemployment due to collective closure of the company due to annual holidays" means absence from work due to the suspension of the execution of the employment contract due to closure of the company due to annual holidays relating to the laws on annual holidays for workers coordinated on June 28, 1971, to the extent that the worker, due to circumstances beyond his control, is not entitled to sufficient holidays.</field>
+        <field name="l10n_be_economic_unemployment" eval="True"/>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_wech002_006'),
+            ref('l10n_be_hr_payroll.drs_risk_wech005_006'),
+        ])]"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_temporary_unemployment_collective_closure_agreeement" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <field name="dmfa_code">70</field>
+        <field name="l10n_be_egov3_code">2207006</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Temporary unemployment due to collective closure of the company due to vacations under a mandatory collective agreement. The possibility of introducing a collective closure scheme of the company due to the granting of additional leave under a mandatory collective labor agreement is provided for the textile (CP 120) and diamond (CP 324) sectors. The use of this code is limited to joint committees 120 or 324 (and their subcommittees).</field>
+        <field name="l10n_be_economic_unemployment" eval="True"/>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_wech002_007'),
+            ref('l10n_be_hr_payroll.drs_risk_wech005_007'),
+        ])]"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_temporary_unemployment_collective_closure_reduction" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <field name="dmfa_code">70</field>
+        <field name="l10n_be_egov3_code">2207007</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">"Temporary unemployment due to collective closure of the company for compensatory rest as part of a reduction in working hours" means absence from work due to the suspension of the performance of the employment contract due to closure of the company due to compensatory rest granted as part of a reduction in working hours, to the extent that the worker is not entitled to compensatory rest due to the fact that he or she entered into service during a work cycle.</field>
+        <field name="l10n_be_economic_unemployment" eval="True"/>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_wech002_008'),
+            ref('l10n_be_hr_payroll.drs_risk_wech005_008'),
+        ])]"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_temporary_unemployment_strike" model="hr.work.entry.type">
+        <field name="dmfa_code">71</field>
+        <field name="l10n_be_egov3_code">2207008</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Workers who are directly or indirectly unemployed as a result of social action (strike or lockout) may receive temporary unemployment benefits due to a strike or lockout if certain conditions are met.
+
+Thus, workers can only receive benefits following a positive decision by the ONEM management committee. "Temporary unemployment due to a strike or lockout" means absence from work due to the suspension of the performance of the employment contract, a direct or indirect consequence of a strike or lockout. The ONEM management committee determines whether benefits may be granted for this form of temporary unemployment.</field>
+        <field name="l10n_be_economic_unemployment" eval="True"/>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_wech002_009'),
+            ref('l10n_be_hr_payroll.drs_risk_wech005_009'),
+        ])]"/>
+    </record>
+
+    <!-- 137.00 -->
+    <record id="hr_work_entry.l10n_be_work_entry_type_economic_unemployment" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="dmfa_code">71</field>
+        <field name="l10n_be_egov3_code">2207009</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">"Temporary unemployment due to a lack of work for economic reasons" means the absence of work of a worker due to the suspension of the execution of the employment contract or the introduction of a partial work scheme, pursuant to Article 51 of the Law of 3 July 1978 on employment contracts. "Days of suspension due to a lack of work" means the absence of work of an employee due to the suspension of the execution of the employment contract or the introduction of a partial work scheme, pursuant to Articles 77/1 to 77/7 of the Law of 3 July 1978 on employment contracts.</field>
+        <field name="l10n_be_economic_unemployment" eval="True"/>
+        <field name="include_public_holidays_in_duration" eval="True"/>
+        <field name="requires_allocation" eval="False"/>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_wech002_001'),
+            ref('l10n_be_hr_payroll.drs_risk_wech005_001'),
+        ])]"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_temporary_economic_unemployement_employee" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="dmfa_code">76</field>
+        <field name="l10n_be_egov3_code">2207009</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">"Temporary unemployment due to a lack of work for economic reasons" means the absence of work of a worker due to the suspension of the execution of the employment contract or the introduction of a partial work scheme, pursuant to Article 51 of the Law of 3 July 1978 on employment contracts. "Days of suspension due to a lack of work" means the absence of work of an employee due to the suspension of the execution of the employment contract or the introduction of a partial work scheme, pursuant to Articles 77/1 to 77/7 of the Law of 3 July 1978 on employment contracts.</field>
+        <field name="l10n_be_economic_unemployment" eval="True"/>
+        <field name="include_public_holidays_in_duration" eval="True"/>
+        <field name="requires_allocation" eval="False"/>
+    </record>
+
+    <!-- 151.00 -->
+    <record id="hr_work_entry.l10n_be_work_entry_type_temporary_unemployment_bad_weather" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <field name="dmfa_code">72</field>
+        <field name="l10n_be_egov3_code">2207010</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">The suspension of the execution of the employment contract due to bad weather is provided for in Article 50 of the Law of July 3, 1978 on employment contracts. "Temporary unemployment due to bad weather" means the absence of work of the worker due to the suspension of the execution of the employment contract due to adverse weather conditions which make the execution of the work totally impossible, in application of Article 50 of the Law of July 3, 1978 relating to employment contracts.</field>
+        <field name="l10n_be_economic_unemployment" eval="True"/>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_wech002_002'),
+            ref('l10n_be_hr_payroll.drs_risk_wech005_002'),
+        ])]"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_non_provided_service_childminders" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">74</field>
+        <field name="l10n_be_egov3_code">2207012</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Number of fictitious hours which correspond to services planned but not provided by a childminder, due to the absence for reasons beyond her control of children normally looked after (art. 3, 9° and art. 27bis of the royal decree of 28 November 1969).</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_credit_time" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <field name="dmfa_code">-1</field>
+        <field name="l10n_be_egov3_code">2208001</field>
+        <field name="l10n_be_egov3_base">both</field>
+        <field name="l10n_be_is_time_credit" eval="True"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_parental_time_off" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <field name="dmfa_code">998</field>
+        <field name="l10n_be_egov3_code">2208001</field>
+        <field name="l10n_be_egov3_base">both</field>
+        <field name="l10n_be_is_time_credit" eval="True"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_other_training" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1109001</field>
+        <field name="l10n_be_egov3_base">both</field>
+        <field name="description">These are hours paid by the employer
+- worked as part of training agreed with the employer, with the exception of training as part of social advancement and educational leave.
+- not included under another specific benefit code</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_training_social_promotion" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1209001</field>
+        <field name="l10n_be_egov3_base">both</field>
+        <field name="description">These are hours of absence from work
+- following a suspension of the employment contract due to participation in courses within the framework of social advancement (as provided for in Article 28 4° a of the Law of July 3, 1978)
+- not paid by the employer</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_training_time_off" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.VARIABLE_SALARY_LOSS'),
+        ])]"/>
+        <field name="dmfa_code">5</field>
+        <field name="l10n_be_egov3_code">1209002</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are hours of absence from work
+- following a suspension of the employment contract due to participation in courses under educational leave (as provided for in Article 28 4° b of the Law of July 3, 1978)
+- paid by the employer</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_training_time_off_with_meal_voucher" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.MEAL_VOUCHER'),
+        ])]"/>
+        <field name="dmfa_code">5</field>
+        <field name="l10n_be_egov3_code">1209002</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are hours of absence from work
+- following a suspension of the employment contract due to participation in courses under educational leave (as provided for in Article 28 4° b of the Law of July 3, 1978)
+- paid by the employer
+- with meal voucher</field>
+    </record>
+
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_flemish_training_time_off" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">5</field>
+        <field name="l10n_be_egov3_code">1209002</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are hours of absence from work
+- following a suspension of the employment contract due to participation in courses under educational leave (as provided for in Article 28 4° b of the Law of July 3, 1978)
+- paid by the employer</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_flemish_training_time_off_with_meal_voucher" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.MEAL_VOUCHER'),
+        ])]"/>
+        <field name="dmfa_code">5</field>
+        <field name="l10n_be_egov3_code">1209002</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are hours of absence from work
+- following a suspension of the employment contract due to participation in courses under educational leave (as provided for in Article 28 4° b of the Law of July 3, 1978)
+- paid by the employer
+- with meal voucher</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_maternity" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="dmfa_code">51</field>
+        <field name="l10n_be_egov3_code">2210001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Any other maternity protection measure not covered under another code.</field>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_zima001_002'),
+        ])]"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_maternity_time_off_converted" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="dmfa_code">51</field>
+        <field name="l10n_be_egov3_code">2210002</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">- Maternity leave
+- Maternity leave converted in the event of the mother's death or hospitalization</field>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_zima001_005'),
+        ])]"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_breast_feeding" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.PRIVATE_CAR'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+            ref('l10n_be_hr_payroll.MEAL_VOUCHER'),
+        ])]"/>
+        <field name="dmfa_code">51</field>
+        <field name="l10n_be_egov3_code">2210003</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Hours of interruption of work for the purpose of breastfeeding or expressing milk in accordance with CCT 80 of November 27, 2001 establishing a right to breastfeeding breaks amended by CCT 80 bis of October 13, 2010.</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_breast_feeding_unassimilated" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.PRIVATE_CAR'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+            ref('l10n_be_hr_payroll.MEAL_VOUCHER'),
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <field name="dmfa_code">51</field>
+        <field name="l10n_be_egov3_code">2210003</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Hours of interruption of work for the purpose of breastfeeding or expressing milk in accordance with CCT 80 of November 27, 2001 establishing a right to breastfeeding breaks amended by CCT 80 bis of October 13, 2010.</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_paternity_company" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">2210004</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">The right to maternity leave (formerly also called "paternity leave") provided for in Article 30, §2 et seq. of the law of 3 July 1978 relating to employment contracts applies to all workers employed under an employment contract covered by the law of 3 July 1978 relating to employment contracts. During the first three days of maternity leave, the worker retains his or her full salary at the expense of his or her employer.</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_paternity_legal" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.VARIABLE_SALARY_LOSS'),
+        ])]"/>
+        <field name="dmfa_code">52</field>
+        <field name="l10n_be_egov3_code">1298006</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">The right to maternity leave (formerly also called "paternity leave") provided for in Article 30, §2 et seq. of the law of 3 July 1978 relating to employment contracts applies to all workers employed under an employment contract covered by the law of 3 July 1978 relating to employment contracts. From the 4th day of maternity leave, the worker does not receive a salary, but receives compensation paid by the bodies paying health care and benefits insurance. The amount of this compensation is set at 82% of the lost gross salary.</field>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_zima001_006'),
+        ])]"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_adoption_company" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">52</field>
+        <field name="l10n_be_egov3_code">2210006</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">The right to adoption leave referred to in Article 30ter of the Law of July 3, 1978 on Employment Contracts applies to all workers under an employment contract within the meaning of the Law of July 3, 1978 on Employment Contracts.
+During the first three calendar days of adoption leave, the worker is entitled to retain their normal salary, which is paid by the employer. Article 30sexies of the Law of July 3, 1978 on Employment Contracts grants a worker who has been officially designated as a foster parent and who, following long-term foster care, welcomes a minor child into their family, a one-time right to foster parent leave of up to six consecutive weeks to care for the child.
+This right to adoption leave applies to all workers under an employment contract within the meaning of the Law of July 3, 1978 on Employment Contracts. During the first three calendar days of parental leave, the worker is entitled to maintain their normal salary at the employer's expense.</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_adoption_legal" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">52</field>
+        <field name="l10n_be_egov3_code">2210007</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">From the fourth day of adoption leave, the employee no longer receives a salary, but receives compensation from the health care and benefits insurance payers (health insurance funds).
+
+From the fourth day of foster parent leave, the employee no longer receives a salary, but receives compensation from the health care and benefits insurance payers (health insurance funds).</field>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_zima001_007'),
+        ])]"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_foster_care" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="dmfa_code">75</field>
+        <field name="l10n_be_egov3_code">2210008</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Days of absence for foster parents who receive daily compensation from the ONEM for foster care (article 30quater of the law of July 3, 1978 and the Royal Decree of October 27, 2008).</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_available_not_working" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">-1</field>
+        <field name="l10n_be_egov3_code">1397001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are hours paid by the employer that are not working time within the meaning of the Labour Act of 16 March 1971,
+- granted under a collective labour agreement concluded by a joint body before 1 January 1994 and made mandatory by Royal Decree
+- or by the general scope of European Directive 2002/15/EC on the organisation of working time for persons performing mobile road transport activities and the Royal Decrees resulting therefrom, which regulate the compensation for "periods of availability" for a number of sectors
+- and which do not constitute actual service</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_construction_bad_weather_first_day" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">4</field>
+        <field name="l10n_be_egov3_code">1298001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">This is a day paid by the employer
+- ordinary work
+- in construction
+- when activities have actually begun
+- for which the employer pays incomplete wages because the day was not fully worked</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_construction_imperative_maintained_salary" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1298002</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are hours of absence due to a reason considered compelling
+- pursuant to the suspension of the performance of the employment contract referred to in Article 37 of the Royal Decree of 10 June 2001 providing a uniform definition of concepts relating to working time for social security purposes, pursuant to Article 39 of the Law of 26 July 1996 modernizing social security and ensuring the viability of statutory pension schemes,
+- pursuant to Article 30bis of the Law of 3 July 1978 relating to employment contracts
+- with maintenance of normal pay</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_environmental_protection" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1298003</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are hours of absence paid by the employer
+- due to a technical problem in the company
+- or following a company closure for environmental reasons.</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_union_mission" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1298004</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are hours paid by the employer
+- whether the employer pays the employee for their absence on union business or for the time they must devote to union activities.</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_justified_reason_paid" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1298099</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are hours of justified absence paid by the employer
+- for a reason not listed elsewhere</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_small_unemployment" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.VARIABLE_SALARY_LOSS'),
+        ])]"/>
+        <field name="dmfa_code">1</field>   <!-- YTI: 1 as it is paid, would be 70 otherwise -->
+        <field name="l10n_be_egov3_code">1298006</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are hours due to an absence considered as short-time work
+[taxable]</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_end_of_carreer_exemption" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1298007</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are hours paid by the employer
+- not actually worked by mutual consent
+- which may be considered for a special employer contribution, "activation contribution"
+- which may or may not be paid at 100% of the regular salary</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_unpredictable" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+            ref('l10n_be_hr_payroll.VARIABLE_SALARY_LOSS'),
+        ])]"/>
+        <field name="dmfa_code">24</field>
+        <field name="l10n_be_egov3_code">1299001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are hours of absence due to a reason considered compelling
+- pursuant to the suspension of the performance of the employment contract referred to in Article 46 of the Royal Decree of 10 June 2001 providing a uniform definition of concepts relating to working time for social security purposes, pursuant to Article 39 of the Law of 26 July 1996 modernizing social security and ensuring the viability of statutory pension schemes,
+- pursuant to Article 30bis of the Law of 3 July 1978 relating to employment contracts
+- without maintaining normal pay</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_justified_reason_unpaid" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="dmfa_code">30</field>
+        <field name="l10n_be_egov3_code">1299099</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Justified absence from the employer for which the employer has not paid remuneration and which is not covered by social security. - due to a reason not cited elsewhere</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_social_judge" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">10</field>
+        <field name="l10n_be_egov3_code">1299003</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are hours of absence - pursuant to the suspension of the performance of the employment contract referred to in Article 40 of the Royal Decree of 10 June 2001 providing a uniform definition of concepts relating to working time for social security purposes, pursuant to Article 39 of the Law of 26 July 1996 modernizing social security and ensuring the viability of statutory pension schemes,
+- pursuant to Article 28, 3° of the Law of 3 July 1978 relating to employment contracts
+- not covered by the employer</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_strike" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="dmfa_code">21</field>
+        <field name="l10n_be_egov3_code">1299004</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Il s’agit des jours de grève auxquels le travailleur a participé et les jours où le travailleur était absent du travail en raison d'un lock-out. L’employeur ne paie pas de salaire pour ces jours.</field>
+        <field name="leave_right" eval="True"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_union_mission_unpaid" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="dmfa_code">22</field>
+        <field name="l10n_be_egov3_code">1299005</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Union mission days for which the employer has not paid wages.</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_civic_duty_unpaid" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="dmfa_code">25</field>
+        <field name="l10n_be_egov3_code">1299006</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Days of civic obligation for which no salary is paid.</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_public_mandate_unpaid" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="dmfa_code">25</field>
+        <field name="l10n_be_egov3_code">1299007</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Days of public mandate for which no salary is paid.</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_militia_obligation" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="dmfa_code">26</field>
+        <field name="l10n_be_egov3_code">1299008</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">Days of public mandate for which no salary is paid.</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_unjustified_reason" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <field name="dmfa_code">30</field>
+        <field name="l10n_be_egov3_code">1299009</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are days or hours not worked, but which were clearly provided for in the employment contract or statutory relationship (other than days of inactivity).</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_normal_inactivity" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">-1</field>
+        <field name="l10n_be_egov3_code">1299010</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are days of inactivity in the working schedule within the framework of the employment contract or statutory relationship.</field>
+    </record>
+
+    <record id="hr_work_entry.be_hr_work_entry_type_out_of_contract" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <field name="leave_right" eval="False"/>
+        <field name="dmfa_code">-1</field>
+        <field name="l10n_be_egov3_code">1299011</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are days or hours not worked and not paid during which the person is not bound by a contract or status.</field>
+    </record>
+
+    <record id="hr_work_entry.be_work_entry_type_home_working" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="leave_right">True</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_solicitation_time_off" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.VARIABLE_SALARY_LOSS'),
+        ])]"/>
+        <field name="leave_right" eval="True"/>
+        <field name="dmfa_code">1</field>
+    </record>
+
+    <record id="hr_work_entry.be_work_entry_type_home_working" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.MEAL_VOUCHER'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+    </record>
+
+    <record id="hr_work_entry.be_work_entry_type_unpaid_leave" model="hr.work.entry.type">
+        <field name="include_public_holidays_in_duration" eval="True"/>
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <field name="dmfa_code">30</field>
+    </record>
+
+    <!-- 020.49 -->
+   <record id="hr_work_entry.l10n_be_work_entry_type_economic_unemployment_refused_by_administration" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_economic_unemployment" eval="True"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_training" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.MEAL_VOUCHER'),
+            ref('l10n_be_hr_payroll.PRIVATE_CAR'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_long_sick" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <!-- 50, not 30 -->
+        <field name="dmfa_code">50</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_medical_assistance" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <field name="dmfa_code">-1</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_leave_palliative_care" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <field name="dmfa_code">998</field>
+        <field name="l10n_be_is_time_credit" eval="True"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_thematic_leave_informal_carer" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <field name="dmfa_code">-1</field>
+        <field name="l10n_be_is_time_credit" eval="True"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_time_credit_not_equated" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <field name="dmfa_code">-1</field>
+        <field name="l10n_be_is_time_credit" eval="True"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_recovery_additional" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="l10n_be_egov3_code">1202003</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="dmfa_code">1</field>
+        <field name="description">This is compensatory rest taken by the worker
+- for hours actually worked and paid by the employer, beyond the actual weekly working hours
+- hours paid at the time the time off is taken</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_phc" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_drs_nature">4</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_partial_incapacity" model="hr.work.entry.type">
+        <field name="leave_right" eval="True"/>
+        <field name="dmfa_code">50</field>
+        <field name="l10n_be_is_time_credit" eval="True"/>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_zima002_001'),
+            ref('l10n_be_hr_payroll.drs_risk_zima002_002'),
+        ])]"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_partial_incapacity_unassimilated" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.UNASSIMILATED'),
+        ])]"/>
+        <field name="leave_right" eval="True"/>
+        <field name="dmfa_code">50</field>
+        <field name="l10n_be_is_time_credit" eval="True"/>
+        <field name="l10n_be_drs_risk_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.drs_risk_zima002_001'),
+            ref('l10n_be_hr_payroll.drs_risk_zima002_002'),
+        ])]"/>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_public_holiday_working_without_recovery" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.MEAL_VOUCHER'),
+            ref('l10n_be_hr_payroll.PRIVATE_CAR'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1101001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_public_holiday_working_with_recovery" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.MEAL_VOUCHER'),
+            ref('l10n_be_hr_payroll.PRIVATE_CAR'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1101001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_death_close_family" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.VARIABLE_SALARY_LOSS'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1298006</field>
+        <field name="l10n_be_egov3_base">daily</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_postponed_paid_time_off_n1" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="dmfa_code">16</field>
+        <field name="l10n_be_egov3_code">1204006</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">These are the vacation days taken during the first 12 months following the vacation year, covered only by the holiday pay paid at the end of the vacation year or by the holiday voucher, in case the vacation days cannot be taken during the vacation year itself, for example due to illness or incapacity for work (only for the private sector vacation scheme).</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_postponed_paid_time_off_n2" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(5, 0, 0)]"/>
+        <field name="dmfa_code">17</field>
+        <field name="l10n_be_egov3_code">1204007</field>
+        <field name="l10n_be_egov3_base">daily</field>
+        <field name="description">This benefit code corresponds to the taking of any remaining carried-over vacation days from the 13th month to the 24th month after the vacation year (only for the private sector vacation scheme).</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_guaranteed_wage_interrupted_day_illness" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1101001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_schooldays" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1101001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_paid_absence" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1298099</field>
+        <field name="l10n_be_egov3_base">daily</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_holiday_previous_vacation_credit_year" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1204001</field>
+        <field name="l10n_be_egov3_base">daily</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_political_leave" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('l10n_be_hr_payroll.MEAL_VOUCHER'),
+            ref('l10n_be_hr_payroll.PRIVATE_CAR'),
+            ref('l10n_be_hr_payroll.REPRESENTATION_FEES'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+    </record>
+
+    <record id="hr_work_entry.l10n_be_work_entry_type_overtime_recoverable" model="hr.work.entry.type">
+        <field name="category_ids" eval="[(6, 0, [
+            ref('l10n_be_hr_payroll.REMUNERATION_BASE'),
+            ref('l10n_be_hr_payroll.ONSS_BASE'),
+            ref('l10n_be_hr_payroll.WITHHOLDING_BASE'),
+            ref('hr_payroll.EXTRA_HOURS'),
+        ])]"/>
+        <field name="dmfa_code">1</field>
+        <field name="l10n_be_egov3_code">1102001</field>
+        <field name="l10n_be_egov3_base">both</field>
+    </record>
+
+</data>
+</odoo>

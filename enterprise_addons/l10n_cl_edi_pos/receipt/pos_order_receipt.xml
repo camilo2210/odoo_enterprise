@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <template id="l10n_cl_edi_pos.pos_order_receipt_header" inherit_id="point_of_sale.pos_order_receipt_header">
+            <div name="cashier_name" position="after">
+                <t t-set="state_match" t-value="order['state'] == 'paid' or order['state'] == 'done'" />
+                <div t-if="conditions.get('code_cl') and state_match" class="w-100 text-bold mt-2 mb-2 text-center">
+                    <span>RUT: <t t-out="company['vat']"/></span><br/>
+                    <span t-out="extra_data['l10n_latam_document_type_name']" /><br/>
+                    <span>Nº: <t t-out="extra_data['l10n_latam_document_number']"/></span><br/>
+                    <span t-out="extra_data['l10n_cl_sii_regional_office_name']" /><br/>
+                    <span t-out="extra_data['formated_date_order']" />
+                </div>
+            </div>
+            <div name="partner_info" position="inside">
+                <div t-if="conditions.get('code_cl') and order['invoice_type'] == 'boleta'" class="mt-1 mb-1 text-start">
+                    <table class="w-100">
+                        <tbody>
+                            <tr>
+                                <td class="w-50 text-start">Giro:</td>
+                                <td class="w-50 text-end"><t t-out="partner['l10n_cl_activity_description']"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </template>
+
+        <template id="l10n_cl_edi_pos.pos_order_receipt_footer" inherit_id="point_of_sale.pos_order_receipt_footer">
+            <div name="footer" position="after">
+                <div t-if="conditions.get('code_cl') and order['state'] == 'draft'" class="w-100 mb-2">
+                    Suggested Tip: <t t-out="extra_data['l10n_cl_edi_pos_tip']"/>
+                </div>
+
+                <t t-set="state_match" t-value="order['state'] == 'paid' or order['state'] == 'done'" />
+                <div t-if="conditions.get('code_cl') and state_match and extra_data['formatted_l10n_cl_dte_resolution_date']" class="text_center mb-2 text-small">
+                    <img t-if="image.get('l10n_cl_sii_barcode_image')" class="mw-100" t-att-src="'data:image/png;base64,' + image['l10n_cl_sii_barcode_image']" /><br/>
+                    <span>Timbre Electrónico SII</span><br/>
+                    <span>Resolución Nº: <t t-out="company['l10n_cl_dte_resolution_number']"/></span><br />
+                    <span>de Fecha: <t t-out="extra_data['formatted_l10n_cl_dte_resolution_date']"/></span><br/>
+                    <span>Verifique documento en www.sii.cl</span><br/>
+                </div>
+            </div>
+        </template>
+    </data>
+</odoo>

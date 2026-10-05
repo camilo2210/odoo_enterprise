@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_be_flexi_at_work_view_form" model="ir.ui.view">
+        <field name="name">l10n.be.flexi.at.work.form</field>
+        <field name="model">l10n.be.flexi.at.work</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,ready,done"/>
+                    <button name="generate_declaration_xml_report" string="Generate XML Report" type="object" class="oe_highlight" invisible="xml_file"/>
+                    <button name="generate_declaration_xml_report" string="Re-Generate XML Report" type="object" invisible="not xml_file"/>
+                    <button name="action_post_onss_declaration" string="Post ONSS Declaration" type="object" class="oe_highlight" invisible="not xml_file"/>
+                    <button name="create_onss_declaration" string="Create ONSS Declaration" type="object" groups="base.group_no_one" invisible="not xml_file"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_onss_declaration"
+                            class="oe_stat_button"
+                            icon="book"
+                            type="object"
+                            invisible="not onss_declaration_ids">
+                            <field name="onss_declaration_ids" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <group name="batch_declaration_info">
+                        <group name="left_column">
+                            <field name="employee_id"/>
+                            <field name="payslip_id"/>
+                        </group>
+                        <group name="right_column">
+                            <field name="operation_type" widget="radio" options="{'horizontal': True}"/>
+                            <field name="environment"/>
+                            <field name="xml_filename" invisible="1"/>
+                            <field name="xml_file" filename="xml_filename" readonly="1" invisible="not xml_file"/>
+                            <field name="signature_filename" invisible="1"/>
+                            <field name="signature_file" filename="signature_filename" readonly="1" invisible="not signature_file" groups="base.group_no_one"/>
+                            <field name="go_filename" invisible="1"/>
+                            <field name="go_file" filename="go_filename" readonly="1" invisible="not go_file" groups="base.group_no_one"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Error Details" invisible="not error_message">
+                            <field name="error_message" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_be_flexi_at_work_view_list" model="ir.ui.view">
+        <field name="name">l10n.be.flexi.at.work.list</field>
+        <field name="model">l10n.be.flexi.at.work</field>
+        <field name="arch" type="xml">
+            <list string="Flexi@Work">
+                <field name="payslip_id"/>
+                <field name="environment"/>
+                <field name="state" widget="badge" decoration-info="state in ('draft', 'ready', 'pending', 'in_progress')" decoration-success="state in ('done', 'paid')" decoration-danger="state in ('refused', 'error')"/>
+                <button string="Download" type="object" name="action_download_declaration_file" icon="download"/>
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_be_flexi_at_work_view_search" model="ir.ui.view">
+        <field name="name">l10n.be.flexi.at.work.search</field>
+        <field name="model">l10n.be.flexi.at.work</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="payslip_id"/>
+                <field name="company_id"/>
+                <field name="state"/>
+                <filter string="Draft" name="state_draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Ready" name="state_ready" domain="[('state', '=', 'ready')]"/>
+                <filter string="Done" name="state_done" domain="[('state', '=', 'done')]"/>
+                <filter string="Pending" name="state_pending" domain="[('state', '=', 'pending')]"/>
+                <filter string="In Progress" name="state_in_progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter string="Refused" name="state_refused" domain="[('state', '=', 'refused')]"/>
+                <filter string="Error" name="state_error" domain="[('state', '=', 'error')]"/>
+                <group>
+                    <filter string="Environment" name="group_by_environment" domain="[]" context="{'group_by': 'environment'}"/>
+                    <filter string="State" name="group_by_state" domain="[]" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_be_flexi_at_work_action" model="ir.actions.act_window">
+        <field name="name">Flexi@Work</field>
+        <field name="res_model">l10n.be.flexi.at.work</field>
+        <field name="view_mode">list,form</field>
+        <field name="target">current</field>
+    </record>
+
+    <menuitem
+        id="menu_l10n_be_flexi_at_work"
+        name="Flexi@Work"
+        action="l10n_be_flexi_at_work_action"
+        parent="l10n_be_hr_payroll.menu_reporting_l10n_be"
+        sequence="510"/>
+</odoo>

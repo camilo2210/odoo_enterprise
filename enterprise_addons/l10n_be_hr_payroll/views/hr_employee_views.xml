@@ -1,0 +1,598 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_employee_view_form" model="ir.ui.view">
+        <field name="name">hr.employee.view.form</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr_payroll.payroll_hr_employee_view_form"/>
+        <field name="arch" type="xml">
+            <header position="inside">
+                <div groups="hr_payroll.group_hr_payroll_user">
+                    <field name="show_dimona_button" invisible="1"/>
+                    <button name="action_check_dimona"
+                        string="Check Dimona"
+                        type="object"
+                        groups="hr_payroll.group_hr_payroll_user"
+                        invisible="not show_dimona_button or country_code != 'BE' or l10n_be_egov3_code == '999'"/>
+                </div>
+            </header>
+            <xpath expr="//button[hasclass('o_button_plan_wizard_action')]" position="before">
+                <button name="action_send_dimona"
+                    string="Send Dimona"
+                    type="object"
+                    class="btn btn-primary"
+                    groups="hr_payroll.group_hr_payroll_user"
+                    invisible="country_code != 'BE' or l10n_be_dimona_next_action not in ('in', 'issue', 'update', 'out', 'cancel')"/>
+                <div class="btn-group" role="group"
+                    groups="hr_payroll.group_hr_payroll_user"
+                    invisible="country_code != 'BE' or not departure_date">
+                    <button type="button" class="btn btn-secondary dropdown-toggle"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        Termination Documents
+                    </button>
+                    <div class="dropdown-menu" role="menu">
+                        <button name="action_generate_termination_payslip"
+                            string="Termination Fees"
+                            type="object"
+                            class="dropdown-item"
+                            invisible="l10n_be_notice_respect == 'with'"/>
+                        <button name="action_generate_termination_holidays"
+                            string="Holiday Attests"
+                            type="object"
+                            class="dropdown-item"/>
+                        <button name="action_generate_termination_thirteen_month"
+                            string="13th Month"
+                            type="object"
+                            class="dropdown-item"
+                            invisible="not l10n_be_thirteen_month_eligible"/>
+                    </div>
+                </div>
+            </xpath>
+            <div name="button_box" position="inside">
+                <button name="action_open_relation"
+                    class="oe_stat_button"
+                    icon="contact_page" icon_class="oi-filled"
+                    type="object"
+                    groups="hr_payroll.group_hr_payroll_user"
+                    invisible="country_code != 'BE' or not l10n_be_dimona_relation_id or l10n_be_egov3_code == '999'">
+                    <div class="o_stat_info">
+                        Dimona Relation
+                    </div>
+                </button>
+                <button name="action_open_employee_overtime"
+                    class="oe_stat_button"
+                    icon="calendar_add_on"
+                    type="object"
+                    groups="hr_payroll.group_hr_payroll_user"
+                    invisible="country_code != 'BE' or not l10n_be_overtime_counter">
+                    <div class="o_stat_info">
+                        <field name="l10n_be_overtime_counter" widget="statinfo" string="Overtime"/>
+                    </div>
+                </button>
+                <button name="action_open_flxwage_declarations"
+                    class="oe_stat_button"
+                    icon="article"
+                    type="object"
+                    groups="hr_payroll.group_hr_payroll_user"
+                    invisible="country_code != 'BE' or not l10n_be_flexi_at_work_ids">
+                    <field name="l10n_be_flexi_at_work_ids" widget="statinfo" string="Flexi@Work"/>
+                </button>
+            </div>
+            <div name="to_review_pill" position="after">
+                <div invisible="not contract_date_start or country_code != 'BE' or l10n_be_egov3_code == '999'"
+                    groups="hr_payroll.group_hr_payroll_user">
+                    <field name="l10n_be_dimona_next_action" widget="dropdown_selection_badge" readonly="1"
+                        options="{
+                            'in': {'decoration': 'warning', 'icon': 'login', 'text': 'Dimona To Do'},
+                            'progress': {'decoration': 'info', 'icon': 'progress_activity', 'text': 'In Progress'},
+                            'done': {'decoration': 'success', 'icon': 'check', 'text': 'Dimona'},
+                            'issue': {'decoration': 'danger', 'icon': 'warning', 'text': 'Dimona Issue'},
+                            'update': {'decoration': 'warning', 'icon': 'edit_square', 'text': 'Dimona To Do'},
+                            'out': {'decoration': 'warning', 'icon': 'logout', 'text': 'Dimona To Do'},
+                            'cancel': {'decoration': 'warning', 'icon': 'close', 'text': 'Dimona To Do'},
+                        }" icon="1"/>
+                </div>
+            </div>
+            <div name="hourly_wage" position="after">
+                <field name="l10n_be_dimona_planned_hours" invisible="wage_type != 'hourly' or country_code != 'BE' or l10n_be_dimona_category != 'stu'" groups="hr_payroll.group_hr_payroll_user"/>
+            </div>
+            <xpath expr="//field[@name='payroll_properties']" position="attributes">
+                <attribute name="widget">payroll_properties</attribute>
+            </xpath>
+            <xpath expr="//field[@name='marital']" position="replace">
+                <label for="marital"/>
+                <div class="o_row gap-3">
+                    <field name="marital" class="o_hr_narrow_field"/>
+                    <i invisible="country_code != 'BE' or not l10n_be_show_effective_marital_warning"
+                    groups="hr_payroll.group_hr_payroll_user"
+                    class="oi oi-filled text-info ms-3" data-icon="info"
+                    title="The change of marital status will only be applied for the next fiscal year"
+                    data-tooltip="The change of marital status will only be applied for the next fiscal year"/>
+                </div>
+                <label for="spouse_fiscal_status" string="Spouse Fiscal Status" invisible="marital not in ['married', 'cohabitant'] or country_code != 'BE'"/>
+                <div class="o_row" invisible="marital not in ['married', 'cohabitant'] or country_code != 'BE'">
+                    <field name="spouse_fiscal_status" nolabel="1"
+                        required="marital in ['married', 'cohabitant']"
+                        help="if spouse has professional income or not" />
+                    <field name="spouse_fiscal_status_explanation_tooltip" nolabel="1"/>
+                </div>
+                <field name="disabled_spouse_bool" invisible="marital not in ['married', 'cohabitant'] or country_code != 'BE'"/>
+            </xpath>
+            <field name="disabled" position="after">
+                <field name="l10n_be_is_retired" invisible="age &lt;= 60"/>
+                <field name="l10n_be_contribute_to_fse" invisible="not l10n_be_is_retired or l10n_be_retirement_date &gt;= '2016-01-01'"/>
+            </field>
+            <xpath expr="//field[@name='private_country_id']" position="replace">
+                <div class="o_row">
+                    <field name="private_country_id" placeholder="Country" class="o_address_country o_hr_narrow_field-fit" options='{"no_open": True, "no_create": True}'/>
+                    <label for="l10n_be_country_nis_code" string="NISS" groups="base.group_no_one" invisible="not private_country_id or country_code != 'BE'"/>
+                    <div class="o_row" groups="base.group_no_one" invisible="not private_country_id or country_code != 'BE'">
+                        <field name="l10n_be_country_nis_code" groups="base.group_no_one"/>
+                    </div>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='private_city_id']" position="replace">
+                <div class="o_row">
+                    <field name="private_city_id"
+                            placeholder="City"
+                            class="o_address_city o_hr_narrow_field-fit"
+                            invisible="not private_country_enforce_cities"
+                            options='{"no_open": True, "no_create": True}'
+                            domain="[('country_id', '=?', private_country_id), ('state_id', '=?', private_state_id)]"
+                            context="{'show_state': True}"/>
+                    <label for="l10n_be_city_nis_code" string="NISS" groups="base.group_no_one" invisible="not private_country_enforce_cities or not private_city_id or country_code != 'BE'"/>
+                    <div class="o_row" groups="base.group_no_one" invisible="not private_country_enforce_cities or not private_city_id or country_code != 'BE'">
+                        <field name="l10n_be_city_nis_code" groups="base.group_no_one"/>
+                    </div>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='private_zip']" position="attributes">
+                <attribute name="invisible">private_city_id and country_code == 'BE'</attribute>
+            </xpath>
+            <field name="children" position="replace">
+                <label for="other_dependents" invisible="country_code != 'BE'"/>
+                <div class="o_row" invisible="country_code != 'BE'">
+                    <field name="other_dependents" class="o_hr_narrow_field-2"/>
+                </div>
+                <span class="me-2" invisible="not other_dependents">including</span>
+                <div class="o_row" invisible="country_code != 'BE'">
+                    <field name="children" class="o_hr_narrow_field-2" invisible="not other_dependents"/>
+                    <label for="children" string="children" invisible="not other_dependents"/>
+                    <!-- Dummy Span to have a space between the label and the next input -->
+                    <span/>
+                    <field name="disabled_children_number" class="o_hr_narrow_field-2" invisible="not other_dependents"/>
+                    <label for="disabled_children_number" string="with disability" invisible="not other_dependents"/>
+                </div>
+                <span/>
+                <div class="o_row" style="margin-left: 93px !important;" invisible="country_code != 'BE'">
+                    <field name="l10n_be_dependent_children_attachment" class="o_hr_narrow_field-2" invisible="not other_dependents"/>
+                    <label for="l10n_be_dependent_children_attachment" string="for salary adjustments" invisible="not other_dependents"/>
+                </div>
+                <span/>
+                <div class="o_row" invisible="country_code != 'BE'">
+                    <field name="other_juniors_dependent" class="o_hr_narrow_field-2" invisible="not other_dependents"/>
+                    <label for="other_juniors_dependent" string="other" invisible="not other_dependents"/>
+                    <!-- Dummy Span to have a space between the label and the next input -->
+                    <span/>
+                    <field name="other_disabled_juniors_dependent" class="o_hr_narrow_field-2" invisible="not other_dependents"/>
+                    <label for="other_disabled_juniors_dependent" string="with disability" invisible="not other_dependents"/>
+                </div>
+                <span/>
+                <div class="o_row" invisible="country_code != 'BE'">
+                    <field name="other_senior_dependent" class="o_hr_narrow_field-2" invisible="not other_dependents"/>
+                    <label for="other_senior_dependent" string="senior with care needs" invisible="not other_dependents"/>
+                </div>
+            </field>
+            <field name="identification_id" position="after">
+                <field name="niss" placeholder="Use / for no NISS" invisible="country_code != 'BE'" groups="!hr_payroll.group_hr_payroll_user"/>
+                <field name="niss" placeholder="Use / for no NISS" invisible="country_code != 'BE'" required="contract_date_start and l10n_be_company_onss_certificate_id" groups="hr_payroll.group_hr_payroll_user"/>
+            </field>
+            <field name="legal_name" position="after">
+                <field name="l10n_be_legal_first_name" string="First Name" invisible="country_code != 'BE'"/>
+                <field name="l10n_be_legal_last_name" string="Last Name" invisible="country_code != 'BE'"/>
+            </field>
+            <xpath expr="//field[@name='is_non_resident']" position="attributes">
+                <attribute name="invisible">country_code == 'BE'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='employee_type_id']" position="attributes">
+                <attribute name="required" add="country_code == 'BE' and contract_date_start" separator=" or "/>
+            </xpath>
+            <field name="employee_type_id" position="after">
+                <field name="l10n_be_allowed_dimona_categories" invisible="1"/>
+                <field name="l10n_be_employee_type_dimona_category" invisible="1"/>
+                <field name="l10n_be_dimona_category" placeholder="e.g. Student, or Flexi-job"
+                       invisible="country_code != 'BE' or l10n_be_dimona_category == l10n_be_employee_type_dimona_category or l10n_be_egov3_code == '999'"
+                       widget="filterable_selection" options="{'whitelist_fname': 'l10n_be_allowed_dimona_categories'}"/>
+                <field name="l10n_be_worker_code_is_single" invisible="1"/>
+                <field name="l10n_be_worker_code_id" string="Sub-type"
+                       invisible="country_code != 'BE' or l10n_be_egov3_code == '999'"
+                       readonly="l10n_be_worker_code_is_single"
+                       placeholder="e.g. Ordinary Employee"
+                       domain="[('id', 'in', l10n_be_allowed_worker_code_ids), '|', ('employee_type_ids', '=', False), ('employee_type_ids', 'in', employee_type_id)]"/>
+                <field name="l10n_be_apprenticeship_contract_type" invisible="country_code != 'BE' or l10n_be_egov3_code == '999' or l10n_be_employee_type_code != 'Apprenticeship'"/>
+                <field name="l10n_be_apprenticeship_contract_subtype" invisible="country_code != 'BE' or l10n_be_egov3_code == '999' or not l10n_be_apprenticeship_contract_type"/>
+                <field name="l10n_be_joint_committee_id" placeholder="e.g. CP200, CP302"
+                    invisible="country_code != 'BE'"
+                    options="{'no_create': True, 'no_open': True}"
+                    context="{'list_view_ref': 'l10n_be_hr_payroll.l10n_be_joint_committee_see_more_view_list'}"
+                    domain="[('selectable', '=', True), ('id', 'in', allowed_joint_committee_ids)]"/>
+            </field>
+            <xpath expr="//group[@name='payroll_group']//div[@name='contract_dates']" position="after">
+                <label for="l10n_be_dimona_planned_start_time" string="Contract Times" 
+                    invisible="l10n_be_dimona_category != 'flx' or l10n_be_refused_flexijob or not contract_date_start or contract_date_start != contract_date_end"/> 
+                <div class="o_row" name="contract_times" 
+                    invisible="l10n_be_dimona_category != 'flx' or l10n_be_refused_flexijob or not contract_date_start or contract_date_start != contract_date_end">
+                    <field name="l10n_be_dimona_planned_start_time" string="" placeholder="Work Start Time" widget="float_time" class="o_hr_narrow_field me-3" context="{'default_l10n_be_dimona_planned_start_time': False}"/>
+                    <span>to</span>
+                    <field name="l10n_be_dimona_planned_end_time" string="" placeholder="Work End Time" widget="float_time" class="o_hr_narrow_field ms-3" context="{'default_l10n_be_dimona_planned_end_time': False}"/>
+                </div>
+            </xpath>
+            <div name="wage" position="after">
+                <label for="l10n_be_flexi_hourly_wage"
+                    invisible="wage_type != 'hourly' or country_code != 'BE' or l10n_be_dimona_category != 'flx' or l10n_be_refused_flexijob"/>
+                <div class="o_row" name="l10n_be_flexi_hourly_wage" 
+                    groups="hr_payroll.group_hr_payroll_user"
+                    invisible="wage_type != 'hourly' or country_code != 'BE' or l10n_be_dimona_category != 'flx' or l10n_be_refused_flexijob">
+                    <field name="l10n_be_flexi_hourly_wage"  class="o_hr_narrow_field" />
+                    <span>/ hour</span>
+                </div>
+                <label for="l10n_be_flexi_monthly_wage"
+                    invisible="wage_type != 'monthly' or country_code != 'BE' or l10n_be_dimona_category != 'flx' or l10n_be_refused_flexijob"/>
+                <div class="o_row" name="l10n_be_flexi_monthly_wage" 
+                    groups="hr_payroll.group_hr_payroll_user"
+                    invisible="wage_type != 'monthly' or country_code != 'BE' or l10n_be_dimona_category != 'flx' or l10n_be_refused_flexijob">
+                    <field name="l10n_be_flexi_monthly_wage"  class="o_hr_narrow_field" />
+                    <span>/ month</span>
+                </div>
+            </div>
+            <group name="payroll_group" position="inside">
+                <group name="cafeteria_plan" string="Cafeteria Plan" invisible="1"/>
+                <group name="benefits" string="Benefits" invisible="1"/>
+                <group name="transportation" string="Transportation" invisible="1">
+                </group>
+                <group name="onss" string="ONSS" invisible="country_code != 'BE' or l10n_be_egov3_code == '999'">
+                    <field name="available_l10n_be_worker_status" invisible="1"/>
+                    <field name="l10n_be_worker_status" widget="filterable_selection" options="{'whitelist_fname': 'available_l10n_be_worker_status'}" placeholder="Not applicable"/>
+                    <field name="l10n_be_risk_class" widget="filterable_selection" placeholder="No Risk Class"/>
+                    <field name="l10n_be_work_exemption"/>
+                    <field name="l10n_be_work_exemption_date"
+                           invisible="l10n_be_work_exemption not in ['2', '7']"
+                           required="l10n_be_work_exemption in ['2', '7']"/>
+                    <field name="l10n_be_work_exemption_training_situation"
+                           invisible="l10n_be_work_exemption not in ['2', '7']"/>
+                    <field name="l10n_be_work_exemption_training_date"
+                           invisible="l10n_be_work_exemption not in ['2', '7'] or l10n_be_work_exemption_training_situation == '0'"
+                           required="l10n_be_work_exemption in ['2', '7']"/>
+                </group>
+                <group name="insurances" string="Insurances" invisible="1">
+                </group>
+                <group string="Lump Sum Allowances" name="representation_fees" invisible="1"/>
+                <group string="Posted Employee" name="posted_employee"  invisible="1">
+                </group>
+                <group string="Taxes &amp; Reduction" name="taxes_reduction_group" invisible="1">
+                    <field name="l10n_be_is_starterjob"/>
+                </group>
+                <group string="Dimona" invisible="country_code != 'BE' or l10n_be_egov3_code == '999' or not l10n_be_dimona_environment">
+                    <field name="l10n_be_dimona_declaration_id" string="Dimona In" options="{'no_create': True}"/>
+                    <field name="l10n_be_last_dimona_declaration_id" options="{'no_create': True}"/>
+                    <field name="l10n_be_dimona_relation_date_start"/>
+                    <field name="l10n_be_needs_dimona_in" string="Needs Dimona In" groups="base.group_no_one"/>
+                    <field name="l10n_be_needs_dimona_update" string="Needs Dimona Update" groups="base.group_no_one"/>
+                    <field name="l10n_be_needs_dimona_out" string="Needs Dimona Out" groups="base.group_no_one"/>
+                    <field name="l10n_be_needs_dimona_cancel" string="Needs Dimona Cancel" groups="base.group_no_one"/>
+                </group>
+                <group string="Seniority" name="seniority" invisible="country_code != 'BE'">
+                    <field name="l10n_be_fictive_hire_date"/>
+                    <label for="l10n_be_scale_seniority" string="At Hiring"/>
+                    <div class="d-flex">
+                        <div class="oe_inline">
+                            <field name="l10n_be_scale_seniority" class="o_hr_narrow_field-2 me-1"/>
+                            <span class="me-4">years</span>
+                        </div>
+                        <div class="oe_inline">
+                            <field name="l10n_be_scale_seniority_months" class="o_hr_narrow_field-2" nolabel="1"/>
+                            <span>months</span>
+                        </div>
+                    </div>
+                    <label for="l10n_be_computed_seniority_years" string="Effective for pay scale"/>
+                    <div class="d-flex">
+                        <div class="oe_inline">
+                            <field name="l10n_be_computed_seniority_years" class="o_hr_narrow_field-2 me-1" readonly="1"/>
+                            <span class="me-4">years</span>
+                        </div>
+                        <div class="oe_inline">
+                            <field name="l10n_be_computed_seniority_months" class="o_hr_narrow_field-2" readonly="1" nolabel="1"/>
+                            <span>months</span>
+                        </div>
+                    </div>
+                </group>
+            </group>
+            <xpath expr="//sheet" position="before">
+                <div
+                    role="alert"
+                    class="alert alert-warning text-center"
+                    groups="hr_payroll.group_hr_payroll_user"
+                    invisible="not l10n_be_is_4th_fixed_term_contract_warning or country_code != 'BE'">
+                    <field name="l10n_be_is_4th_fixed_term_contract_warning"/>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='structure_type_id']" position="after">
+                <field name='l10n_be_salary_scale_id' string="Salary Scale" placeholder="Not submitted to Salary Grid" invisible="not display_l10n_be_scale" domain="[('l10n_be_joint_committee', '=', l10n_be_joint_committee_id)]" options="{'no_create': True, 'no_create_edit': True}"/>
+                <field name="display_l10n_be_scale" invisible="1"/>
+                <field name="l10n_be_in_position_years" invisible="1"/>
+                <field name="l10n_be_in_position_months" invisible="1"/>
+                <field name="l10n_be_base_computed_seniority" invisible="1"/>
+                <field name="l10n_be_company_seniority_years" invisible="1"/>
+                <field name="l10n_be_company_seniority_months" invisible="1"/>
+            </xpath>
+            <field name="structure_type_id" position="attributes">
+                <attribute name="invisible">country_code == 'BE'</attribute>
+            </field>
+            <field name='structure_type_id' position="after">
+                <field name="l10n_be_is_sale_representative" invisible="l10n_be_egov3_code != '200'"/>
+            </field>
+            <page name="salary_attachment" position="after">
+                <page string="Holiday Attests" invisible="company_country_code != 'BE' or l10n_be_egov3_code == '999'" groups="hr_payroll.group_hr_payroll_user">
+                    <field name="l10n_be_holiday_attest_ids" mode="kanban" context="{'default_employee_id': id}" nolabel="1"/>
+                    <group string="Postponed Paid Time Off">
+                        <div class="o_col" colspan="2">
+                            <div class="o_row">
+                                <label for="postponed_paid_time_off_n1" string="Postponed from" class="fw-bold m-0"/>
+                                <span class="pe-2"><field name="first_contract_year_n1" class="fw-bold"/> </span>
+                                <field name="postponed_paid_time_off_n1" class="o_hr_narrow_field"/>
+                                <span>days</span>
+                            </div>
+                            <div class="o_row">
+                                <label for="postponed_paid_time_off_n2" string="Postponed from" class="fw-bold m-0"/>
+                                <span class="pe-2"><field name="first_contract_year_n2" class="fw-bold"/></span>
+                                <field name="postponed_paid_time_off_n2" class="o_hr_narrow_field"/>
+                                <span>days</span>
+                            </div>
+                        </div>
+                    </group>
+                </page>
+            </page>
+            <field name="resource_calendar_id" position="replace">
+                <field name="resource_calendar_id" widget="working_schedule_field" options="{'no_quick_create': True}"/>
+            </field>
+            <field name="resource_calendar_id" position="after">
+                <field name="l10n_be_reorganisation_measure_ids" string="" widget="many2many_tags"
+                       options="{'color_field': 'color'}"
+                       invisible="not l10n_be_reorganisation_measure_ids"/>
+                <field name='l10n_be_part_time_status' invisible="country_code != 'BE' or work_time_rate >= 1" widget="radio"/>
+            </field>
+            <group name="header_group" position="after">
+                <notebook invisible="country_code != 'BE'">
+                <page string="Notice Period" invisible="l10n_be_reason_code in [350, 351] or l10n_be_egov3_code == '999'">
+                    <group>
+                        <group class="o_label_nowrap">
+                            <field name="l10n_be_notice_respect" widget="radio" readonly="1"
+                                   invisible="l10n_be_notice_duration_month_before_2014 == 0 and l10n_be_notice_duration_week_after_2014 == 0"/>
+                            <field name="l10n_be_first_contract_id"/>
+                            <field name="l10n_be_seniority_description"/>
+                        </group>
+                        <group class="o_label_nowrap">
+                            <field name="l10n_be_notice_period_start" invisible="l10n_be_notice_respect == 'without'"/>
+                            <field name="l10n_be_notice_period_theoretical_end" invisible="l10n_be_notice_respect != 'partial'"/>
+                            <label for="departure_date" string="Notice Period End" invisible="l10n_be_notice_respect != 'with'"/>
+                            <field name="departure_date" invisible="l10n_be_notice_respect == 'without' or l10n_be_notice_respect == 'partial'" nolabel="1" readonly="1"/>
+                            <label for="l10n_be_notice_duration_month_before_2014" string="Notice Duration" invisible="l10n_be_notice_respect != 'with'"/>
+                            <label for="l10n_be_notice_duration_month_before_2014" string="Notice Duration To Be Paid" invisible="l10n_be_notice_respect != 'without'"/>
+                            <div invisible="l10n_be_notice_respect == 'partial'">
+                                <field name="l10n_be_notice_duration_month_before_2014" nolabel="1" class="oe_inline" invisible="l10n_be_notice_duration_month_before_2014 == 0"/>
+                                <span invisible="l10n_be_notice_duration_month_before_2014 == 0"> months and </span>
+                                <field name="l10n_be_notice_duration_week_after_2014" nolabel="1" class="oe_inline"/>
+                                <span> weeks</span>
+                            </div>
+                            <label for="l10n_be_notice_duration" string="Notice Duration" invisible="l10n_be_notice_respect != 'partial'"/>
+                            <div invisible="l10n_be_notice_respect != 'partial'">
+                                <field name="l10n_be_notice_duration" nolabel="1" class="oe_inline"/>
+                                <span> weeks</span>
+                            </div>
+                            <field name="departure_date" readonly="1"/>
+                            <field name="l10n_be_professional_reclassification" string="Outplacement" placeholder="None" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="l10n_be_salary_december_2013" invisible="not l10n_be_salary_visibility"/>
+                        </group>
+                    </group>
+                </page>
+                <page string="Holiday Attests" invisible="country_code != 'BE' or l10n_be_egov3_code == '999'">
+                    <group class="o_label_nowrap">
+                        <group string="Payroll" colspan="2">
+                            <label for="l10n_be_net_n1"/>
+                            <span class="o_row">
+                                <field name="l10n_be_net_n1" class="o_hr_narrow_field" readonly="1"/>
+                                <widget name="payslips_internal_link" payslips_year="n1"/>
+                            </span>
+                            <label for="l10n_be_net_n"/>
+                            <span class="o_row">
+                                <field name="l10n_be_net_n" class="o_hr_narrow_field" readonly="1"/>
+                                <widget name="payslips_internal_link" payslips_year="n"/>
+                            </span>
+                        </group>
+                        <group>
+                            <field name="l10n_be_fictitious_remuneration_n1"
+                                invisible="not l10n_be_fictitious_remuneration_n1 and not l10n_be_fictitious_remuneration_n"/>
+                            <field name="l10n_be_gross_reference_remuneration_n1"
+                                invisible="not l10n_be_fictitious_remuneration_n1 and not l10n_be_fictitious_remuneration_n"/>
+                        </group>
+                        <group>
+                            <field name="l10n_be_fictitious_remuneration_n"
+                                invisible="not l10n_be_fictitious_remuneration_n1 and not l10n_be_fictitious_remuneration_n"/>
+                            <field name="l10n_be_gross_reference_remuneration_n"
+                                invisible="not l10n_be_fictitious_remuneration_n1 and not l10n_be_fictitious_remuneration_n"/>
+                        </group>
+                        <group string="Holiday Rights" colspan="2">
+                            <field name="l10n_be_time_off_line_ids" nolabel="1" colspan="2">
+                                <list create="0" no_open="1" delete="0">
+                                    <field name="work_entry_type_and_year" string="Time Off Type"/>
+                                    <field name="leave_allocation_count_show" nolabel="1"/>
+                                    <field name="leave_count_show" nolabel="1"/>
+                                    <field name="left_leave_count_show" nolabel="1"/>
+                                </list>
+                            </field>
+                        </group>
+                    </group>
+                </page>
+            </notebook>
+            </group>
+            <div name="contract_dates" position="after">
+                <field name="l10n_be_apprenticeship_contract_number" invisible="country_code != 'BE' or l10n_be_employee_type_code != 'Apprenticeship'" required="contract_date_start and l10n_be_employee_type_code == 'Apprenticeship'"/>
+            </div>
+            <xpath expr="//field[@name='schedule_pay']" position="after">
+                <field name="l10n_be_reorganisation_measure_ids" invisible="1"/>
+                <span class="badge rounded-pill text-bg-info ms-2"
+                      invisible="country_code != 'BE' or not l10n_be_reorganisation_measure_ids"
+                      title="The wage will be prorated on the payslip due to the work reorganisation.">
+                    WRT
+                </span>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record id="hr_employee_view_list" model="ir.ui.view">
+        <field name="name">hr.employee.view.list</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_tree"/>
+        <field name="arch" type="xml">
+            <field name="job_title" position="before">
+                <field name="l10n_be_dimona_next_action" invisible="not l10n_be_dimona_next_action or country_code != 'BE'"
+                    widget="dropdown_selection_badge" class="o_dropdown_selection_badge_small" readonly="1"
+                    options="{
+                        'in': {'decoration': 'warning', 'icon': 'login', 'text': 'Dimona To Do'},
+                        'progress': {'decoration': 'info', 'icon': 'progress_activity', 'text': 'In Progress'},
+                        'done': {'decoration': 'success', 'icon': 'check', 'text': 'Dimona'},
+                        'issue': {'decoration': 'danger', 'icon': 'warning', 'text': 'Dimona Issue'},
+                        'update': {'decoration': 'warning', 'icon': 'edit_square', 'text': 'Dimona To Do'},
+                        'out': {'decoration': 'warning', 'icon': 'logout', 'text': 'Dimona To Do'},
+                        'cancel': {'decoration': 'warning', 'icon': 'close', 'text': 'Dimona To Do'},
+                    }" icon="1"/>
+            </field>
+            <field name="employee_type_id" position="before">
+                <field name="l10n_be_joint_committee_id" optional="hide" options="{'no_create_edit': True, 'no_open': True}" context="{'formatted_display_name': True}"/>
+            </field>
+            <xpath expr="//field[@name='country_id']" position="after">
+                <field name="car_id" widget="many2one" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="l10n_be_dmfa_employee_view_list" model="ir.ui.view">
+        <field name="name">l10n.be.dmfa.employee.list</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_tree"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="class" add="o_dmfa_employee_modal" separator=" "/>
+                <attribute name="create">0</attribute>
+                <attribute name="edit">0</attribute>
+                <attribute name="delete">0</attribute>
+            </xpath>
+            <xpath expr="//list" position="inside">
+                <header>
+                    <button name="action_l10n_be_remove_from_dmfa"
+                            type="object"
+                            string="Remove from DMFA"/>
+                </header>
+            </xpath>
+            <field name="name" position="after">
+                <field name="niss"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="hr_employee_view_search" model="ir.ui.view">
+        <field name="name">hr.employee.view.search</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_filter"/>
+        <field name="arch" type="xml">
+            <filter name="inactive" position="before">
+                <filter string="Employees With Certificates" name="filter_with_certificates" domain="[('employee_id.certificate','in',['bachelor','master','doctor','civil_engineer'])]"/>
+                <separator/>
+            </filter>
+            <filter name="contract_date_start" position="before">
+                <filter string="Dimona to update" name="dimona_to_update" domain="[('l10n_be_needs_dimona_update', '=', True)]"/>
+                <filter string="Dimona to open" name="dimona_to_open" domain="[('l10n_be_needs_dimona_in', '=', True)]"/>
+                <filter string="Dimona to cancel" name="dimona_to_cancel" domain="[('l10n_be_needs_dimona_cancel', '=', True)]"/>
+                <separator/>
+            </filter>
+            <filter name="out_of_contract" position="after">
+                <filter string="Mutual Health" name="mutual_health" domain="[('l10n_be_long_sick_leave', '=', True)]"/>
+            </filter>
+            <xpath expr="//field[@name='category_ids']" position="after">
+                <field name="niss" groups="hr.group_hr_user"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="l10n_be_hr_employee_view_list_min_wage" model="ir.ui.view">
+        <field name="name">l10n.be.hr.employee.view.list.min.wage</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_tree"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <list position="inside">
+                <header>
+                    <button name="l10n_be_action_adjust_min_wages"
+                        class="btn btn-primary" type="object"
+                        string="Adjust Wage"/>
+                </header>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_be_hr_payroll_action_warning_min_wage_employee_list" model="ir.actions.act_window">
+        <field name="name">Employees Under Minimum Wage</field>
+        <field name="res_model">hr.employee</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="l10n_be_hr_payroll.l10n_be_hr_employee_view_list_min_wage"/>
+    </record>
+
+    <record id="action_hr_employment_certificate" model="ir.actions.server">
+        <field name="name">Certificate of Employment</field>
+        <field name="model_id" ref="model_hr_employee"/>
+        <field name="binding_model_id" ref="model_hr_employee"/>
+        <field name="binding_view_types">form</field>
+        <field name="group_ids" eval="[Command.link(ref('hr_payroll.group_hr_payroll_user'))]"/>
+        <field name="state">code</field>
+        <field name="code">
+            if records:
+                action = records.action_report_employment_certificate()
+        </field>
+    </record>
+
+    <record id="l10n_be_hr_payroll_action_update_too_old_worker_codes" model="ir.actions.server">
+        <field name="name">Update Employees</field>
+        <field name="model_id" ref="hr.model_hr_employee"/>
+        <field name="state">code</field>
+        <field name="code">
+employees = records if records else env['hr.employee']._get_l10n_be_too_old_worker_code_employees()
+action = employees.l10n_be_action_update_worker_codes()
+        </field>
+    </record>
+
+    <record id="l10n_be_hr_employee_view_list_missing_indexation" model="ir.ui.view">
+        <field name="name">l10n.be.hr.employee.view.list.missing.indexation</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_tree"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <list position="inside">
+                <header>
+                    <button name="l10n_be_action_index_employees_salary"
+                        class="btn btn-primary" type="object"
+                        string="Index All"/>
+                </header>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_be_hr_payroll_action_warning_missing_indexation_employee_list" model="ir.actions.act_window">
+        <field name="name">Missing Salary Indexation Employees</field>
+        <field name="res_model">hr.employee</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="l10n_be_hr_payroll.l10n_be_hr_employee_view_list_missing_indexation"/>
+    </record>
+</odoo>

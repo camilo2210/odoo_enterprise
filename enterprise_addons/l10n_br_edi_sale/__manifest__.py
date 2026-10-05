@@ -1,0 +1,17 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+{
+    "name": "Brazilian Accounting EDI For Sale",
+    "description": """
+Brazilian Accounting EDI for Sale
+=================================
+Adds some fields to sale orders that will be carried over the invoice.
+""",
+    "category": "Accounting/Localizations/EDI",
+    "author": "Odoo S.A.",
+    "license": "OEEL-1",
+    "depends": ["sale_external_tax", "l10n_br_edi", "l10n_br_avatax_sale"],
+    "data": [
+        "views/sale_order_views.xml",
+    ],
+    "auto_install": True,
+}

@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="l10n_ch_hr_payroll.DeclareSalaryRenderer">
+        <t t-set="declared_persons" t-value="this.persons"/>
+        <div t-if="declared_persons.length" class="o_swissdec_widget">
+            <div class="o_horizontal_separator mt-4 mb-3 text-uppercase fw-bolder small">
+                Salary Data <span class="ms-1 text-muted" t-out="'(' + declared_persons.length + ')'"/>
+            </div>
+            <t t-set="missing_value_groups" t-value="this.missingValueGroups"/>
+            <div t-if="missing_value_groups.length or this.hasMissingValues" class="alert alert-warning o_swissdec_alert" role="alert">
+                <i class="oi oi-fw" data-icon="warning" aria-hidden="true"/>
+                <div class="o_swissdec_alert_content">
+                    <div class="d-flex flex-wrap align-items-baseline gap-2">
+                        <span class="fw-bold">Missing Data</span>
+                        <button type="button" class="btn btn-sm btn-secondary ms-auto"
+                                title="Complete the missing values with the current employee data, without reopening the payslips"
+                                t-on-click="() => this.refreshMissingData()">
+                            <i class="oi me-1" data-icon="refresh" aria-hidden="true"/>Refresh Data
+                        </button>
+                    </div>
+                    <div t-foreach="missing_value_groups" t-as="missing_value_group" t-key="missing_value_group_index" class="mt-1">
+                        <span class="me-1" t-out="missing_value_group.name"/>
+                        <a t-foreach="missing_value_group.values" t-as="missing_value" t-key="missing_value.key"
+                           href="#" class="fw-bold text-nowrap me-2" t-on-click.prevent="() => this.openMissingValue(missing_value)">
+                            <i class="oi me-1" data-icon="east" aria-hidden="true"/><t t-out="missing_value.label"/>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- the active page of the notebook has to be one of its institutions -->
+            <t t-set="institution_pages" t-value="this.institutionPages"/>
+            <Notebook t-key="institution_pages.map((page) => page.id).join()" pages="institution_pages"/>
+        </div>
+    </t>
+
+    <t t-name="l10n_ch_hr_payroll.DeclareSalaryInstitution">
+        <t t-if="this.props.domain === 'Statistic'">
+            <t t-call="l10n_ch_hr_payroll.DeclareSalaryStatistic"/>
+        </t>
+        <div t-else="" class="table-responsive">
+            <table class="table table-sm o_swissdec_table">
+                <t t-if="this.props.domain === 'AHV-AVS'" t-call="l10n_ch_hr_payroll.DeclareSalaryAvs"/>
+                <t t-elif="this.props.domain === 'FAK-CAF'" t-call="l10n_ch_hr_payroll.DeclareSalaryCaf"/>
+                <t t-elif="this.props.domain === 'BVG-LPP'" t-call="l10n_ch_hr_payroll.DeclareSalaryLpp"/>
+                <t t-elif="this.props.domain === 'UVG-LAA'" t-call="l10n_ch_hr_payroll.DeclareSalaryLaa"/>
+                <t t-elif="this.props.domain === 'UVGZ-LAAC'" t-call="l10n_ch_hr_payroll.DeclareSalaryLaac"/>
+                <t t-elif="this.props.domain === 'KTG-AMC'" t-call="l10n_ch_hr_payroll.DeclareSalaryIjm"/>
+                <t t-elif="this.props.domain === 'Tax'" t-call="l10n_ch_hr_payroll.DeclareSalaryTax"/>
+                <t t-elif="this.props.domain === 'TaxAtSource'" t-call="l10n_ch_hr_payroll.DeclareSalaryTaxAtSource"/>
+                <t t-elif="this.props.domain === 'TaxCrossborder'" t-call="l10n_ch_hr_payroll.DeclareSalaryTaxCrossborder"/>
+            </table>
+        </div>
+    </t>
+
+    <!-- Requires `value`: displayed as is, or as a badge opening the record to complete when it is missing -->
+    <t t-name="l10n_ch_hr_payroll.DeclareSalaryValue">
+        <t t-if="this.format.isMissing(value)">
+            <t t-set="missing_value" t-value="this.getMissingValue(value)"/>
+            <a t-if="missing_value" href="#" class="badge rounded-pill text-bg-warning" t-att-title="missing_value.label"
+               t-on-click.prevent="() => this.props.openMissingValue(missing_value)">Missing</a>
+            <span t-else="" class="badge rounded-pill text-bg-warning">Missing</span>
+        </t>
+        <t t-else="" t-out="value"/>
+    </t>
+
+    <!-- Entries, mutations and withdrawals always declare zero salaries: their table only shows the declaration -->
+    <t t-name="l10n_ch_hr_payroll.DeclareSalaryAvs">
+        <t t-set="with_events" t-value="this.hasDeclarationEvents"/>
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Accounting Period</th>
+                <th t-if="with_events">Declaration</th>
+                <t t-else="">
+                    <th class="text-end">AVS Salary</th>
+                    <th class="text-end">AC Salary</th>
+                    <th class="text-end">AVS Exempt</th>
+                    <th class="text-end">AC Exempt</th>
+                </t>
+            </tr>
+        </thead>
+        <tbody>
+            <tr t-foreach="this.props.rows" t-as="row" t-key="row_index">
+                <t t-call="l10n_ch_hr_payroll.SwissdecEmployeeCell"
+                   employee="row.isFirst and row.person.Particulars"
+                   employee_name="row.isFirst and this.getEmployeeName(row.person.Particulars)"
+                   has_missing_value="row.hasMissingValue"/>
+                <td class="text-nowrap" t-out="this.format.period(row.values.AccountingTime)"/>
+                <td t-if="with_events">
+                    <t t-call="l10n_ch_hr_payroll.SwissdecDeclarationEvents"
+                       events="this.format.declarationEvents(row.values.DeclarationCategory)"/>
+                </td>
+                <t t-else="">
+                    <td class="text-end" t-out="this.format.amount(row.values['AHV-AVS-Income'])"/>
+                    <td class="text-end" t-out="this.format.amount(row.values['ALV-AC-Income'])"/>
+                    <td class="text-end" t-out="this.format.amount(row.values['AHV-AVS-Open'])"/>
+                    <td class="text-end" t-out="this.format.amount(row.values['ALV-AC-Open'])"/>
+                </t>
+            </tr>
+        </tbody>
+        <tfoot t-if="!with_events and this.props.rows.length > 1">
+            <tr>
+                <td colspan="2"/>
+                <td class="text-end" t-out="this.format.total(this.props.rows, 'AHV-AVS-Income')"/>
+                <td class="text-end" t-out="this.format.total(this.props.rows, 'ALV-AC-Income')"/>
+                <td class="text-end" t-out="this.format.total(this.props.rows, 'AHV-AVS-Open')"/>
+                <td class="text-end" t-out="this.format.total(this.props.rows, 'ALV-AC-Open')"/>
+            </tr>
+        </tfoot>
+    </t>
+
+    <!-- Same as the AVS: no salaries for entries, mutations and withdrawals -->
+    <t t-name="l10n_ch_hr_payroll.DeclareSalaryCaf">
+        <t t-set="with_events" t-value="this.hasDeclarationEvents"/>
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Period</th>
+                <th>Canton</th>
+                <th t-if="with_events">Declaration</th>
+                <t t-else="">
+                    <th class="text-end">Contributory Salary</th>
+                    <th class="text-end">Family Allowances</th>
+                </t>
+            </tr>
+        </thead>
+        <tbody>
+            <tr t-foreach="this.props.rows" t-as="row" t-key="row_index">
+                <t t-call="l10n_ch_hr_payroll.SwissdecEmployeeCell"
+                   employee="row.isFirst and row.person.Particulars"
+                   employee_name="row.isFirst and this.getEmployeeName(row.person.Particulars)"
+                   has_missing_value="row.hasMissingValue"/>
+                <td class="text-nowrap" t-out="this.format.period(row.values['FAK-CAF-Period'])"/>
+                <td>
+                    <t t-call="l10n_ch_hr_payroll.DeclareSalaryValue" value="row.values['FAK-CAF-WorkplaceCanton']"/>
+                </td>
+                <td t-if="with_events">
+                    <t t-call="l10n_ch_hr_payroll.SwissdecDeclarationEvents"
+                       events="this.format.declarationEvents(row.values.DeclarationCategory)"/>
+                </td>
+                <t t-else="">
+                    <td class="text-end" t-out="this.format.amount(row.values['FAK-CAF-ContributorySalary'])"/>
+                    <td class="text-end" t-out="this.format.amount(row.values['FAK-CAF-FamilyIncomeSupplement']?.['FAK-CAF-FamilyIncomeSupplementPerPerson'])"/>
+                </t>
+            </tr>
+        </tbody>
+        <tfoot t-if="!with_events and this.props.rows.length > 1">
+            <tr>
+                <td colspan="3"/>
+                <td class="text-end" t-out="this.format.total(this.props.rows, 'FAK-CAF-ContributorySalary')"/>
+                <td class="text-end" t-out="this.format.total(this.props.rows, 'FAK-CAF-FamilyIncomeSupplement', 'FAK-CAF-FamilyIncomeSupplementPerPerson')"/>
+            </tr>
+        </tfoot>
+    </t>
+
+    <t t-name="l10n_ch_hr_payroll.DeclareSalaryLpp">
+        <t t-set="with_events" t-value="this.hasDeclarationEvents"/>
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Code</th>
+                <th class="text-end">Annual Basis</th>
+                <th t-if="with_events">Declaration</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr t-foreach="this.props.rows" t-as="row" t-key="row_index">
+                <t t-call="l10n_ch_hr_payroll.SwissdecEmployeeCell"
+                   employee="row.isFirst and row.person.Particulars"
+                   employee_name="row.isFirst and this.getEmployeeName(row.person.Particulars)"
+                   has_missing_value="row.hasMissingValue"/>
+                <td>
+                    <t t-call="l10n_ch_hr_payroll.DeclareSalaryValue" value="row.values['BVG-LPP-Code']"/>
+                </td>
+                <td class="text-end" t-out="this.format.amount(row.values['BVG-LPP-AnnualBasis'])"/>
+                <td t-if="with_events">
+                    <t t-call="l10n_ch_hr_payroll.SwissdecDeclarationEvents"
+                       events="this.format.declarationEvents(row.values.DeclarationCategory)"/>
+                </td>
+            </tr>
+        </tbody>
+        <tfoot t-if="this.props.rows.length > 1">
+            <tr>
+                <td colspan="2"/>
+                <td class="text-end" t-out="this.format.total(this.props.rows, 'BVG-LPP-AnnualBasis')"/>
+                <td t-if="with_events"/>
+            </tr>
+        </tfoot>
+    </t>
+
+    <t t-name="l10n_ch_hr_payroll.DeclareSalaryLaa">
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Period</th>
+                <th>Code</th>
+                <th class="text-end">Gross Salary</th>
+                <th class="text-end">Base Salary</th>
+                <th class="text-end">Contributory Salary</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr t-foreach="this.props.rows" t-as="row" t-key="row_index">
+                <t t-call="l10n_ch_hr_payroll.SwissdecEmployeeCell"
+                   employee="row.isFirst and row.person.Particulars"
+                   employee_name="row.isFirst and this.getEmployeeName(row.person.Particulars)"
+                   has_missing_value="row.hasMissingValue"/>
+                <td class="text-nowrap" t-out="this.format.period(row.values.AccountingTime)"/>
+                <td>
+                    <t t-call="l10n_ch_hr_payroll.DeclareSalaryValue" value="row.values['UVG-LAA-Code']"/>
+                </td>
+                <td class="text-end" t-out="this.format.amount(row.values['UVG-LAA-GrossSalary'])"/>
+                <td class="text-end" t-out="this.format.amount(row.values['UVG-LAA-BaseSalary'])"/>
+                <td class="text-end" t-out="this.format.amount(row.values['UVG-LAA-ContributorySalary'])"/>
+            </tr>
+        </tbody>
+        <tfoot t-if="this.props.rows.length > 1">
+            <tr>
+                <td colspan="3"/>
+                <td class="text-end" t-out="this.format.total(this.props.rows, 'UVG-LAA-GrossSalary')"/>
+                <td class="text-end" t-out="this.format.total(this.props.rows, 'UVG-LAA-BaseSalary')"/>
+                <td class="text-end" t-out="this.format.total(this.props.rows, 'UVG-LAA-ContributorySalary')"/>
+            </tr>
+        </tfoot>
+    </t>
+
+    <t t-name="l10n_ch_hr_payroll.DeclareSalaryLaac">
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Period</th>
+                <th>Code</th>
+                <th class="text-end">Base Salary</th>
+                <th class="text-end">Contributory Salary</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr t-foreach="this.props.rows" t-as="row" t-key="row_index">
+                <t t-call="l10n_ch_hr_payroll.SwissdecEmployeeCell"
+                   employee="row.isFirst and row.person.Particulars"
+                   employee_name="row.isFirst and this.getEmployeeName(row.person.Particulars)"
+                   has_missing_value="row.hasMissingValue"/>
+                <td class="text-nowrap" t-out="this.format.period(row.values.AccountingTime)"/>
+                <td>
+                    <t t-call="l10n_ch_hr_payroll.DeclareSalaryValue" value="row.values['UVGZ-LAAC-Code']"/>
+                </td>
+                <td class="text-end" t-out="this.format.amount(row.values['UVGZ-LAAC-BaseSalary'])"/>
+                <td class="text-end" t-out="this.format.amount(row.values['UVGZ-LAAC-ContributorySalary'])"/>
+            </tr>
+        </tbody>
+        <tfoot t-if="this.props.rows.length > 1">
+            <tr>
+                <td colspan="3"/>
+                <td class="text-end" t-out="this.format.total(this.props.rows, 'UVGZ-LAAC-BaseSalary')"/>
+                <td class="text-end" t-out="this.format.total(this.props.rows, 'UVGZ-LAAC-ContributorySalary')"/>
+            </tr>
+        </tfoot>
+    </t>
+
+    <t t-name="l10n_ch_hr_payroll.DeclareSalaryIjm">
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Period</th>
+                <th>Code</th>
+                <th class="text-end">Reference AVS Salary</th>
+                <th class="text-end">Contributory Salary</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr t-foreach="this.props.rows" t-as="row" t-key="row_index">
+                <t t-call="l10n_ch_hr_payroll.SwissdecEmployeeCell"
+                   employee="row.isFirst and row.person.Particulars"
+                   employee_name="row.isFirst and this.getEmployeeName(row.person.Particulars)"
+                   has_missing_value="row.hasMissingValue"/>
+                <td class="text-nowrap" t-out="this.format.period(row.values.AccountingTime)"/>
+                <td>
+                    <t t-call="l10n_ch_hr_payroll.DeclareSalaryValue" value="row.values['KTG-AMC-Code']"/>
+                </td>
+                <td class="text-end" t-out="this.format.amount(row.values['Reference-AHV-AVS-Salary'])"/>
+                <td class="text-end" t-out="this.format.amount(row.values['KTG-AMC-ContributorySalary'])"/>
+            </tr>
+        </tbody>
+        <tfoot t-if="this.props.rows.length > 1">
+            <tr>
+                <td colspan="3"/>
+                <td class="text-end" t-out="this.format.total(this.props.rows, 'Reference-AHV-AVS-Salary')"/>
+                <td class="text-end" t-out="this.format.total(this.props.rows, 'KTG-AMC-ContributorySalary')"/>
+            </tr>
+        </tfoot>
+    </t>
+
+    <t t-name="l10n_ch_hr_payroll.DeclareSalaryTax">
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Period</th>
+                <th class="text-end">Gross Income</th>
+                <th class="text-end">Net Income</th>
+                <th class="text-end">Tax At Source</th>
+                <th t-if="this.props.generateWageStatement"/>
+            </tr>
+        </thead>
+        <tbody>
+            <tr t-foreach="this.props.rows" t-as="row" t-key="row_index">
+                <t t-call="l10n_ch_hr_payroll.SwissdecEmployeeCell"
+                   employee="row.isFirst and row.person.Particulars"
+                   employee_name="row.isFirst and this.getEmployeeName(row.person.Particulars)"
+                   has_missing_value="row.hasMissingValue"/>
+                <td class="text-nowrap">
+                    <t t-out="this.format.period(row.values.Period)"/>
+                    <span t-if="row.isPension" class="badge rounded-pill text-bg-300 ms-1">Pension</span>
+                </td>
+                <td class="text-end" t-out="this.format.amount(row.values.GrossIncome)"/>
+                <td class="text-end" t-out="this.format.amount(row.values.NetIncome)"/>
+                <td class="text-end" t-out="this.format.amount(row.values.DeductionAtSource)"/>
+                <td t-if="this.props.generateWageStatement" class="text-end">
+                    <t t-set="employee_number" t-value="row.person.Particulars?.EmployeeNumber"/>
+                    <button t-if="row.isFirst and employee_number" type="button" class="btn btn-link p-0 text-nowrap"
+                            title="Generate the wage statement of this employee"
+                            t-att-disabled="this.state.generatingWageStatement"
+                            t-on-click="() => this.onGenerateWageStatement(row.person)">
+                        <i class="oi oi-fw me-1" t-att-class="this.state.generatingWageStatement === employee_number ? 'oi-spin' : ''" t-att-data-icon="this.state.generatingWageStatement === employee_number ? 'progress_activity' : 'picture_as_pdf'" aria-hidden="true"/>Wage Statement
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+        <tfoot t-if="this.props.rows.length > 1">
+            <tr>
+                <td colspan="2"/>
+                <td class="text-end" t-out="this.format.total(this.props.rows, 'GrossIncome')"/>
+                <td class="text-end" t-out="this.format.total(this.props.rows, 'NetIncome')"/>
+                <td class="text-end" t-out="this.format.total(this.props.rows, 'DeductionAtSource')"/>
+                <td t-if="this.props.generateWageStatement"/>
+            </tr>
+        </tfoot>
+    </t>
+
+    <t t-name="l10n_ch_hr_payroll.DeclareSalaryTaxAtSource">
+        <t t-set="tax_at_source_rows" t-value="this.taxAtSourceRows"/>
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Month</th>
+                <th>Municipality ID</th>
+                <th>Code</th>
+                <th class="text-end">Taxable Earning</th>
+                <th class="text-end">Ascertained</th>
+                <th class="text-end">Sporadic Benefits</th>
+                <th class="text-end">Tax At Source</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr t-foreach="tax_at_source_rows" t-as="row" t-key="row_index">
+                <t t-call="l10n_ch_hr_payroll.SwissdecEmployeeCell"
+                   employee="row.isFirst and row.person.Particulars"
+                   employee_name="row.isFirst and this.getEmployeeName(row.person.Particulars)"
+                   has_missing_value="row.hasMissingValue"/>
+                <td class="text-nowrap">
+                    <t t-out="this.format.month(row.month)"/>
+                    <span t-if="row.kind === 'old'" class="badge rounded-pill text-bg-300 ms-1">Old</span>
+                    <span t-elif="row.kind === 'new'" class="badge rounded-pill text-bg-300 ms-1">New</span>
+                </td>
+                <td>
+                    <t t-call="l10n_ch_hr_payroll.DeclareSalaryValue" value="row.municipality"/>
+                </td>
+                <td>
+                    <t t-call="l10n_ch_hr_payroll.DeclareSalaryValue" value="this.format.taxAtSourceCode(row.values.TaxAtSourceCategory)"/>
+                </td>
+                <td class="text-end" t-out="this.format.amount(row.values.TaxableEarning)"/>
+                <td class="text-end" t-out="this.format.amount(row.values.AscertainedTaxableEarning)"/>
+                <td class="text-end" t-out="this.format.amount(row.values.SporadicBenefits)"/>
+                <td class="text-end" t-out="this.format.amount(row.values.TaxAtSource)"/>
+            </tr>
+        </tbody>
+        <tfoot t-if="tax_at_source_rows.length > 1">
+            <tr>
+                <td colspan="4"/>
+                <td class="text-end" t-out="this.format.total(tax_at_source_rows, 'TaxableEarning')"/>
+                <td class="text-end" t-out="this.format.total(tax_at_source_rows, 'AscertainedTaxableEarning')"/>
+                <td class="text-end" t-out="this.format.total(tax_at_source_rows, 'SporadicBenefits')"/>
+                <td class="text-end" t-out="this.format.total(tax_at_source_rows, 'TaxAtSource')"/>
+            </tr>
+        </tfoot>
+    </t>
+
+    <t t-name="l10n_ch_hr_payroll.DeclareSalaryTaxCrossborder">
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Period</th>
+                <th>Canton</th>
+                <th>Country of Residence</th>
+                <th class="text-end">Taxable Earning</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr t-foreach="this.props.rows" t-as="row" t-key="row_index">
+                <t t-call="l10n_ch_hr_payroll.SwissdecEmployeeCell"
+                   employee="row.isFirst and row.person.Particulars"
+                   employee_name="row.isFirst and this.getEmployeeName(row.person.Particulars)"
+                   has_missing_value="row.hasMissingValue"/>
+                <td class="text-nowrap" t-out="this.format.period(row.values.Period)"/>
+                <td>
+                    <t t-call="l10n_ch_hr_payroll.DeclareSalaryValue" value="row.values.TaxAtSourceCanton"/>
+                </td>
+                <td>
+                    <t t-call="l10n_ch_hr_payroll.DeclareSalaryValue" value="row.values.ResidenceAbroadCountry"/>
+                </td>
+                <td class="text-end" t-out="this.format.amount(row.values.TaxableEarning)"/>
+            </tr>
+        </tbody>
+        <tfoot t-if="this.props.rows.length > 1">
+            <tr>
+                <td colspan="4"/>
+                <td class="text-end" t-out="this.format.total(this.props.rows, 'TaxableEarning')"/>
+            </tr>
+        </tfoot>
+    </t>
+
+    <t t-name="l10n_ch_hr_payroll.DeclareSalaryStatistic">
+        <div class="table-responsive">
+            <table class="table table-sm o_swissdec_table">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Month</th>
+                        <th class="text-end">Gross</th>
+                        <th class="text-end">Allowances</th>
+                        <th class="text-end">Family Income</th>
+                        <th class="text-end">3rd Party Pay</th>
+                        <th class="text-end">Social Contributions</th>
+                        <th class="text-end">LPP Contributions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="this.props.rows" t-as="row" t-key="row_index">
+                        <t t-call="l10n_ch_hr_payroll.SwissdecEmployeeCell"
+                           employee="row.isFirst and row.person.Particulars"
+                           employee_name="row.isFirst and this.getEmployeeName(row.person.Particulars)"
+                           has_missing_value="row.hasMissingValue"/>
+                        <td class="text-nowrap" t-out="this.format.month(row.values.CurrentMonth)"/>
+                        <td class="text-end" t-out="this.format.amount(row.values.MonthlyValues?.GrossBaseSalaryAndRegularAllowance)"/>
+                        <td class="text-end" t-out="this.format.amount(row.values.MonthlyValues?.Allowances)"/>
+                        <td class="text-end" t-out="this.format.amount(row.values.MonthlyValues?.FamilyIncomeSupplement)"/>
+                        <td class="text-end" t-out="this.format.amount(row.values.MonthlyValues?.PaymentsByThird)"/>
+                        <td class="text-end" t-out="this.format.amount(row.values.MonthlyValues?.SocialContributions)"/>
+                        <td class="text-end" t-out="this.format.amount(row.values.MonthlyValues?.['BVG-LPP-RegularContribution'])"/>
+                    </tr>
+                </tbody>
+                <tfoot t-if="this.props.rows.length > 1">
+                    <tr>
+                        <td colspan="2"/>
+                        <td class="text-end" t-out="this.format.total(this.props.rows, 'MonthlyValues', 'GrossBaseSalaryAndRegularAllowance')"/>
+                        <td class="text-end" t-out="this.format.total(this.props.rows, 'MonthlyValues', 'Allowances')"/>
+                        <td class="text-end" t-out="this.format.total(this.props.rows, 'MonthlyValues', 'FamilyIncomeSupplement')"/>
+                        <td class="text-end" t-out="this.format.total(this.props.rows, 'MonthlyValues', 'PaymentsByThird')"/>
+                        <td class="text-end" t-out="this.format.total(this.props.rows, 'MonthlyValues', 'SocialContributions')"/>
+                        <td class="text-end" t-out="this.format.total(this.props.rows, 'MonthlyValues', 'BVG-LPP-RegularContribution')"/>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <t t-set="yearly_rows" t-value="this.statisticYearlyRows"/>
+        <t t-if="yearly_rows.length">
+            <div class="o_swissdec_subtitle">Yearly Values</div>
+            <div class="table-responsive">
+                <table class="table table-sm o_swissdec_table">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Period</th>
+                            <th class="text-end">Overtime</th>
+                            <th class="text-end">13th</th>
+                            <th class="text-end">Sporadic</th>
+                            <th class="text-end">Fringe</th>
+                            <th class="text-end">Capital</th>
+                            <th class="text-end">Other</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="yearly_rows" t-as="row" t-key="row_index">
+                            <t t-call="l10n_ch_hr_payroll.SwissdecEmployeeCell"
+                               employee="row.isFirst and row.person.Particulars"
+                               employee_name="row.isFirst and this.getEmployeeName(row.person.Particulars)"
+                               has_missing_value="row.hasMissingValue"/>
+                            <td class="text-nowrap" t-out="this.format.period(row.values.Period)"/>
+                            <td class="text-end" t-out="this.format.amount(row.values.Overtime)"/>
+                            <td class="text-end" t-out="this.format.amount(row.values.Earnings13th)"/>
+                            <td class="text-end" t-out="this.format.amount(row.values.SporadicBenefits)"/>
+                            <td class="text-end" t-out="this.format.amount(row.values.FringeBenefits)"/>
+                            <td class="text-end" t-out="this.format.amount(row.values.CapitalPayment)"/>
+                            <td class="text-end" t-out="this.format.amount(row.values.OtherBenefits)"/>
+                        </tr>
+                    </tbody>
+                    <tfoot t-if="yearly_rows.length > 1">
+                        <tr>
+                            <td colspan="2"/>
+                            <td class="text-end" t-out="this.format.total(yearly_rows, 'Overtime')"/>
+                            <td class="text-end" t-out="this.format.total(yearly_rows, 'Earnings13th')"/>
+                            <td class="text-end" t-out="this.format.total(yearly_rows, 'SporadicBenefits')"/>
+                            <td class="text-end" t-out="this.format.total(yearly_rows, 'FringeBenefits')"/>
+                            <td class="text-end" t-out="this.format.total(yearly_rows, 'CapitalPayment')"/>
+                            <td class="text-end" t-out="this.format.total(yearly_rows, 'OtherBenefits')"/>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </t>
+    </t>
+</templates>

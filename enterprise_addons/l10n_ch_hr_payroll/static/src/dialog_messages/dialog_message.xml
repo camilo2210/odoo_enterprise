@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="l10n_ch_hr_payroll.DialogMessagesRenderer">
+        <div class="o_swissdec_widget o_swissdec_dialog">
+            <t t-foreach="this.dialogSections" t-as="dialog_section" t-key="dialog_section_index">
+                <t t-if="dialog_section.heading">
+                    <div class="o_horizontal_separator mt-4 mb-3 fw-bolder" t-out="dialog_section.heading.data.swissdec_label"/>
+                    <p t-if="dialog_section.heading.data.swissdec_value" class="text-muted" t-out="dialog_section.heading.data.swissdec_value"/>
+                </t>
+                <dl class="o_swissdec_fields">
+                    <t t-foreach="dialog_section.paragraphs" t-as="dialog_field" t-key="dialog_field.id">
+                        <t t-set="field_data" t-value="dialog_field.data"/>
+                        <t t-if="field_data.field_type === 'answer'">
+                            <t t-set="input_id" t-value="'o_swissdec_dialog_field_' + dialog_field.id"/>
+                            <dt>
+                                <label t-att-for="input_id" t-out="field_data.swissdec_label"/>
+                            </dt>
+                            <dd>
+                                <t t-call="l10n_ch_hr_payroll.DialogMessageAnswer"/>
+                            </dd>
+                        </t>
+                        <t t-elif="field_data.swissdec_value">
+                            <dt t-out="field_data.swissdec_label"/>
+                            <dd t-out="this.formatValue(field_data)"/>
+                        </t>
+                        <div t-elif="field_data.swissdec_label" class="o_swissdec_fields_full" t-out="field_data.swissdec_label"/>
+                    </t>
+                </dl>
+            </t>
+        </div>
+    </t>
+
+    <!-- Requires `dialog_field`, `field_data` and `input_id` -->
+    <t t-name="l10n_ch_hr_payroll.DialogMessageAnswer">
+        <t t-set="answer_type" t-value="field_data.swissdec_answer_value_type"/>
+        <div t-att-class="this.getAnswerClass(field_data)">
+            <CharField t-if="answer_type === 'String'" id="input_id" name="'swissdec_answer_value_String'" record="dialog_field"/>
+            <IntegerField t-elif="answer_type === 'Integer'" id="input_id" name="'swissdec_answer_value_Integer'" record="dialog_field"/>
+            <FloatField t-elif="answer_type === 'Double'" id="input_id" name="'swissdec_answer_value_Double'" record="dialog_field"/>
+            <BooleanField t-elif="answer_type === 'Boolean'" id="input_id" name="'swissdec_answer_value_Boolean'" record="dialog_field"/>
+            <DateTimeField t-elif="answer_type === 'Date'" id="input_id" name="'swissdec_answer_value_Date'" record="dialog_field"/>
+            <DateTimeField t-elif="answer_type === 'DateTime'" id="input_id" name="'swissdec_answer_value_DateTime'" record="dialog_field"/>
+            <t t-elif="answer_type === 'Amount'">
+                <FloatField id="input_id" name="'swissdec_answer_value_Amount'" record="dialog_field"/>
+                <span class="text-muted text-nowrap">CHF</span>
+            </t>
+            <RadioField t-elif="answer_type === 'YesNoUnknown'" id="input_id" name="'swissdec_answer_value_YesNoUnknown'" record="dialog_field" orientation="'horizontal'"/>
+        </div>
+    </t>
+</templates>

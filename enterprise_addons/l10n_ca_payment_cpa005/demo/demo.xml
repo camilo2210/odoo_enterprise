@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="base.demo_company_ca" model="res.company" forcecreate="1">
+        <field name="l10n_ca_cpa005_short_name">CACPNY</field>
+    </record>
+
+    <record id="l10n_ca.demo_ca_company_bank" model="res.partner.bank">
+        <field name="l10n_ca_financial_institution_number">000412345</field>
+    </record>
+
+    <record id="l10n_ca.bank_account_ca_customer" model="res.partner.bank">
+        <field name="l10n_ca_financial_institution_number">000305432</field>
+    </record>
+
+    <function model="account.journal" name="write">
+        <value model="account.journal" eval="obj().search([('company_id', '=', ref('base.demo_company_ca')), ('type', '=', 'bank')], limit=1).ids"/>
+        <value eval="{
+            'l10n_ca_cpa005_originator_id': '1234567890',
+            'l10n_ca_cpa005_destination_data_center': '01600',
+            'bank_account_id': ref('l10n_ca.demo_ca_company_bank'),
+        }"/>
+    </function>
+
+</odoo>

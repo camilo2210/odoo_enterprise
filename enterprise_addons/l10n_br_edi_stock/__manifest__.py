@@ -1,0 +1,23 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+{
+    "name": "Brazilian Accounting EDI for stock",
+    "description": """
+Brazilian Accounting EDI for stock
+==================================
+Adds delivery-related information to the NF-e.
+""",
+    "category": "Accounting/Localizations/EDI",
+    "author": "Odoo S.A.",
+    "license": "OEEL-1",
+    "depends": [
+        "l10n_br_edi",
+        "sale_stock",  # move_ids on sale.order.line
+        "stock_account",  # country_code on stock.picking
+    ],
+    "data": [
+        "views/account_move_views.xml",
+        "views/stock_package_type_views.xml",
+        "views/stock_picking_views.xml",
+    ],
+    "auto_install": True,
+}

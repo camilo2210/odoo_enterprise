@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_l10n_be_drs_risk_list" model="ir.ui.view">
+        <field name="name">l10n.be.drs.risk.list</field>
+        <field name="model">l10n.be.drs.risk</field>
+        <field name="arch" type="xml">
+            <list string="DRS Risk Identification" decoration-muted="date_end &lt; current_date">
+                <field name="sector"/>
+                <field name="identification"/>
+                <field name="code"/>
+                <field name="name" string="Label"/>
+                <field name="scenario" optional="hide"/>
+                <field name="date_start" optional="hide"/>
+                <field name="date_end" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_l10n_be_drs_risk_form" model="ir.ui.view">
+        <field name="name">l10n.be.drs.risk.form</field>
+        <field name="model">l10n.be.drs.risk</field>
+        <field name="arch" type="xml">
+            <form string="DRS Risk">
+                <sheet>
+                    <h1><field name="name"/></h1>
+                    <group>
+                        <group string="NSSO Classification">
+                            <field name="sector"/>
+                            <field name="identification"/>
+                            <field name="code"/>
+                        </group>
+                        <group string="Validity &amp; Scenario">
+                            <field name="scenario"/>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_l10n_be_drs_risk_search" model="ir.ui.view">
+        <field name="name">l10n.be.drs.risk.search</field>
+        <field name="model">l10n.be.drs.risk</field>
+        <field name="arch" type="xml">
+            <search string="Search DRS Risk">
+                <field name="name"/>
+                <field name="sector"/>
+                <field name="identification"/>
+                <field name="scenario"/>
+                <filter string="Active" name="active_valid" domain="[('date_end', '&gt;=', context_today())]"/>
+                <group>
+                    <filter string="Sector" name="group_sector" context="{'group_by':'sector'}"/>
+                    <filter string="Identification" name="group_identification" context="{'group_by':'identification'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_l10n_be_drs_risk" model="ir.actions.act_window">
+        <field name="name">DRS Risk Nomenclature</field>
+        <field name="res_model">l10n.be.drs.risk</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_l10n_be_drs_risk_search"/>
+        <field name="context">{'search_default_active_valid': 1, 'search_default_group_sector': 1}</field>
+    </record>
+</odoo>

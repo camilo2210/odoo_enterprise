@@ -1,0 +1,402 @@
+<odoo>
+    <template id="addresses_contacts_inherit_l10n_bg_saft" inherit_id="account_saft.addresses_contacts" primary="True">
+
+        <!-- The First Name and Last Name of contacts must be separated. -->
+        <xpath expr="//ContactPerson/FirstName" position="attributes">
+            <attribute name="t-out">partner_contact.name.rpartition(' ')[0][:35]</attribute>
+        </xpath>
+        <xpath expr="//ContactPerson/LastName" position="attributes">
+            <attribute name="t-out">partner_contact.name.rpartition(' ')[2][:35]</attribute>
+        </xpath>
+
+        <xpath expr="//Contact/ContactPerson/LastName" position="after">
+            <OtherTitles t-out="partner_contact.function"/>
+        </xpath>
+    </template>
+
+    <template id="addresses_contacts_cyrillic_inherit_l10n_bg_saft" inherit_id="addresses_contacts_inherit_l10n_bg_saft" primary="True">
+
+        <xpath expr="//Name" position="replace">
+            <t t-if="partner_info['is_name_cyrillic']">
+                <Name t-out="(partner.name or '')[:70]"/>
+            </t>
+            <t t-else="">
+                <NameLatin t-out="(partner.name or '')[:70]"/>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="company_header_inherit_l10n_bg_saft" inherit_id="account_saft.company_header" primary="True">
+        <xpath expr="//t[@t-call='account_saft.addresses_contacts']" position="attributes">
+            <attribute name="t-call">l10n_bg_saft.addresses_contacts_inherit_l10n_bg_saft</attribute>
+        </xpath>
+
+        <xpath expr="//BankAccount/t[@t-else='']" position="replace">
+            <t t-else="">
+                <AccountNumber t-out="partner_bank.account_number"/>
+                <AccountName t-out="partner_bank.holder_name"/>
+                <SortCode>
+                    <RegistrationNumber t-out="(partner_bank.l10n_bg_saft_registration_number or '')[:35]"/>
+                    <Name t-if="check_cyrillic_name((partner_bank.bank_name or '')[:70])" t-out="(partner_bank.bank_name or '')[:70]" />
+                    <NameLatin t-else="" t-out="(partner_bank.bank_name or '')[:70]"/>
+                    <AddressCountry t-out="partner_bank.country_code"/>
+                </SortCode>
+            </t>
+        </xpath>
+    </template>
+    <template id="company_structure">
+        <CompanyStructure>
+            <t t-set="partner_info" t-value="partner_detail_map[partner_id]"/>
+            <RegistrationNumber t-out="partner_info['partner'].vat or partner_info['partner']._get_additional_identifier('BG_CN')"/>
+            <t t-call="l10n_bg_saft.addresses_contacts_cyrillic_inherit_l10n_bg_saft"/>
+            <t t-if="partner_info['is_related']">
+                <RelatedParty>Y</RelatedParty>
+            </t>
+            <t t-else="">
+                <RelatedParty>N</RelatedParty>
+            </t>
+        </CompanyStructure>
+    </template>
+
+    <template id="ownership_structure">
+        <Ownership>
+            <IsPartOfGroup t-out="company.l10n_bg_saft_ownership_structure" />
+            <t t-if="company.l10n_bg_saft_beneficial_owner_ids">
+                <BeneficialOwnerNameCyrillicBG t-foreach="beneficial_owner_vals_list['beneficial_owner_name_cyrillic_bg']" t-as="beneficial_owner_name_cyrillic_bg" t-out="beneficial_owner_name_cyrillic_bg" />
+                <BeneficialOwnerEGN t-foreach="beneficial_owner_vals_list['beneficial_owner_egn']" t-as="beneficial_owner_egn" t-out="beneficial_owner_egn" />
+                <BeneficialOwnerNameLatinForeign t-foreach="beneficial_owner_vals_list['beneficial_owner_name_latin_foreign']" t-as="beneficial_owner_name_latin_foreign" t-out="beneficial_owner_name_latin_foreign" />
+                <BeneficialCountryForeign t-foreach="beneficial_owner_vals_list['beneficial_country_foreign']" t-as="beneficial_country_foreign" t-out="beneficial_country_foreign" />
+                <BeneficialCountryForeignCode t-foreach="beneficial_owner_vals_list['beneficial_country_foreign_code']" t-as="beneficial_country_foreign_code" t-out="beneficial_country_foreign_code" />
+            </t>
+            <t t-if="company.l10n_bg_saft_ownership_structure in ('3','4') and ultimate_owner_vals_list">
+                <UltimateOwnerNameCyrillicBG t-foreach="ultimate_owner_vals_list['ultimate_owner_name_cyrillic_bg']" t-as="ultimate_owner_name_cyrillic_bg" t-out="ultimate_owner_name_cyrillic_bg" />
+                <UltimateOwnerUICBG t-foreach="ultimate_owner_vals_list['ultimate_owner_uicbg']" t-as="ultimate_owner_uicbg" t-out="ultimate_owner_uicbg" />
+                <UltimateOwnerNameCyrillicForeign t-foreach="ultimate_owner_vals_list['ultimate_owner_name_cyrillic_foreign']" t-as="ultimate_owner_name_cyrillic_foreign" t-out="ultimate_owner_name_cyrillic_foreign" />
+                <UltimateOwnerNameLatinForeign t-foreach="ultimate_owner_vals_list['ultimate_owner_name_latin_foreign']" t-as="ultimate_owner_name_latin_foreign" t-out="ultimate_owner_name_latin_foreign" />
+                <CountryForeign t-foreach="ultimate_owner_vals_list['country_foreign']" t-as="country_foreign" t-out="country_foreign" />
+            </t>
+            <t t-else="">
+                <UltimateOwnerNameCyrillicBG t-out="'00'" />
+                <UltimateOwnerUICBG t-out="'00'" />
+                <UltimateOwnerNameCyrillicForeign t-out="'00'" />
+                <UltimateOwnerNameLatinForeign t-out="'00'" />
+                <CountryForeign t-out="'00'" />
+            </t>
+        </Ownership>
+    </template>
+
+    <template id="operator_id">
+        <t t-if="not partner_vals or ('customer' not in partner_vals['types'] and 'supplier' not in partner_vals['types'])">
+            <CustomerID t-out="partner_detail_map[company.partner_id.id]['saft_operator_code']"/>
+            <SupplierID t-out="partner_detail_map[company.partner_id.id]['saft_operator_code']"/>
+        </t>
+        <t t-else="">
+            <CustomerID t-out="partner_vals['saft_operator_code'] if 'customer' in partner_vals['types'] else '0'"/>
+            <SupplierID t-out="partner_vals['saft_operator_code'] if 'supplier' in partner_vals['types'] else '0'"/>
+        </t>
+    </template>
+
+    <template id="line_debit_credit_amount_inherit_l10n_bg_saft" inherit_id="account_saft.line_debit_credit_amount" primary="True">
+        <xpath expr="//DebitAmount/t[@t-if]" position="attributes">
+            <attribute name="t-if">True</attribute>
+        </xpath>
+        <xpath expr="//CreditAmount/t[@t-if]" position="attributes">
+            <attribute name="t-if">True</attribute>
+        </xpath>
+    </template>
+
+    <template id="tax_information_inherit_l10n_bg_saft" inherit_id="account_saft.tax_information" primary="True">
+
+        <xpath expr="//TaxCode" position="before">
+            <TaxType t-out="tax_vals['l10n_bg_saft_tax_type']"/>
+        </xpath>
+        <xpath expr="//TaxCode" position="attributes">
+            <attribute name="t-out">tax_vals['l10n_bg_saft_tax_code']</attribute>
+        </xpath>
+        <xpath expr="//TaxBaseDescription" position="replace"/>
+
+        <xpath expr="//TaxAmount/t[@t-if]" position="attributes">
+            <attribute name="t-if">True</attribute>
+        </xpath>
+
+    </template>
+
+    <template id="tax_information_wrapper">
+        <t t-if="tax_detail_vals_list and len(tax_detail_vals_list) > 0">
+            <TaxInformation t-foreach="tax_detail_vals_list" t-as="tax_vals">
+                <t t-call="l10n_bg_saft.tax_information_inherit_l10n_bg_saft"/>
+            </TaxInformation>
+        </t>
+        <t t-else="">
+            <TaxInformation>
+                <TaxType />
+                <TaxCode />
+                <TaxPercentage>0</TaxPercentage>
+                <TaxAmount>
+                    <Amount>0</Amount>
+                    <CurrencyCode>BGN</CurrencyCode>
+                    <CurrencyAmount>0</CurrencyAmount>
+                    <ExchangeRate>0</ExchangeRate>
+                </TaxAmount>
+            </TaxInformation>
+        </t>
+    </template>
+
+    <template id="invoices">
+        <NumberOfEntries t-out="invoice_vals.get('number')"/>
+        <TotalDebit t-out="format_float(invoice_vals.get('total_debit', 0.0))"/>
+        <TotalCredit t-out="format_float(invoice_vals.get('total_credit', 0.0))"/>
+        <Invoice t-foreach="invoice_vals.get('move_vals_list', [])" t-as="move_vals">
+            <InvoiceNo t-out="move_vals['name']"/>
+            <t t-set="partner_info" t-value="partner_detail_map[move_vals['partner_id']]"/>
+            <t t-if="partner_info.get('partner')">
+                <t t-set="partner" t-value="partner_info['partner']"/>
+                <t t-if="is_sale">
+                    <CustomerInfo>
+                        <CustomerID t-out="partner_info['saft_operator_code']"/>
+                        <Name t-out="partner['name']"/>
+                        <BillingAddress t-foreach="partner_info['addresses']" t-as="partner_address">
+                            <City t-out="partner_address.city"/>
+                            <Country t-out="partner_address.country_code"/>
+                        </BillingAddress>
+                    </CustomerInfo>
+                    <AccountID t-out="partner.commercial_partner_id.property_account_receivable_id.l10n_bg_saft_account_code"/>
+                </t>
+                <t t-else="">
+                    <SupplierInfo>
+                        <SupplierID t-out="partner_info['saft_operator_code']"/>
+                        <Name t-out="partner['name']"/>
+                        <BillingAddress t-foreach="partner_info['addresses']" t-as="partner_address">
+                            <City t-out="partner_address.city"/>
+                            <Country t-out="partner_address.country_code"/>
+                        </BillingAddress>
+                    </SupplierInfo>
+                    <AccountID t-out="partner.commercial_partner_id.property_account_payable_id.l10n_bg_saft_account_code"/>
+                </t>
+            </t>
+            <InvoiceDate t-out="move_vals['date']"/>
+            <InvoiceType t-out="move_vals['l10n_bg_saft_invoice_type']"/>
+            <SelfBillingIndicator t-out="move_vals['l10n_bg_saft_self_billing_indicator']"/>
+            <TransactionID t-out="move_vals['id']"/>
+
+            <InvoiceLine t-foreach="move_vals.get('invoice_line_vals_list', [])" t-as="line_vals">
+                <AccountID t-out="saft_account_by_code[line_vals['account_code']]"/>
+                <ProductCode t-out="line_vals['product_default_code'] or '0'"/>
+                <Quantity t-out="line_vals['quantity']"/>
+                <UnitPrice t-out="format_float(line_vals['price_unit'] / line_vals['rate'])"/>
+                <TaxPointDate t-out="move_vals['invoice_date']"/>
+                <Description t-out="(line_vals['name'] or move_vals['name'])[:256]"/>
+                <InvoiceLineAmount>
+                    <Amount t-out="format_float(line_vals['debit'] or line_vals['credit'])"/>
+                    <CurrencyCode t-out="line_vals['currency_code']"/>
+                    <CurrencyAmount t-out="format_float(abs(line_vals['amount_currency']) * (-1 if (line_vals['debit'] or line_vals['credit']) &lt; 0 else 1))"/>
+                    <ExchangeRate t-out="format_float(line_vals['rate'], digits=4)"/>
+                </InvoiceLineAmount>
+                <DebitCreditIndicator t-if="(line_vals['debit']) or (not line_vals['credit'] and line_vals['move_type'] in ('in_invoice', 'out_refund'))" t-out="'D'"/>
+                <DebitCreditIndicator t-if="(line_vals['credit']) or (not line_vals['debit'] and line_vals['move_type'] in ('out_invoice', 'in_refund'))" t-out="'C'"/>
+                <t t-call="l10n_bg_saft.tax_information_wrapper" tax_detail_vals_list="line_vals['tax_detail_vals_list']" sign="-1 if line_vals['credit'] else 1"/>
+            </InvoiceLine>
+        </Invoice>
+    </template>
+
+
+
+    <template id="saft_template_inherit_l10n_bg_saft" inherit_id="account_saft.saft_template"
+        primary="True">
+
+        <xpath expr="//Header/Company" position="replace">
+            <Company>
+                <t t-call="l10n_bg_saft.company_header_inherit_l10n_bg_saft"/>
+            </Company>
+        </xpath>
+
+        <xpath expr="//Header/TaxAccountingBasis" position="replace">
+            <TaxAccountingBasis t-out="company.l10n_bg_saft_tax_accounting_basis" />
+        </xpath>
+
+        <xpath expr="//Header" position="inside">
+            <TaxEntity t-out="company.l10n_bg_saft_tax_entity_type" />
+        </xpath>
+
+        <xpath expr="//MasterFiles/Owners" position="replace"/>
+        <xpath expr="//Header/Company" position="after">
+            <t t-call="l10n_bg_saft.ownership_structure"/>
+        </xpath>
+
+
+
+        <!-- Display Empty Tags -->
+
+        <xpath expr="//MasterFiles/GeneralLedgerAccounts" position="attributes">
+            <attribute name="t-if"/>
+        </xpath>
+        <xpath expr="//MasterFiles/Customers" position="attributes">
+            <attribute name="t-if"/>
+        </xpath>
+        <xpath expr="//MasterFiles/Suppliers" position="attributes">
+            <attribute name="t-if"/>
+        </xpath>
+        <xpath expr="//GeneralLedgerEntries" position="attributes">
+            <attribute name="t-if"/>
+        </xpath>
+
+
+        <xpath expr="//MasterFiles/GeneralLedgerAccounts/Account/AccountID" position="replace">
+            <AccountID t-out="account_vals['account'].l10n_bg_saft_account_code" />
+        </xpath>
+
+        <xpath expr="//MasterFiles/GeneralLedgerAccounts/Account/StandardAccountID"
+            position="replace">
+            <TaxpayerAccountID t-out="account.code" />
+        </xpath>
+
+
+        <xpath expr="//MasterFiles/Customers/Customer/t[@t-call='account_saft.addresses_contacts']" position="replace">
+            <t t-if="partner_vals.get('partner')" t-call="l10n_bg_saft.company_structure" partner_id="partner_vals['partner'].id"/>
+        </xpath>
+        <xpath expr="//MasterFiles/Customers/Customer/CustomerID" position="after">
+            <AccountID t-out="partner_vals['partner'].property_account_receivable_id.l10n_bg_saft_account_code"/>
+        </xpath>
+        <xpath expr="//MasterFiles/Customers/Customer/CustomerID" position="attributes">
+            <attribute name="t-out">partner_detail_map[partner_vals['partner'].id]['saft_operator_code']</attribute>
+        </xpath>
+
+
+        <xpath expr="//MasterFiles/Suppliers/Supplier/t[@t-call='account_saft.addresses_contacts']" position="replace">
+            <t t-if="partner_vals.get('partner')" t-call="l10n_bg_saft.company_structure" partner_id="partner_vals['partner'].id"/>
+        </xpath>
+        <xpath expr="//MasterFiles/Suppliers/Supplier/SupplierID" position="after">
+            <AccountID t-out="partner_vals['partner'].property_account_payable_id.l10n_bg_saft_account_code"/>
+        </xpath>
+        <xpath expr="//MasterFiles/Suppliers/Supplier/SupplierID" position="attributes">
+            <attribute name="t-out">partner_detail_map[partner_vals['partner'].id]['saft_operator_code']</attribute>
+        </xpath>
+
+
+        <xpath expr="//Header" position="after">
+            <MasterFilesMonthly>
+            </MasterFilesMonthly>
+        </xpath>
+        <xpath expr="//MasterFilesMonthly" position="inside">
+            <xpath expr="//MasterFiles/GeneralLedgerAccounts" position="move"/>
+            <xpath expr="//MasterFiles/Customers" position="move"/>
+            <xpath expr="//MasterFiles/Suppliers" position="move"/>
+            <xpath expr="//MasterFiles/TaxTable" position="move"/>
+        </xpath>
+        <xpath expr="//MasterFiles" position="replace"/>
+
+
+        <xpath expr="//MasterFilesMonthly/TaxTable" position="replace">
+            <TaxTable>
+                <TaxTableEntry t-foreach="tax_type_vals_list.values()" t-as="tax_type_vals">
+                    <TaxType t-out="tax_type_vals['l10n_bg_saft_tax_type']"/>
+                    <Description t-out="tax_type_vals.get('l10n_bg_saft_tax_type_description' or '')[:256]"/>
+                    <TaxCodeDetails t-foreach="tax_type_vals['tax_vals_list']" t-as="tax_vals">
+                        <TaxCode t-out="tax_vals['l10n_bg_saft_tax_code']"/>
+                        <t t-if="tax_vals['amount_type'] == 'percent'">
+                            <TaxPercentage t-out="tax_vals['amount']"/>
+                        </t>
+                        <t t-else="">
+                            <FlatTaxRate>
+                                <Amount t-out="tax_vals['amount']"/>
+                            </FlatTaxRate>
+                        </t>
+                        <Country t-out="tax_vals['country_code']"/>
+                    </TaxCodeDetails>
+                </TaxTableEntry>
+            </TaxTable>
+        </xpath>
+
+        <xpath expr="//MasterFilesMonthly/TaxTable" position="after">
+            <UOMTable>
+                <UOMTableEntry t-foreach="uom_vals_list" t-as="uom_id">
+                    <UnitOfMeasure t-out="uom_id.l10n_bg_saft_uom_code"/>
+                    <Description t-out="uom_id.l10n_bg_saft_uom_description"/>
+                </UOMTableEntry>
+            </UOMTable>
+
+            <Products>
+                <Product t-foreach="product_vals_list" t-as="product_vals">
+                    <ProductCode t-out="product_vals['default_code']"/>
+                    <GoodsServicesID t-out="product_vals['goods_services_code']"/>
+                    <ProductGroup t-out="product_vals['product_category']"/>
+                    <Description t-out="product_vals['name']"/>
+                    <ProductCommodityCode t-out="product_vals['commodity_code']"/>
+                    <UOMBase t-out="product_vals['uom_base']"/>
+                    <UOMStandard t-out="product_vals['uom_standard']"/>
+                    <UOMToUOMBaseConversionFactor t-out="product_vals['uom_conversion_factor']"/>
+                </Product>
+            </Products>
+        </xpath>
+
+
+
+        <xpath expr="//GeneralLedgerEntries/Journal/Type" position="attributes">
+            <attribute name="t-out">journal_vals['type'][:35]</attribute>
+        </xpath>
+
+        <xpath expr="//GeneralLedgerEntries/Journal/Transaction/TransactionType" position="attributes">
+            <attribute name="t-out">move_vals['type'][:18]</attribute>
+        </xpath>
+
+        <xpath expr="//GeneralLedgerEntries/Journal/Transaction/t[@t-if]" position="replace">
+            <t t-call="l10n_bg_saft.operator_id" partner_vals="partner_detail_map[move_vals['partner_id']] if move_vals['partner_id'] else False"/>
+        </xpath>
+
+        <xpath expr="//GeneralLedgerEntries/Journal/Transaction/Line" position="replace">
+            <TransactionLine t-foreach="move_vals['line_vals_list']" t-as="line_vals">
+                <RecordID t-out="line_vals['id']"/>
+                <AccountID t-out="saft_account_by_code[line_vals['account_code']]"/>
+                <TaxpayerAccountID t-out="line_vals['account_code']"/>
+                <ValueDate t-if="line_vals['date'] != move_vals['date']" t-out="line_vals['date']"/>
+                <SourceDocumentID t-out="move_vals['id']"/>
+                <t t-call="l10n_bg_saft.operator_id" partner_vals="partner_detail_map[line_vals['partner_id']] if line_vals['partner_id'] else False"/>
+                <Description t-out="(line_vals['name'] or move_vals['name'])[:256]"/>
+                <t t-call="l10n_bg_saft.line_debit_credit_amount_inherit_l10n_bg_saft"/>
+                <t t-call="l10n_bg_saft.tax_information_wrapper" tax_detail_vals_list="line_vals['tax_detail_vals_list']" sign="-1 if line_vals['credit'] else 1"/>
+            </TransactionLine>
+        </xpath>
+
+
+        <xpath expr="//GeneralLedgerEntries" position="after">
+            <SourceDocumentsMonthly>
+                <SalesInvoices>
+                    <t t-call="l10n_bg_saft.invoices" invoice_vals="sale_invoice_vals" is_sale="True"/>
+                </SalesInvoices>
+                <Payments>
+                    <NumberOfEntries t-out="payment_vals['number']"/>
+                    <TotalDebit t-out="payment_vals['total_debit']"/>
+                    <TotalCredit t-out="payment_vals['total_credit']"/>
+                    <Payment t-foreach="payment_vals['move_vals_list']" t-as="move_vals">
+                        <PaymentRefNo t-out="move_vals['name']"/>
+                        <TransactionID t-out="move_vals['id']"/>
+                        <TransactionDate t-out="move_vals['date']"/>
+                        <PaymentMethod t-out="move_vals['payment_method']"/>
+                        <Description t-out="move_vals['description']"/>
+                        <PaymentLine t-foreach="move_vals['payment_line_vals_list']" t-as="line_vals">
+                            <AccountID t-out="saft_account_by_code[line_vals['account_code']]"/>
+                            <t t-call="l10n_bg_saft.operator_id" partner_vals="partner_detail_map[line_vals['partner_id']] if line_vals['partner_id'] else False"/>
+                            <DebitCreditIndicator t-if="(line_vals['debit']) or (not line_vals['credit'] and line_vals['move_type'] in ('in_invoice', 'out_refund'))" t-out="'D'"/>
+                            <DebitCreditIndicator t-if="(line_vals['credit']) or (not line_vals['debit'] and line_vals['move_type'] in ('out_invoice', 'in_refund'))" t-out="'C'"/>
+                            <PaymentLineAmount>
+                                <Amount t-out="format_float(line_vals['debit'] or line_vals['credit'])"/>
+                                <CurrencyCode t-out="line_vals['currency_code']"/>
+                                <CurrencyAmount t-out="format_float(line_vals['amount_currency'] * (-1 if (line_vals['debit'] or line_vals['credit']) &lt; 0 else 1))"/>
+                                <ExchangeRate t-out="format_float(line_vals['rate'], digits=4)"/>
+                            </PaymentLineAmount>
+                            <t t-call="l10n_bg_saft.tax_information_wrapper"
+                                tax_detail_vals_list="line_vals['tax_detail_vals_list']"
+                                sign="-1 if line_vals['credit'] else 1"
+                            />
+                        </PaymentLine>
+                    </Payment>
+                </Payments>
+                <PurchaseInvoices>
+                    <t t-if="purchase_invoice_vals" t-call="l10n_bg_saft.invoices" invoice_vals="purchase_invoice_vals" is_sale="False"/>
+                </PurchaseInvoices>
+            </SourceDocumentsMonthly>
+        </xpath>
+
+    </template>
+
+</odoo>

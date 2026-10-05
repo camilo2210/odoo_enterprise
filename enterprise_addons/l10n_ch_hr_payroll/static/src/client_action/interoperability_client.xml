@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="l10n_ch_hr_payroll.SwissdecInteroperabilityClient">
+        <div class="o_action o_swissdec_interoperability">
+            <Layout display="{ controlPanel: {} }">
+                <div class="o_swissdec_widget p-3 p-lg-4">
+                    <div class="o_swissdec_sheet row g-0 mx-auto bg-view border rounded">
+                        <section name="ping_request" class="col-lg-6 p-3 p-lg-4">
+                            <div class="o_swissdec_title mb-3 text-uppercase fw-bolder small">Ping Endpoint</div>
+                            <button t-on-click="() => this.PingRequest()" class="btn btn-primary" t-att-disabled="this.state.loading">
+                                <span>Ping</span>
+                            </button>
+                            <t t-set="ping_response" t-value="this.state.ping_response"/>
+                            <div t-if="ping_response" class="mt-3">
+                                <div t-if="ping_response.warning" class="alert alert-danger o_swissdec_alert mb-0" role="alert">
+                                    <i class="oi oi-fw oi-filled" data-icon="cancel" aria-hidden="true"/>
+                                    <div class="o_swissdec_alert_content">
+                                        <div class="fw-bold">Ping Failed</div>
+                                        <div class="text-break" t-out="ping_response.warning"/>
+                                    </div>
+                                </div>
+                                <div t-else="" class="alert alert-success o_swissdec_alert mb-0" role="status">
+                                    <i class="oi oi-fw oi-filled" data-icon="check_circle" aria-hidden="true"/>
+                                    <div class="o_swissdec_alert_content">
+                                        <div class="fw-bold">Ping Successful</div>
+                                        <div>System Datetime : <t t-out="ping_response.SystemDateTime"/></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section name="interop_request" class="col-lg-6 p-3 p-lg-4">
+                            <div class="o_swissdec_title mb-3 text-uppercase fw-bolder small">Interoperability Test</div>
+                            <div class="d-flex flex-wrap align-items-center gap-3">
+                                <label for="o_swissdec_second_operand">Second Operand</label>
+                                <input id="o_swissdec_second_operand" t-on-input="onOperandInput" placeholder="10.00" name="second_operand" class="o_input w-auto"/>
+                                <button t-on-click="() => this.CheckInteroperabilityRequest()" class="btn btn-primary" t-att-disabled="this.state.loading">
+                                    <span>Check Interoperability</span>
+                                </button>
+                            </div>
+                            <t t-set="interoperability_response" t-value="this.state.check_interoperability_response"/>
+                            <div t-if="interoperability_response" class="mt-3">
+                                <div t-if="interoperability_response.fault" class="alert alert-danger o_swissdec_alert mb-0" role="alert">
+                                    <i class="oi oi-fw oi-filled" data-icon="cancel" aria-hidden="true"/>
+                                    <ul class="o_swissdec_alert_content list-unstyled mb-0">
+                                        <li t-foreach="interoperability_response.fault" t-as="fault" t-key="fault_index" class="text-break" t-out="fault"/>
+                                    </ul>
+                                </div>
+                                <dl t-else="" class="o_swissdec_fields mb-0">
+                                    <dt>UmlautString Is Correct</dt>
+                                    <dd>
+                                        <t t-call="l10n_ch_hr_payroll.SwissdecInteroperabilityCheck"
+                                           check="interoperability_response.UmlautStringIsCorrect"/>
+                                    </dd>
+                                    <dt>First Operand Is Correct</dt>
+                                    <dd>
+                                        <t t-call="l10n_ch_hr_payroll.SwissdecInteroperabilityCheck"
+                                           check="interoperability_response.FirstOperandIsCorrect"/>
+                                    </dd>
+                                    <dt>UmlautString</dt>
+                                    <dd t-out="interoperability_response.UmlautString"/>
+                                    <dt>Addition Result</dt>
+                                    <dd t-out="interoperability_response.AdditionResult"/>
+                                    <dt>Subtraction Result</dt>
+                                    <dd t-out="interoperability_response.SubtractionResult"/>
+                                    <dt>System DateTime</dt>
+                                    <dd t-out="interoperability_response.SystemDateTime"/>
+                                </dl>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </Layout>
+        </div>
+    </t>
+
+    <!-- Requires `check`: "True" or "False" -->
+    <t t-name="l10n_ch_hr_payroll.SwissdecInteroperabilityCheck">
+        <i t-if="check === 'True'" class="oi oi-fw text-success" data-icon="check" aria-hidden="true"/>
+        <i t-elif="check === 'False'" class="oi oi-fw text-danger" data-icon="close" aria-hidden="true"/>
+        <span class="ms-1" t-out="check"/>
+    </t>
+</templates>

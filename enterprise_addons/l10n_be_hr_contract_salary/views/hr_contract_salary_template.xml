@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="salary_package_country_code" inherit_id="hr_contract_salary.salary_package">
+        <xpath expr="//input[@name='whitelist']" position="after">
+            <input type="hidden" name="country_code" t-att-value="version.country_code"/>
+            <input type="hidden" name="l10n_be_temporary_car_option" t-att-value="version.company_id.l10n_be_temporary_car_option"/>
+            <input type="hidden" name="new_car_options" t-att-value="new_car_options"/>
+        </xpath>
+    </template>
+
+    <template id="salary_package_wishlist_sidebar" inherit_id="hr_contract_salary.salary_package_benefits">
+        <xpath expr="//div[@id='hr_cs_configurator']" position="inside">
+           <div role="dialog" id="hr_cs_modal_wishlist" class="modal fade" tabindex="-1" aria-hidden="true">
+                <div id="hr_wishlist_car_simulation" class="modal-dialog" role="document" style="overflow-y: initial;">
+                    <div class="modal-content">
+                        <header class="modal-header">
+                            <h3 class="modal-title">Simulation with Car to Order</h3>
+                            <a role="button" class="btn btn-secondary close oi" data-icon="close" data-bs-dismiss="modal" aria-label="close"/>
+                        </header>
+                        <main name="wishlist_modal_body" class="p-3"/>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+    <template id="no_option_temporary_car" inherit_id="hr_contract_salary.salary_package_benefits">
+        <xpath expr="//t[@t-if=&quot;benefit.display_type == 'dropdown-group'&quot;]" position="replace">
+                    <t t-if="benefit.display_type == 'dropdown-group'">
+                        <select
+                            class="form-control form-select form-select-primary mt16 mb8 benefit_input"
+                            applies-on="version"
+                            t-att-name="'select_' + benefit.field"
+                            t-att-required="True">
+                            <t t-set="groups" t-value="dropdown_group_options[benefit.field]"/>
+                            <t t-if="benefit.res_field_id.name == 'temporary_car_total_depreciated_cost'">
+                            <optgroup>
+                                    <option value="" disabled="" t-att-selected="not initial_values['select_' + benefit.field]">No Temporary Car • 0€ </option>
+                                </optgroup>
+                            </t> 
+                            <t t-foreach="groups" t-as="group">
+                                <optgroup t-att-label="group">
+                                    <t t-set="options" t-value="groups[group]"/>
+                                    <t t-foreach="options" t-as="option">
+                                        <option t-att-value="option[0]" t-att-selected="initial_values['select_' + benefit.field] == option[0]">
+                                            <t t-out="option[1]"/>
+                                        </option>
+                                    </t>
+                                </optgroup>
+                            </t>
+                        </select>
+                    </t>
+            </xpath>
+    </template>
+</odoo>

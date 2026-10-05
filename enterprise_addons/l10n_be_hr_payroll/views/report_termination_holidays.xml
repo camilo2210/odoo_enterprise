@@ -1,0 +1,623 @@
+<?xml version="1.0"?>
+<odoo>
+<template id="report_termination_holidays_n">
+    <t t-call="web.external_layout">
+        <t t-set="is_worker" t-value="o.version_id.is_worker()"/>
+        <style>
+            .fs-5 {
+                font-size: 8pt !important;
+            }
+            .fs-4 {
+                font-size: 9pt !important;
+            }
+            .fs-3 {
+                font-size: 10pt !important;
+            }
+            .fs-2 {
+                font-size: 17pt !important;
+            }
+            .fs-1 {
+                font-size: 18pt !important;
+            }
+        </style>
+
+        <div class="page">
+            <!-- employee's name & employee's address placeholder -->
+            <div class="me-5 mb-5 ps-3 pe-3 pt-3 pb-5" style="border: 1.5px dashed !important; margin: auto; max-width: 300px;">
+                <div class="fs-5 pe-5 me-3">
+                    <h2 class="m-0 text-uppercase fs-5 text-start" t-field="o.employee_id.legal_name"/>
+                    <h2 class="text-uppercase fs-5 text-start">
+                        <t t-set="contact_parts" t-value="[part for part in [
+                                o.employee_id.private_street,
+                                o.employee_id.private_city,
+                                o.employee_id.private_state_id.name if o.employee_id.private_state_id else '',
+                                o.employee_id.private_zip,
+                                o.employee_id.private_country_id.name if o.employee_id.private_country_id else '',
+                            ] if part]"/>
+                        <span t-out="', '.join(contact_parts)"/>
+                    </h2>
+                </div>
+            </div>
+
+            <!-- Title -->
+            <h2 class="fs-2 mb-3 fw-bold">
+                <span>Holiday certificate: </span>
+                <span> Holiday exercise </span>
+                <span t-out="o.date_to.year"/>
+                <span> - Vacation year </span>
+                <span t-out="o.date_to.year + 1"/>
+            </h2>
+
+            <!-- Employer & Employee -->
+            <section class="fs-5 mb-3">
+                <dl class="mb-3">
+                    <div class="d-flex">
+                        <dt class="me-1">Employer Name:</dt>
+                        <span class="mb-0" t-field="o.company_id.name"/>
+                    </div>
+                        
+                    <div class="d-flex">
+                        <dt class="me-1">Employer Address: </dt>
+                        <t t-set="company_parts" t-value="[part for part in [
+                            o.company_id.street,
+                            o.company_id.city,
+                            o.company_id.state_id.name if o.company_id.state_id else '',
+                            o.company_id.zip,
+                            o.company_id.country_id.name if o.company_id.country_id else '',
+                        ] if part]"/>
+                        <span t-out="', '.join(company_parts)"/>
+                    </div>
+
+                    <div class="d-flex">
+                        <dt class="me-1">Employer Business Number: </dt>
+                        <span class="mb-0" t-field="o.payroll_config_id.l10n_be_company_number"/>
+                    </div>
+                </dl>
+
+                <dl class="mb-0">
+                    <div class="d-flex">
+                        <dt class="me-1">Employee Name:</dt>
+                        <span class="mb-0" t-field="o.employee_id.legal_name"/>
+                    </div>
+
+                    <div class="d-flex">
+                        <dt class="me-1">Employee Social Security Number:</dt>
+                        <span class="mb-0" t-field="o.employee_id.niss"/>
+                    </div>
+
+                    <div class="d-flex">
+                        <dt class="me-1">Employee Address:</dt>
+                        <span class="mb-0">
+                            <t t-set="contact_parts" t-value="[part for part in [
+                                o.employee_id.private_street,
+                                o.employee_id.private_city,
+                                o.employee_id.private_state_id.name if o.employee_id.private_state_id else '',
+                                o.employee_id.private_zip,
+                                o.employee_id.private_country_id.name if o.employee_id.private_country_id else '',
+                            ] if part]"/>
+                            <span t-out="', '.join(contact_parts)"/>
+                        </span>
+                    </div>
+                </dl>
+            </section>
+
+            <h6 class="fs-3 mb-3">This is a vacation certificate relating to employment in the sector
+                <span t-if="o.payroll_config_id.l10n_be_sector" t-field="o.payroll_config_id.l10n_be_sector"/>
+                <span t-else="">private/public</span>
+            </h6>
+
+            <h2 class="fs-1 mb-0 fw-bold">Please forward this to the employer where you are taking your vacation in  <span t-out="o.date_to.year + 1"/></h2>
+            <h2 class="fs-3 mb-3">Based on this certificate, the employer will determine your entitlement to vacation time and deduct the amounts mentioned from your vacation pay.</h2>
+
+            <!-- N year occupancy line information -->
+            <strong class="fw-bold fs-4">Occupancy Line Information - Holiday exercise <span t-out="o.date_to.year" class="ms-1"/></strong>
+            <table class="fs-4 table table-sm table-bordered border-dark">
+                <thead>
+                    <tr>
+                        <td class="py-0 text-center">
+                            Start date Occupancy line
+                        </td>
+                        <td class="py-0 text-center">
+                            End date Occupancy line
+                        </td>
+                        <td class="py-0 text-center">
+                            Q/S
+                        </td>
+                        <td class="py-0 text-center">
+                            Number of days/week of work schedule
+                        </td>
+                        <td t-if="not is_worker" class="py-0 text-center">Actual days + equivalent days (1)</td>
+                        <td t-if="not is_worker" class="py-0 text-center">Senior and youth leave: days taken (2)</td>
+                        <td t-if="not is_worker" class="py-0 text-center">Additional leave (European): days taken (3)</td>
+                        <td t-if="not is_worker" class="py-0 text-center">Non-equivalent days</td>
+                        <td t-if="not is_worker" class="py-0 text-center">Total number of days that entitle the employee to leave (1+2+3)</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-set="occupations" t-value="o.employee_id.get_l10n_be_holiday_attest_occupations(o.date_to.year)"/>
+                    <t t-foreach="occupations" t-as="occupation">
+                        <tr>
+                            <td class="py-0 text-center text-nowrap" t-out="occupation['date_start']" t-options="{'widget': 'date', 'format': 'dd/MM/YYYY'}"/>
+                            <td class="py-0 text-center text-nowrap" t-out="occupation['date_end']" t-options="{'widget': 'date', 'format': 'dd/MM/YYYY'}"/>
+                            <td class="py-0 text-center">
+                                <t t-out="occupation['hours_per_week']"/>/<t t-out="occupation['reference_hours_per_week']"/>
+                            </td>
+                            <td class="py-0 text-center">
+                                <t t-out="occupation['days_per_week']"/>/<t t-out="round((occupation['reference_hours_per_week'] * occupation['days_per_week']) / occupation['hours_per_week'], 2) if occupation['hours_per_week'] else occupation['days_per_week']"/>
+                            </td>
+                            <td t-if="not is_worker" class="py-0 text-center" t-out="occupation['equivalent_days']"/>
+                            <td t-if="not is_worker" class="py-0 text-center" t-out="occupation['senior_youth_leaves']"/>
+                            <td t-if="not is_worker" class="py-0 text-center" t-out="occupation['european_leaves']"/>
+                            <td t-if="not is_worker" class="py-0 text-center" t-out="occupation['non_equivalent_days']"/>
+                            <td t-if="not is_worker" class="py-0 text-center" t-out="occupation['equivalent_days'] + occupation['senior_youth_leaves'] + occupation['european_leaves']"/>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+
+            <t t-if="not is_worker">
+            <!-- Amounts' Table -->
+            <strong class="fw-bold fs-4">Amounts</strong>
+            <table class="fs-4 table table-sm table-bordered border-dark w-75">
+                <thead>
+                    <tr>
+                        <td class="py-0 text-center" style="width: 40%;">
+                            Type of holiday pay
+                        </td>
+                        <td class="py-0 text-center">
+                            Base of holiday pay
+                        </td>
+                        <td class="py-0 text-center">
+                            Percentage of holiday pay
+                        </td>
+                        <td class="py-0 text-center">
+                            Amount of holiday pay
+                        </td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="py-0" style="width: 40%;">
+                            Simple holiday allowance
+                        </td>
+                        <td class="py-0 text-center" t-out="o._get_input_line_amount('GROSS_REF')"
+                            t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                        <td class="py-0 text-center">7,67 %</td>
+                        <td class="py-0 text-center" t-out="o.line_ids.filtered(lambda line: line.code == 'PAY_SIMPLE').total"
+                            t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                    </tr>
+                    <tr>
+                        <td class="py-0" style="width: 40%;">
+                            Simple holiday pay without ONSS
+                        </td>
+                        <td class="py-0 text-center"/>
+                        <td class="py-0 text-center">7,67 %</td>
+                        <td class="py-0 text-center"/>
+                    </tr>
+                    <tr>
+                        <td class="py-0" style="width: 40%;">
+                            Double holiday pay
+                        </td>
+                        <td class="py-0 text-center" t-out="o._get_input_line_amount('GROSS_REF')"
+                            t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                        <td class="py-0 text-center">6,80 %</td>
+                        <td class="py-0 text-center" t-out="o.line_ids.filtered(lambda line: line.code == 'PAY DOUBLE').total"
+                            t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                    </tr>
+                    <tr>
+                        <td class="py-0" style="width: 40%;">
+                            Supplementary double holiday pay
+                        </td>
+                        <td class="py-0 text-center" t-out="o._get_input_line_amount('GROSS_REF')"
+                            t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                        <td class="py-0 text-center">0,87 %</td>
+                        <td class="py-0 text-center" t-out="o.line_ids.filtered(lambda line: line.code == 'PAY DOUBLE COMPLEMENTARY').total"
+                            t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                    </tr>
+                </tbody>
+            </table>
+
+            <strong class="fw-bold mb-3 fs-3">For your information</strong>
+            <p class="fs-4 mb-3">Amount of additional (European) holiday pay:
+                <span class="text-center" t-out="sum(occupation['european_leaves_amount'] for occupation in occupations)"
+                    t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+            </p>
+            </t>
+
+            <!-- Signature -->
+            <div class="d-flex align-items-center fs-3">
+                <div class="d-flex me-3" style="min-width: 50%;">
+                    <div class="text-nowrap fw-bold me-1">Prepared and delivered to:</div>
+                    <t t-set="address_parts" t-value="[part for part in [
+                        o.employee_id.address_id.street,
+                        o.employee_id.address_id.street2,
+                        o.employee_id.address_id.city,
+                        o.employee_id.address_id.zip,
+                        o.employee_id.address_id.city_id.name if o.employee_id.address_id.city_id else '',
+                        o.employee_id.address_id.state_id.name if o.employee_id.address_id.state_id else '',
+                        o.employee_id.address_id.country_id.name if o.employee_id.address_id.country_id else '',
+                    ] if part]"/>
+                    <span t-out="', '.join(address_parts)" class="text-nowrap"/>
+                </div>
+                <div class="d-flex">
+                    <div class="fw-bold me-1">On:</div>
+                    <span t-field="o.compute_date"/>
+                </div>
+            </div>
+            <div class="fs-3">
+                Employer’s signature or authorized representative:
+            </div>
+        </div>
+
+    </t>
+</template>
+
+<template id="report_termination_holidays_n_lang">
+    <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="o">
+            <t t-set="o" t-value="o.with_context(lang=o._get_payslips_pdf_lang()[o][0])"/>
+            <t t-call="l10n_be_hr_payroll.report_termination_holidays_n" t-lang="o.env.lang"/>
+        </t>
+    </t>
+</template>
+
+<template id="report_termination_holidays_n1">
+    <t t-call="web.external_layout">
+        <t t-set="is_worker" t-value="o.version_id.is_worker()"/>
+        <div class="page">
+            <style>
+                .fs-5 {
+                    font-size: 8pt !important;
+                }
+                .fs-4 {
+                    font-size: 9pt !important;
+                }
+                .fs-3 {
+                    font-size: 10pt !important;
+                }
+                .fs-2 {
+                    font-size: 17pt !important;
+                }
+                .fs-1 {
+                    font-size: 18pt !important;
+                }
+            </style>
+
+            <!-- employee's name & employee's address placeholder -->
+            <div class="me-5 mb-4 ps-3 pe-3 pt-3 pb-4" style="border: 1.5px dashed !important; margin: auto; max-width: 300px;">
+                <div class="fs-5 pe-5 me-3">
+                    <h2 class="m-0 text-uppercase fs-5 text-start" t-field="o.employee_id.legal_name"/>
+                    <h2 class="text-uppercase fs-5 text-start">
+                       <t t-set="contact_parts" t-value="[part for part in [
+                                o.employee_id.private_street,
+                                o.employee_id.private_city,
+                                o.employee_id.private_state_id.name if o.employee_id.private_state_id else '',
+                                o.employee_id.private_zip,
+                                o.employee_id.private_country_id.name if o.employee_id.private_country_id else '',
+                            ] if part]"/>
+                        <span t-out="', '.join(contact_parts)"/>
+                    </h2>
+                </div>
+            </div>
+
+            <!-- Title -->
+            <h2 class="fs-2 mb-3 fw-bold">
+                <span>Holiday certificate: </span>
+                <span> Holiday exercise </span>
+                <span t-out="o.date_to.year - 1"/>
+                <span> - Vacation year </span>
+                <span t-out="o.date_to.year"/>
+            </h2>
+
+            <!-- Employer & Employee -->
+            <section class="fs-5 mb-3">
+                <dl class="mb-3">
+                    <div class="d-flex">
+                        <dt class="me-1">Employer Name:</dt>
+                        <span class="mb-0" t-field="o.company_id.name"/>
+                    </div>
+                        
+                    <div class="d-flex">
+                        <dt class="me-1">Employer Address: </dt>
+                        <t t-set="company_parts" t-value="[part for part in [
+                            o.company_id.street,
+                            o.company_id.city,
+                            o.company_id.state_id.name if o.company_id.state_id else '',
+                            o.company_id.zip,
+                            o.company_id.country_id.name if o.company_id.country_id else '',
+                        ] if part]"/>
+                        <span t-out="', '.join(company_parts)"/>
+                    </div>
+
+                    <div class="d-flex">
+                        <dt class="me-1">Employer Business Number: </dt>
+                        <span class="mb-0" t-field="o.payroll_config_id.l10n_be_company_number"/>
+                    </div>
+                </dl>
+
+                <dl class="mb-0">
+                    <div class="d-flex">
+                        <dt class="me-1">Employee Name:</dt>
+                        <span class="mb-0" t-field="o.employee_id.legal_name"/>
+                    </div>
+
+                    <div class="d-flex">
+                        <dt class="me-1">Employee Social Security Number:</dt>
+                        <span class="mb-0" t-field="o.employee_id.niss"/>
+                    </div>
+
+                    <div class="d-flex">
+                        <dt class="me-1">Employee Address:</dt>
+                        <span class="mb-0">
+                            <t t-set="contact_parts" t-value="[part for part in [
+                                o.employee_id.private_street,
+                                o.employee_id.private_city,
+                                o.employee_id.private_state_id.name if o.employee_id.private_state_id else '',
+                                o.employee_id.private_zip,
+                                o.employee_id.private_country_id.name if o.employee_id.private_country_id else '',
+                            ] if part]"/>
+                            <span t-out="', '.join(contact_parts)"/>
+                        </span>
+                    </div>
+                </dl>
+            </section>
+
+            <h6 class="fs-3 mb-3">This is a vacation certificate relating to employment in the sector
+                <span t-if="o.payroll_config_id.l10n_be_sector" t-field="o.payroll_config_id.l10n_be_sector"/>
+                <span t-else="">private/public</span>
+            </h6>
+
+            <h2 class="fs-1 mb-0 fw-bold">Please forward this to the employer where you are taking your vacation in  <span t-out="o.date_to.year"/></h2>
+            <h2 class="fs-3 mb-3">Based on this certificate, the employer will determine your entitlement to vacation time and deduct the amounts mentioned from your vacation pay.</h2>
+
+            <!-- N-1 year postponed vacation days -->
+            <strong class="fw-bold fs-4">postponed vacation days</strong>
+            <table class="fs-4 table table-sm table-bordered border-dark">
+                <thead>
+                    <tr>
+                        <td class="py-0 text-center">
+                            Vacation year
+                        </td>
+                        <td class="py-0 text-center">
+                            Q/S december
+                        </td>
+                        <td class="py-0 text-center">
+                            Work schedule
+                        </td>
+                        <td t-if="not is_worker" class="py-0 text-center">
+                            Balance of accrued vacation days<div>remaining days / quota to be taken</div>
+                        </td>
+                        <td class="py-0 text-center">
+                            due date
+                        </td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-set="version_n2" t-value="o.employee_id._get_version(o.date_to.replace(year=o.date_to.year - 2, month=12, day=31))"/>
+                    <tr t-if="o._get_input_line_amount('PPTO2')">
+                        <td class="py-0 text-center" t-out="o.date_to.year - 2"/>
+                        <td class="py-0 text-center">
+                            <t t-out="version_n2.resource_calendar_id.hours_per_week"/> / <t t-out="version_n2._get_reference_calendar().hours_per_week"/>
+                        </td>
+                        <td class="py-0 text-center" t-out="version_n2.resource_calendar_id.days_per_week"/>
+                        <td t-if="not is_worker" class="py-0 text-center">
+                            <t t-out="o._get_input_line_amount('PPTO2')"/> / <t t-out="o._get_input_line_amount('TPPTO2')"/>
+                        </td>
+                        <td class="py-0 text-center" t-out="o.date_to.year"/>
+                    </tr>
+                    <t t-set="version_n1" t-value="o.employee_id._get_version(o.date_to.replace(year=o.date_to.year - 1, month=12, day=31))"/>
+                    <tr t-if="o._get_input_line_amount('PPTO1')">
+                        <td class="py-0 text-center" t-out="o.date_to.year - 1"/>
+                        <td class="py-0 text-center">
+                            <t t-out="version_n1.resource_calendar_id.hours_per_week"/> / <t t-out="version_n1._get_reference_calendar().hours_per_week"/>
+                        </td>
+                        <td class="py-0 text-center" t-out="version_n1.resource_calendar_id.days_per_week"/>
+                        <td t-if="not is_worker" class="py-0 text-center">
+                            <t t-out="o._get_input_line_amount('PPTO1')"/> / <t t-out="o._get_input_line_amount('TPPTO1')"/>
+                        </td>
+                        <td class="py-0 text-center" t-out="o.date_to.year + 1"/>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- N-1 year occupancy line information -->
+            <strong class="fw-bold fs-4">Occupancy Line Information - Holiday exercise <span t-out="o.date_to.year - 1" class="ms-1"/></strong>
+            <table class="fs-4 table table-sm table-bordered border-dark">
+                <thead>
+                    <tr>
+                        <td class="py-0 text-center">
+                            Start date Occupancy line
+                        </td>
+                        <td class="py-0 text-center">
+                            End date Occupancy line
+                        </td>
+                        <td class="py-0 text-center">
+                            Q/S
+                        </td>
+                        <td class="py-0 text-center">
+                            Number of days/week of work schedule
+                        </td>
+                        <td t-if="not is_worker" class="py-0 text-center">Actual days + equivalent days (1)</td>
+                        <td t-if="not is_worker" class="py-0 text-center">Senior and youth leave: days taken (2)</td>
+                        <td t-if="not is_worker" class="py-0 text-center">Additional leave (European): days taken (3)</td>
+                        <td t-if="not is_worker" class="py-0 text-center">Non-equivalent days</td>
+                        <td t-if="not is_worker" class="py-0 text-center">Total number of days that entitle the employee to leave (1+2+3)</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="o.employee_id.get_l10n_be_holiday_attest_occupations(o.date_to.year-1)" t-as="occupation">
+                        <tr>
+                            <td class="py-0 text-center text-nowrap" t-out="occupation['date_start']" t-options="{'widget': 'date', 'format': 'dd/MM/YYYY'}"/>
+                            <td class="py-0 text-center text-nowrap" t-out="occupation['date_end']" t-options="{'widget': 'date', 'format': 'dd/MM/YYYY'}"/>
+                            <td class="py-0 text-center">
+                                <t t-out="occupation['hours_per_week']"/>/<t t-out="occupation['reference_hours_per_week']"/>
+                            </td>
+                            <td class="py-0 text-center">
+                                <t t-out="occupation['days_per_week']"/>/<t t-out="round((occupation['reference_hours_per_week'] * occupation['days_per_week']) / occupation['hours_per_week'], 2) if occupation['hours_per_week'] else occupation['days_per_week']"/>
+                            </td>
+                            <td t-if="not is_worker" class="py-0 text-center" t-out="occupation['equivalent_days']"/>
+                            <td t-if="not is_worker" class="py-0 text-center" t-out="occupation['senior_youth_leaves']"/>
+                            <td t-if="not is_worker" class="py-0 text-center" t-out="occupation['european_leaves']"/>
+                            <td t-if="not is_worker" class="py-0 text-center" t-out="occupation['non_equivalent_days']"/>
+                            <td t-if="not is_worker" class="py-0 text-center" t-out="occupation['equivalent_days'] + occupation['senior_youth_leaves'] + occupation['european_leaves']"/>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+
+            <!-- N year vacation line information -->
+            <strong class="fw-bold fs-4">Vacation days already taken - Vacation year <span t-out="o.date_to.year" class="ms-1"/></strong>
+            <table class="fs-4 table table-sm table-bordered border-dark">
+                <thead>
+                    <tr>
+                        <td class="py-0 text-center">
+                            Start date Occupancy line
+                        </td>
+                        <td class="py-0 text-center">
+                            End date Occupancy line
+                        </td>
+                        <td class="py-0 text-center">
+                            Q/S
+                        </td>
+                        <td class="py-0 text-center">
+                            Number of days/week of work schedule
+                        </td>
+                        <td t-if="not is_worker" class="py-0 text-center">
+                            Legal holidays
+                        </td>
+                        <td t-if="not is_worker" class="py-0 text-center">
+                            Additional (European) holidays
+                        </td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="o.employee_id.get_l10n_be_holiday_attest_occupations(o.date_to.year)" t-as="occupation">
+                        <tr>
+                            <td class="py-0 text-center text-nowrap" t-out="occupation['date_start']" t-options="{'widget': 'date', 'format': 'dd/MM/YYYY'}"/>
+                            <td class="py-0 text-center text-nowrap" t-out="occupation['date_end']" t-options="{'widget': 'date', 'format': 'dd/MM/YYYY'}"/>
+                            <td class="py-0 text-center">
+                                <t t-out="occupation['hours_per_week']"/>/<t t-out="occupation['reference_hours_per_week']"/>
+                            </td>
+                            <td class="py-0 text-center">
+                                <t t-out="occupation['days_per_week']"/>/<t t-out="round((occupation['reference_hours_per_week'] * occupation['days_per_week']) / occupation['hours_per_week'], 2) if occupation['hours_per_week'] else occupation['days_per_week']"/>
+                            </td>
+                            <td t-if="not is_worker" class="py-0 text-center" t-out="occupation['paid_leaves']"/>
+                            <td t-if="not is_worker" class="py-0 text-center" t-out="occupation['european_leaves']"/>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+
+            <t t-if="not is_worker">
+            <!-- Amounts' Table -->
+            <strong class="fw-bold fs-4">Amounts</strong>
+            <table class="fs-4 table table-sm table-bordered border-dark">
+                <thead>
+                    <tr>
+                        <td class="py-0 text-center" style="width: 30%;">
+                            Type of holiday pay
+                        </td>
+                        <td class="py-0 text-center">
+                            Total number of vacation days still to be taken
+                        </td>
+                        <td class="py-0 text-center">
+                            Total entitlement to vacation days
+                        </td>
+                        <td class="py-0 text-center">
+                            Base of the holiday pay for leaving
+                        </td>
+                        <td class="py-0 text-center">
+                            Percentage of holiday pay upon leaving
+                        </td>
+                        <td class="py-0 text-center">
+                            Amount of holiday pay upon leaving
+                        </td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="py-0" style="width: 30%;">
+                            Simple holiday allowance
+                        </td>
+                        <td class="py-0 text-center" t-out="o._get_input_line_amount('ALLOCATION') - o._get_input_line_amount('TIME_OFF_TAKEN')"/>
+                        <td class="py-0 text-center" t-out="o._get_input_line_amount('ALLOCATION') or 0"/>
+                        <td class="py-0 text-center" t-out="o._get_input_line_amount('GROSS_REF')"
+                            t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                        <td class="py-0 text-center">7,67 %</td>
+                        <td class="py-0 text-center" t-out="o.line_ids.filtered(lambda line: line.code == 'PAY_SIMPLE').total"
+                            t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                    </tr>
+                    <tr>
+                        <td class="py-0" style="width: 30%;">
+                            Simple holiday pay without ONSS
+                        </td>
+                        <td class="py-0 text-center"/>
+                        <td class="py-0 text-center"/>
+                        <td class="py-0 text-center"/>
+                        <td class="py-0 text-center">7,67 %</td>
+                        <td class="py-0 text-center"/>
+                    </tr>
+                    <tr>
+                        <td class="py-0" style="width: 30%;">
+                            Double holiday pay
+                        </td>
+                        <td class="bg-dark"/>
+                        <td class="bg-dark"/>
+                        <td class="py-0 text-center" t-out="o._get_input_line_amount('GROSS_REF')"
+                            t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                        <td class="py-0 text-center">6,80 %</td>
+                        <td class="py-0 text-center" t-out="o.line_ids.filtered(lambda line: line.code == 'PAY DOUBLE').total"
+                            t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                    </tr>
+                    <tr>
+                        <td class="py-0" style="width: 30%;">
+                            Supplementary double holiday pay
+                        </td>
+                        <td class="bg-dark"/>
+                        <td class="bg-dark"/>
+                        <td class="py-0 text-center" t-out="o._get_input_line_amount('GROSS_REF')"
+                            t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                        <td class="py-0 text-center">0,87 %</td>
+                        <td class="py-0 text-center" t-out="o.line_ids.filtered(lambda line: line.code == 'PAY DOUBLE COMPLEMENTARY').total"
+                            t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                    </tr>
+                </tbody>
+            </table>
+            </t>
+
+            <!-- Signature -->
+            <div class="d-flex align-items-center fs-3">
+                <div class="d-flex me-3" style="min-width: 50%;">
+                    <div class="text-nowrap fw-bold me-1">Prepared and delivered to:</div>
+                    <t t-set="address_parts" t-value="[part for part in [
+                        o.employee_id.address_id.street,
+                        o.employee_id.address_id.street2,
+                        o.employee_id.address_id.city,
+                        o.employee_id.address_id.zip,
+                        o.employee_id.address_id.city_id.name if o.employee_id.address_id.city_id else '',
+                        o.employee_id.address_id.state_id.name if o.employee_id.address_id.state_id else '',
+                        o.employee_id.address_id.country_id.name if o.employee_id.address_id.country_id else '',
+                    ] if part]"/>
+                    <span t-out="', '.join(address_parts)" class="text-nowrap"/>
+                </div>
+                <div class="d-flex">
+                    <div class="fw-bold me-1">On:</div>
+                    <span t-field="o.compute_date"/>
+                </div>
+            </div>
+            <div class="fs-3">
+                Employer’s signature or authorized representative:
+            </div>
+        </div>
+
+    </t>
+</template>
+
+<template id="report_termination_holidays_n1_lang">
+    <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="o">
+            <t t-call="l10n_be_hr_payroll.report_termination_holidays_n1"/>
+        </t>
+    </t>
+</template>
+</odoo>

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="hr_work_location_form_view_inherit_l10n_be_hr_payroll" model="ir.ui.view">
+        <field name="name">hr.work.location.view.form.inherit</field>
+        <field name="model">hr.work.location</field>
+        <field name="inherit_id" ref="hr.hr_work_location_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="replace">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" name="action_view_employees_from_establishment_unit" type="object" icon="group" icon_class="oi-filled">
+                            <field string="Employees" name="total_employee" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name" string="Name" placeholder="e.g. Louvain-La-Neuve Office" required="1"/>
+                            <field name="bce_code" placeholder="10 digits code"/>
+                            <field name="nace_code_id" placeholder="Activity code of this specific localisation"/>
+                            <field name="date_start" string="Validity Period from" widget="daterange" options="{'end_date_field': 'date_end', 'always_range': True}" placeholder="Always"/>
+                            <field name="competence" placeholder="Unknown"/>
+                            <field name="payslip_language_domain" invisible="1"/>
+                            <field name="payslip_language_id"
+                                options="{'no_create': True}"
+                                context="{'active_test': False}"
+                                domain="payslip_language_domain"
+                                readonly="competence and competence != 'br'"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company" />
+                            <field name="company_id" groups="!base.group_multi_company" invisible="1" />
+                            <field name="address_id"
+                                context="{'show_address': 1}"
+                                options='{"highlight_first_line": True}'/>
+                            <field name="location_type"
+                                    widget="badges_selection"
+                                    options="{
+                                        'default_icon': 'location_on',
+                                        'icon_mapping': {'office': 'business', 'home': 'home', 'dmfa_unit': 'business'},
+                                    }"
+                            />
+                        </group>
+                    </group>
+                </sheet>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_work_location_tree_view_inherit_l10n_be_hr_payroll" model="ir.ui.view">
+        <field name="name">hr.work.location.view.list.inherit</field>
+        <field name="model">hr.work.location</field>
+        <field name="inherit_id" ref="hr.hr_work_location_tree_view"/>
+        <field name="arch" type="xml">
+            <field name="name" position="attributes">
+                <attribute name="string">Name</attribute>
+            </field>
+            <field name="address_id" position="after">
+                <field name="address_display_name" string="Address"/>
+                <field name="location_type" string="Type"/>
+                <field name="bce_code"/>
+                <field name="nace_code_id" string="NACE Code" optional="hide"/>
+                <field name="date_start" string="Validity Start"/>
+                <field name="date_end" string="Validity End"/>
+                <field name="competence" optional="hide"/>
+                <field name="payslip_language_id" string="Payslip Language" optional="hide" readonly="1" options="{'no_open': True}"/>
+            </field>
+            <field name="address_id" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+            </field>
+            <field name="company_id" position="attributes">
+                <attribute name="optional">show</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="hr_work_location_search_view" model="ir.ui.view">
+        <field name="name">hr.work.location.search</field>
+        <field name="model">hr.work.location</field>
+        <field name="arch" type="xml">
+            <search string="Work Locations">
+                <field name="name" string="Location Name"/>
+                <field name="company_id" string="Company"/>
+                <field name="bce_code" string="Code" required="1"
+                   filter_domain="['|', ('bce_code', 'ilike', self), ('nace_code_id', 'ilike', self)]"/>
+                <filter name="filter_active" string="Active" 
+                    domain="['&amp;', '|', ('date_start', '=', False), ('date_start', '&lt;=', context_today()), '|', ('date_end', '=', False), ('date_end', '&gt;=', context_today())]"/>
+                <filter name="filter_inactive" string="Inactive" 
+                    domain="['|', ('date_start', '&gt;', context_today()), '&amp;', ('date_end', '!=', False), ('date_end', '&lt;', context_today())]"/>
+                <group>
+                    <filter name="group_company" string="Company" domain="[]" context="{'group_by': 'company_id'}"/>
+                    <filter name="group_type" string="Type" domain="[]" context="{'group_by': 'location_type'}"/>
+                    <filter name="group_nace_code" string="NACE Code" domain="[]" context="{'group_by': 'nace_code_id'}"/>
+                    <filter name="group_competence" string="Competence" domain="[]" context="{'group_by': 'competence'}"/>
+                    <filter name="group_payslip_language" string="Payslip Language" domain="[]" context="{'group_by': 'payslip_language_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_be_hr_payroll_action_create_dmfa_location" model="ir.actions.act_window">
+        <field name="name">Create new Work Location</field>
+        <field name="res_model">hr.work.location</field>
+        <field name="view_mode">form</field>
+    </record>
+
+    <record id="l10n_be_dmfa_work_location_server_action" model="ir.actions.server">
+        <field name="name">DMFA</field>
+        <field name="model_id" ref="model_hr_work_location"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = env['hr.work.location'].action_list_view()
+        </field>
+    </record>
+
+    <record id="l10n_be_dmfa_work_locations_action" model="ir.actions.act_window">
+        <field name="name">Work Locations</field>
+        <field name="res_model">hr.work.location</field>
+        <field name="view_mode">list,form</field>
+        <field name="target">current</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a DMFA establishment unit
+            </p><p>
+                The DMFA establishment unit is used to identify the work location of an employee for the DMFA declaration.
+                You can create a new DMFA establishment unit by clicking on the "Create" button.
+            </p>
+        </field>
+        <field name="context">{'default_location_type': 'dmfa_unit'}</field>
+    </record>
+
+    <menuitem
+        id="menu_l10n_be_dmfa_location_unit"
+        name="Work Locations"
+        parent="menu_l10n_be_hr_payroll_configuration"
+        sequence="80"
+        action="l10n_be_dmfa_work_location_server_action"
+        groups="hr_payroll.group_hr_payroll_user"
+    />
+</odoo>

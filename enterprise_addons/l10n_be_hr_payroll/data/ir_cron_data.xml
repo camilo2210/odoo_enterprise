@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="ir_cron_schedule_change_allocation" model="ir.cron">
+            <field name="name">Belgian Payroll: Update time off allocations on schedule change</field>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_schedule_change_allocation"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_update_allocation_from_new_schedule()</field>
+            <field name="active" eval="True"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="nextcall" eval="(DateTime.now() + relativedelta(days=1, hour=0, minute=0))"/>
+        </record>
+
+        <record id="ir_cron_fetch_onss_rates" model="ir.cron">
+            <field name="name">ONSS: Fetch rates</field>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_onss_rates_import_wizard"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_fetch_onss_rates()</field>
+            <field name="active" eval="True"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="nextcall" eval="DateTime.now()"/>
+        </record>
+
+        <record id="ir_cron_fetch_onss_files" model="ir.cron">
+            <field name="name">ONSS: Fetch SFTP files</field>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_onss_declaration"/>
+            <field name="state">code</field>
+            <field name="code">
+companies = env['res.company'].search([
+    ('onss_sftp_private_key', '!=', False),
+    ('onss_technical_user_name', '!=', False),
+])
+for company in companies:
+    model.with_company(company)._fetch_files()
+</field>
+            <field name="active" eval="True"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(hours=1))"/>
+        </record>
+
+        <record id="ir_cron_check_dimona" model="ir.cron">
+            <field name="name">Belgian Payroll: Check DIMONA</field>
+            <field name="model_id" ref="hr.model_hr_version"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_l10n_be_check_dimona()</field>
+            <field name="active" eval="True"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(hours=1))"/>
+        </record>
+
+        <record id="ir_action_server_fetch_onss_files" model="ir.actions.server">
+            <field name="name">ONSS: Fetch SFTP files</field>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_onss_declaration"/>
+            <field name="binding_model_id" ref="l10n_be_hr_payroll.model_l10n_be_onss_declaration"/>
+            <field name="binding_view_types">form,list</field>
+            <field name="state">code</field>
+            <field name="code">action = records.with_company(records.company_id)._fetch_files()</field>
+        </record>
+
+        <record id="ir_action_server_recompute_declaration_content" model="ir.actions.server">
+            <field name="name">Recompute Declaration Info</field>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_dimona_declaration"/>
+            <field name="binding_model_id" ref="l10n_be_hr_payroll.model_l10n_be_dimona_declaration"/>
+            <field name="binding_view_types">form,list</field>
+            <field name="state">code</field>
+            <field name="code">action = records._compute_declaration_info()</field>
+        </record>
+
+        <record id="ir_action_server_recompute_period_content" model="ir.actions.server">
+            <field name="name">Recompute Period Info</field>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_dimona_period"/>
+            <field name="binding_model_id" ref="l10n_be_hr_payroll.model_l10n_be_dimona_period"/>
+            <field name="binding_view_types">form,list</field>
+            <field name="state">code</field>
+            <field name="code">action = records._compute_period_info()</field>
+        </record>
+
+        <record id="ir_action_server_recompute_relation_content" model="ir.actions.server">
+            <field name="name">Recompute Relation Info</field>
+            <field name="model_id" ref="l10n_be_hr_payroll.model_l10n_be_dimona_relation"/>
+            <field name="binding_model_id" ref="l10n_be_hr_payroll.model_l10n_be_dimona_relation"/>
+            <field name="binding_view_types">form,list</field>
+            <field name="state">code</field>
+            <field name="code">action = records._compute_relation_info()</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_exogenous_config_list" model="ir.ui.view">
+            <field name="name">l10n_co.exogenous.config.list</field>
+            <field name="model">l10n_co.exogenous.config</field>
+            <field name="arch" type="xml">
+                <list string="Exogenous Report Mapping" default_order='report_type asc, category_sequence asc, concept asc' editable="bottom">
+                    <field name="report_type"/>
+                    <field name="exogenous_category_id"/>
+                    <field name="concept"/>
+                    <field name="value_to_report"/>
+                    <field name="account_ids" widget="many2many_tags" domain="[('id', 'in', allowed_account_ids)]"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_exogenous_config_form" model="ir.ui.view">
+            <field name="name">l10n_co.exogenous.config.form</field>
+            <field name="model">l10n_co.exogenous.config</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet string="Exogenous Report Mapping">
+                        <group>
+                            <group>
+                                <field name="report_type"/>
+                                <field name="concept" invisible="not show_concept" required="show_concept"/>
+                                <field name="account_ids" widget="many2many_tags" domain="[('id', 'in', allowed_account_ids)]"/>
+                            </group>
+                            <group>
+                                <field name="value_to_report"/>
+                                <field name="exogenous_category_id" widget="many2one" domain="[('report_type','=',report_type)]"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_exogenous_config_search" model="ir.ui.view">
+            <field name="name">l10n_co.exogenous.config.search</field>
+            <field name="model">l10n_co.exogenous.config</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="report_type"/>
+                    <field name="exogenous_category_id"/>
+                    <field name="concept"/>
+                    <field name="account_ids"/>
+                    <field name="value_to_report"/>
+                    <filter string="Report Types">
+                        <filter name="report_1001" string="1001" domain="[('report_type','=','1001')]"/>
+                        <filter name="report_1003" string="1003" domain="[('report_type','=','1003')]"/>
+                        <filter name="report_1005" string="1005" domain="[('report_type','=','1005')]"/>
+                        <filter name="report_1006" string="1006" domain="[('report_type','=','1006')]"/>
+                        <filter name="report_1007" string="1007" domain="[('report_type','=','1007')]"/>
+                        <filter name="report_1008" string="1008" domain="[('report_type','=','1008')]"/>
+                        <filter name="report_1009" string="1009" domain="[('report_type','=','1009')]"/>
+                    </filter>
+                    <separator/>
+                    <filter name="credit" string="Credit" domain="[('value_to_report','=','credit')]"/>
+                    <filter name="debit" string="Debit" domain="[('value_to_report','=','debit')]"/>
+                    <filter name="balance" string="Balance" domain="[('value_to_report','=','balance')]"/>
+                    <group>
+                        <filter string="Report Type" name="group_by_exog_report" context="{'group_by': 'report_type'}"/>
+                        <filter string="Category" name="group_by_exog_categ" context="{'group_by': 'exogenous_category_id'}"/>
+                        <filter string="Concept" name="group_by_exog_concept" context="{'group_by': 'concept'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_exogenous_config" model="ir.actions.act_window">
+            <field name="name">Exogenous Report Mapping</field>
+            <field name="res_model">l10n_co.exogenous.config</field>
+            <field name="view_mode">list,form</field>
+            <field name="context">{'search_default_group_by_exog_report': 1}</field>
+            <field name="path">exogenous-report-config</field>
+        </record>
+
+        <menuitem
+            action="action_exogenous_config"
+            name="Colombian Exogenous Report Mapping"
+            id="exogenous_config_menu"
+            parent="account.account_account_menu"
+            sequence="100"/>
+    </data>
+</odoo>

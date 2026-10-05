@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_contract_salary_offer_view_form" model="ir.ui.view">
+        <field name="name">hr.contract.salary.offer.view.form.inherit</field>
+        <field name="model">hr.contract.salary.offer</field>
+        <field name="inherit_id" ref="hr_contract_salary.hr_contract_salary_offer_view_form"/>
+        <field name="arch" type="xml">
+            <sheet position="before">
+                <div role="alert" class="alert alert-danger text-center" invisible="not l10n_be_is_below_scale_warning">
+                    <field name="l10n_be_is_below_scale_warning"/>
+                </div>
+            </sheet>
+            <field name="job_title" position="before">
+                <field name="employee_type_id" groups="hr.group_hr_user" readonly="state in ['cancelled', 'full_signed']"
+                    placeholder="e.g. Permanent, Replacement, Short term"/>
+                <field name="employee_type_id" readonly="1" options="{'no_open': True}" groups="!hr.group_hr_user"
+                    placeholder="e.g. Permanent, Replacement, Short term"/>
+                <label for="l10n_be_offer_seniority" invisible="employee_id or country_code != 'BE' or is_simulation_offer"/>
+                <div class="d-flex" invisible="employee_id or country_code != 'BE' or is_simulation_offer">
+                    <div class="oe_inline">
+                        <field name="l10n_be_offer_seniority" class="o_hr_narrow_field"/>
+                        <span class="me-4">years</span>
+                    </div>
+                    <div class="oe_inline">
+                        <field name="l10n_be_offer_seniority_months" class="o_hr_narrow_field" nolabel="1"/>
+                        <span>months</span>
+                    </div>
+                </div>
+            </field>
+            <field name="sign_template_id" position="attributes">
+                <attribute name="required">country_code == 'BE'</attribute>
+            </field>
+
+            <group name="group_offer" position="inside">
+                <field name="country_code" invisible="1"/>
+                <field name="new_car_options" readonly="state in ['cancelled', 'full_signed']" widget="radio" options="{'horizontal': true}" invisible="not sign_template_id or country_code != 'BE'"/>
+            </group>
+        </field>
+    </record>
+
+    <record id="hr_contract_salary_offer_view_tree" model="ir.ui.view">
+        <field name="name">hr.contract.salary.offer.view.list.inherit</field>
+        <field name="model">hr.contract.salary.offer</field>
+        <field name="inherit_id" ref="hr_contract_salary.hr_contract_salary_offer_view_tree"/>
+        <field name="arch" type="xml">
+            <field name="contract_template_id" position="after">
+                <field name="car_id" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="hr_contract_salary_offer_view_search" model="ir.ui.view">
+        <field name="name">hr.contract.salary.offer.view.search.inherit</field>
+        <field name="model">hr.contract.salary.offer</field>
+        <field name="inherit_id" ref="hr_contract_salary.hr_contract_salary_offer_view_search"/>
+        <field name="arch" type="xml">
+            <filter name="expired" position="before">
+                <filter name="with_car_id" domain="[('car_id', '!=', False)]" string="With a Vehicle"/>
+                <separator/>
+            </filter>
+            <filter name="group_by_contract_template_id" position="after">
+                <filter string="Contract Type" name="group_by_employee_type_id" domain="[]" context="{'group_by': 'employee_type_id'}"/>
+            </filter>
+        </field>
+    </record>
+
+    <record id="l10n_be_hr_contract_salary_offer_view_form_salary_calculator_inherit" model="ir.ui.view">
+        <field name="name">l10n.be.hr.contract.salary.offer.view.form.salary.calculator.inherit</field>
+        <field name="inherit_id" ref="hr_contract_salary.hr_contract_salary_offer_view_form_calculator"/>
+        <field name="model">hr.contract.salary.offer</field>
+        <field name="priority">105</field>
+        <field name="arch" type="xml">
+            <div position="before">
+                <div role="alert" class="alert alert-danger text-center" invisible="not l10n_be_is_below_scale_warning">
+                    <field name="l10n_be_is_below_scale_warning"/>
+                </div>
+            </div>
+            <field name="resource_calendar_id" position="after">
+                <label for="l10n_be_offer_seniority" invisible="employee_id or country_code != 'BE' or is_simulation_offer"/>
+                <div class="d-flex" invisible="employee_id or country_code != 'BE' or is_simulation_offer">
+                    <div class="oe_inline">
+                        <field name="l10n_be_offer_seniority" class="o_hr_narrow_field"/>
+                        <span class="me-4">years</span>
+                    </div>
+                    <div class="oe_inline">
+                        <field name="l10n_be_offer_seniority_months" class="o_hr_narrow_field" nolabel="1"/>
+                        <span>months</span>
+                    </div>
+                </div>
+                <field name="sign_template_id" options="{'no_create': True}" string="Contract PDF"
+                                    readonly="has_sign_template" placeholder="No online signature"/>
+                <label for="contract_start_date" string="Contract Date" invisible="not sign_template_id"/>
+                <div class="o_row" invisible="not sign_template_id">
+                    <field class="oe_inline" name="contract_start_date" readonly="state in ['cancelled', 'full_signed']"/>
+                    <i class="oi mx-2" data-icon="east" aria-label="to" title="To"/>
+                    <field class="oe_inline" name="contract_end_date" readonly="state in ['cancelled', 'full_signed']" placeholder="No limit"/>
+                </div>
+                <field name="offer_end_date" readonly="state in ['cancelled', 'full_signed']" placeholder="Always valid" invisible="not sign_template_id"/>
+                <field name="job_title" readonly="state == 'cancelled'"
+                                placeholder="e.g. Lead Dev, Junior Consultant" invisible="not sign_template_id"/>
+                <field name="new_car_options" readonly="state in ['cancelled', 'full_signed']" widget="radio" options="{'horizontal': true}" invisible="not sign_template_id or country_code != 'BE'"/>
+
+            </field>
+        </field>
+    </record>
+</odoo>

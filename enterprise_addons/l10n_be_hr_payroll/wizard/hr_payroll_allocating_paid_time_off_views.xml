@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="allocating_paid_time_off_wizard_action" model="ir.actions.act_window">
+        <field name="name">Paid Time Off Allocation</field>
+        <field name="res_model">hr.payroll.alloc.paid.leave</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="binding_model_id" ref="hr.model_hr_employee"/>
+        <field name="binding_view_types">list,kanban</field>
+        <field name="context">{'default_employee_ids': active_ids}</field>
+    </record>
+
+    <record id="hr_payroll_allocating_paid_time_off_view_form" model="ir.ui.view">
+        <field name="name">hr.payroll.alloc.paid.leave.view.form</field>
+        <field name="model">hr.payroll.alloc.paid.leave</field>
+        <field name="arch" type="xml">
+            <form string="Paid Time Off Allocation" create="0">
+                <header>
+                    <button name="generate_allocation" string="Generate Allocations" type="object" class="btn-primary" data-hotkey="q"/>
+                </header>
+                <sheet>
+                    <field name="employee_ids" invisible="1"/>
+                    <field name="has_time_off_to_postpone" invisible="1"/>
+                    <field name="alloc_employee_ids" widget="holiday_pay_list_widget" nolabel="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_hr_payroll_alloc_employee_view_tree" model="ir.ui.view">
+        <field name="name">hr.payroll.alloc.employee.view.list</field>
+        <field name="model">hr.payroll.alloc.employee</field>
+        <field name="arch" type="xml">
+            <list string="Employee" editable="bottom" create="0" delete="1">
+                <field name="employee_id" widget="many2one_avatar_employee"/>
+                <field name="holiday_attest_balance" string="Attestations"/>
+                <field name="paid_time_off_hours" string="Accrued Hours" optional="hide"/>
+                <field name="paid_time_off" string="Accrued Days"/>
+                <field name="contract_next_year_id" column_invisible="True" />
+                <field name="resource_calendar_id"/>
+                <field name="already_allocated_paid_time_off"/>
+                <field name="paid_time_off_to_allocate" string="To Allocate"/>
+                <field name="paid_time_off_to_postpone_n1" column_invisible="not parent.has_time_off_to_postpone" width="120px"/>
+                <field name="paid_time_off_to_postpone_n2" column_invisible="not parent.has_time_off_to_postpone" width="120px"/>
+            </list>
+        </field>
+    </record>
+</odoo>

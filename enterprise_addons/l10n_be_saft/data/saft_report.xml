@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="saft_template" inherit_id="account_saft.saft_template" primary="True">
+        <!--Sign is handled in python, no need to change it based on credit or debit-->
+        <xpath expr="//TaxInformation/t[@t-set='sign']" position="attributes">
+            <attribute name="t-value">1</attribute>
+        </xpath>
+        <xpath expr="//TaxInformation" position="after">
+            <!--Belgian SAF-T requires the document number/reference to be stored in this node.-->
+            <ReferenceNumber t-out="move_vals['name'][:256]"/>
+        </xpath>
+    </template>
+
+    <template id="tax_information_inherit_l10n_be_saft" inherit_id="account_saft.tax_information">
+        <xpath expr="//TaxBaseDescription" position="before">
+            <t t-if="company.account_fiscal_country_id.code == 'BE'">
+                <TaxBase t-out="format_float(abs(tax_vals['tax_base_amount']))"/>
+            </t>
+        </xpath>
+    </template>
+</odoo>

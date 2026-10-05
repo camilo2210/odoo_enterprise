@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_be_273_xx_view_search" model="ir.ui.view">
+        <field name="name">l10n_be.273_xx.view.search</field>
+        <field name="model">l10n_be.273_xx</field>
+        <field name="arch" type="xml">
+            <search string="Search 273.XX Reports">
+                <filter string="Draft" name="state_draft" domain="[('state', '=', 'draft')]" />
+                <filter string="Ready" name="state_ready" domain="[('state', '=', 'ready')]" />
+                <filter string="Done" name="state_done" domain="[('state', '=', 'done')]" />
+                <separator />
+                <filter string="Original" name="type_original" domain="[('type', '=', 'original')]" />
+                <filter string="Correction" name="type_correction"
+                    domain="[('type', '=', 'correction')]" />
+                <separator />
+                <filter string="Archived" name="archived" domain="[('active', '=', False)]" />
+                
+                <field name="year"/>
+                <separator/>
+                <filter string="Current Company" name="filter_current_company"
+                        domain="[('company_id', '=', allowed_company_ids[0])]"
+                        groups="base.group_multi_company"/>
+                <group>
+                    <filter string="Year" name="group_by_year" domain="[]" context="{'group_by': 'year'}"/>
+                    <filter string="Company" name="group_by_company" domain="[]"
+                            context="{'group_by': 'company_id'}"
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_be_273_xx_view_form" model="ir.ui.view">
+        <field name="name">l10n_be.273_xx.view.form</field>
+        <field name="model">l10n_be.273_xx</field>
+        <field name="arch" type="xml">
+            <form string="273.XX Report" delete="0">
+                <field name="active" invisible="1"/>
+                <header>
+                    <button name="action_mark_as_done" string="Mark as done" type="object"
+                        class="btn-primary" invisible="state != 'ready'"/>
+                    <button name="action_generate" string="Generate" type="object"
+                        class="btn-primary" invisible="state != 'draft' or (not line_273S_ids and not line_273_part_ids)"/>
+                    <button name="action_generate" string="Generate" type="object"
+                        class="btn-secondary" invisible="state != 'ready'"/>
+                    <button name="action_populate" string="Populate" type="object"
+                        class="btn-primary" invisible="state != 'draft' or line_273S_ids or line_273_part_ids"/>
+                    <button name="action_populate" string="Populate" type="object"
+                        class="btn-secondary" invisible="state != 'draft' or (not line_273S_ids and not line_273_part_ids)"
+                        confirm="This will overwrite your current list and fetch all unreported payslips again. Are you sure?"/>
+                    <button name="action_set_to_draft" string="Set to draft" type="object"
+                        class="btn-secondary" invisible="state != 'ready'"/>
+                    <button name="action_correct" string="Correct" type="object"
+                        class="btn-secondary" invisible="state != 'done'"/>
+                    <button name="action_cancel" string="Cancel" type="object" class="btn-secondary"
+                        invisible="state == 'cancelled'"/>
+
+                    <field name="state" widget="statusbar" statusbar_visible="draft,ready,done" />
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="not is_correction_needed or state == 'cancelled'">
+                        Some payslips included in this report have been modified or cancelled.
+                        <span invisible="state == 'done'">Please set the report to draft and repopulate.</span>
+                        <span invisible="state != 'done'">Please generate a correction report.</span>
+                    </div>
+                    <group>
+                        <group class="flex-column">
+                            <group class="d-flex w-100">
+                                <group>
+                                    <field name="year" options="{'enable_formatting': false}" readonly="state != 'draft' or type == 'correction'"
+                                        force_save="1" class="oe_inline o_hr_narrow_field"/>
+                                </group>
+                                <group>
+                                    <field name="month" readonly="state != 'draft' or type == 'correction'"
+                                        force_save="1" class="oe_inline o_hr_narrow_field"/>
+                                </group>
+                            </group>
+                            <group class="w-100">
+                                <field name="belcotax_reference" placeholder="Id from Belcotax" />
+                                <field name="pdf_273s_file" filename="pdf_273s_filename" readonly="1"
+                                    invisible="not pdf_273s_file" />
+                                <field name="pdf_273_part_file" filename="pdf_273_part_filename" readonly="1"
+                                    invisible="not pdf_273_part_file" />
+                                <field name="xml_file" filename="xml_filename" readonly="1"
+                                    invisible="not xml_file" />
+                            </group>
+                        </group>
+                        <group>
+                            <field name="type" widget="radio" options="{'horizontal': True}"
+                                readonly="state != 'draft'"/>
+                            <field name="origin_id"
+                                invisible="type != 'correction'"
+                                required="type == 'correction'"
+                                readonly="state != 'draft'"
+                                options="{'no_create': True, 'no_create_edit': True}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Intellectual Property" name="ip_lines">
+                            <field name="line_273S_ids" readonly="state != 'draft'">
+                                <list string="Intellectual Property" create="0" editable="bottom">
+                                    <field name="payslip_id" string="Payslip" width="100"/>
+                                    <field name="employee_id" width="100"/>
+                                    <field name="date_start" string="Period start"/>
+                                    <field name="date_end" string="Period End"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Employee Participation" name="participation_lines">
+                            <field name="line_273_part_ids" readonly="state != 'draft'">
+                                <list string="Employee Participation" create="0" editable="bottom">
+                                    <field name="payslip_id" string="Payslip" width="100"/>
+                                    <field name="employee_id" width="100"/>
+                                    <field name="date_start" string="Period start"/>
+                                    <field name="date_end" string="Period End"/>
+                                    <field name="profit_sharing_15_gross" optional="hide"/>
+                                    <field name="profit_sharing_15_tax"/>
+                                    <field name="profit_sharing_7_gross" optional="hide"/>
+                                    <field name="profit_sharing_7_tax"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_be_273_xx_view_tree" model="ir.ui.view">
+        <field name="name">l10n_be.273_xx.view.list</field>
+        <field name="model">l10n_be.273_xx</field>
+        <field name="arch" type="xml">
+            <list string="273.XX Sheets" delete="0">
+                <field name="year" options="{'enable_formatting': false}"/>
+                <field name="month"/>
+                <field name="company_id" groups="base.group_multi_company" readonly="1" />
+                <field name="type" widget="badge"
+                    decoration-info="type == 'original'"
+                    decoration-warning="type == 'correction'" />
+                <field name="pdf_273s_file" filename="pdf_273s_filename" string="273S PDF" readonly="1" widget="binary" optional="show"/>
+                <field name="pdf_273_part_file" filename="pdf_273_part_filename" string="273 Part PDF" readonly="1" widget="binary" optional="show"/>
+                <field name="xml_file" filename="xml_filename" string="XML File" optional="show"
+                    readonly="1" widget="binary"/>
+                <field name="state" widget="badge"
+                    decoration-muted="state == 'draft'"
+                    decoration-info="state == 'ready'"
+                    decoration-success="state == 'done'"
+                    decoration-danger="state == 'cancelled'" />
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_be_273_xx_action" model="ir.actions.act_window">
+        <field name="name">273.XX Sheets</field>
+        <field name="res_model">l10n_be.273_xx</field>
+        <field name="view_mode">list,form</field>
+        <field name="target">current</field>
+        <field name="search_view_id" ref="l10n_be_273_xx_view_search" />
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Report Yet? Let's create a new one.
+            </p>
+            <p>
+                The 273.XX report is the employer's report calculating the withholding tax on income from copyrights and related rights, as well as employee participation bonuses.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_l10n_be_273_xx"
+        name="273.XX Sheets"
+        action="l10n_be_273_xx_action"
+        parent="l10n_be_hr_payroll.menu_reporting_l10n_be"
+        sequence="90"
+    />
+</odoo>

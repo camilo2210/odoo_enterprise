@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo auto_sequence="1">
+    <record id="profit_and_loss" model="account.report">
+        <field name="name">Profit and Loss</field>
+        <field name="name@fr">Profits et pertes</field>
+        <field name="root_report_id" ref="account_reports.profit_and_loss"/>
+        <field name="groupby">account_id</field>
+        <field name="country_id" ref="base.ca"/>
+        <field name="filter_hierarchy">by_default</field>
+        <field name="column_ids">
+            <record id="profit_and_loss_column" model="account.report.column">
+                <field name="name">Balance</field>
+                <field name="name@fr">Solde</field>
+                <field name="expression_label">balance</field>
+            </record>
+        </field>
+        <field name="line_ids">
+            <record id="pl_income" model="account.report.line">
+                <field name="name">Income</field>
+                <field name="name@fr">Revenus</field>
+                <field name="code">INC</field>
+                <field name="expression_ids">
+                    <record id="pl_income_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('account_id.account_type', '=', 'income')]"/>
+                        <field name="subformula">-sum</field>
+                    </record>
+                </field>
+            </record>
+            <record id="pl_cost_of_sales" model="account.report.line">
+                <field name="name">Cost of Sales</field>
+                <field name="name@fr">Coût des ventes</field>
+                <field name="code">COS</field>
+                <field name="expression_ids">
+                    <record id="pl_cost_of_sales_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('account_id.account_type', '=', 'expense_direct_cost')]"/>
+                        <field name="subformula">sum</field>
+                        <field name="green_on_positive" eval="False"/>
+                    </record>
+                </field>
+            </record>
+            <record id="pl_gross_profit" model="account.report.line">
+                <field name="name">Gross Profit</field>
+                <field name="name@fr">Bénéfice brut</field>
+                <field name="code">GRP</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="pl_gross_profit_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">INC.balance - COS.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="pl_expense" model="account.report.line">
+                <field name="name">Operating Expense</field>
+                <field name="name@fr">Charges d'exploitation</field>
+                <field name="code">EXP</field>
+                <field name="expression_ids">
+                    <record id="pl_expense_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('account_id.account_type', 'in', ('expense', 'expense_depreciation'))]"/>
+                        <field name="subformula">sum</field>
+                        <field name="green_on_positive" eval="False"/>
+                    </record>
+                </field>
+            </record>
+            <record id="pl_net_operating_income" model="account.report.line">
+                <field name="name">Net Operating Income</field>
+                <field name="name@fr">Bénéfice net d'exploitation</field>
+                <field name="code">OPINC</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="pl_net_operating_income_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">GRP.balance - EXP.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="pl_other_income" model="account.report.line">
+                <field name="name">Other Income</field>
+                <field name="name@fr">Autres revenus</field>
+                <field name="code">OIN</field>
+                <field name="expression_ids">
+                    <record id="pl_other_income_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('account_id.account_type', '=', 'income_other')]"/>
+                        <field name="subformula">-sum</field>
+                    </record>
+                </field>
+            </record>
+            <record id="pl_other_expense" model="account.report.line">
+                <field name="name">Other Expense</field>
+                <field name="name@fr">Autres charges</field>
+                <field name="code">OEXP</field>
+                <field name="expression_ids">
+                    <record id="pl_other_expense_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">domain</field>
+                        <field name="formula" eval="[('account_id.account_type', '=', 'expense_other')]"/>
+                        <field name="subformula">sum</field>
+                        <field name="green_on_positive" eval="False"/>
+                    </record>
+                </field>
+            </record>
+            <record id="pl_net_other_income" model="account.report.line">
+                <field name="name">Net Other Income</field>
+                <field name="name@fr">Autres revenus nets</field>
+                <field name="code">NOIN</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="pl_net_other_income_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">OIN.balance - OEXP.balance</field>
+                    </record>
+                </field>
+            </record>
+            <record id="pl_net_income" model="account.report.line">
+                <field name="name">Net Income</field>
+                <field name="name@fr">Bénéfice net</field>
+                <field name="code">NEI</field>
+                <field name="hierarchy_level">0</field>
+                <field name="expression_ids">
+                    <record id="pl_net_income_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">aggregation</field>
+                        <field name="formula">NOIN.balance + OPINC.balance</field>
+                    </record>
+                </field>
+            </record>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_be_274_XX_view_form" model="ir.ui.view">
+        <field name="name">l10n_be.274_xx.view.form</field>
+        <field name="model">l10n_be.274_xx</field>
+        <field name="arch" type="xml">
+            <form string="274.XX Sheets">
+                <header>
+                    <button name="action_mark_done" string="Mark as Done" type="object"
+                        class="btn-primary" invisible="state != 'ready'"/>
+                    <widget name="generate_dropdown"/>
+                    <button name="action_correct_274" string="Correct" type="object"
+                        class="oe_highlight" invisible="not is_correction_needed or state != 'done'"/>
+                    <button name="action_cancel_274" string="Cancel" type="object"
+                        invisible="state == 'canceled'"/>
+                    <field name="state" widget="statusbar" readonly="1" statusbar_visible="draft,ready,done"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="xml_validation_state != 'invalid' or not error_message">
+                        <field name="error_message" readonly="1" nolabel="1"/>
+                    </div>
+                    <div class="oe_button_box" name="button_box">
+                    </div>
+                    <field name="extra_hours_cap_warning" invisible="1"/>
+                    <div class="alert alert-warning text-center" role="alert" invisible="not extra_hours_cap_warning">
+                        <field name="extra_hours_cap_warning" nolabel="1"/>
+                    </div>
+                    <group colspan="2">
+                        <group>
+                            <field name="year" class="o_hr_narrow_field" options="{'type': 'number', 'enable_formatting': false}" readonly="state != 'draft'"/>
+                            <field name="month" class="o_hr_narrow_field" readonly="state != 'draft'" invisible="declaration_frequency != 'monthly' or state != 'draft'"/>
+                            <field name="company_id" readonly="1"/>
+                            <field name="belcotax_reference" string="Reference" placeholder="ID from Belcotax" readonly="state == 'canceled'"/>
+                        </group>
+                        <group class="ps-0">
+                            <field name="quarter" class="o_hr_narrow_field" readonly="state != 'draft'" invisible="declaration_frequency != 'quarterly' or state != 'draft'"/>
+                            <field name="period" class="o_hr_narrow_field" readonly="1" invisible="state == 'draft'"/>
+                            <field name="declaration_type" widget="radio" options="{'horizontal': true}" readonly="state in ('ready', 'done', 'canceled')"/>
+                            <field name="parent_id" required="declaration_type == 'modification'" invisible="declaration_type == 'original'"
+                                domain="[('declaration_type', '=', 'original'), ('id', '!=', id)]"/>
+                        </group>
+                    </group>
+                    <group colspan="2">
+                        <group invisible="state not in ('ready', 'done') and not sheet_274_10 and not xml_file and not xls_file">
+                            <field name="sheet_274_10" readonly="1" filename="sheet_274_10_filename" widget="binary" invisible="not sheet_274_10" string="PDF File"/>
+                            <label for="xml_file" string="XML File" invisible="not xml_file"/>
+                            <div class="d-flex align-items-center ms-auto" invisible="not xml_file">
+                                <field name="xml_file" readonly="1" filename="xml_filename" widget="binary" class="oe_inline"/>
+                                <field name="xml_validation_state" widget="state_selection" nolabel="1" readonly="1" class="oe_inline" style="margin-left:8px;"/>
+                            </div>
+                            <field name="xls_file" readonly="1" filename="xls_filename" widget="binary" invisible="not xls_file" string="XLSX Details"/>
+                        </group>
+                        <group class="ps-0">
+                            <field name="payment_reference" readonly="1" string="Bank Communication" invisible="state not in ('ready', 'done') or not xml_file and not payment_reference"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Summary">
+                            <group>
+                                <group string="Total">
+                                    <field name="total_taxable_amount" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="total_pp_amount" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="deducted_amount" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_to_pay" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="currency_id" invisible="1"/>
+                                </group>
+                                <group string="Exempted Amounts">
+                                    <field name="capped_amount_34" string="Bachelors" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="deducted_amount_33" string="Masters" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="deducted_amount_32" string="Doctors / Civil Engineers" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="deducted_amount_62" string="Staterjob" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="deducted_amount_74" string="(Continuous) Team Shifts" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="deducted_amount_75" string="Night Shifts" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="deducted_amount_81" string="Aid Zone" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="sme_exempted_amount" string="IPA Reduction" options="{'currency_field': 'currency_id'}" invisible="not is_ipa_reduction"/>
+                                    <field name="sme_exemption_rate" widget="percentage" readonly="1"/>
+                                    <field name="startup_exempted_amount" string="Start-up/M-E" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="deducted_amount_64" string="Training" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="extra_hours_exempted_amount" string="Extra Hours" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="deducted_amount" string="Total" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="currency_id" invisible="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Employees (274.10)" invisible="not line_274_10_ids">
+                            <field name="line_274_10_ids"
+                                context="{'tree_view_ref': 'l10n_be_hr_payroll.l10n_be_274_xx_line_view_list'}"/>
+                        </page>
+                        <page string="Replacement Revenues (274.18)" invisible="not line_274_18_ids">
+                            <field name="line_274_18_ids"
+                                context="{'tree_view_ref': 'l10n_be_hr_payroll.l10n_be_274_xx_line_view_list'}"/>
+                        </page>
+                        <page string="Economic Unemployment (274.13)" invisible="not line_274_13_ids">
+                            <field name="line_274_13_ids"
+                                context="{'tree_view_ref': 'l10n_be_hr_payroll.l10n_be_274_xx_line_view_list'}"/>
+                        </page>
+                        <page string="Company Executives (274.20)" invisible="not line_274_20_ids">
+                            <field name="line_274_20_ids"
+                                context="{'tree_view_ref': 'l10n_be_hr_payroll.l10n_be_274_xx_line_view_list'}"/>
+                        </page>
+                        <page string="Company Executives (274.30)" invisible="not line_274_30_ids">
+                            <field name="line_274_30_ids"
+                                context="{'tree_view_ref': 'l10n_be_hr_payroll.l10n_be_274_xx_line_view_list'}"/>
+                        </page>
+                        <page string="Doctors / Civil Engineers (274.32)" invisible="not line_274_32_ids">
+                            <field name="line_274_32_ids"
+                                context="{'tree_view_ref': 'l10n_be_hr_payroll.l10n_be_274_xx_line_view_list'}"/>
+                        </page>
+                        <page string="Masters (274.33)" invisible="not line_274_33_ids">
+                           <field name="line_274_33_ids"
+                                context="{'tree_view_ref': 'l10n_be_hr_payroll.l10n_be_274_xx_line_view_list'}"/>
+                        </page>
+                        <page string="Bachelors (274.34)" invisible="not line_274_34_ids">
+                            <field name="line_274_34_ids"
+                                context="{'tree_view_ref': 'l10n_be_hr_payroll.l10n_be_274_xx_line_view_list'}"/>
+                        </page>
+                        <page string="Untaxed Employees" invisible="not untaxed_employee_ids">
+                            <field name="untaxed_employee_ids"/>
+                        </page>
+                        <page string="IPA Reduction (274.56)" invisible="not is_ipa_reduction">
+                            <field name="line_274_56_ids">
+                                <list editable="bottom">
+                                    <field name="employee_id" widget="many2one_avatar_employee"/>
+                                    <field name="taxable_amount" string="Base of Dispense" sum="Total Base" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount" string="Dispense Amount" sum="Total Dispense" options="{'currency_field': 'currency_id'}"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Start-up/M-E (274.60/61)" name="startup_me" invisible="not exemption_sme_status">
+                            <field name="is_cbe_expired" invisible="1"/>
+                            <div class="alert alert-warning" role="alert" invisible="not is_cbe_expired">
+                                This exemption can be claimed for the first 48 months after the CBE inscription.
+                            </div>
+                            <group string="Exempted amounts" invisible="is_cbe_expired">
+                                <group>
+                                    <field name="taxable_amount_10" string="Taxable Amount" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="pp_amount_10" string="Withholding Taxes" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="startup_exempted_amount" string="Exempted Amount" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="startup_amount_to_pay" string="Amount to Pay" options="{'currency_field': 'currency_id'}"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Starterjob (274.62)" name="starterjob" invisible="not line_274_62_ids">
+                            <field name="line_274_62_ids" context="{'tree_view_ref': 'l10n_be_hr_payroll.l10n_be_274_xx_line_view_list'}"/>
+                        </page>
+                        <page string="Training (274.64)" name="training">
+                            <div class="alert alert-warning" role="alert" invisible="not l10n_be_training_seniority_warning_message">
+                                <field name="l10n_be_training_seniority_warning_message" nolabel="1"/>
+                            </div>
+                            <field name="line_274_64_ids"
+                                context="{'tree_view_ref': 'l10n_be_hr_payroll.l10n_be_274_xx_line_view_list'}"/>
+                            <group>
+                                <field name="training_employee_ids" widget="many2many_tags"/>
+                            </group>
+                        </page>
+                        <page string="(Continuous) Team Shifts (274.74)" name="team_shift" invisible="not line_274_74_ids">
+                            <field name="line_274_74_ids" context="{'tree_view_ref': 'l10n_be_hr_payroll.l10n_be_274_xx_line_view_list'}"/>
+                        </page>
+                        <page string="Night Shifts (274.75)" name="night_shift" invisible="not line_274_75_ids">
+                            <field name="line_274_75_ids" context="{'tree_view_ref': 'l10n_be_hr_payroll.l10n_be_274_xx_line_view_list'}"/>
+                        </page>
+                        <page string="Aid Zone (274.81)" invisible="not line_274_81_ids">
+                            <group>
+                                <field name="pp_amount_81" string="Withholding Taxes" options="{'currency_field': 'currency_id'}"/>
+                                <field name="deducted_amount_81" string="Exempted Amount (25%)" options="{'currency_field': 'currency_id'}"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <field name="line_274_81_ids" readonly="1">
+                                <list string="Aid Zone Employees" editable="bottom" create="false">
+                                    <field name="employee_id" widget="many2one_avatar_employee"/>
+                                    <field name="start_date" string="Works from"/>
+                                    <field name="end_date" string="To"/>
+                                    <field name="taxable_amount" options="{'currency_field': 'currency_id'}" sum="Total taxable amount"/>
+                                    <field name="withholding_amount" options="{'currency_field': 'currency_id'}" sum="Total withheld taxes"/>
+                                    <field name="amount" string="Tax Exemption" options="{'currency_field': 'currency_id'}" sum="Total exempted taxes"/>
+                                    <field name="nature_code" optional="hide"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Extra Hours">
+                            <field name="line_274_extra_hours_ids">
+                                <list string="Extra Hours" editable="bottom" create="false">
+                                    <field name="employee_id" widget="many2one_avatar_employee"/>
+                                    <field name="start_date" string="Works from"/>
+                                    <field name="end_date" string="To"/>
+                                    <field name="taxable_amount" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="extra_exempted_rate" widget="percentage" string="Exemption Rate"/>
+                                    <field name="amount" string="Tax Exemption" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="withholding_amount" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="paid_withholding_tax" string="Paid Withholding Tax" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="nature_code"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Payslips">
+                            <field name="payslip_ids">
+                                <list string="Payslips" create="0" edit="0" delete="0">
+                                    <field name="employee_id" widget="many2one_avatar_employee_payroll" width="300" readonly="state != 'draft'"/>
+                                    <field name="date_from" string="Period" widget="daterange" options="{'end_date_field': 'date_to', 'payrun_optional': 'hide'}" readonly="1"/>
+                                    <field name="date_to" invisible="1" column_invisible="1" readonly="1"/>
+                                    <field name="payslip_run_id" optional="hide" widget="many2one" readonly="state != 'draft'" options="{'payrun_optional': 'hide', 'no_open': 0}" placeholder="Off-Cycle"/>
+                                    <field name="l10n_be_fiscal_date" optional="hide"/>
+                                    <field name="gross_wage" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total Gross"/>
+                                    <field name="l10n_be_withholding_taxes"/>
+                                    <field
+                                        name="state_display" widget="badge"
+                                        decoration-info="state_display == '03_draft'"
+                                        decoration-success="state_display == '04_validated'"
+                                        decoration-primary="state_display == '05_paid'"
+                                        decoration-warning="state_display == '02_warning'"
+                                        decoration-danger="state_display == '01_error'"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_be_274_xx_line_view_list" model="ir.ui.view">
+        <field name="name">l10n_be.274_xx.line.view.list</field>
+        <field name="model">l10n_be.274_xx.line</field>
+        <field name="arch" type="xml">
+            <list string="Eligible Employees" editable="bottom" create="false">
+                <field name="employee_id" widget="many2one_avatar_employee"/>
+                <field name="start_date" string="Works from"/>
+                <field name="end_date" string="To"/>
+                <field name="taxable_amount" options="{'currency_field': 'currency_id'}" sum="Total taxable amount"/>
+                <field name="withholding_amount" options="{'currency_field': 'currency_id'}" sum="Total withheld taxes"/>
+                <field name="amount" string="Tax Exemption" options="{'currency_field': 'currency_id'}" sum="Total exempted taxes"/>
+                <field name="certificate"/>
+                <field name="rd_percentage" optional="hide" widget="percentage"/>
+                <field name="nature_code" optional="hide"/>
+                <!-- Used for currency formatting of monetary fields -->
+                <field name="currency_id" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_be_274_xx_line_view_search" model="ir.ui.view">
+        <field name="name">l10n_be.274_xx.line.search</field>
+        <field name="model">l10n_be.274_xx.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="employee_id" string="Employee"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_be_274_XX_view_search" model="ir.ui.view">
+        <field name="name">l10n_be.274_xx.search</field>
+        <field name="model">l10n_be.274_xx</field>
+        <field name="arch" type="xml">
+            <search string="Search 274.XX Sheets">
+                <field name="year"/>
+                <field name="period"/>
+                <group>
+                    <filter name="group_date_year" string="Year" context="{'group_by': 'year'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_be_274_XX_action" model="ir.actions.act_window">
+        <field name="name">274.XX Sheets</field>
+        <field name="res_model">l10n_be.274_xx</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="l10n_be_274_XX_view_search"/>
+        <field name="target">current</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Report Yet? Let's create a new one.
+            </p>
+            <p>
+                The 274.XX report is the employer's report managing tax exemptions for employees with specific education levels.
+            </p>
+            <p>
+                The report contains Masters, Bachelors and Doctors/Civil Engineers computations.
+            </p>
+        </field>
+    </record>
+
+    <record id="l10n_be_274_XX_view_tree" model="ir.ui.view">
+        <field name="name">l10n_be.274_xx.view.list</field>
+        <field name="model">l10n_be.274_xx</field>
+        <field name="arch" type="xml">
+            <list string="274.XX Sheets">
+                <field name="is_correction_needed" column_invisible="True"/>
+                <field name="year" widget="char" width="60px"/>
+                <field name="period" widget="char" width="80px"/>
+                <field name="eligible_employee_count" string="Employees"/>
+                <field name="declaration_type" widget="badge" string="Declaration Type"
+                    decoration-info="declaration_type == 'original'"
+                    decoration-warning="declaration_type == 'modification'"/>
+                <field name="parent_id" string="Original" optional="hide"/>
+                <field name="total_taxable_amount" string="Taxable Amount" width="150px"/>
+                <field name="total_pp_amount" string="Withholding Taxes" width="150px"/>
+                <field name="deducted_amount" string="Exempted Amount" width="150px"/>
+                <field name="xml_file" filename="xml_filename" string="XML File" widget="binary" optional="hide" width="100px"/>
+                <field name="xls_file" filename="xls_filename" string="XLS File" widget="binary" optional="hide" width="100px"/>
+                <field name="sheet_274_10" filename="sheet_274_10_filename" string="PDF File" widget="binary" optional="hide" width="100px"/>
+                <field name="state" widget="badge" decoration-info="state == 'ready'"
+                    decoration-success="state == 'done'" decoration-danger="state == 'canceled'"/>
+            </list>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_l10n_be_274_XX"
+        name="274.XX Sheets"
+        action="l10n_be_274_XX_action"
+        parent="l10n_be_hr_payroll.menu_reporting_l10n_be"
+        sequence="91"
+    />
+</odoo>
