@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <t t-name="hr_payroll.PayrunKanbanRenderer" t-inherit="web.KanbanRenderer" t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('o_kanban_renderer')]" position="attributes">
+            <attribute name="class">o_payrun_kanban o_renderer flex-grow-1</attribute>
+        </xpath>
+    </t>
+
+    <t t-name="hr_payroll.PayrunKanbanHeader" t-inherit="web.KanbanHeader" t-inherit-mode="primary">
+        <xpath expr="//button[hasclass('o_column_unfold')]" position="replace">
+        </xpath>
+        <xpath expr="//GroupConfigMenu" position="replace"/> <!-- we don't need the cog button in this kanban view -->
+        <xpath expr="//div[hasclass('o_column_title')][2]" position="attributes">
+            <attribute name="class" remove="text-900" add="fw-medium py-2 cursor-pointer" separator=" "/>
+            <attribute name="t-on-click.stop">this.group.toggle.bind(this.group)</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('o_column_title')][2]/*[1]" position="before">
+            <span class="oi oi-fw align-self-center" data-icon="arrow_drop_down"/>
+        </xpath>
+        <xpath expr="//div[hasclass('o_column_title')][1]" position="attributes">
+            <attribute name="class" remove="lh-1 pt-1" add="fw-medium cursor-pointer" separator=" "/>
+            <attribute name="t-on-click.stop">this.group.toggle.bind(this.group)</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('o_column_title')][1]/*[1]" position="before">
+            <span class="oi oi-fw align-self-center" data-icon="arrow_right"/>
+        </xpath>
+        <xpath expr="//t[@t-out='this.odoomark(this.group.displayName)']" position="replace">
+            <span class="text-truncate" t-out="this.odoomark(this.group.displayName)"/>
+        </xpath>
+        <xpath expr="//div[hasclass('o_kanban_header')]" position="attributes">
+            <attribute name="class" remove="position-sticky" separator=" "/>
+        </xpath>
+    </t>
+
+    <t t-name="hr_payroll.PayrunKanbanRecordMenu">
+            <t t-call="{{ this.templates[this.constructor.MENU_ATTRIBUTE] }}" t-call-context="this.renderingContext"/>
+    </t>
+
+    <t t-name="hr_payroll.PayrunKanbanController" t-inherit="web.KanbanView" t-inherit-mode="primary">
+         <Layout position="inside">
+            <t t-set-slot="control-panel-navigation-additional">
+                <button
+                    t-if="this.payRunChatter.visible() and !this.env.inDialog"
+                    t-on-click="() => this.payRunChatter.toggleChatter()"
+                    data-tooltip="Close Chatter"
+                    class="btn btn-secondary d-none d-md-inline ms-2">
+                    <i class="oi oi-fw" data-icon="close"/>
+                </button>
+            </t>
+        </Layout>
+
+        <xpath expr="//Layout" position="attributes">
+            <attribute name="className">`o_payrun_kanban_container min-w-0 overflow-auto d-flex`</attribute>
+        </xpath>
+        <xpath expr="//t[@t-component='this.props.Renderer']" position="after">
+            <div t-if="this.payRunChatter.visible() and !this.uiService.isSmall"
+                 class="o_payrun_chatter_container overflow-auto shrink-0 o-mail-ChatterContainer o-aside d-flex flex-column border-start">
+                <Chatter t-props="this.payRunChatter.chatterProps"/>
+            </div>
+        </xpath>
+    </t>
+
+    <t t-name="hr_payroll.PayrunKanbanRecord" t-inherit="web.KanbanRecord" t-inherit-mode="primary">
+        <xpath expr="//t[@t-call='{{ this.constructor.menuTemplate }}']" position="replace"/>
+        <xpath expr="//t[@t-call-context]" position="replace">
+            <div class="o_payrun_card opacity-trigger-hover flex-grow-1 d-flex flex-row align-items-center column-gap-3 px-3 py-1 min-w-0">
+                <div class="o_payrun_name d-flex flex-column justify-content-center gap-1">
+                    <t t-if="'payrun_name' in this.templates" t-call="{{ this.templates['payrun_name'] }}" t-call-context="this.renderingContext"/>
+                </div>
+                <div class="o_payrun_details">
+                    <div class="o_payrun_kpis d-flex justify-content-center align-items-center min-w-0">
+                        <t t-call="{{ this.templates['card'] }}" t-call-context="this.renderingContext"/>
+                    </div>
+                </div>
+                <div class="o_payrun_actions">
+                  <t t-if="'payrun_state' in this.templates"
+                     t-call="{{ this.templates['payrun_state'] }}"
+                     t-call-context="this.renderingContext"/>
+                  <div t-if="this.showMenu" class="o_payrun_menu w-auto ms-auto me-auto align-self-center">
+                    <t t-call="{{ this.constructor.menuTemplate }}"/>
+                  </div>
+                </div>
+            </div>
+        </xpath>
+    </t>
+</templates>

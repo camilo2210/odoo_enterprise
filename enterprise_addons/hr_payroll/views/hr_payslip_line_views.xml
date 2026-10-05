@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_payslip_line_view_pivot" model="ir.ui.view">
+            <field name="name">hr.payslip.line.pivot</field>
+            <field name="model">hr.payslip.line</field>
+            <field name="arch" type="xml">
+                <pivot string="Payroll Analysis" sample="1" disable_linking="True">
+                    <field name="salary_rule_id" type="row"/>
+                    <field name="payslip_run_id" type="col"/>
+                    <field name="total" type="measure"/>
+                    <field name="employer_cost"/>
+                    <field name="rate" digits="[0,2]" optional="hide"/>
+                    <field name="amount_percentage" invisible="1"/>
+                    <field name="amount_fix" invisible="1"/>
+
+                </pivot>
+            </field>
+    </record>
+
+    <record id="hr_payslip_line_view_list_report" model="ir.ui.view">
+            <field name="name">hr.payslip.line.list.report</field>
+            <field name="model">hr.payslip.line</field>
+            <field name="arch" type="xml">
+                <list string="Payslip Lines" edit="false" create="false">
+                    <field name="employee_id" widget="many2one_avatar_employee"/>
+                    <field name="name"/>
+                    <field name="code" optional="show"/>
+                    <field name="category_ids" widget="many2many_tags" optional="show"/>
+                    <field name="sequence" optional="hide"/>
+                    <field name="quantity" optional="show"/>
+                    <field name="rate" optional="show" digits="[0,2]"/>
+                    <field name="amount" optional="show"/>
+                    <field name="total"/>
+                    <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}" optional="show"/>
+                </list>
+            </field>
+    </record>
+
+    <record id="hr_payslip_line_view_search_report" model="ir.ui.view">
+        <field name="name">hr.payslip.line.search.report</field>
+        <field name="model">hr.payslip.line</field>
+        <field name="arch" type="xml">
+            <search string="Search Payslip Lines">
+                <field name="employee_id" domain="[('company_id', 'in', allowed_company_ids)]"/>
+                <field name="payslip_run_id" string="Pay run"/>
+                <field name="employee_type_id" string="Employee Type"/>
+                <field name="name" string="Payslip Lines" filter_domain="['|', '|', ('salary_rule_id', 'ilike', self), ('code', 'ilike', self), ('custom_name', 'ilike', self)]"/>
+                <filter string="Paid" name="is_paid" domain="[('slip_id.state', '=', 'paid')]"/>
+                <filter string="Validated" name="is_validated" domain="[('slip_id.state', '=', 'validated')]"/>
+                <filter string="Draft" name="is_draft" domain="[('slip_id.state', '=', 'draft')]"/>
+                <separator />
+                <filter string="Date" name="date_from" date="date_from" default_period="year" context="{'group_by': 'date_from:year'}"/>
+                <filter string="Salary Rule Category" name="category_ids" context="{'group_by':'category_ids'}"/>
+                <filter string="Salary Rule" name="salary_rule_id" context="{'group_by': 'salary_rule_id'}"/>
+                <filter string="Employee" name="employee_id" context="{'group_by':'employee_id'}"/>
+                <filter string="Employee Type" name="employee_type_id" context="{'group_by':'employee_type_id'}"/>
+                <filter string="Department" name="department_id" context="{'group_by':'department_id'}"/>
+                <filter string="Job Position" name="job_id" context="{'group_by':'job_id'}"/>
+                <filter string="Payslip" name="slip_id" context="{'group_by':'slip_id'}"/>
+                <filter string="Pay Run" name="pay_run_id" context="{'group_by':'payslip_run_id'}"/>
+                <filter string="Structure" name="struct_id" context="{'group_by':'struct_id'}"/>
+                <filter string="Code" name="group_by_code" context="{'group_by':'code'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="hr_payslip_line_action_report" model="ir.actions.act_window">
+        <field name="name">Payslip Lines Report</field>
+        <field name="res_model">hr.payslip.line</field>
+        <field name="view_mode">pivot,list</field>
+        <field name="search_view_id" ref="hr_payslip_line_view_search_report"/>
+        <field name="context">{
+            'search_default_is_paid': 1, 
+            'search_default_is_done': 1, 
+            'search_default_date_from': 1
+        }</field>
+    </record>
+
+    <record id="hr_payslip_line_action_report_view_pivot" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="hr_payslip_line_view_pivot"/>
+        <field name="act_window_id" ref="hr_payslip_line_action_report"/>
+    </record>
+
+    <record id="hr_payslip_line_action_report_view_list" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="hr_payslip_line_view_list_report"/>
+        <field name="act_window_id" ref="hr_payslip_line_action_report"/>
+    </record>
+</odoo>

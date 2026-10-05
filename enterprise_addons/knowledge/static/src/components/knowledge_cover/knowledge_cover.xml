@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="knowledge.KnowledgeCover">
+        <div t-if="this.props.record.data.cover_image_url" t-ref="this.rootRef"
+             t-attf-class="o_knowledge_cover position-relative #{this.state.repositioning ? 'o_cursor_grab' : ''} #{this.state.grabbing ? 'o_cursor_grabbing' : ''}">
+            <img t-att-src="this.props.record.data.cover_image_url" alt="cover"
+                 t-ref="this.imageRef" t-att-class="this.state.repositioning ? '' : 'pe-none'"
+                 t-attf-style="object-position: 50% #{this.state.verticalPosition}%;"/>
+            <span t-if="this.state.repositioning" class="o_reposition_hint position-absolute top-50 start-50 translate-middle pe-none p-1 rounded opacity-75">
+                Click and hold to reposition
+            </span>
+            <span t-if="this.isEditable" class="o_knowledge_edit_cover_buttons position-absolute bottom-0 end-0 mb-2 me-3 text-muted d-print-none">
+                <t t-if="this.state.repositioning">
+                    <!-- no action attached, see "repositionCover" and the document "pointerdown" listener -->
+                    <a role="button" class="btn btn-light text-capitalize me-3 o_knowledge_save_cover_move">
+                        <i class="oi oi-lg me-1" data-icon="save" title="Save Position"/> Save position
+                    </a>
+                    <a role="button" class="btn btn-light text-capitalize me-3 o_knowledge_undo_cover_move">
+                        <i class="oi oi-lg me-1" data-icon="undo"/> Cancel
+                    </a>
+                </t>
+                <t t-else="">
+                    <a role="button" t-on-click="this.changeCover"
+                       class="btn btn-light text-capitalize me-3 o_knowledge_replace_cover o_knowledge_option_button">
+                        <i class="oi oi-lg" data-icon="image" title="Change cover"/>
+                        <span class="d-none d-sm-inline ms-1">Replace cover</span>
+                        <span class="d-sm-none ms-1">Replace</span>
+                    </a>
+                    <a t-if="!this.uiService.isSmall" role="button" t-on-click="this.repositionCover"
+                       class="btn btn-light text-capitalize me-3 o_knowledge_reposition_cover o_knowledge_option_button">
+                        <i class="oi oi-lg me-1" data-icon="height" title="Reposition cover"/> Reposition
+                    </a>
+                    <a role="button" t-on-click="this.removeCover"
+                       class="btn btn-light text-capitalize o_knowledge_remove_cover o_knowledge_option_button">
+                        <i class="oi oi-lg" data-icon="delete" title="Remove cover"/><span class="d-none d-sm-inline ms-1">Remove</span>
+                    </a>
+                </t>
+            </span>
+        </div>
+    </t>
+</templates>

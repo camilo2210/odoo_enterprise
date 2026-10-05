@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates xml:space="preserve">
+    <t t-name="frontdesk_partnership.WelcomePageMembers">
+        <div class="position-relative d-flex flex-column justify-content-lg-center w-100 vh-100 o_main_bg_img" t-att-style="'background-image: url(/frontdesk/' + this.props.stationInfo.id + '/background), url(/frontdesk/static/img/frontdesk.svg'">
+            <div class="position-relative d-flex flex-column align-items-center justify-content-around vh-100 px-3 py-4">
+                <div class="d-inline-block border border-subtle rounded-pill px-3 py-1 bg-100 fw-medium" t-out="this.state.today"/>
+                <h1 class="mb-0 text-center">
+                    <span class="d-block h5 mb-0 text-muted">Welcome to</span>
+                    <span class="d-block display-4 fw-bold" t-out="this.props.stationInfo.name"/>
+                </h1>
+                <div class="o_frontdesk_check_in_card card border-0 rounded-4 w-100 shadow-lg">
+                    <div class="card-body p-4">
+                        <div class="mb-4 text-center">
+                            <h2 class="h4 mb-1 fw-bold">Scan your badge</h2>
+                            <p class="mb-0 text-muted small">Hold it under the reader to check in</p>
+                        </div>
+                        <div class="o_frontdesk_scan_zone position-relative border border-2 rounded-3 mx-auto py-3 px-4 bg-100 cursor-pointer overflow-hidden"
+                             t-on-click="this.openManualBarcodeDialog">
+                            <svg class="o_frontdesk_barcode d-block w-100 h-auto mx-auto text-primary" viewBox="0 0 60 45" fill="currentColor" role="img" aria-label="Barcode">
+                                <rect x="0" width="5" height="45"/>
+                                <rect x="8" width="3" height="45"/>
+                                <rect x="14" width="6" height="45"/>
+                                <rect x="23" width="3" height="45"/>
+                                <rect x="29" width="3" height="45"/>
+                                <rect x="35" width="7" height="45"/>
+                                <rect x="45" width="3" height="45"/>
+                                <rect x="51" width="4" height="45"/>
+                                <rect x="58" width="2" height="45"/>
+                            </svg>
+                            <div class="o_frontdesk_barcode_laser"/>
+                        </div>
+                        <div class="d-flex align-items-center gap-3 my-4 text-400">
+                            <hr class="flex-grow-1 my-0"/>
+                            <small class="fw-medium text-uppercase">No badge?</small>
+                            <hr class="flex-grow-1 my-0"/>
+                        </div>
+                        <label for="manual_barcode" class="form-label fw-medium">Card Number</label>
+                        <MembersBarcodeInput onSubmit="this._onBarcodeScanned.bind(this)" placeholder="'042476283742'"/>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <p class="text-muted small mb-0">Need help? Ask a member of staff.</p>
+                    <div t-if="this.props.langs" class="d-flex justify-content-center mt-3">
+                        <select class="form-select w-auto pe-auto" t-att-class="this.props.stationInfo.theme == 'dark' ? 'border-0 bg-800 text-white' : ' bg-white'" t-on-change="(ev) => this.props.onChangeLang(ev)">
+                            <t t-foreach="this.props.langs" t-as="lang" t-key="lang.code">
+                                <option t-att-value="lang.code" t-att-selected="lang.code === this.props.currentLang ? true : undefined"><t t-out="lang.name"/></option>
+                            </t>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="frontdesk_partnership.MembersBarcodeInput" t-inherit="barcodes.BarcodeInput" t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('input-group')]" position="attributes">
+            <attribute name="class">d-flex gap-2</attribute>
+        </xpath>
+        <xpath expr="//button" position="replace">
+            <button class="btn btn-primary btn-sm flex-shrink-0 px-4" t-att-disabled="!this.state.barcode"
+                    t-on-click.prevent="(ev) => this.props.onSubmit(this.state.barcode)">
+                Check in
+            </button>
+        </xpath>
+    </t>
+</templates>

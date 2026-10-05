@@ -1,0 +1,39 @@
+<odoo>
+    <record model="res.groups.privilege" id="res_groups_privilege_helpdesk">
+        <field name="name">Helpdesk</field>
+        <field name="category_id" ref="base.module_category_services"/>
+    </record>
+
+    <record id="group_helpdesk_user" model="res.groups">
+        <field name="name">User</field>
+        <field name="comment">Can manage tickets in helpdesk teams they have access to.</field>
+        <field name="sequence">10</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="privilege_id" ref="res_groups_privilege_helpdesk"/>
+    </record>
+
+    <record id="group_helpdesk_manager" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="comment">Can manage helpdesk teams and stages, with access to reporting and configuration.</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="res_groups_privilege_helpdesk"/>
+        <field name="implied_ids" eval="[(4, ref('group_helpdesk_user')), (4, ref('mail.group_mail_canned_response_admin'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <record id="group_use_sla" model="res.groups">
+        <field name="name">Show SLA Policies</field>
+    </record>
+
+    <record id="group_auto_assignment" model="res.groups">
+        <field name="name">Auto Assignment</field>
+    </record>
+
+    <data noupdate="1">
+
+        <record id="base.default_user_group" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('helpdesk.group_helpdesk_manager'))]"/>
+        </record>
+
+        </data>
+</odoo>

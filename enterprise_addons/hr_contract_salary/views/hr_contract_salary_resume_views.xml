@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_contract_salary_resume_view_search" model="ir.ui.view">
+        <field name="name">hr.contract.salary.resume.view.search</field>
+        <field name="model">hr.contract.salary.resume</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="value_type" string="Value Type"/>
+                <field name="structure_type_id" string="Structure Type"/>
+                <filter name="impacts_monthly_total" string="Impacts Monthly Total" domain="[('impacts_monthly_total', '=', True)]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="groupby_structure_type_id" context="{'group_by': 'structure_type_id'}"/>
+                    <filter name="groupby_code" context="{'group_by': 'code'}"/>
+                    <filter name="groupby_value_type" context="{'group_by': 'value_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="hr_contract_salary_resume_action" model="ir.actions.act_window">
+        <field name="name">Salary Summary</field>
+        <field name="res_model">hr.contract.salary.resume</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">
+            {
+                'search_default_groupby_structure_type_id': True
+            }
+        </field>
+        <field name="search_view_id" ref="hr_contract_salary_resume_view_search"/>
+    </record>
+
+    <record id="hr_contract_salary_resume_view_tree" model="ir.ui.view">
+        <field name="name">hr.contract.salary.resume.view.list</field>
+        <field name="model">hr.contract.salary.resume</field>
+        <field name="arch" type="xml">
+            <list string="Salary Package Personal Info" expand='1'>
+                <field name="active" invisible="1" /> <!-- To allow model to be archived -->
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="value_type"/>
+                <field name="structure_type_id"/>
+                <field name="country_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="hr_contract_salary_resume_view_form" model="ir.ui.view">
+        <field name="name">hr.contract.salary.resume.view.form</field>
+        <field name="model">hr.contract.salary.resume</field>
+        <field name="arch" type="xml">
+            <form string="Salary Package Personal Info">
+                <field name="active" invisible="1" /> <!-- To allow model to be archived -->
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name" string="Information"/>
+                        <h1><field name="name" placeholder="e.g. Birthdate"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="category_id"/>
+                            <field name="impacts_monthly_total"/>
+                            <field name="uom" required="1"/>
+                        </group>
+                        <group>
+                            <field name="structure_type_id"/>
+                        	<field name="value_type"/>
+                            <field name="benefit_ids" invisible="value_type != 'sum'" widget="many2many_tags"/>
+                            <field name="code" invisible="value_type not in ['payslip', 'version']" required="value_type in ['payslip', 'version']"/>
+                            <field name="fixed_value" invisible="value_type != 'fixed'"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem
+        id="salary_package_resume"
+        action="hr_contract_salary_resume_action"
+        parent="hr_contract_salary.salary_package_menu"
+        sequence="3"/>
+
+</odoo>

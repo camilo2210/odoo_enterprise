@@ -1,0 +1,182 @@
+.o_payrun_card_root {
+    height: auto;
+    overflow: visible;
+    margin-bottom: 2px;
+    position: relative;
+}
+
+.o_payrun_card_root + .o_payrun_card_root {
+    border-top: 0;
+}
+
+.o_control_panel + .o_payrun_card_root {
+    border-top: 0;
+}
+
+.o_payrun_card {
+    flex-wrap: wrap;
+    row-gap: 4px;
+    .o_payrun_name  { flex: 1 1 8rem; min-width: 8rem; }
+    .o_payrun_kpis  { flex: 1 1 auto; min-width: 0; overflow: hidden; }
+    .o_payrun_details { display: contents; }
+    .o_payrun_actions { display: contents; }
+    .o_payrun_actions_handle { display: none; }
+}
+
+@media (max-width: 1216px) {
+    .o_payrun_card {
+        .o_payrun_name {
+            flex: 1 1 auto;
+        }
+
+        .o_payrun_details {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            grid-template-rows: 0fr;
+            flex: 1 0 100%;
+            order: 2;
+            align-items: stretch;
+            column-gap: 1rem;
+            padding-top: 0;
+            opacity: 0;
+            pointer-events: none;
+            transition: grid-template-rows .35s ease, padding-top .35s ease,
+                        opacity .15s ease;
+
+            > * { min-height: 0; overflow: hidden; }
+        }
+
+        &.o_payrun_card--expanded .o_payrun_details {
+            grid-template-rows: 1fr;
+            padding-top: 4px;
+            opacity: 1;
+            pointer-events: auto;
+            transition: grid-template-rows .35s ease, padding-top .35s ease,
+                        opacity .2s ease .15s;
+        }
+
+        .o_payrun_kpis {
+            justify-content: flex-start !important;
+        }
+
+        .o_payrun_metrics {
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 0.25rem 1.25rem !important;
+
+            .small { font-size: 0.6875rem; }
+            .o_payrun_metric_value { font-size: 1.125rem; }
+        }
+    }
+}
+
+@include media-breakpoint-down(md) {
+    .o_payrun_card {
+        row-gap: 4px !important;
+        flex-wrap: wrap;
+
+        .o_payrun_name {
+            flex: 1 0 100%;
+            align-items: center;
+            text-align: center;
+        }
+
+        .o_payrun_details {
+            display: flex;
+            flex: 1 0 100%;
+            order: 0;
+            justify-content: center;
+        }
+
+        .o_payrun_kpis {
+            display: none !important;
+        }
+
+        .o_payrun_menu {
+            flex: 1 0 100%;
+            display: flex;
+            justify-content: center;
+        }
+    }
+}
+
+.o_payrun_menu { flex: 0 0 auto; }
+
+@include media-breakpoint-up(xl) {
+    .o_payrun_menu {
+        display: flex;
+        justify-content: flex-end;
+        min-width: 12rem;
+    }
+}
+
+.o_payrun_kpis :is(span, .small) { white-space: nowrap; }
+
+.o_payrun_metric_value {
+    font-size: 1.5rem;
+    line-height: 1.2;
+    font-weight: $font-weight-medium;
+
+    .o_payrun_kpi_symbol { margin-right: 0.15em; }
+    .o_payrun_kpi_decimals { font-size: 0.6em; }
+}
+
+@media (max-width: 1408px) {
+    .o_payrun_metrics {
+        gap: 0.5rem !important;
+    }
+}
+
+.o_payrun_sheet_body {
+    .o_payrun_sheet {
+        height: 100%;
+        min-height: 0;
+    }
+
+    .o_payrun_sheet_meta {
+        > :nth-child(1) { font-size: 1.125rem; }
+
+        input.o_input { pointer-events: none; }
+    }
+
+    .o_payrun_sheet_kpis {
+        min-height: 0;
+        overflow-y: auto;
+
+        > :not(.o_payrun_metrics) {
+            justify-content: center;
+        }
+    }
+
+    .o_payrun_metrics {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0 !important;
+
+        > div {
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0.625rem 0;
+            border-bottom: $border-width solid $border-color;
+        }
+
+        .small {
+            font-size: $font-size-base;
+            text-transform: uppercase;
+        }
+
+        .o_payrun_metric_value {
+            font-size: $font-size-base;
+        }
+    }
+}
+
+.o_payrun_name input.o_input {
+    transition: border-color .1s linear;
+}
+
+.o_payrun_card:not(:hover) .o_payrun_name input.o_input:not(:focus) {
+    border-color: transparent;
+}

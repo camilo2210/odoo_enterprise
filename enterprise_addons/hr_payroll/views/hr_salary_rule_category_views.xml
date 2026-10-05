@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Salary Category-->
+    <record id="hr_salary_rule_category_form" model="ir.ui.view">
+        <field name="name">hr.salary.rule.category.form</field>
+        <field name="model">hr.salary.rule.category</field>
+        <field name="arch" type="xml">
+            <form string="Salary Categories">
+            <sheet>
+                <group name="category_details" col="4">
+                    <field name="name"/>
+                    <field name="code"/>
+                    <field name="parent_id"/>
+                </group>
+                <group name="category_options">
+                    <field name="country_id" options="{'no_create': True, 'no_open': True}"/>
+                    <field name="optional_on_work_entry_type_ids" widget="many2many_tags" placeholder="Not usable on time entries"/>
+                    <field name="parent_is_premium_pay" invisible="1"/>
+                    <label for="premium_amount_per_hour" string="Premium Pay" invisible="not parent_is_premium_pay"/>
+                    <div name="premium_amounts" invisible="not parent_is_premium_pay">
+                        <div class="o_row">
+                            <field name="premium_amount_per_hour" class="o_hr_narrow_field"/>
+                            <span>€ / Hour</span>
+                        </div>
+                        <div class="o_row">
+                            <field name="premium_amount_per_day" class="o_hr_narrow_field"/>
+                            <span>€ / Day</span>
+                        </div>
+                        <div class="o_row">
+                            <field name="premium_percentage_hourly_rate" class="o_hr_narrow_field"/>
+                            <span>% Hourly Rate</span>
+                        </div>
+                    </div>
+                </group>
+            </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="hr_salary_rule_category_tree" model="ir.ui.view">
+        <field name="name">hr.salary.rule.category.list</field>
+        <field name="model">hr.salary.rule.category</field>
+        <field name="arch" type="xml">
+            <list string="Salary Rule Categories">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="parent_id" column_invisible="True"/>
+                <field name="country_id"/>
+                <field name="salary_rule_ids"/>
+                <button name="action_open_salary_rules" type="object" icon="open_in_new" string="Salary Rules" invisible="not salary_rule_ids"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_hr_salary_rule_category_filter" model="ir.ui.view">
+        <field name="name">hr.salary.rule.category.select</field>
+        <field name="model">hr.salary.rule.category</field>
+        <field name="arch" type="xml">
+            <search string="Salary Rule Categories">
+                <field name="name" string="Salary Rule Categories" filter_domain="['|',('name','ilike',self),('code','ilike',self)]"/>
+           </search>
+        </field>
+    </record>
+
+    <record id="action_hr_salary_rule_category" model="ir.actions.act_window">
+        <field name="name">Salary Rule Categories</field>
+        <field name="res_model">hr.salary.rule.category</field>
+        <field name="view_id" ref="hr_salary_rule_category_tree"/>
+       <field name="search_view_id" ref="view_hr_salary_rule_category_filter"/>
+    </record>
+
+    <!-- Premium Pay: custom premium pays are child categories of the legal premium pay categories -->
+    <record id="hr_salary_rule_category_premium_list" model="ir.ui.view">
+        <field name="name">hr.salary.rule.category.premium.list</field>
+        <field name="model">hr.salary.rule.category</field>
+        <field name="arch" type="xml">
+            <list string="Premium Pays">
+                <field name="name"/>
+                <field name="parent_id" string="Parent"/>
+                <field name="premium_amount_per_hour" optional="show"/>
+                <field name="premium_amount_per_day" optional="show"/>
+                <field name="premium_percentage_hourly_rate" optional="show"/>
+                <field name="optional_on_work_entry_type_ids" string="Selectable on" widget="many2many_tags"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="hr_salary_rule_category_premium_form" model="ir.ui.view">
+        <field name="name">hr.salary.rule.category.premium.form</field>
+        <field name="model">hr.salary.rule.category</field>
+        <field name="inherit_id" ref="hr_salary_rule_category_form"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='category_details']" position="attributes">
+                <attribute name="col">2</attribute>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="placeholder">Name of the premium pay rule</attribute>
+            </xpath>
+            <xpath expr="//field[@name='code']" position="attributes">
+                <attribute name="placeholder">Code used in salary rules</attribute>
+            </xpath>
+            <xpath expr="//field[@name='parent_id']" position="attributes">
+                <attribute name="placeholder">Choose a salary rule</attribute>
+                <attribute name="required">1</attribute>
+                <attribute name="domain">[('is_premium_pay', '=', True), '|', ('country_id', '=', False), ('country_id', '=', country_id)]</attribute>
+                <attribute name="options">{'no_create': True, 'no_open': True}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='optional_on_work_entry_type_ids']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_hr_salary_rule_category_premium" model="ir.actions.act_window">
+        <field name="name">Premium Pay</field>
+        <field name="res_model">hr.salary.rule.category</field>
+        <field name="domain">[('parent_id.is_premium_pay', '=', True)]</field>
+        <field name="search_view_id" ref="view_hr_salary_rule_category_filter"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a custom premium pay
+            </p><p>
+                Custom premium pays grant an extra amount on top of the legal rate of their parent premium pay.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_hr_salary_rule_category_premium_list" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="hr_salary_rule_category_premium_list"/>
+        <field name="act_window_id" ref="action_hr_salary_rule_category_premium"/>
+    </record>
+
+    <record id="action_hr_salary_rule_category_premium_form" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="hr_salary_rule_category_premium_form"/>
+        <field name="act_window_id" ref="action_hr_salary_rule_category_premium"/>
+    </record>
+
+</odoo>

@@ -1,0 +1,103 @@
+.o_knowledge_sidebar {
+    --knowledge-article-hover-bg: #{darken($knowledge-bg--active, 4%)};
+    --knowledge-article-btn-hover-bg: #{darken($knowledge-bg--active, 8%)};
+    --knowledge-sidebar-icon-size: 1.5rem;
+
+    .o_article {
+        .o_article_icon,
+        .o_article_create,
+        .o_article_options {
+            width: var(--knowledge-sidebar-icon-size);
+            height: var(--knowledge-sidebar-icon-size);
+            flex: 0 0 var(--knowledge-sidebar-icon-size);
+        }
+
+        .o_article_icon_has_children {
+            display: inline-grid;
+            place-items: center;
+    
+            .o_article_emoji,
+            .o_article_caret {
+                grid-area: 1 / 1;
+                width: 100%;
+                height: 100%;
+            }
+    
+            .o_article_caret {
+                visibility: hidden;
+                pointer-events: none;
+            }
+        }
+
+        .o_article_handle:hover {
+            .o_article_icon_has_children {
+                .o_article_emoji {
+                    visibility: hidden;
+                }
+    
+                .o_article_caret {
+                    visibility: visible;
+                    pointer-events: auto;
+                }
+            }
+        }
+
+        .o_article_handle:focus-visible {
+            // Soft focus ring using Odoo's $focus-ring tokens, but inset so it
+            // isn't clipped by the full-bleed row edges / the scroll container.
+            outline: 0;
+            box-shadow: inset 0 0 0 $focus-ring-width $focus-ring-color;
+        }
+    }
+
+    .o_article.o_dragged {
+        .o_article_handle {
+            background-color: transparent !important;
+        }
+    }
+
+    .o_article:not(.o_dragged) {
+        .o_article_handle.o_article_active {
+            background-color: $o-component-active-bg;
+
+            &:hover {
+                background-color: var(--knowledge-article-hover-bg);
+            }
+
+            .o_article_icon:hover,
+            .o_article_create:hover,
+            .o_article_options:hover {
+                background-color: var(--knowledge-article-btn-hover-bg);
+                color: $o-action;
+            }
+            .o_article_icon:active,
+            .o_article_create:active,
+            .o_article_options:active {
+                background-color: var(--knowledge-article-hover-bg);
+            }
+        }
+        .o_article_handle {
+            &:not(.o_article_active) i {
+                color: $text-muted;
+            }
+            &:hover {
+                background-color: rgba($knowledge-bg--hover, 0.3);
+            }
+            .o_article_icon:hover,
+            .o_article_create:hover,
+            .o_article_options:hover {
+                background-color: rgba($knowledge-bg--hover, 0.6);
+            }
+            .o_article_icon:active,
+            .o_article_create:active,
+            .o_article_options:active {
+                background-color: rgba($knowledge-bg--hover, 0.8);
+            }
+        }
+        .o_article_name:active::before {
+            @include o-position-absolute(0, 0, 0, 0);
+            z-index: -1;
+            content: '';
+        }
+    }
+}

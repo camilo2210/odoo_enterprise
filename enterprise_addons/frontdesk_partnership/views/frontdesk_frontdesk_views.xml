@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="frontdesk_frontdesk_view_form" model="ir.ui.view">
+        <field name="name">frontdesk.partnership.frontdesk.view.form</field>
+        <field name="model">frontdesk.frontdesk</field>
+        <field name="type">form</field>
+        <field name="mode">extension</field>
+        <field name="inherit_id" ref="frontdesk.frontdesk_frontdesk_view_form"/>
+        <field name="active" eval="True"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='responsible_ids']" position="before">
+                <label for="frontdesk_type"/>
+                <div class="o_row">
+                    <field name="frontdesk_type"/>
+                    <field name="required_grade_ids" class="oe_inline" invisible="frontdesk_type != 'members'" widget="many2many_tags" placeholder="All Members"/>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='host_ids']" position="attributes">
+                <attribute name="invisible">not host_selection or frontdesk_type == 'members'</attribute>
+            </xpath>
+            <xpath expr="//setting[@id='host_selection_setting']" position="attributes">
+                <attribute name="invisible">frontdesk_type != 'guests'</attribute>
+            </xpath>
+            <xpath expr="//setting[@id='self_check_in_setting']" position="attributes">
+                <attribute name="invisible">frontdesk_type != 'guests'</attribute>
+            </xpath>
+            <xpath expr="//setting[@id='guest_details_setting']" position="attributes">
+                <attribute name="invisible">frontdesk_type != 'guests'</attribute>
+            </xpath>
+            <xpath expr="//setting[@id='host_notifications_setting']" position="attributes">
+                <attribute name="invisible">frontdesk_type != 'guests'</attribute>
+            </xpath>
+            <xpath expr="//setting[@name='privacy_notice_setting']" position="attributes">
+                <attribute name="invisible">frontdesk_type != 'guests'</attribute>
+            </xpath>
+            <xpath expr="//setting[@name='privacy_notice_details_setting']" position="attributes">
+                <attribute name="invisible">frontdesk_type != 'guests'</attribute>
+            </xpath>
+            <xpath expr="//setting[@id='auto_checkout_setting']" position="after">
+                <setting id="passback_timeout_setting" invisible="frontdesk_type != 'members'" help="The same contact barcode cannot be used more than once during this defined interval">
+                    <field name="passback_timeout" widget="float_time" options="{'unit': 'minutes'}"/>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="frontdesk_frontdesk_view_tree" model="ir.ui.view">
+        <field name="name">frontdesk.partnership.frontdesk.view.list</field>
+        <field name="model">frontdesk.frontdesk</field>
+        <field name="type">list</field>
+        <field name="mode">extension</field>
+        <field name="inherit_id" ref="frontdesk.frontdesk_frontdesk_view_tree"/>
+        <field name="active" eval="True"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='responsible_ids']" position="after">
+                <field name="frontdesk_type" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='responsible_ids']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='notify_email']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='notify_discuss']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

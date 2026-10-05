@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="hr_payroll.PayrollAvatarCard" t-inherit="hr_holidays_gantt.AvatarCard" t-inherit-mode="primary">
+        <!-- remove the leave summary section -->
+        <xpath expr="//div[hasclass('o_avatar_card_leave_summary')]" position="replace"/>
+        <xpath expr="//div[hasclass('o_avatar_card_benefits_summary')]" position="before">
+            <t t-set="payrollInfo" t-value="this.payrollInfo"/>
+            <div class="o_avatar_card_payroll_info px-3 d-flex flex-column rounded-bottom bg-100" t-if="payrollInfo">
+                <div class="d-flex align-items-center justify-content-between mt-2">
+                    <div class="o_avatar_card_employee_category">
+                        <span t-out="payrollInfo.category" class="fw-bold"/>
+                        <span t-if="payrollInfo.scale" class="fw-bold ms-1 text-muted">
+                            (<t t-out="payrollInfo.scale"/>)
+                        </span>
+                    </div>
+                    <button
+                        t-if="this.canCreateEmployeeRecord"
+                        t-ref="this.datetimePickerTargetRef"
+                        title="New Employee Record"
+                        t-on-click="this.onClickDateTimePickerBtn"
+                        class="btn p-0 px-1">
+                        <i class="oi" data-icon="edit"/>
+                    </button>
+                </div>
+                <table class="mt-1 w-100">
+                    <tr t-if="payrollInfo.wage">
+                        <td class="text-muted pe-2">Wage</td>
+                        <td t-out="payrollInfo.wage"/>
+                    </tr>
+                    <tr t-if="payrollInfo.seniority">
+                        <td class="text-muted pe-2">Seniority</td>
+                        <td t-out="payrollInfo.seniority"/>
+                    </tr>
+                </table>
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('o_avatar_card_benefits_summary')]" position="after">
+            <div class="o_avatar_card_salary_attachment_summary px-3 pb-2 d-flex flex-column rounded-bottom bg-100">
+                <div class="d-flex align-items-center justify-content-between mt-2" t-if="this.canCreateSalaryAttachment">
+                    <span class="fw-bold">Payslip Adjustments</span>
+                    <button class="btn p-0 px-1" t-on-click="() => this.openSalaryAttachment()"
+                        title="New Payslip Adjustment">
+                        <i class="oi" data-icon="add" />
+                    </button>
+                </div>
+                <t t-if="this.state.salaryAttachments.length">
+                    <table class="mt-1 w-100">
+                        <t t-foreach="this.state.salaryAttachments" t-as="attachment" t-key="attachment.id">
+                            <tr>
+                                <td class="text-muted pe-2" t-out="attachment.salaryRule"/>
+                                <td t-out="attachment.amount"/>
+                                <td>
+                                    <button class="btn p-0 px-1" t-on-click="() => this.openSalaryAttachment(attachment.id)"
+                                        title="Edit Payslip Adjustment">
+                                        <i class="oi" data-icon="edit" />
+                                    </button>
+                                </td>
+                            </tr>
+                        </t>
+                    </table>
+                </t>
+            </div>
+        </xpath>
+    </t>
+
+    <t t-name="hr_payroll.PayrollAvatar" t-inherit="mail.Avatar">
+        <xpath expr="//div[hasclass('o-mail-Avatar')]/img" position="attributes">
+            <attribute name="t-on-click.stop.prevent"/>
+            <attribute name="t-on-click.prevent">this.onClickAvatar</attribute>
+        </xpath>
+    </t>
+</templates>

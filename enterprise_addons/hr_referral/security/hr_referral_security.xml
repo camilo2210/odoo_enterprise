@@ -1,0 +1,41 @@
+<odoo>
+
+    <record model="res.groups.privilege" id="res_groups_privilege_recruitment">
+        <field name="name">Referrals</field>
+        <field name="category_id" ref="base.module_category_human_resources"/>
+    </record>
+
+    <record id="group_hr_recruitment_referral_user" model="res.groups">
+        <field name="name">User</field>
+        <field name="sequence">5</field>
+        <field name="name">User: Referral only</field>
+        <field name="privilege_id" ref="res_groups_privilege_recruitment"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_hr_referral_manager" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="implied_ids" eval="[Command.link(ref('group_hr_recruitment_referral_user'))]"/>
+        <field name="user_ids" eval="[Command.link(ref('base.user_root')), Command.link(ref('base.user_admin'))]"/>
+        <field name="privilege_id" ref="res_groups_privilege_recruitment"/>
+    </record>
+
+    <record id="group_hr_referral_reward_responsible_user" model="res.groups">
+        <field name="name">Referral Reward Responsible User</field>
+        <field name="sequence">20</field>
+        <field name="implied_ids" eval="[(4, ref('hr_referral.group_hr_recruitment_referral_user'))]"/>
+    </record>
+
+    <record id="hr_recruitment.group_hr_recruitment_interviewer" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('hr_referral.group_hr_recruitment_referral_user'))]"/>
+    </record>
+
+    <record id="hr_recruitment.group_hr_recruitment_user" model="res.groups">
+        <field name="implied_ids" eval="[Command.link(ref('hr_referral.group_hr_referral_manager'))]"/>
+    </record>
+
+    <record id="base.default_user_group" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('hr_referral.group_hr_recruitment_referral_user'))]"/>
+    </record>
+
+    </odoo>

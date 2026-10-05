@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="hr_holidays_gantt.HrHolidayPopover">
+        <div class="o_work_entry_popover" t-ref="this.rootRef">
+            <Record t-props="this.currentRecordProps" t-slot-scope="currentRecord">
+                <div class="popover-header d-flex justify-content-between py-0 pe-2"
+                     t-attf-class="o_gantt_color_#{currentRecord.record.data.color}">
+                    <h4 class="py-1 m-0" name="work_entry_popover_header">
+                        <t t-out="this.getPopoverTitle(currentRecord.record.data)"/>
+                    </h4>
+                    <div class="d-flex align-items-center ms-auto">
+                        <span class="cursor-pointer me-3" t-on-click.stop="this.onClickExpand">
+                            <i class="oi oi-lg" data-icon="expand_content"/>
+                        </span>
+                        <span class="cursor-pointer" t-on-click.stop="this.props.close">
+                            <i class="oi" data-icon="close" />
+                        </span>
+                    </div>
+                </div>
+                <div class="popover-body o_form_view p-0">
+                    <FormRenderer record="currentRecord.record" archInfo="this.props.archInfo" class="'o_hr_holidays_popover_form_renderer'"/>
+                </div>
+                <div class="popover-footer d-flex justify-content-between">
+                    <div class="p-3 pt-0 d-flex gap-1 w-100 o_form_nosheet">
+                            <button t-if="currentRecord.record.data.can_back_to_approve and currentRecord.record.data.state != 'confirm'"
+                                    class="btn btn-sm btn-primary"
+                                    t-on-click="() => this.editLeave(currentRecord.record)">
+                                <i class="oi oi-fw oi-filled o_button_icon me-1" data-icon="edit"/>Edit
+                            </button>
+                            <button t-if="this.canSave(currentRecord.record)"
+                                    class="btn btn-sm btn-primary"
+                                    t-on-click="() => this.saveLeave(currentRecord.record)">
+                                <i class="oi oi-fw o_button_icon me-1" data-icon="save"/>Save
+                            </button>
+                            <button t-if="this.canApprove(currentRecord.record)"
+                                    class="btn btn-sm btn-success"
+                                    t-on-click="() => this.approve(currentRecord.record)">
+                                <i class="oi oi-fw oi-filled o_button_icon me-1" data-icon="thumb_up"/>Approve
+                            </button>
+                            <button t-if="this.canRefuse(currentRecord.record)"
+                                    class="btn btn-sm btn-danger"
+                                    t-on-click="() => this.refuse(currentRecord.record)">
+                                <i class="oi oi-fw o_button_icon me-1" data-icon="close"/>Refuse
+                            </button>
+                            <button t-if="currentRecord.record.dirty" class="btn btn-sm ms-auto btn-secondary"
+                                    t-on-click="() => this.discardLeave(currentRecord.record)">Discard
+                            </button>
+                            <button t-else="" class="btn btn-sm ms-auto btn-danger"
+                                    t-on-click="() => this.deleteLeave(currentRecord.record)">
+                                <i class="oi oi-fw oi-filled o_button_icon me-1" data-icon="delete"/>Delete
+                            </button>
+                    </div>
+                </div>
+            </Record>
+        </div>
+    </t>
+</templates>

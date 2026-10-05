@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_leave_view_search" model="ir.ui.view">
+        <field name="name">hr.leave.view.form.inherit.hr.payroll.holidays</field>
+        <field name="model">hr.leave</field>
+        <field name="inherit_id" ref="hr_holidays.hr_leave_view_search_manager"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='group_employee']" position="before">
+                <separator/>
+                <filter
+                    string="To Defer"
+                    name="to_defer"
+                    domain="[('payslip_state', '=', 'blocked'), ('state', '=', 'validate')]"
+                    groups="hr_payroll.group_hr_payroll_user"/>
+                <separator/>
+            </xpath>
+            <xpath expr="//group/filter[@name='group_employee']" position="after">
+                <filter name="group_employee_type" string="Employee Type" domain="[]" context="{'group_by': 'employee_type_id'}" groups="hr_payroll.group_hr_payroll_user"/>
+                <filter name="group_structure_type" string="Structure" domain="[]" context="{'group_by': 'structure_type_id'}" groups="hr_payroll.group_hr_payroll_user"/>
+                <filter name="group_department" string="Department" domain="[]" context="{'group_by': 'department_id'}"/>
+                <filter name="group_job" string="Job Position" domain="[]" context="{'group_by': 'job_id'}"/>
+            </xpath>
+            <xpath expr="//field[@name='employee_id']" position="after">
+                <field name="employee_registration_number" string="Employee Reference" filter_domain="[('employee_registration_number','ilike', self)]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_leave_action_open_to_defer" model="ir.actions.act_window">
+        <field name="name">Time Off to Defer</field>
+        <field name="res_model">hr.leave</field>
+        <field name="view_mode">list,kanban,form,calendar,activity</field>
+        <field name="search_view_id" ref="hr_holidays.hr_leave_view_search_manager"/>
+        <field name="domain">[('payslip_state', '=', 'blocked'), ('state', '=', 'validate'), ('employee_company_id', 'in', allowed_company_ids)]</field>
+    </record>
+
+    <record id="hr_leave_view_form_inherit" model="ir.ui.view">
+        <field name="name">hr.leave.view.form.inherit</field>
+        <field name="model">hr.leave</field>
+        <field name="inherit_id" ref="hr_holidays.hr_leave_view_form_manager"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('o_hr_leave_content')]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button type="object" class="oe_stat_button" name="action_open_payslips" id="open_payslips"
+                        icon="payments" invisible="payslip_count == 0"
+                        groups="hr_payroll.group_hr_payroll_user">
+                        <field name="payslip_count" widget="statinfo" string="Payslips"/>
+                    </button>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_leave_view_form" model="ir.ui.view">
+        <field name="name">hr.leave.view.form</field>
+        <field name="model">hr.leave</field>
+        <field name="inherit_id" ref="hr_holidays.hr_leave_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="after">
+                <field name="issues" class="w-100" widget="actionable_warnings" invisible="not issues"/>
+            </xpath>
+            <xpath expr="//div[field[@name='work_entry_type_id']]" position="after">
+                <div class="d-flex gap-2" invisible="not options_on_work_entry_type_ids" groups="hr_payroll.group_hr_payroll_user">
+                    <i class="oi oi-lg align-self-center" data-icon="add_circle" title="Options"/>
+                    <label for="category_options_ids" string="Options"/>
+                </div>
+                <div invisible="not options_on_work_entry_type_ids" groups="hr_payroll.group_hr_payroll_user">
+                    <field name="category_options_ids" widget="many2many_tags" nolabel="1"
+                        options="{'no_create': True}"
+                        readonly="state in ['cancel', 'refuse', 'validate', 'validate1']"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_leave_view_form_dashboard" model="ir.ui.view">
+        <field name="name">hr.leave.view.form.dashboard.inherit.hr.payroll</field>
+        <field name="model">hr.leave</field>
+        <field name="inherit_id" ref="hr_holidays.hr_leave_view_form_dashboard"/>
+        <field name="arch" type="xml">
+            <label for="category_options_ids" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </label>
+        </field>
+    </record>
+
+    <record id="hr_leave_view_tree_payroll" model="ir.ui.view">
+        <field name="name">hr.leave.view.tree.inherit.hr.payroll</field>
+        <field name="model">hr.leave</field>
+        <field name="inherit_id" ref="hr_holidays.hr_leave_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='work_entry_type_id']" position="after">
+                <field name="category_options_ids" widget="many2many_tags"
+                    optional="hidden" groups="hr_payroll.group_hr_payroll_user"/>
+            </xpath>
+        </field>
+    </record>
+
+     <record id="hr_leave_gantt_multi_create_view" model="ir.ui.view">
+        <field name="name">hr.leave.gantt.multi.create.inherit</field>
+        <field name="model">hr.leave</field>
+        <field name="inherit_id" ref="hr_holidays_gantt.hr_leave_gantt_multi_create_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('o_form_label')][label[@for='name']]" position="before">
+                <div class="d-flex gap-2" invisible="not options_on_work_entry_type_ids" groups="hr_payroll.group_hr_payroll_user">
+                    <i class="oi oi-lg align-self-center" data-icon="add_circle" title="Options"/>
+                    <label for="category_options_ids" string=""/>
+                </div>
+                <div invisible="not options_on_work_entry_type_ids" groups="hr_payroll.group_hr_payroll_user">
+                    <field name="category_options_ids" widget="many2many_tags" nolabel="1"
+                        options="{'no_create': True}"
+                        readonly="state != 'confirm'"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_leave_view_form_payroll_encoding" model="ir.ui.view">
+        <field name="name">hr.leave.view.form.payroll.encoding</field>
+        <field name="model">hr.leave</field>
+        <field name="inherit_id" ref="hr_holidays.hr_leave_view_form_manager"/>
+        <field name="mode">primary</field>
+        <!-- Stay out of the way of default_view, which picks the first primary form by priority. -->
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <!-- HR encodes worked time from the payslip calendar, not only absences.
+                 The employee facing form keeps its own narrower list of time types. -->
+            <field name="work_entry_type_id" position="attributes">
+                <attribute name="domain">[('id', 'in', allowed_work_entry_type_ids or [])]</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="hr_leave_gantt_view_payroll_encoding" model="ir.ui.view">
+        <field name="name">hr.leave.view.gantt.payroll.encoding</field>
+        <field name="model">hr.leave</field>
+        <field name="inherit_id" ref="hr_holidays_gantt.hr_leave_gantt_view"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <!-- The calendar of the same action already opens a form with the wider list.
+                 A primary view keeps the wider list out of the regular time off gantt. -->
+            <gantt position="attributes">
+                <attribute name="form_view_id">%(hr_payroll.hr_leave_view_form_payroll_encoding)d</attribute>
+                <attribute name="multi_create_view">hr_holidays_gantt.hr_leave_gantt_multi_create_view_payroll</attribute>
+            </gantt>
+        </field>
+    </record>
+</odoo>

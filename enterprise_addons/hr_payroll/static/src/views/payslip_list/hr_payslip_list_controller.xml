@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="hr_payroll.PayslipListView" t-inherit="web.ListView" t-inherit-mode="primary">
+        <xpath expr="//Layout//t[@t-component='this.props.Renderer']" position="attributes">
+            <attribute name="onAdd.bind">this.createNewPayslip</attribute>
+        </xpath>
+        <xpath expr="//t[@t-set-slot='control-panel-selection-actions']//MultiRecordViewButton" position="attributes">
+            <attribute name="t-if">this.displayButton(button) &amp;&amp; !this.env.inDialog</attribute>
+        </xpath>
+    </t>
+
+    <t t-name="hr_payroll.PayslipListView.Buttons" t-inherit="web.ListView.Buttons" t-inherit-mode="primary">
+        <xpath expr="//button[hasclass('o_list_button_add')]" position="attributes">
+            <attribute name="t-if">!this.payRunReactive.payRunId &amp;&amp; !this.env.inDialog</attribute>
+        </xpath>
+        <xpath expr="//button[hasclass('o_list_button_add')]" position="inside">
+            Off-Cycle
+        </xpath>
+        
+        <xpath expr="." position="inside">
+          <t t-if="!this.env.inDialog">
+
+            <t t-if="this.payRunReactive.payRunId"> <!-- we have a payrun id, viewing payslips from a payrun -->
+              <PayrunNewDropdown
+                  onCreatePayslip="() => this.createNewPayslip()"
+                  onCreatePayRun="() => this.createNewPayRun()"
+              />
+            </t>
+            <t t-else=""> <!-- no payrun id, viewing payslips regardless of payrun -->
+              <button class="btn btn-primary" t-on-click="this.createNewPayRun">
+                  Pay Run
+              </button>
+            </t>
+
+          </t>
+        </xpath>
+    </t>
+</templates>

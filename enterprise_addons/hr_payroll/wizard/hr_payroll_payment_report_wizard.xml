@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="hr_payroll_payment_report_view_form" model="ir.ui.view">
+        <field name="name">hr.payroll.payment.report.wizard.form</field>
+        <field name="model">hr.payroll.payment.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Payment Report">
+                <group id="payment_report_group">
+                    <field name="export_format" widget="selection_badge" class="o_hr_medium_field"/>
+                    <label for="effective_date"/>
+                    <div class="o_row">
+                        <field name="effective_date" class="o_hr_narrow_field"/>
+                    </div>
+                    <field name="unpaid_payslips" invisible="1"/>
+                    <label for="include_unpaid"/>
+                    <div class="o_row">
+                        <field name="include_unpaid"/>
+                        <widget name="unpaid_items_link" invisible="include_unpaid == False"/>
+                    </div>
+                </group>
+                <footer>
+                    <button string="Mark as Paid" class="btn-primary" name="mark_as_paid" type="object"/>
+                    <button string="Download" class="btn-secondary" name="download_report" type="object" data-hotkey="q" invisible="export_format == 'manual'"/>
+                    <button string="Discard" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="payroll_hr_payslip_list_view_payrun" model="ir.ui.view">
+        <field name="name">view_payroll_hr_payslip_list_view_payrun</field>
+        <field name="model">hr.payslip</field>
+        <field name="arch" type="xml">
+                <list string="Records" default_order='employee_id ASC' create="false" delete="0" default_group_by="employee_id">
+                            <field name="company_id" optional="hide"/>
+                            <field name="currency_id" optional="hide"/>
+                            <field name="employee_id" widget="many2one_avatar_employee" readonly="state != 'draft'"/>
+                            <field name="date_from" string="Period" widget="daterange" options="{'end_date_field': 'date_to', 'payrun_optional': 'hide'}" readonly="1"/>
+                            <field name="date_to" invisible="1" optional="hide" readonly="1"/>
+                            <field name="payslip_run_id" optional='show' widget="many2one" readonly="state != 'draft'" options="{'payrun_optional': 'hide', 'no_open': 0}" placeholder="Off-Cycle"/>
+                            <field name="employer_cost" widget="monetary" options="{'currency_field': 'currency_id'}" optional="hide"/>
+                            <field name="basic_wage" widget="monetary" options="{'currency_field': 'currency_id'}" optional="hide"/>
+                            <field name="gross_wage" widget="monetary" options="{'currency_field': 'currency_id'}" optional="hide"/>
+                            <field name="net_wage" widget="monetary" options="{'currency_field': 'currency_id'}" decoration-bf="1" optional="show"/>
+                            <field
+                                name="state_display" widget="badge"
+                                decoration-info="state_display == 'draft'"
+                                decoration-success="state_display == 'validated'"
+                                decoration-primary="state_display == 'paid'"
+                                decoration-warning="state_display == 'warning'"
+                                decoration-danger="state_display == 'error'"/>
+                </list>
+        </field>
+    </record>
+    <record id="payroll_hr_payslip_list_view_filter_payrun" model="ir.ui.view">
+        <field name="name">payroll.hr.version.view.list.filter.payrun</field>
+        <field name="model">hr.payslip</field>
+        <field name="arch" type="xml">
+            <search string="Employees">
+                <filter string="Validated" name="validated" domain="[('state', '=', 'validated')]"/>
+                <group>
+                    <filter name="group_employee" string="Employee" domain="[]" context="{'group_by': 'employee_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+</odoo>

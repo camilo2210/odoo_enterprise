@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="helpdesk_ticket_view_form" model="ir.ui.view">
+            <field name="name">helpdesk.ticket.form.inherit</field>
+            <field name="model">helpdesk.ticket</field>
+            <field name="priority">80</field>
+            <field name="inherit_id" ref="helpdesk.helpdesk_ticket_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="header" position="inside">
+                    <button
+                        class="btn btn-secondary"
+                        name="action_plan_intervention"
+                        type="object"
+                        string="Plan Intervention"
+                        groups="planning.group_planning_user"
+                        invisible="not use_fsm"
+                        data-hotkey="w"
+                    />
+                </xpath>
+                <xpath expr="//button[@name='action_open_helpdesk_ticket']" position="before">
+                    <button
+                        class="oe_stat_button"
+                        name="action_view_interventions"
+                        type="object" icon="clear_all"
+                        invisible="not use_fsm or not scheduled_datetime or not planning_slot_count"
+                        groups="planning.group_planning_user"
+                    >
+                        <div class="o_field_widget o_stat_info">
+                            <div class="d-flex align-items-baseline gap-1">
+                                <span class="o_stat_value order-1">
+                                    <field name="planning_slot_count" nolabel="1"/>
+                                </span>
+                                <span class="o_stat_text order-2">Shifts</span>
+                            </div>
+                            <div class="d-flex align-items-baseline gap-1">
+                                <span class="o_stat_value">
+                                    <field name="planning_slot_done_count" nolabel="1"/>
+                                </span>
+                                <span class="o_stat_text order-2">Done</span>
+                            </div>
+                        </div>
+                    </button>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

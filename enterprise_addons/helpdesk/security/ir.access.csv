@@ -1,0 +1,56 @@
+id,name,model_id,group_id/id,operation,domain
+access_helpdesk_tag,helpdesk.tag,helpdesk.tag,helpdesk.group_helpdesk_user,crud,
+access_helpdesk_tag_internal_user,helpdesk.tag,helpdesk.tag,base.group_user,r,
+access_helpdesk_sla_internal_user,helpdesk.sla,helpdesk.sla,base.group_user,r,
+access_helpdesk_sla_manager,helpdesk.sla.manager,helpdesk.sla,helpdesk.group_helpdesk_manager,crud,
+helpdesk_sla_company_rule,SLA: multi-company,helpdesk.sla,,crud,"[('company_id', 'in', company_ids)]"
+access_helpdesk_sla_status_internal_user,helpdesk.sla.status,helpdesk.sla.status,base.group_user,r,
+access_helpdesk_stage_internal_user,helpdesk.stage,helpdesk.stage,base.group_user,r,
+access_helpdesk_stage_manager,helpdesk.stage.manager,helpdesk.stage,helpdesk.group_helpdesk_manager,crud,
+access_helpdesk_stage_portal,helpdesk.stage.portal,helpdesk.stage,base.group_portal,r,
+helpdesk_portal_ticket_rule,Tickets: portal users: following,helpdesk.ticket,base.group_portal,r,"[
+                ('team_privacy_visibility', '=', 'portal'),
+                '|',
+                '|',
+                    ('message_partner_ids', 'in', [user.partner_id.id]),
+                    ('team_id.message_partner_ids', 'in', [user.partner_id.id]),
+                    ('partner_id', 'child_of', [user.commercial_partner_id.id])
+            ]"
+helpdesk_ticket_manager_rule,Helpdesk Ticket Administrator,helpdesk.ticket,helpdesk.group_helpdesk_manager,crud,
+helpdesk_ticket_user_rule,Helpdesk Ticket User,helpdesk.ticket,helpdesk.group_helpdesk_user,crud,"['|',
+                                        '|',
+                                            ('team_id.privacy_visibility', '!=', 'invited_internal'),
+                                            ('team_id.message_partner_ids', 'in', [user.partner_id.id]),
+                                            ('message_partner_ids', 'in', [user.partner_id.id]),
+                                        ]"
+helpdesk_ticket_internal_user_rule,Ticket: Internal User,helpdesk.ticket,helpdesk.group_helpdesk_user,crud,"['|',
+                                        '|',
+                                        '|',
+                                            ('create_uid', '=', user.id),
+                                            ('partner_id', '=', user.partner_id.id),
+                                            ('team_id.message_partner_ids', 'child_of', [user.partner_id.commercial_partner_id.id]),
+                                            ('message_partner_ids', 'child_of', [user.partner_id.commercial_partner_id.id]),
+                                        ]"
+helpdesk_ticket_internal_user_rule_1,Ticket: Internal User,helpdesk.ticket,base.group_user,r,"['|',
+                                        '|',
+                                        '|',
+                                            ('create_uid', '=', user.id),
+                                            ('partner_id', '=', user.partner_id.id),
+                                            ('team_id.message_partner_ids', 'child_of', [user.partner_id.commercial_partner_id.id]),
+                                            ('message_partner_ids', 'child_of', [user.partner_id.commercial_partner_id.id]),
+                                        ]"
+helpdesk_ticket_company_rule,Ticket: multi-company,helpdesk.ticket,,crud,"[('company_id', 'in', company_ids + [False])]"
+access_helpdesk_team_public_portal,helpdesk.team,helpdesk.team,base.group_portal,r,
+helpdesk_user_rule,Helpdesk User,helpdesk.team,base.group_user,r,"['|',
+                                            ('privacy_visibility', '!=', 'invited_internal'),
+                                            ('message_partner_ids', 'in', [user.partner_id.id])
+                                        ]"
+helpdesk_manager_rule,Helpdesk Administrator,helpdesk.team,helpdesk.group_helpdesk_manager,crud,
+helpdesk_team_company_rule,Team: multi-company,helpdesk.team,,crud,"[('company_id', 'in', company_ids)]"
+access_helpdesk_sla_report_analysis_manager,access_helpdesk_sla_report_analysis_manager,helpdesk.sla.report.analysis,helpdesk.group_helpdesk_manager,r,
+helpdesk_sla_report_analysis_rule_manager,Helpdesk SLA Report: multi-company,helpdesk.sla.report.analysis,,crud,"[('company_id', 'in', company_ids + [False])]"
+access_mail_activity_type_helpdesk_manager,mail.activity.type.helpdesk.manager,mail.activity.type,helpdesk.group_helpdesk_manager,crud,
+helpdesk_ticket_report_analysis_rule_manager,Helpdesk Ticket Report: Helpdesk Ticket Administrator,helpdesk.ticket.report.analysis,helpdesk.group_helpdesk_manager,r,
+helpdesk_ticket_report_analysis_rule_multi_company,Helpdesk Ticket Report: multi-company,helpdesk.ticket.report.analysis,,crud,"[('company_id', 'in', company_ids + [False])]"
+access_helpdesk_stage_delete_wizard,helpdesk.stage.delete.wizard,helpdesk.stage.delete.wizard,helpdesk.group_helpdesk_manager,cru,
+access_helpdesk_tag_assignment,access_helpdesk_tag_assignment,helpdesk.tag.assignment,helpdesk.group_helpdesk_manager,crud,

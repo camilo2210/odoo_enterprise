@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="knowledge.SidebarRow">
+        <li t-on-click.stop="this.onNameClick" t-attf-class="o_article position-relative cursor-pointer #{this.isReadonly ? 'readonly' : ''}" t-att-data-article-id="this.props.article.id" t-ref="this.rootRef">
+            <div t-attf-class="o_article_handle d-flex rounded overflow-hidden p-1 #{this.isActive ? 'o_article_active' : ''}" tabindex="0" t-on-contextmenu.prevent="() => this.preview.open()">
+                <div t-if="this.hasChildren" class="o_article_icon o_article_icon_has_children flex-shrink-0 rounded">
+                    <span class="o_article_emoji d-inline-flex align-items-center justify-content-center">
+                        <t t-if="this.props.article.icon" t-out="this.props.article.icon"/>
+                        <t t-else="">
+                            <i class="oi oi-fw" data-icon="description"/>
+                        </t>
+                    </span>
+                    <a class="o_article_caret d-inline-flex align-items-center justify-content-center rounded" role="button" tabindex="-1" t-on-click.stop="this.onCaretClick">
+                        <i class="oi" t-attf-data-icon="#{this.props.unfolded ? 'arrow_drop_down' : 'arrow_right'}"/>
+                    </a>
+                </div>
+                <div t-else="" class="o_article_icon d-inline-flex align-items-center justify-content-center flex-shrink-0 bg-transparent">
+                    <span class="o_article_emoji d-inline-flex align-items-center justify-content-center">
+                        <t t-if="this.props.article.icon" t-out="this.props.article.icon"/>
+                        <t t-else="">
+                            <i class="oi oi-fw" data-icon="description"/>
+                        </t>
+                    </span>
+                </div>
+                <div class="d-flex flex-grow-1 align-items-center min-w-0">
+                    <a t-attf-class="o_article_name flex-grow-1 ms-1 text-truncate #{this.isActive ? 'fw-bold' : 'text-body'}" role="button">
+                        <t t-if="this.props.article.name" t-out="this.props.article.name"/>
+                        <t t-else="">Untitled</t>
+                    </a>
+                    <Dropdown state="this.preview" menuClass="'o_knowledge_options_dropdown'">
+                        <button type="button" tabindex="-1" class="o_article_options btn d-inline-flex align-items-center justify-content-center flex-shrink-0 rounded p-0 opacity-75 opacity-100-hover" t-att-class="{'d-md-none': !this.preview.isOpen }" title="More options" aria-label="More options">
+                            <i class="oi" data-icon="more_vert" aria-hidden="true"/>
+                        </button>
+                        <t t-set-slot="content">
+                            <DropdownItem onSelected.bind="this.openInNew">
+                                <i class="oi oi-fw me-2" data-icon="open_in_new"/>Open in new tab
+                            </DropdownItem>
+                            <hr class="dropdown-divider"/>
+                            <DropdownItem onSelected.bind="this.toggleFavorite">
+                                <t t-if="this.props.article.is_user_favorite">
+                                    <i class="oi oi-fw oi-filled me-2" data-icon="star"/>Remove from Favorite
+                                </t>
+                                <t t-else="">
+                                    <i class="oi oi-fw me-2" data-icon="star"/>Add to Favorite
+                                </t>
+                            </DropdownItem>
+                            <DropdownItem t-if="this.props.article.user_can_write" onSelected.bind="this.togglePermissionPanel">
+                                <i class="oi oi-fw me-2" data-icon="share"/>Share
+                            </DropdownItem>
+                            <DropdownItem t-if="this.props.article.user_can_write and !this.isLocked" onSelected.bind="this.openRename">
+                                <i class="oi oi-fw oi-filled me-2" data-icon="edit"/>Rename
+                            </DropdownItem>
+                            <DropdownItem t-if="this.props.article.user_can_write" onSelected.bind="this.moveArticle">
+                                <i class="oi oi-fw me-2" data-icon="keyboard_double_arrow_right"/>Move To
+                            </DropdownItem>
+                            <DropdownItem t-if="this.canCreateArticle" onSelected.bind="this.copy">
+                                <i class="oi oi-fw me-2" data-icon="content_copy"/>Create a Copy
+                            </DropdownItem>
+                            <DropdownItem t-if="this.props.article.user_can_write" onSelected.bind="this.sendArticleToTrash">
+                                <i class="oi oi-fw oi-filled me-2" data-icon="delete"/>Send to Trash
+                            </DropdownItem>
+                            <hr class="dropdown-divider"/>
+                            <div t-if="this.lastEditionDate" class="o_knowledge_options_dropdown_section px-2 text-muted small">
+                                Last edited by <t t-out="this.lastEditor"/>
+                                <div class="text-muted" t-att-title="this.formatDateTime(this.lastEditionDate)">
+                                    <t t-out="this.lastEditionDate.toRelative()"/>
+                                </div>
+                            </div>
+                        </t>
+                    </Dropdown>
+                    <button t-if="this.canCreateArticle and this.props.article.user_can_write" type="button" tabindex="-1"
+                        class="o_article_create btn d-inline-flex align-items-center justify-content-center flex-shrink-0 rounded p-0 opacity-75 opacity-100-hover"
+                        t-att-class="{'d-md-none': !this.preview.isOpen }"
+                        title="Create an Article inside"
+                        aria-label="Create an Article inside"
+                        t-on-click.stop="this.createChild">
+                        <i class="oi" data-icon="add" aria-hidden="true"/>
+                    </button>
+                </div>
+            </div>
+            <ul t-if="this.props.unfolded">
+                <t t-foreach="this.props.article.child_ids" t-as="childId" t-key="childId">
+                    <KnowledgeSidebarRow article="this.env.getArticle(childId)" unfolded="this.props.unfoldedIds.has(childId)" unfoldedIds="this.props.unfoldedIds" record="this.props.record"/>
+                </t>
+            </ul>
+            <div t-elif="this.state.loading" class="p-1 text-center">
+                <i class="oi oi-spin" data-icon="autorenew" title="loader" role="img"/>
+            </div>
+        </li>
+    </t>
+</templates>

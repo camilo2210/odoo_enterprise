@@ -1,0 +1,6 @@
+# -*- coding: utf-8 -*-
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+from . import helpdesk_sale_coupon_generate
+from . import helpdesk_sale_giftcard_generate_wizard
+from . import mail_compose_message

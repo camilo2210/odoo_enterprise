@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_rule_parameter_view_form" model="ir.ui.view">
+        <field name="name">hr.rule.parameter.form</field>
+        <field name="model">hr.rule.parameter</field>
+        <field name="arch" type="xml">
+            <form string="Salary Rule Parameter">
+                <div id="warning_modified_user" class="alert alert-warning d-flex" role="alert" invisible="not modified_by_user">
+                    This rule parameter has been manually updated. It will no longer be updated by our system.
+                    <button string="Reset" type="object" name="action_reset_rule_parameter" class="btn-link py-0"/>
+                </div>
+                <div class="alert alert-info d-flex" role="alert" invisible="not created_by_user">
+                    This rule parameter has been manually created by a user. It will not be updated by our system.
+                </div>
+                <sheet>
+                    <div name="button_box" class="oe_button_box">
+                        <button name="action_open_salary_rules"
+                            class="oe_stat_button"
+                            icon="format_list_bulleted"
+                            type="object"
+                            groups="hr_payroll.group_hr_payroll_manager">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Salary Rules</span>
+                                <span class="o_stat_value"><field name="salary_rule_count"/></span>
+                            </div>
+                        </button>
+                    </div>
+                    <h1 class="w-100"><field name="name"/></h1>
+                    <group>
+                        <field name="code"/>
+                        <field name="description" type="html"
+                                options="{'collaborative': true, 'resizable': false}"
+                                placeholder="Note a description of your parameter, when it's used, how is it computed, what's the source, ..."/>
+                    </group>
+                    <notebook>
+                        <page string="History" name="history">
+                            <field name="parameter_version_ids" nolabel="1" force_save="1"
+                                   context="{'default_rule_parameter_id': id}">
+                                <list editable="top" decoration-info="modified_by_user">
+                                    <field name="date_from"/>
+                                    <field name="parameter_value" widget="code" options="{'mode': 'python'}"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="hr_rule_parameter_view_tree" model="ir.ui.view">
+        <field name="name">hr.rule.parameter.list</field>
+        <field name="model">hr.rule.parameter</field>
+        <field name="arch" type="xml">
+            <list expand="1" decoration-info="modified_by_user or created_by_user">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="current_value_one_line" string="Current Value"/>
+                <field name="valid_since"/>
+                <field name="salary_rule_ids"/>
+                <button name="action_open_salary_rules" type="object" icon="open_in_new" string="Salary Rules" invisible="salary_rule_count == 0"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="hr_rule_parameter_view_search" model="ir.ui.view">
+        <field name="name">hr.rule.parameter.search</field>
+        <field name="model">hr.rule.parameter</field>
+        <field name="arch" type="xml">
+            <search>
+                <filter name="customized" string="Customized" domain="['|', ('created_by_user', '=', True), ('modified_by_user', '=', True)]"/>
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('code', 'ilike', self)]"/>
+                <field name="parameter_version_ids" string="Value" filter_domain="[('parameter_version_ids.parameter_value', 'ilike', self)]"/>
+                <filter string="Country" name="group_by_country" context="{'group_by': 'country_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="hr_rule_parameter_action" model="ir.actions.act_window">
+        <field name="name">Salary Rule Parameters</field>
+        <field name="res_model">hr.rule.parameter</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new salary rule parameter
+            </p>
+        </field>
+    </record>
+</odoo>

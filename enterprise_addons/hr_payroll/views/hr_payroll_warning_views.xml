@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_payroll_warning_view_form" model="ir.ui.view">
+        <field name="name">hr.payroll.warning.view.form</field>
+        <field name="model">hr.payroll.warning</field>
+        <field name="arch" type="xml">
+            <form string="Payroll Warning">
+                <sheet>
+                    <field name="active" invisible="1"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Warning Title"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="description" placeholder="Warning description"/>
+                            <field name="model_id" options="{'no_open': True, 'no_create': True}"/>
+                            <field name="warning_type" widget="radio" options="{'horizontal': True}"/>
+                            <field name="block_payslips"/>
+                            <field name="snooze_date"/>
+                        </group>
+                        <group>
+                            <field name="country_id" placeholder="All" options="{'no_open': True, 'no_create': True}"/>
+                            <span class="o_form_label fw-bold">Display On</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="d-flex align-items-center">
+                                    <field name="display_on_dashboard" nolabel="1" class="oe_inline m-0"/>
+                                    <label for="display_on_dashboard" class="m-0 ms-1" style="font-weight: normal;"/>
+                                </div>
+
+                                <div class="d-flex align-items-center">
+                                    <field name="display_on_model" nolabel="1" class="oe_inline m-0"/>
+                                    <label for="display_on_model" class="m-0 ms-1" style="font-weight: normal;"/>
+                                </div>
+
+                                <span class="oi text-warning ms-1" data-icon="warning"
+                                    style="cursor: default;"
+                                    title="Ensure the evaluation code is generic enough to run globally on the dashboard without relying on a specific record's view context."
+                                    invisible="not display_on_dashboard"/>
+                            </div>
+                            <field name="visible_to" widget="radio" options="{'horizontal': True}"/>
+                            <field name="warning_color_class"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="python_code" string="Python Code" invisible="warning_type == 'domain'"
+                            groups="hr_payroll.group_hr_payroll_user">
+                            <div class="w-100 d-flex flex-row gap-3">
+                                <field name="evaluation_code" class="w-50" widget="code" options="{'mode': 'python'}"
+                                    required="warning_type == 'python'"/>
+                                <div class="w-50 opacity-75 text-muted">
+                                    <span> Available variables:</span>
+                                    <ul>
+                                        <li><code>self</code>: the current hr.payroll.warning object</li>
+                                        <li><code>self.env</code>: environment on which the action is triggered</li>
+                                        <li><code>model</code>: model of the record on which the action is triggered; is a void recordset</li>
+                                        <li><code>date,datetime,dateutil,relativedelta</code>: useful Python libraries</li>
+                                    </ul>
+                                    <span>Results:</span>
+                                    <ul>
+                                        <li><code>warning_count</code>: number of issues</li>
+                                        <li><code>warning_records</code>: records containing the issue</li>
+                                        <li><code>warning_action</code>: action to open on click</li>
+                                        <li><code>warning_title</code>: override the title of the warning</li>
+                                        <li><code>warning_description</code>: override the description of the warning</li>
+                                        <li><code>warning_deadline</code>: override the deadline of the warning</li>
+                                        <li><code>warning_button</code>: override the button name of the warning</li>
+                                        <li><code>additional_context</code>: dict to add in the context of action</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </page>
+                        <page name="domain" string="Domain" invisible="warning_type == 'python'"
+                            groups="hr_payroll.group_hr_payroll_user">
+                            <group name="domain_spec">
+                                <field name="model_name" invisible="1"/>  <!-- Needed for `domain` widget -->
+                                <field name="warning_domain" widget="domain"
+                                    options="{'foldable': True, 'model': 'model_name', 'allow_expressions': True}"/>
+                                <field name="is_in_contract" invisible="not can_be_in_contract" />
+                            </group>
+                        </page>
+                        <page name="misc" string="Communication">
+                            <group>
+                                <group>
+                                    <label for="warning_offset_days" string="Deadline"/>
+                                    <div class="o_row">
+                                        <span>
+                                            <field name="warning_offset_days" style="width: 4rem;" class="text-end"/>
+                                        </span>
+                                        <span>days After </span>
+                                        <span>
+                                            <field name="closing_on" nolabel="1"/>
+                                        </span>
+                                    </div>
+                                    <field name="button_name" placeholder="Open Employees" required="not block_payslips" class="w-50"/>
+                                    <field name="button_action" placeholder="Open Employees" groups="base.group_no_one" class="w-50"/>
+                                </group>
+                                <group invisible="closing_on == 'today'">
+                                    <field name="email_message" placeholder="Keep empty for no email alerts"/>
+                                    <label for="email_alert_days" invisible="is_email_message_empty"/>
+                                    <div class="o_row" invisible="is_email_message_empty">
+                                        <span>
+                                            <field name="email_alert_days" style="width: 4rem;" class="text-end"/>
+                                        </span>
+                                        <span> days after issue. </span>
+                                    </div>
+                                    <field name="email_visibility_type_id"
+                                        widget="whitelisted_radio" 
+                                        options="{'whitelisted_values': ['assistant', 'officer', 'admin']}"
+                                        invisible="model_name == 'hr.employee' and warning_type == 'domain'"
+                                        help="
+                                            Select to which recipient the email alert will be sent to.&#10;
+                                            For:&#10;
+                                            - Assistant: Email will be sent to Payroll Assistants, Officers and Administrators&#10;
+                                            - Officers: Email will be sent to Payroll Officers and Administrators
+                                            "
+                                        />
+                                    <field name="email_visibility_type_id"
+                                        widget="whitelisted_radio"
+                                        options="{'whitelisted_values': ['assistant', 'officer', 'admin', 'employee', 'employee_manager']}"
+                                        invisible="not (model_name == 'hr.employee' and warning_type == 'domain')"
+                                        help="
+                                            Select to which recipient the email alert will be sent to.&#10;
+                                            For:&#10;
+                                            - Assistant: Email will be sent to Payroll Assistants, Officers and Administrators&#10;
+                                            - Officers: Email will be sent to Payroll Officers and Administrators
+                                            "
+                                        />
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="hr_payroll_warning_view_tree" model="ir.ui.view">
+        <field name="name">hr.payroll.warning.list</field>
+        <field name="model">hr.payroll.warning</field>
+        <field name="arch" type="xml">
+            <list multi_edit="1">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="description" class="text-muted"/>
+                <field name="country_id" optional="hide"/>
+                <field name="warning_color_class" widget="warning_color_badge"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="hr_payroll_warning_view_kanban" model="ir.ui.view">
+        <field name="name">hr.payroll.warning.view.kanban</field>
+        <field name="model">hr.payroll.warning</field>
+        <field name="arch" type="xml">
+            <kanban
+                quick_create="0"
+                records_draggable="0"
+                group_create="false"
+            >
+                <templates>
+                    <t t-name="menu">
+                        <button name="action_archive" type="object" class="btn" string="Archive"/>
+                        <button name="unlink" type="object" class="btn text-danger" string="Delete"/>
+                    </t>
+                    <t t-name="card" class="cursor-pointer w-100">
+                        <div class="fw-bold fs-4 sm-fs-3">
+                            <field name="name"/>
+                        </div>
+                        <div class="mt-1">
+                            <field name="description"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="hr_payroll_warning_view_search" model="ir.ui.view">
+        <field name="name">hr.payroll.warning.search</field>
+        <field name="model">hr.payroll.warning</field>
+        <field name="arch" type="xml">
+            <search string="Search Payroll Warning">
+                <field name="name"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_hr_payroll_warning" model="ir.actions.act_window">
+        <field name="name">Payroll Warnings</field>
+        <field name="res_model">hr.payroll.warning</field>
+        <field name="path">payroll-warnings</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('active', 'in', (True, False))]</field>
+        <field name="search_view_id" ref="hr_payroll_warning_view_search"/>
+    </record>
+
+    <record id="res_company_form_action" model="ir.actions.server">
+        <field name="name">Company Form</field>
+        <field name="model_id" ref="hr_payroll.model_hr_payroll_warning"/>
+        <field name="state">code</field>
+        <field name="code">
+action = model._dashboard_company_action()
+        </field>
+    </record>
+
+    <record id="create_employee_action" model="ir.actions.act_window">
+        <field name="name">Create Employee</field>
+        <field name="res_model">hr.employee</field>
+        <field name="view_mode">form</field>
+    </record>
+
+    <record id="base_document_layout_payroll_action" model="ir.actions.act_window">
+        <field name="name">Configure Payslip Layout</field>
+        <field name="res_model">base.document.layout</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{
+            "dialog_size": "extra-large",
+            "payroll_document_layout_configurator": True,
+            "report_action": {
+                'type': 'ir.actions.client',
+                'tag': 'soft_reload'
+            }
+        }</field>
+    </record>
+
+    <record id="l10n_be_generate_meal_vouchers_action" model="ir.actions.server">
+        <field name="name">Generate Meal Vouchers Report</field>
+        <field name="model_id" ref="hr_payroll.model_hr_payroll_warning"/>
+        <field name="state">code</field>
+        <field name="code">
+action = model.env['l10n_be.meal.vouchers.report']._action_generate_current_month_report()
+        </field>
+    </record>
+
+    <record id="hr_leave_view_tree_to_defer" model="ir.ui.view">
+        <field name="name">hr.leave.view.list.to.defer</field>
+        <field name="model">hr.leave</field>
+        <field name="inherit_id" ref="hr_holidays.hr_leave_view_tree"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+        
+        <xpath expr="//list" position="attributes">
+            <attribute name="create">False</attribute>
+        </xpath>
+        <xpath expr="//button[@name='%(hr_holidays.action_hr_leave_generate_multi_wizard)d']" position="attributes">
+            <attribute name="invisible">1</attribute>
+        </xpath>
+        <xpath expr="//button[@name='action_refuse']" position="before">
+            <button type="object"
+                name="action_adjust_corresponding_payslip"
+                string="Correct related payslips" class="btn btn-primary"
+            />        
+        </xpath>
+        </field>
+    </record>
+
+    <record id="action_hr_leaves_to_defer" model="ir.actions.act_window">
+        <field name="name">Leaves to Defer</field>
+        <field name="res_model">hr.leave</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="hr_leave_view_tree_to_defer"/>
+    </record>
+
+</odoo>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="knowledge.EmbeddedViewLinkEditDialog">
+        <Dialog size="'lg'" title.translate="Edit Link">
+            <div class="row">
+                <form role="form" class="col-lg-8">
+                    <div class="d-flex">
+                        <label for="inputName" class="col-form-label col-md-2">Name</label>
+                        <input class="form-control" id="inputName" type="text"
+                            t-model.proxy="this.state.name"
+                            t-att-class="{ 'is-invalid': this.name === '' }"
+                            t-ref="this.inputRef"/>
+                    </div>
+                    <div class="my-3 row">
+                        <label class="col-md-2">Type</label>
+                        <div class="col-md-9 d-flex gap-2 ps-1">
+                            <t t-foreach="Object.entries(this.styles)" t-as="style" t-key="style[0]">
+                                <label role="button">
+                                    <span class="btn btn-sm"
+                                        t-att-class="style[1].class"
+                                        t-on-click="this.updateStyle.bind(this, style[0])">
+                                        <t t-out="style[1].display"/>
+                                        <i class="oi ms-1" data-icon="check" t-if="this.state.style === style[0]"/>
+                                    </span>
+                                </label>
+                            </t>
+                        </div>
+                    </div>
+                </form>
+                <div class="col-lg-4 border-start">
+                    <div class="mb-3 text-center overflow-auto">
+                        <label>Preview</label>
+                        <div class="pt-2">
+                            <a href="#" t-att-class="this.styles[this.state.style].class" t-out="this.state.name"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-on-click="this.onConfirm">
+                    Save
+                </button>
+                <button class="btn btn-secondary" t-on-click="this.props.close">
+                    Discard
+                </button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

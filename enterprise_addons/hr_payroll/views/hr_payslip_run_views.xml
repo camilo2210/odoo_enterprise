@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="hr_payslip_run_filter" model="ir.ui.view">
+        <field name="name">hr.payslip.run.search</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="arch" type="xml">
+            <search string="Search Pay Run">
+                <field name="name" string="Pay Run"/>
+                <filter string="Draft" name="draft" domain="[('state', '=', '00_draft')]" help="Draft Pay Runs"/>
+                <field name="structure_id" string="Pay Structure" filter_domain="[('structure_id.name', 'ilike', self)]"/>
+                <field name="slip_ids" string="Employee" filter_domain="[('slip_ids.employee_id.name', 'ilike', self)]"/>
+                <filter string="Ready" name="ready" domain="[('state', '=', '01_ready')]" help="Ready Pay Runs"/>
+                <filter string="Done" name="done_filter" domain="[('state', '=', '02_close')]" help="Done Pay Runs"/>
+                <filter string="Paid" name="paid" domain="[('state', '=', '03_paid')]" help="Paid Pay Runs"/>
+                <separator/>
+                <filter string="Date" name="date_filter" date="date_start"/>
+                <separator/>
+                <filter string="Archived" name="filter_archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Status" name="groupby_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="hr_payrun_payslip_kanban_card_view" model="ir.ui.view">
+        <field name="name">hr.payrun.blank.kanban.card</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="arch" type="xml">
+          <kanban js_class="payslip_run_kanban" default_order="state, date_start DESC, id" quick_create="0">
+
+                <field name="currency_id"/>
+                <field name="payment_report_format"/>
+                <field name="payment_report_filename"/>
+
+                <templates>
+                    <t t-name="payrun_menu" class="d-flex flex-column">
+
+                <button name="action_validate" type="object" class="btn oe_highlight" string="Validate"
+                        invisible="state != '01_ready' or empty_payslips > 0 or payslip_count == 0" context="{'payslip_generate_pdf': payslip_generate_and_send_trigger != 'never'}"
+                        confirm="Are you sure you want to proceed?"/>
+                <button name="action_generate_payslips_pdf" type="object" class="btn btn-secondary"
+                        string="Test Print" invisible="state != '01_ready'"
+                        confirm="Draft PDFs will be generated for all payslips and attached in their chatter.&#10;Are you sure you want to proceed?"/>
+                <button name="action_confirm" type="object" class="btn oe_highlight" string="Compute" invisible="state != '01_ready' or empty_payslips == 0"/>
+                <button name="action_paid" type="object" class="btn btn-primary" string="Mark as Paid" invisible="state != '02_close'" options="{'is_priority': True}"/>
+                <field name="payment_report" filename="payment_report_filename" format="payment_report_format"
+                       widget="payrun_binary" class="btn btn-secondary btn-addr align-content-center text-center"  invisible="not payment_report"/>
+                <button name="action_unpaid" type="object" class="btn btn-secondary" string="Mark as Unpaid" invisible="state != '03_paid'"/>
+                <button name="action_correct" type="object" class="btn btn-secondary" string="Correct"
+                        invisible="state not in ('02_close', '03_paid')"
+                        confirm="This will create a new pay run with reverted and corrected payslips. Are you sure you want to proceed?"/>
+                <button name="action_payment_report" type="object" class="btn btn-primary" string="Pay" invisible="state != '02_close'" options="{'is_priority': True}"/>
+                <button name="action_draft" type="object" class="btn btn-secondary" string="Set to Draft" invisible="state != '02_close'"/>
+                <button name="action_work_time_report" type="object" class="btn btn-secondary" string="Work times"/>
+                <button name="action_payroll_line_report" type="object" class="btn btn-secondary" string="Payroll Journal"/>
+                <button name="action_re_compute_payslips" type="object" class="btn btn-secondary" string="Re-compute Payslips" invisible="state != '01_ready'"/>
+                <button name="action_generate_payslips_pdf_send_by_email" type="object" class="btn btn-secondary" string="Send by email" invisible="state != '02_close' or payslip_generate_and_send_trigger != 'never'" options="{'is_priority': True}"/>
+                <button name="action_generate_payslips_pdf_send_by_email" type="object" class="btn btn-primary" string="Send by email" invisible="state != '03_paid' or payslip_generate_and_send_trigger != 'never'" options="{'is_priority': True}"/>
+
+                        <button name="action_add_employees" type="object" class="btn btn-secondary" string="Add Employees"
+                                invisible="state in ['02_close', '03_paid', '04_cancel']"/>
+                        <button name="unlink" type="delete" class="btn text-danger">Delete</button>
+                    </t>
+
+                    <t t-name="payrun_name">
+                        <div class="fs-4 fw-bold text-truncate">
+                            <input t-if="context.payrun_kanban_card_view_id"
+                                type="text"
+                                t-att-value="record.name.value"
+                                data-payrun-name="1"
+                                placeholder="Pay Run Name"
+                                class="o_field_widget o_input w-100"/>
+                            <field name="name" t-else="" class="text-truncate"/>
+                        </div>
+                        <div class="fw-medium text-truncate" style="font-size: 0.75rem;">
+                            <field name="date_start"/>
+                            <i class="oi px-2" data-icon="east" title="Arrow"/>
+                            <field name="date_end"/>
+                            <span class="mx-2 text-muted">|</span>
+                            <span class="text-black"><field name="employee_count"/> Employees</span>
+                                <span class="o_payrun_chatter_icon ms-1 opacity-0 opacity-100-hover lh-1 fade text-muted" role="button"
+                                      t-if="!context.payrun_kanban_card_view_id">
+                                    <i class="oi oi-fw" t-att-data-icon="{'forum': !(this.isChatterOpen and this.isSelected), 'close': this.isChatterOpen and this.isSelected}" title="Chatter"/>
+                                </span>
+                        </div>
+                    </t>
+                    <t t-name="payrun_state">
+                      <field name="state" widget="badge"
+                            decoration-info="state in ('00_draft', '01_ready')"
+                            decoration-success="state == '02_close'"
+                            decoration-primary="state == '03_paid'" />
+                    </t>
+                    <t t-name="payrun_kpis">
+                      <div class="o_payrun_metrics d-flex justify-content-center align-items-start gap-4">
+                          <div class="d-flex flex-column align-items-start">
+                              <div class="o_payrun_metric_label small text-muted"><span>Total Cost</span></div>
+                              <div class="o_payrun_metric_value"><field name="total_employer_cost" widget="payrun_kpi"/></div>
+                          </div>
+
+                          <div class="d-flex flex-column align-items-start">
+                              <div class="o_payrun_metric_label small text-muted"><span>Net</span></div>
+                              <div class="o_payrun_metric_value"><field name="net_sum" widget="payrun_kpi"/></div>
+                          </div>
+                      </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="hr_payslip_run_view_list" model="ir.ui.view">
+        <field name="name">hr.payslip.run.list</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="arch" type="xml">
+            <list string="Pay Runs" default_order="state, date_start DESC, id" sample="1"
+                  js_class="payslip_run_list" action="action_open_payslips" type="object">
+                <field name="currency_id" column_invisible="True"/>
+                <field name="country_code" column_invisible="True"/>
+                <field name="name"/>
+                <field name="total_employer_cost" string="Total Cost" widget="monetary" options="{'currency_field': 'currency_id'}" optional="show" sum="Total Cost"/>
+                <field name="net_sum" string="Net" widget="monetary" options="{'currency_field': 'currency_id'}" decoration-bf="1" optional="show" sum="Total Net"/>
+                <field name="state" widget="badge"
+                       decoration-info="state in ('00_draft', '01_ready')"
+                       decoration-success="state == '02_close'"
+                       decoration-primary="state == '03_paid'" />
+                <button string="Journal" name="action_payroll_line_report" type="object" title="Payroll Journal"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="hr_payslip_run_view_calendar" model="ir.ui.view">
+        <field name="name">hr.payslip.run.calendar</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="arch" type="xml">
+            <calendar js_class="pay_run_calendar"
+                    string="Pay Runs"
+                    date_start="date_start"
+                    date_stop="date_end"
+                    mode="year"
+                    scales="week,month,year"
+                    show_unusual_days="True"
+                    quick_create="0"
+                    hide_time="True"
+                    delete="0"
+                    create="1"
+                    color="color"
+                    show_date_picker="0">
+                <field name="state" filters="1" invisible="1"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="hr_payslip_run_view_pivot" model="ir.ui.view">
+        <field name="name">hr.payslip.run.pivot</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="arch" type="xml">
+            <pivot disable_linking="True">
+            </pivot>
+        </field>
+    </record>
+
+    <record id="hr_payslip_run_view_graph" model="ir.ui.view">
+        <field name="name">hr.payslip.run.graph</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="arch" type="xml">
+            <graph disable_linking="True">
+            </graph>
+        </field>
+    </record>
+
+    <record id="hr_payslip_run_form" model="ir.ui.view">
+        <field name="name">hr.payslip.run.form</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="arch" type="xml">
+            <form string="Pay Runs" js_class="hr_payslip_batch_form">
+                <group>
+                    <field name="company_id" options="{'no_create': 1, 'no_quick_create': 1}"
+                           placeholder="Select a company for this Pay Run" domain="[('id', 'in', allowed_company_ids)]"
+                           invisible="context.get('allowed_company_ids', []).length &lt; 2"/>
+                    <field name="employee_type_ids" widget="many2many_tags" placeholder="All employee types"/>
+                    <field name="structure_domain" invisible="1"/>
+                    <field name="structure_id" domain="structure_domain" placeholder="Select a structure"/>
+                    <label for="date_start" string="Period"/>
+                    <div class="o_row">
+                        <field name="date_start" class="oe_inline" readonly="state != '00_draft'"/>
+                        <i class="oi mx-2" data-icon="east" aria-label="Arrow icon" title="Arrow"/>
+                        <field name="date_end" class="oe_inline" readonly="(not date_start) or (state != '00_draft')"/>
+                    </div>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_hr_payslip_run_create" model="ir.actions.act_window">
+        <field name="name">New Pay Run</field>
+        <field name="res_model">hr.payslip.run</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'dialog_size': 'medium'}</field>
+    </record>
+
+    <record id="action_hr_payslip_run" model="ir.actions.act_window">
+        <field name="name">Pay Runs</field>
+        <field name="res_model">hr.payslip.run</field>
+        <field name="view_mode">kanban,calendar,pivot,graph,list</field>
+        <field name="path">pay-runs</field>
+        <field name="search_view_id" ref="hr_payslip_run_filter"/>
+        <field name="view_id" ref="hr_payrun_payslip_kanban_card_view"/>
+        <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+                No Pay Runs.
+              </p><p>
+                A Pay Run is a batch of individual payslips processed together for a specific pay period, including wages, taxes, and deductions.<br/><br/>
+                <a name="hr_payroll.action_hr_payslip_run_create" type="action" class="btn btn-secondary">Create a Pay Run</a>
+              </p>
+        </field>
+    </record>
+
+    <record id="action_hr_payroll_open_pay_run" model="ir.actions.act_window">
+        <field name="name">Pay Run Payslips</field>
+        <field name="res_model">hr.payslip</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_hr_payslip_filter"/>
+    </record>
+
+    <record id="action_hr_payroll_start_payrun" model="ir.actions.server">
+        <field name="name">Start Pay Run</field>
+        <field name="state">code</field>
+        <field name="model_id" ref="hr_payroll.model_hr_payslip_run"/>
+        <field name="code">
+active_id = env.context.get('active_id')
+if active_id:
+    action = model.browse(active_id).action_open_payslips()
+else:
+    action = model.action_start_payrun_with_warnings({
+        'company_id': env.context.get('default_company_id'),
+        'date_start': env.context.get('default_date_start'),
+        'date_end': env.context.get('default_date_end'),
+        'structure_id': env.context.get('default_structure_id'),
+        'employee_type_ids': env.context.get('default_employee_type_ids'),
+    })
+        </field>
+    </record>
+</odoo>

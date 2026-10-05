@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="knowledge.ArticleIndexList">
+        <ul t-ref="this.rootRef" class="m-0 p-0">
+            <t t-foreach="this.props.articles" t-as="article" t-key="article_index">
+                <t t-call="knowledge.ArticleIndexNestedList" article="article"/>
+            </t>
+        </ul>
+    </t>
+
+    <t t-name="knowledge.ArticleIndexNestedList">
+        <li t-att-data-article-id="article.id">
+            <a class="d-flex text-reset cursor-pointer p-1" t-on-click.stop="(ev) => this.openArticle(article.id)">
+                <div class="flex-shrink-0 px-2">
+                    <i class="oi text-muted" data-icon="drag_indicator"/>
+                </div>
+                <div class="flex-grow-1 text-truncate" t-out="article.name"/>
+                <div class="flex-shrink-0" title="Delete article" t-on-click.stop="(ev) => this.deleteArticle(article.id)">
+                    <i class="oi oi-fw oi-lg oi-filled" data-icon="delete"/>
+                </div>
+            </a>
+            <ul class="m-0">
+                <t t-foreach="article.childIds" t-as="child_article" t-key="child_article_index">
+                    <t t-call="knowledge.ArticleIndexNestedList" article="child_article"/>
+                </t>
+            </ul>
+        </li>
+    </t>
+</templates>

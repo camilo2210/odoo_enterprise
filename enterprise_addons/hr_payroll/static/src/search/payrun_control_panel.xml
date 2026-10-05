@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="hr_payroll.PayRunControlPanel" t-inherit="web.ControlPanel" t-inherit-mode="primary">
+        <xpath expr="//t[@t-call-slot='control-panel-navigation-additional']" position="before">
+            <button
+                t-if="!this.env.inDialog and this.env.payRunReactive?.payRunId"
+                t-on-click="() => this.toggleChatter()"
+                data-tooltip="Chatter"
+                class="btn btn-secondary d-none d-md-inline"
+                t-att-class="{'active': this.payRunChatter.visible()}">
+                <i t-attf-class="oi oi-fw {{ this.payRunChatter.visible() ? '' : '' }}" t-attf-data-icon="{{ this.payRunChatter.visible() ? 'close' : 'forum' }}"/>
+            </button>
+        </xpath>
+        <xpath expr="//div[hasclass('o_control_panel_actions')]" position="attributes">
+            <attribute name="class" remove="order-2 order-lg-1 w-100 mw-100" separator=" "/>
+        </xpath>
+        <xpath expr="//div[hasclass('o_control_panel_navigation')]" position="attributes">
+            <attribute name="class" remove="flex-grow-1" separator=" "/>
+        </xpath>
+        <xpath expr="//div[hasclass('o_control_panel_main_buttons')]" position="after">
+          <!-- The current model is hr.payslip, the buttons are actions against hr.payslip.run, so we need to wrap it in a record to change that -->
+          <Record t-key="this.state.revId" t-if="this.payRunArchInfo and this.state.payRunReactive?.payRunId" t-props="this.payrunRecordComponentProps" t-slot-scope="recordScope">
+              <!-- The component will be compiled into the main action buttons of the payrun -->
+              <PayrunKanbanMenu record="recordScope.record" Compiler="this.payRunKanbanCompiler" archInfo="this.payRunArchInfo" deleteRecord="(record) => this.deletePayRun(record)"/>
+            </Record>
+        </xpath>
+    </t>
+</templates>

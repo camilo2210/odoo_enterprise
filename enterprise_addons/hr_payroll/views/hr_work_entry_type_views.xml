@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_hr_work_entry_type_view_form_inherit" model="ir.ui.view">
+        <field name="name">payroll.hr.work.entry.type.view.form.inherit</field>
+        <field name="model">hr.work.entry.type</field>
+        <field name="inherit_id" ref="hr_work_entry.hr_work_entry_type_view_form"/>
+        <field name="arch" type="xml">
+            <sheet position="before">
+                <div id="warning_modified_user" class="alert alert-warning d-flex" role="alert" invisible="not modified_by_user">
+                    This Time Type has been manually updated. It will no longer be updated by our system.
+                    <button string="Reset" type="object" name="action_reset_rule" class="btn-link py-0"
+                    confirm="Resetting this Time Type will remove any manual changes made to its setup and update it to the latest standard configuration available in the current version of the database.&#10;This action will also resume automatic updates for the rule moving forward."/>
+                </div>
+            </sheet>
+            <xpath expr="//group[@name='computation']" position="inside">
+                <field name="display_hours" invisible="request_unit == 'hour'"/>
+                <field widget="radio" options="{'horizontal': True}" name="round_days_type" invisible="request_unit == 'hour'"/>
+                <field name="category_ids" widget="many2many_tags"/>
+                <field name="optional_category_ids" widget="many2many_tags" placeholder="No option"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_work_entry_type_view_tree" model="ir.ui.view">
+      <field name="name">hr.work.entry.type.view.tree.inherit.hr_payroll</field>
+      <field name="model">hr.work.entry.type</field>
+      <field name="inherit_id" ref="hr_work_entry.hr_work_entry_type_view_tree"/>
+      <field name="arch" type="xml">
+          <xpath expr="//field[@name='count_as']" position="after">
+              <field name="category_ids" widget="many2many_tags" optional="hide"/>
+          </xpath>
+      </field>
+    </record>
+
+    <record id="hr_work_entry_type_view_search" model="ir.ui.view">
+        <field name="name">hr.work.entry.type.view.search.inherit.hr_payroll</field>
+        <field name="model">hr.work.entry.type</field>
+        <field name="inherit_id" ref="hr_work_entry.hr_work_entry_type_view_search"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="category_ids"/>
+            </field>
+            <filter name="absence_time" position='after'>
+                <separator/>
+                <filter name="unpaid_structure" string="Unpaid" domain="[('amount_rate', '=', 0)]"/>
+            </filter>
+        </field>
+    </record>
+</odoo>

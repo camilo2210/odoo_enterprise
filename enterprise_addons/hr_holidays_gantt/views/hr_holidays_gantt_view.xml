@@ -1,0 +1,191 @@
+<odoo>
+    <data>
+
+        <!-- Multi-create form view for Time Off Gantt -->
+        <record id="hr_leave_gantt_multi_create_view" model="ir.ui.view">
+            <field name="name">hr.leave.gantt.multi.create</field>
+            <field name="model">hr.leave</field>
+            <field name="priority">120</field>
+            <field name="arch" type="xml">
+                <form class="o_hr_leave_gantt_multi_create_form">
+                    <group name="col_left">
+                        <field name="work_entry_type_request_unit" invisible="1"/> <!-- Needed -->
+                        <field name="last_several_days" invisible="1"/> <!-- Needed -->
+                        <field name="allowed_request_durations" invisible="1"/> <!-- Needed -->
+                        <field name="request_hour_from" invisible="1"/>  <!--Needed for the onchange-->
+                        <field name="request_hour_to" invisible="1"/>  <!--Needed for the onchange-->
+                        <field name="request_date_from" invisible="1"/> <!-- Needed for the popup -->
+                        <field name="request_date_to" invisible="1"/> <!-- Needed for the popup -->
+                        <field name="request_date_hour_from" invisible="1"/> <!--Needed for the onchange-->
+                        <field name="request_date_hour_to" invisible="1"/>  <!--Needed for the onchange-->
+                        <field name="request_date_from_period" invisible="1" required="work_entry_type_request_unit == 'half_day'"/> <!-- Needed -->
+                        <field name="request_date_to_period" invisible="1" required="work_entry_type_request_unit == 'half_day'"/> <!-- Needed -->
+                        <div class="o_form_label">
+                            <i class="oi oi-lg align-self-center" data-icon="label" title="Time Off Type" name="work_entry_type_id"/>
+                            <label for="work_entry_type_id" string=""/>
+                        </div>
+                        <div>
+                            <field name="work_entry_type_id"
+                                   domain="[
+                                           ('id', 'in', allowed_work_entry_type_ids),
+                                           ('time_off_selectable', '=', True),
+                                   ]"
+                                   nolabel="1"
+                                   required="1"
+                                   options="{'no_create': True}"
+                                   widget="many2one_work_entry_type"
+                            />
+                        </div>
+                        <div class="o_form_label">
+                            <i class="oi oi-lg align-self-center" data-icon="schedule"  title="Dates" name="date"/>
+                            <label for="request_duration" string="" invisible="work_entry_type_request_unit != 'half_day'"/>
+                            <label for="number_of_hours" string="" invisible="work_entry_type_request_unit != 'hour'"/>
+                        </div>
+                        <div>
+                            <div class="d-flex gap-2 align-items-baseline" invisible="work_entry_type_request_unit != 'half_day' or not last_several_days">
+                                <field name="request_date_from_period" invisible="work_entry_type_request_unit != 'half_day'" required="work_entry_type_request_unit == 'half_day'" readonly="state != 'confirm'"/>
+                                <i class="oi" data-icon="east" aria-label="to" title="To"/>
+                                <field name="request_date_to_period" invisible="work_entry_type_request_unit != 'half_day'" required="work_entry_type_request_unit == 'half_day'" readonly="state != 'confirm'"/>
+                            </div>
+                            <div invisible="work_entry_type_request_unit != 'half_day' or last_several_days">
+                                <field name="request_duration"
+                                       nolabel="1"
+                                       widget="selection_badge_with_filter"
+                                       options="{'allowed_selection_field': 'allowed_request_durations'}"
+                                       required="1"
+                                />
+                            </div>
+                            <div invisible="work_entry_type_request_unit != 'hour'">
+                                <field name="number_of_hours"
+                                       nolabel="1"
+                                       widget="float_time"
+                                       force_save="1"
+                                       style="width: 9ch;"
+                                />
+                                <span class="text-muted text-nowrap" invisible="not context.get('is_multi_day_selection', False)">per day</span>
+                            </div>
+                            <div class="text-muted" invisible="work_entry_type_request_unit == 'hour' or (work_entry_type_request_unit == 'half_day' and request_duration != 'full')">
+                                <field name="number_of_days"
+                                       nolabel="1"
+                                       readonly="1"
+                                       class="w-auto"
+                                />
+                                <span> day(s)</span>
+                            </div>
+                            <div invisible="not allocation_display_warning">
+                                <field class="text-danger fw-bold" name="allocation_display_warning" nolabel="1"/>
+                            </div>
+                        </div>
+                        <field name="employee_id" invisible="1"/> <!-- Needed -->
+                        <field name="allowed_work_entry_type_ids" invisible="1"/> <!-- Needed -->
+                        <field name="virtual_remaining_leaves" invisible="1"/> <!-- Needed -->
+                        <!-- the buttons widget to be inserted here -->
+                        <div class="o_form_label">
+                            <i class="oi oi-lg oi-filled align-self-center" data-icon="edit" title="Description" name="name"/>
+                            <label for="name" string=""/>
+                        </div>
+                        <div>
+                            <field name="name"
+                                   nolabel="1"
+                                   widget="text"
+                                   placeholder="Optional Description..."
+                            />
+                        </div>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <!-- Gantt view -->
+        <record id="hr_leave_gantt_view" model="ir.ui.view">
+            <field name="name">hr.leave.gantt</field>
+            <field name="model">hr.leave</field>
+            <field name="arch" type="xml">
+                <gantt
+                       js_class="hr_holidays_gantt_manager_hr_leave"
+                       date_start="request_date_hour_from"
+                       date_stop="request_date_hour_to"
+                       string="Days"
+                       color="color"
+                       default_range="month"
+                       default_group_by='employee_id'
+                       decoration-danger="state == 'refuse'"
+                       decoration-info="state in ['confirm', 'validate1']"
+                       decoration-secondary="state == 'cancel'"
+                       groups_limit="20"
+                       progress_bar="employee_id"
+                       multi_create_view="hr_holidays_gantt.hr_leave_gantt_multi_create_view"
+                       precision="{'week': 'day:full', 'month': 'day:full', 'quarter': 'day:full'}"
+                       scales="week,month,quarter"
+                       plan="0"
+                       total_row="True"
+                       display_unavailability="1"
+                />
+            </field>
+        </record>
+
+        <record id="hr_leave_report_calendar_view_gantt" model="ir.ui.view">
+            <field name="name">hr.leave.report.calendar.view.gantt</field>
+            <field name="model">hr.leave.report.calendar</field>
+            <field name="arch" type="xml">
+                <gantt
+                    js_class="hr_holidays_report_gantt"
+                    string="Time Off"
+                    date_start="request_date_hour_from"
+                    date_stop="request_date_hour_to"
+                    default_range="month"
+                    default_group_by="employee_id"
+                    groups_limit="20"
+                    color="employee_id"
+                    total_row="True"
+                    precision="{'month': 'day:full', 'quarter': 'day:full'}"
+                    display_unavailability="True"
+                    sample="1">
+                </gantt>
+            </field>
+        </record>
+
+        <!-- Add gantt view mode to the hr.holidays dashboard -->
+        <record id="hr_holidays.action_hr_holidays_dashboard" model="ir.actions.act_window">
+            <field name="view_mode">gantt,calendar</field>
+        </record>
+
+        <record id="hr_holidays.hr_leave_action_action_approve_department" model="ir.actions.act_window">
+            <field name="view_mode">list,kanban,gantt,form,calendar,activity</field>
+        </record>
+
+    <record id="hr_leave_gantt_view_payroll" model="ir.ui.view">
+        <field name="name">hr.leave.view.gantt.inherit</field>
+        <field name="model">hr.leave</field>
+        <field name="inherit_id" ref="hr_holidays_gantt.hr_leave_gantt_view"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <gantt position="attributes">
+                <attribute name="multi_create_view">hr_holidays_gantt.hr_leave_gantt_multi_create_view_payroll</attribute>
+            </gantt>
+        </field>
+    </record>
+
+    <record id="hr_leave_gantt_multi_create_view_payroll" model="ir.ui.view">
+        <field name="name">hr.leave.gantt.multi.create.payroll</field>
+        <field name="model">hr.leave</field>
+        <field name="inherit_id" ref="hr_holidays_gantt.hr_leave_gantt_multi_create_view"/>
+        <field name="mode">primary</field>
+        <field name="priority">120</field>
+        <field name="arch" type="xml">
+            <field name="work_entry_type_id" position="attributes">
+                <attribute name="domain">[('id', 'in', allowed_work_entry_type_ids or [])]</attribute>
+            </field>
+        </field>
+    </record>
+
+        <record id="action_hr_payroll_time_off_gantt" model="ir.actions.act_window">
+            <field name="name">Time Off</field>
+            <field name="res_model">hr.leave</field>
+            <field name="view_mode">gantt</field>
+            <field name="view_id" ref="hr_holidays_gantt.hr_leave_gantt_view_payroll"/>
+            <field name="context">{'hide_employee_name': 1}</field>
+        </record>
+
+    </data>
+</odoo>

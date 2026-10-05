@@ -1,0 +1,73 @@
+<templates xml:space="preserve">
+    <div t-name="knowledge.KnowledgeCommentsThread"
+        t-if="this.hasLoaded and (
+            (this.hasAllDimensions and (this.smallUI or this.isActive or !this.thread.isEmpty))
+            or this.commentsState.displayMode === 'panel')"
+        t-ref="this.targetRef"
+        t-on-mouseenter="this.onMouseEnter"
+        t-on-mouseleave="this.onMouseLeave"
+        t-on-click="this.onClick"
+        t-att-data-thread-id="this.props.threadId"
+        class="o_knowledge_comment_box"
+        t-att-class="{
+            'o_knowledge_comment_resolved': this.isResolved(),
+            'commenting': this.isActive,
+            'o_focused_thread': this.hasFocus,
+            'cursor-pointer': this.hasFocus and !this.isActive,
+            'px-0 mh-25 col-lg m-0': this.commentsState.displayMode === 'panel',
+            'pb-2': this.commentsState.displayMode === 'handler',
+        }"
+        t-att-style="this.style"
+    >
+        <div class="o_knowledge_comment_small_ui o_knowledge_comment_background d-flex"
+             t-if="this.smallUI"
+             t-on-click="this.onClick">
+            <img class="rounded p-0 object-fit-cover cursor-pointer"
+                t-att-src="this.authorUrl"/>
+        </div>
+        <div t-elif="this.editorThread or this.commentsState.displayMode === 'panel'"
+            class="o_knowledge_comment_background border rounded-3 d-flex"
+            t-att-class="{
+                'shadow-sm': this.hasFocus,
+                'flex-column align-items-start': this.commentsState.displayMode === 'panel',
+            }">
+            <div t-if="this.commentsState.displayMode === 'panel' and this.fullAnchorText.length"
+                class="o_knowledge_comment_anchor w-100 py-2 px-3"
+                t-att-class="{
+                    'mb-0': this.showReadMore,
+                    'cursor-pointer': this.editorThread,
+                }"
+                t-on-click="this.showEditorAnchor">
+                <div class="px-2 opacity-75 word-break">
+                    <CommentAnchorText anchorText="this.state.hasFullAnchorText ? this.fullAnchorText : this.anchorText"/>
+                </div>
+            </div>
+            <t t-if="this.commentsState.displayMode === 'panel' and this.showReadMore">
+                <button t-if="!this.state.hasFullAnchorText" class="btn btn-sm btn-link" t-on-click="() => this.state.hasFullAnchorText = true">
+                    Show More
+                </button>
+                <button t-else="" class="btn btn-sm btn-link" t-on-click="() => this.state.hasFullAnchorText = false">
+                    Show Less
+                </button>
+            </t>
+            <div t-if="this.props.threadId !== 'undefined'" class="o_knowledge_comment_container d-flex flex-column flex-grow-1 overflow-hidden"
+                t-att-class="{ 'w-100': this.commentsState.displayMode === 'panel' }">
+                <div class="o_knowledge_comment_scrollable flex-grow-1 overflow-y-auto overflow-x-hidden" t-ref="this.threadScrollableRef">
+                    <KnowledgeThread thread="this.thread" showDates="false" scrollRef="this.threadScrollableRef"
+                        order="'asc'" showEmptyMessage="false" showJumpPresent="false"
+                    />
+                    <div t-if="this.isActive" class="o_knowledge_sticky_composer position-sticky bottom-0 pt-2 pe-2 border-top">
+                        <Composer t-if="this.isActive" placeholder.translate="Add a Comment..." composer="this.thread.composer"
+                            type="'note'" showFullComposer="false" mode="'extended'"/>
+                    </div>
+                </div>
+            </div>
+            <div t-else="" class="pt-2 px-2 flex-grow-1">
+                <KnowledgeCommentCreatorComposer placeholder.translate="Add a Comment..." composer="this.thread.composer"
+                    type="'note'" showFullComposer="false" mode="'extended'" autofocus="true"
+                    onPostCallback="this.commentsService.createThreadAndPost"
+                    onCreateThreadCallback.bind="this.onCreateThreadCallback"/>
+            </div>
+        </div>
+    </div>
+</templates>
