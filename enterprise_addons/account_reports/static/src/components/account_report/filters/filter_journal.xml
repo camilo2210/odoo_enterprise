@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates>
+    <t t-name="account_reports.AccountReportFilterJournal">
+        <Dropdown disabled="!this.controller.cachedFilterOptions().journals.length">
+            <button class="btn btn-secondary">
+                <i class="oi me-1" data-icon="book"/>
+                <t t-out="this.controller.cachedFilterOptions().name_journal_group"/>
+            </button>
+
+            <t t-set-slot="content">
+                <t t-if="this.controller.cachedFilterOptions().journal_groups.length > 0">
+                    <div t-att-class="'d-flex dropdown-header w-100 align-items-center'">
+                        <span>
+                            Multi-ledger
+                        </span>
+                    </div>
+                    <t t-foreach="this.controller.cachedFilterOptions().journal_groups" t-as="group" t-key="group_index">
+                        <DropdownItem
+                            class="{ 'selected': group.selected, 'ps-4': true }"
+                            onSelected="() => this.selectGroup(group)"
+                            closingMode="'none'"
+                            t-out="group.name"
+                        />
+                    </t>
+                </t>
+                <t t-if="this.controller.cachedFilterOptions().filters.show_journals">
+                    <t t-foreach="Object.entries(this.companyName2Journals)" t-as="companyJournal" t-key="companyJournal[0]">
+                        <div t-att-class="'d-flex dropdown-header w-100 align-items-center pt-0 ps-0 mx-0 my-1'">
+                            <button class="btn btn_foldable d-flex align-items-center w-100 border-0"
+                                    t-on-click="() => this.unfoldCompanyJournals(companyJournal[0])"
+                            >
+                                 <i class="oi" t-att-data-icon="companyJournal[1][0].unfolded ? 'arrow_drop_down' : 'arrow_right'"/>
+                                <span class="pt-0 mt-0 ps-2 dropdown-header" t-out="companyJournal[0]"/>
+                            </button>
+                        </div>
+                        <t t-foreach="companyJournal[1]" t-as="journal" t-key="journal_index">
+                            <DropdownItem
+                                class="{ 'selected': journal.selected, 'ps-4': true, 'd-none': !journal.visible }"
+                                onSelected="() => this.selectJournal(journal)"
+                                closingMode="'none'"
+                                t-out="journal.name"
+                            />
+                        </t>
+                    </t>
+                </t>
+            </t>
+        </Dropdown>
+    </t>
+</templates>

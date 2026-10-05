@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record model="ir.ui.view" id="view_account_asset_variant_tree">
+        <field name="name">account.asset.variant.list</field>
+        <field name="model">account.asset.variant</field>
+        <field name="arch" type="xml">
+            <list string="Asset Variants" action="action_open_variant_details" type="object" decoration-info="(state == 'draft')" decoration-muted="(state in ['close', 'cancelled'])" decoration-warning="(state == 'close' and value_residual != 0)" sample="1" create="0" edit="0" delete="0">
+                <field name="name"/>
+                <field name="model_id" string="Depreciation Model"/>
+                <field name="journal_id"/>
+                <field name="prorata_computation_type"/>
+                <field name="book_value"/>
+                <field name="value_residual" widget="monetary" optional="hide"/>
+                <field name="parent_id" optional="hide"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'open'"/>
+                <field name="already_depreciated_amount_import" string="Depreciated Amount" optional="hide"/>
+                <field name="salvage_value" widget="monetary" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_account_asset_variant_form">
+        <field name="name">Asset Variants</field>
+        <field name="res_model">account.asset.variant</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_account_asset_variant_tree')}),
+            ]"/>
+        <field name="domain">[('parent_id', '=', False)]</field>
+    </record>
+</odoo>

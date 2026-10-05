@@ -1,0 +1,41 @@
+services:
+  db20: # Cambiamos 'db' por 'db20' para que coincida con el HOST
+    image: pgvector/pgvector:pg16
+    container_name: odoo20-db
+    environment:
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./odoo20-db-data:/var/lib/postgresql/data
+    networks:
+      - network_odoo_20
+    restart: always
+
+  odoo:
+    image: odoo:20.0
+    container_name: odoo20_jc_1
+    depends_on:
+      - db20 # Debe apuntar al nombre exacto del servicio de arriba
+    ports:
+      - "8080:8069"
+    environment:
+      - HOST=db20 # Ahora sí coincidirá
+      - USER=odoo
+      - PASSWORD=odoo
+      - PROXY_MODE=False
+    volumes:
+      - ./enterprise_addons:/mnt/enterprise-addons # Es común ver una carpeta para enterprise
+      - ./addons:/mnt/extra-addons
+      - ./odoo.conf:/etc/odoo/odoo.conf
+      - odoo20_data:/var/lib/odoo
+    networks:
+      - network_odoo_20
+    restart: always
+
+volumes:
+  odoo20-db-data:
+  odoo20_data:
+
+networks:
+  network_odoo_20:

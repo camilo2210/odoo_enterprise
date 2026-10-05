@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates>
+    <t t-name="account_reports.JournalReportLineName" t-inherit="account_reports.AccountReportLineNameCustomizable">
+        <xpath expr="//t[@data-id='content']" position="replace">
+            <t t-if="this.props.line.journal_id?.() and this.props.line.account_id?.()">
+                <a
+                    class="link cursor-pointer"
+                    t-on-click="
+                    (ev) => this.controller.reportAction(
+                        ev,
+                        'journal_report_action_open_account_move_lines_by_account',
+                        {
+                            journal_id: this.props.line.journal_id(),
+                            account_id: this.props.line.account_id(),
+                        }
+                    )"
+                >
+                    <t t-out="this.props.line.name()"/>
+                </a>
+            </t>
+            <t t-else="">
+                <t t-out="this.props.line.name()"/>
+
+                <t t-if="this.props.line.journal_code?.()">
+                    <span class="ps-1 text-muted"><t t-out="this.props.line.journal_code()"/></span>
+                    <button
+                        class="btn btn_action"
+                        t-on-click="(ev) => this.controller.reportAction(ev, 'journal_report_open_aml_by_move', {
+                            journal_id: this.props.line.journal_id(),
+                            line_id: this.props.line.id(),
+                        })"
+                    >
+                        Audit
+                    </button>
+                    <button
+                        class="btn btn_action"
+                        t-if="this.props.line.to_review?.()"
+                        t-on-click="(ev) => this.controller.reportAction(ev, 'journal_report_open_aml_by_move', {
+                            journal_id: this.props.line.journal_id(),
+                            line_id: this.props.line.id(),
+                            review: true,
+                        })"
+                    >
+                        Review
+                    </button>
+                </t>
+            </t>
+        </xpath>
+    </t>
+</templates>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates>
+    <t t-name="account_reports.AccountReportLineCell">
+        <t t-call="{{ this.controller.template('AccountReportLineCell') }}"/>
+    </t>
+
+    <t t-name="account_reports.AccountReportLineCellCustomizable">
+        <td
+            data-id="line_cell"
+            class="line_cell"
+            t-att-class="this.cellClasses"
+            t-ref="this.cellRef"
+            t-att-data-expression_label="this.props.cell.expression_label?.()"
+        >
+            <t t-if="!this.controller.options().filters.show_totals or !this.props.line.unfolded?.()" data-id="content">
+                <a
+                    t-if="this.hasInfoPopupData()"
+                    class="oi cursor-pointer me-2"
+                    data-icon="help"
+                    t-on-click="(ev) => this.carryoverPopover(ev)"
+                />
+
+                <div t-if="this.hasCellLabel()" class="me-auto pe-2 muted">
+                    <t t-component="this.controller.component('AccountReportEllipsis')" t-props="{
+                        name: this.props.cell.cell_label,
+                        type: () => 'string',
+                        maxCharacters: 50,
+                    }"/>
+                </div>
+
+                <t t-if="this.props.cell.auditable?.()">
+                    <a class="cursor-pointer" t-on-click="() => this.audit()">
+                        <t t-component="this.controller.component('AccountReportEllipsis')" t-props="{
+                            name: this.props.cell.name,
+                            no_format: this.props.cell.no_format,
+                            type: this.props.cell.figure_type,
+                            maxCharacters: 50,
+                        }"/>
+                    </a>
+                </t>
+                <t t-else="">
+                    <t t-component="this.controller.component('AccountReportEllipsis')" t-props="{
+                        name: this.props.cell.name,
+                        no_format: this.props.cell.no_format,
+                        type: this.props.cell.figure_type,
+                        maxCharacters: 50,
+                    }"/>
+                </t>
+            </t>
+        </td>
+    </t>
+</templates>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record model="ir.ui.view" id="depreciation_ledger_wizard_form">
+        <field name="name">depreciation.ledger.wizard.form</field>
+        <field name="model">depreciation.ledger.wizard</field>
+        <field name="arch" type="xml">
+            <form string="New Depreciation">
+                <field name="company_id" invisible="1"/>
+                <sheet>
+                    <group>
+                        <field name="ledger_group_ids" invisible="1"/>
+                        <field name="depreciation_model_id"
+                            required="1"
+                            domain="[('journal_id.journal_group_id', '!=', False), ('journal_id.journal_group_id', 'not in', ledger_group_ids)]"
+                            context="{'ledger_journal_only': True, 'default_company_id': company_id, 'excluded_ledger_group_ids': ledger_group_ids}"
+                            options="{'no_quick_create': True}"
+                            />
+                        <field name="depreciation_account_id" invisible="not depreciation_model_id"/>
+                        <field name="expense_account_id" invisible="not depreciation_model_id"/>
+                        <field name="recovery_account_id" invisible="not depreciation_model_id" required="1"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="apply"
+                            string="Apply"
+                            type="object"
+                            class="btn-primary"
+                            data-hotkey="a"/>
+                    <button class="btn-secondary"
+                            special="cancel"
+                            data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

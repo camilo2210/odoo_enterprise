@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <t t-name="account_accountant.BankRecLineToReconcile">
+        <div class="o_row" t-on-click.stop="this.onClickLine">
+            <div class="o_line_name d-flex align-items-center gap-1 text-truncate">
+                <a href="#" class="text-truncate fw-bold" t-out="this.lineData.partner_id.display_name" t-on-click.stop="this.openPartner" role="button" t-att-title="this.lineData.partner_id.display_name" t-if="this.lineData.partner_id"/>
+                <span t-out="this.lineData.account_id.display_name" class="text-truncate" t-att-class="this.lineData.partner_id ? 'ms-1' : undefined"/>
+                <div class="d-flex gap-2" t-if="this.lineDataTaxIds">
+                    <t t-foreach="this.lineDataTaxIds" t-as="tax_id" t-key="tax_id_index">
+                        <div class="o_tag d-inline-flex align-items-center badge rounded-pill o_tag_color_0 flex-shrink-0">
+                            <span class="o_tag_badge_text text-truncate" t-out="tax_id.data.display_name"/>
+                            <i t-on-click.stop="() => this.deleteTax(tax_id_index)" class="oi ps-1 opacity-100-hover opacity-75" data-icon="close_small"/>
+                        </div>
+                    </t>
+                </div>
+                <div t-if="this.lineData.analytic_distribution" class="o_field_tags flex-column gap-1 d-inline-flex flex-wrap mw-100">
+                    <t t-foreach="this.planSummaryTags()" t-as="tag" t-key="tag.id">
+                        <BadgeTag color="tag.color" text="tag.text"/>
+                    </t>
+                </div>
+            </div>
+            <span t-if="!!this.moveData.display_name and this.moveData.id !== this.statementLineData.move_id.id" class="d-none d-md-inline">
+                <a t-on-click.stop="this.openMove" href="#">
+                    <t t-out="this.moveData.display_name"/>
+                </a>
+            </span>
+            <div class="o_line_amount d-flex align-items-center justify-content-between">
+                <span class="text-muted w-50 text-end" t-if="this.hasDifferentCurrencies">
+                    <span t-att-class="{'btn btn-link p-0' : this.showLineInfo}" t-ref="this.lineInfoRef" t-on-mouseover.stop="this.hoverLineInfoPopOver">
+                        <i t-if="this.showLineInfo" class="oi me-2" data-icon="info"/>
+                        <t t-out="this.formattedAmountCurrencyOfLine"/>
+                    </span>
+                </span>
+                <span class="text-end w-100" t-if="!this.hasDifferentCurrencies">
+                    <span t-att-class="{'btn btn-link p-0' : this.showLineInfo}" t-ref="this.lineInfoRef" t-on-mouseover.stop="this.hoverLineInfoPopOver">
+                        <i t-if="this.showLineInfo" class="oi me-2" data-icon="info"/>
+                        <t t-out="this.formattedAmountCurrencyOfStatementLine"/>
+                    </span>
+                </span>
+            </div>
+            <div class="o_line_to_reconcile_button d-none d-md-flex justify-content-end align-items-center gap-2" t-if="!this.statementLineData.move_id.inalterable_hash">
+                <button t-if="this.lineData.has_invalid_analytics" class="btn btn-link p-0 text-600" t-on-click.stop="this.toggleEditLine">
+                    <i class="oi text-warning" data-icon="warning" data-tooltip="This line has invalid analytic distribution"/>
+                </button>
+                <button t-if="!this.lineData.has_invalid_analytics" class="btn btn-link p-0 text-600" t-on-click.stop="this.toggleEditLine">
+                    <i class="oi oi-filled" data-icon="edit"/>
+                </button>
+                <button class="btn btn-link btn-close p-0 text-600" t-on-click.stop="this.deleteLine" t-if="!this.isTaxLine"/>
+            </div>
+        </div>
+    </t>
+</templates>

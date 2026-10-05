@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates>
+    <t t-name="account_reports.AccountReport">
+        <t t-call="{{ this.controller.template('AccountReport') }}"/>
+    </t>
+
+    <t t-name="account_reports.AccountReportCustomizable">
+        <div class="o_action account_report" t-att-class="this.cssCustomClass()" t-ref="this.rootRef" t-on-keydown="this.onKeydown" t-on-click="this.onClick">
+            <ControlPanel display="{ adaptToScroll: false }">
+                <!-- Buttons bar -->
+                <t t-set-slot="control-panel-buttons">
+                    <AccountReportButtonsBar/>
+                </t>
+                <t t-set-slot="control-panel-additional-actions">
+                    <AccountReportCogMenu/>
+                </t>
+
+                <!-- Search bar (if configured for report) and filters -->
+                <t t-set-slot="control-panel-actions">
+                    <div class="d-flex gap-1">
+                        <button
+                            class="btn btn-outline-secondary h-100 d-md-none" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#reportFilterCollapse"
+                        >
+                            <span class="oi oi-filled" data-icon="filter_alt"/>
+                        </button>
+                        <div id="reportFilterCollapse" t-att-class="this.ui.isSmall() ? 'collapse' : ''">
+                            <div class="d-flex gap-1 flex-wrap">
+                                <t t-if="this.controller.cachedFilterOptions().search_bar">
+                                    <AccountReportSearchBar initialQuery="this.initialQuery"/>
+                                </t>
+                                <t t-component="this.controller.component('AccountReportFilters')"/>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+
+                <t t-set-slot="control-panel-navigation-additional" t-if="this.controller.chatterState.id()">
+                    <button
+                        t-on-click="() => this.controller.closeChatter()"
+                        data-tooltip="Chatter"
+                        class="btn btn-secondary o_switch_view o_kanban d-inline active">
+                            <i class="oi oi-fw mt-1" t-attf-data-icon="close"/>
+                    </button>
+                </t>
+            </ControlPanel>
+
+            <div t-attf-class="d-flex h-100 {{ this.ui.isSmall() ? 'flex-column' : 'flex-row o_content' }}">
+                <div class="d-flex flex-column w-100" style="min-width: 0;">
+                    <!-- Sections -->
+                    <t t-if="this.controller.cachedFilterOptions().sections.length">
+                        <div id="section_selector" class="section_selector">
+                            <t t-foreach="this.controller.cachedFilterOptions().sections" t-as="section" t-key="section_index">
+                                <button
+                                    t-att-class="(this.controller.cachedFilterOptions().selected_section_id === section.id) ? 'btn btn-outline-primary' : 'btn btn-secondary'"
+                                    t-on-click="() => this.controller.switchToSection(section.id)"
+                                    t-out="section.name"
+                                />
+                            </t>
+
+                            <t t-if="this.controller.cachedFilterOptions()['has_inactive_sections']">
+                                <button class="btn btn-secondary" t-on-click="(ev) => this.controller.reportAction(ev, 'action_display_inactive_sections')" >+</button>
+                            </t>
+                        </div>
+                    </t>
+
+                    <!-- Warnings -->
+                    <t t-if="this.controller.data() and this.controller.warnings">
+                        <div id="warnings" class="warnings d-print-none">
+                            <t t-foreach="this.controller.warnings" t-as="warningTemplateRef" t-key="warningTemplateRef">
+                                <t t-set="warningParams" t-value="this.controller.warnings[warningTemplateRef]"/>
+
+                                <div t-if="warningParams" t-att-class="`alert alert-${warningParams['alert_type'] || 'info'} alert-dismissible fade show text-center`">
+                                    <t t-call="{{ warningTemplateRef }}"/>
+                                    <button type="button"
+                                            class="btn-close"
+                                            data-bs-dismiss="alert"
+                                            t-on-click="(ev) => ev.currentTarget.disabled = true"
+                                            aria-label="Close">
+                                    </button>
+                                </div>
+                            </t>
+                        </div>
+                    </t>
+
+                    <t t-if="this.controller.data() === null">
+                        <div class="o_view_nocontent">
+                            <div class="text-center mt-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-elif="this.controller.data().lines.length > 0">
+                        <!-- Table -->
+                        <div class="mx-auto o_account_report_scroll_container overflow-x-auto" t-ref="this.virtualScrollableRef">
+                            <div class="d-flex align-items-start o_account_report_scroll_content">
+                                <t t-set="LineComponent" t-value="this.controller.component('AccountReportLine')"/>
+                                <t t-foreach="this.controller.options().horizontal_split ? ['left', 'right'] : ['left']" t-as="splitSide" t-key="splitSide">
+                                    <table
+                                        class="table table-borderless table-hover mx-auto"
+                                        t-att-class="this.tableClasses()"
+                                    >
+                                        <t t-component="this.controller.component('AccountReportHeader')"/>
+                                        <tbody>
+                                            <AccountReportPadding height="this.controller.virtualData[splitSide].top"/>
+                                            
+                                            <t t-foreach="this.controller.virtualData[splitSide].lines()" t-as="virtualLine" t-key="virtualLine_index">
+                                                <t t-component="LineComponent" t-props="{
+                                                    line: virtualLine.line,
+                                                    lineIndex: virtualLine.lineIndex,
+                                                    virtualLineIndex: virtualLine_index,
+                                                    numberOfVirtualLines: this.controller.virtualData[splitSide].numberOfVirtualLines,
+                                                }"/>
+                                            </t>
+
+                                            <!-- Since finding the largest width for every line without rendering them is impossible,
+                                                 We use this fake line to find the largest width of every rendered columns and make sure
+                                                 once it's de-rendered we still keep the same width -->
+                                            <tr class="o_fake_line" t-ref="this.controller.fakeLineRefs" t-att-id="splitSide">
+                                                <td/>
+                                                <t t-foreach="this.controller.options().columns" t-as="col" t-key="col_index">
+                                                    <td/>
+                                                </t>
+                                                <td t-if="this.controller.needsColumnPercentComparison"/>
+                                                <td t-if="this.controller.hasDebugColumn"/>
+                                            </tr>
+
+                                            <AccountReportPadding height="this.controller.virtualData[splitSide].bottom"/>
+                                        </tbody>
+                                    </table>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div class="o_view_nocontent">
+                            <div class="o_nocontent_help">
+                                <p class="o_view_nocontent_neutral_face">No data to display !</p>
+                                <p>There is no data to display for the given filters.</p>
+                            </div>
+                        </div>
+                    </t>
+
+                    <t t-if="this.ui.isSmall()"> <!-- Spacer to avoid chatter overlapping content on small devices due to the fixed position of the chatter -->
+                        <div
+                            style="transition: height 0.2s ease-in-out;"
+                            t-att-style="this.controller.chatterState.model() ? 'height: 60vh;' : 'height: 0;'"
+                        />
+                    </t>
+                </div>
+
+                <div t-att-class="{
+                    'o_account_report_chatter o-mail-ChatterContainer h-100 o-aside d-flex flex-column': !this.ui.isSmall(),
+                    'o_account_report_chatter_hidden': !this.ui.isSmall() and !this.controller.chatterState.model(),
+                    'o_account_report_mobile_chatter': this.ui.isSmall(),
+                    'o_account_report_mobile_chatter_hidden': this.ui.isSmall() and !this.controller.chatterState.model(),
+                }">
+                    <AccountReportChatter
+                        threadModel="this.controller.chatterState.model()"
+                        threadId="this.controller.chatterState.id()"
+                        isChatterAside="!this.ui.isSmall()"
+                        reportController="this.controller"
+                        date_to="this.controller.options().date.date_to"
+                        t-if="this.controller.chatterState.model()"
+                    />
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="account_reports.AccountReportPadding">
+        <!-- As the heights get refreshed every time we scroll, by keeping this component separate from the entire AccountReport code,
+             we prevent the entirety of the AccountReport template from being re-rendered -->
+        <tr t-att-style="'height: ' + this.props.height() + 'px;'"/>
+    </t>
+</templates>

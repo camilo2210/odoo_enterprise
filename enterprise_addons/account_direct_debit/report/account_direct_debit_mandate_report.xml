@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mandate_form_report_main" model="ir.actions.report">
+        <field name="name">Mandate PDF</field>
+        <field name="model">account.direct.debit.mandate</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">account_direct_debit.mandate_form_report</field>
+        <field name="print_report_name">(object._get_report_base_filename())</field>
+        <field name="attachment">(object._get_report_base_filename() + '.pdf')</field>
+        <field name="attachment_use">False</field>
+        <field name="binding_model_id" ref="model_account_direct_debit_mandate"/>
+        <field name="binding_type">report</field>
+        <field name="group_ids" eval="[Command.link(ref('account.group_account_basic'))]"/>
+    </record>
+
+    <template id="mandate_form_report">
+        <div class="oe_structure"></div>
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="account_direct_debit.mandate_form_document" t-lang="o.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+
+    <template id="mandate_form_document">
+        <div class="oe_structure"></div>
+        <t t-call="web.external_layout">
+            <t t-call="{{ o._get_report_template() }}"/>
+        </t>
+    </template>
+</odoo>

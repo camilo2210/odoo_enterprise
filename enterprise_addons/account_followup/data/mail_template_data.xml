@@ -1,0 +1,380 @@
+<?xml version="1.0"?>
+<odoo>
+    <!-- Mail template is done in a NOUPDATE block
+         so users can freely customize/delete them -->
+    <data noupdate="1">
+        <!--Email template -->
+        <record id="mail_template_invoice_payment_kind_reminder" model="mail.template">
+            <field name="name">Kind Reminder</field>
+            <field name="model_id" ref="account.model_account_move"/>
+            <field name="email_from">{{ (object.invoice_user_id or object.company_id or user).email_formatted }}</field>
+            <field name="partner_to" eval="False"/>
+            <field name="subject">{{ object.company_id.name }} Kind Reminder (Ref {{ object.name or 'n/a' }})</field>
+            <field name="description">Send a kind reminder to customers with their invoices in attachment</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                        Dear
+                        <t t-if="object.partner_id.parent_id">
+                            <t t-if="object.partner_id.name">
+                                <t t-out="object.partner_id.name">Brandon Freeman</t> (<t t-out="object.partner_id.parent_id.name or ''">Azure Interior</t>),
+                            </t>
+                            <t t-else="">
+                                <t t-out="object.partner_id.parent_id.name or ''">Azure Interior</t>,
+                            </t>
+                        </t>
+                        <t t-else="">
+                            <t t-out="object.partner_id.name or ''">Brandon Freeman</t>,
+                        </t>
+                        <br /><br />
+                        This is a kind reminder that invoice
+                        <t t-if="object.name">
+                            <span style="font-weight:bold;" t-out="object.name or ''">INV/2021/05/0005</span>
+                        </t>
+                        <t t-if="object.invoice_origin">
+                            (with reference: <t t-out="object.invoice_origin or ''">SUB003</t>)
+                        </t>
+                        amounting in <span style="font-weight:bold;" t-out="format_amount(object.amount_residual, object.currency_id) or ''">$ 143,750.00</span>
+                        from <t t-out="object.company_id.name or ''">YourCompany</t> is now overdue.
+                        <br /><br />
+                        Please remit payment at your earliest convenience
+                        <t t-if="object.payment_reference">
+                            using the following communication for your payment: <strong t-out="object.payment_reference or ''">INV/2021/05/0005</strong>
+                            <t t-if="object.partner_bank_id">
+                                on the account <strong t-out="object.partner_bank_id.account_number"/>
+                            </t>.
+                        </t>
+                        <br /><br />
+                        <p t-if="object.partner_id._show_pay_now_button()">
+                            <a t-att-href="'/my/invoices/%s' % object.id" style="padding: 8px 12px; font-size: 12px; color: #FFFFFF; text-decoration: none !important; font-weight: 400; background-color: #875A7B; border: 0px solid #875A7B; border-radius:3px">Pay now</a>
+                        </p>
+                        You will find a copy of the original invoice attached to this email.
+                        <br />
+                        If you have already sent the payment, please disregard this notice. If you have any questions or concerns, please don't hesitate to reply to this email.
+                        <br /><br />
+                        Thank you,
+                        <t t-if="not is_html_empty(object.invoice_user_id.signature)">
+                            <div>--<br/><t t-out="object.invoice_user_id.signature or ''">Mitchell Admin</t></div>
+                        </t>
+                    </p>
+                </div>
+            </field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+
+        <record id="mail_template_invoice_payment_second_reminder" model="mail.template">
+            <field name="name">Second Reminder</field>
+            <field name="model_id" ref="account.model_account_move"/>
+            <field name="email_from">{{ (object.invoice_user_id or object.company_id or user).email_formatted }}</field>
+            <field name="partner_to" eval="False"/>
+            <field name="subject">{{ object.company_id.name }} Second Reminder (Ref {{ object.name or 'n/a' }})</field>
+            <field name="description">Send a second reminder to customers with their invoices in attachment</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                        Dear
+                        <t t-if="object.partner_id.parent_id">
+                            <t t-if="object.partner_id.name">
+                                <t t-out="object.partner_id.name">Brandon Freeman</t> (<t t-out="object.partner_id.parent_id.name or ''">Azure Interior</t>),
+                            </t>
+                            <t t-else="">
+                                <t t-out="object.partner_id.parent_id.name or ''">Azure Interior</t>,
+                            </t>
+                        </t>
+                        <t t-else="">
+                            <t t-out="object.partner_id.name or ''">Brandon Freeman</t>,
+                        </t>
+                        <br /><br />
+                        We are writing to follow up on our previous email regarding invoice
+                        <t t-if="object.name">
+                            <span style="font-weight:bold;" t-out="object.name or ''">INV/2021/05/0005</span>
+                        </t>
+                        <t t-if="object.invoice_origin">
+                            (with reference: <t t-out="object.invoice_origin or ''">SUB003</t>)
+                        </t>
+                        amounting in <span style="font-weight:bold;" t-out="format_amount(object.amount_residual, object.currency_id) or ''">$ 143,750.00</span>
+                        from <t t-out="object.company_id.name or ''">YourCompany</t>. Our records indicate that this invoice remain unpaid. Please find the invoice
+                        attached again for your reference.
+                        <br /><br />
+                        Please remit payment
+                        <t t-if="object.payment_reference">
+                            using the following communication for your payment: <strong t-out="object.payment_reference or ''">INV/2021/05/0005</strong>
+                            <t t-if="object.partner_bank_id">
+                                on the account <strong t-out="object.partner_bank_id.account_number"/>
+                            </t>.
+                        </t>
+                        <br /><br />
+                        <p t-if="object.partner_id._show_pay_now_button()">
+                            <a t-att-href="'/my/invoices/%s' % object.id" style="padding: 8px 12px; font-size: 12px; color: #FFFFFF; text-decoration: none !important; font-weight: 400; background-color: #875A7B; border: 0px solid #875A7B; border-radius:3px">Pay now</a>
+                        </p>
+                        We would appreciate it if you could let us know the status of this payment. If payment has already been made,
+                        please let us know the date and method so we can trace it.
+                        <br />
+                        If you are facing any issues with this payment, please contact us immediately so we can assist you.
+                        <br /><br />
+                        Your prompt attention to this matter is greatly appreciated.
+                        <br /><br />
+                        Best regards,
+                        <t t-if="not is_html_empty(object.invoice_user_id.signature)">
+                            <div>--<br/><t t-out="object.invoice_user_id.signature or ''">Mitchell Admin</t></div>
+                        </t>
+                    </p>
+                </div>
+            </field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+
+        <record id="mail_template_invoice_payment_last_reminder" model="mail.template">
+            <field name="name">Last Reminder</field>
+            <field name="model_id" ref="account.model_account_move"/>
+            <field name="email_from">{{ (object.invoice_user_id or object.company_id or user).email_formatted }}</field>
+            <field name="partner_to" eval="False"/>
+            <field name="subject">{{ object.company_id.name }} Last Reminder (Ref {{ object.name or 'n/a' }})</field>
+            <field name="description">Send a last reminder to customers with their invoices in attachment</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                        Dear
+                        <t t-if="object.partner_id.parent_id">
+                            <t t-if="object.partner_id.name">
+                                <t t-out="object.partner_id.name">Brandon Freeman</t> (<t t-out="object.partner_id.parent_id.name or ''">Azure Interior</t>),
+                            </t>
+                            <t t-else="">
+                                <t t-out="object.partner_id.parent_id.name or ''">Azure Interior</t>,
+                            </t>
+                        </t>
+                        <t t-else="">
+                            <t t-out="object.partner_id.name or ''">Brandon Freeman</t>,
+                        </t>
+                        <br /><br />
+                        This is our third and final reminder regarding the outstanding payment for invoice
+                        <t t-if="object.name">
+                            <span style="font-weight:bold;" t-out="object.name or ''">INV/2021/05/0005</span>
+                        </t>
+                        <t t-if="object.invoice_origin">
+                            (with reference: <t t-out="object.invoice_origin or ''">SUB003</t>)
+                        </t>
+                        which is now
+                        <t t-if="object.invoice_date_due and object.invoice_date_due &lt; datetime.date.today()">
+                            <t t-out="(datetime.date.today() - object.invoice_date_due).days"/> days
+                        </t>
+                        overdue.
+                        The total amount outstanding is <span style="font-weight:bold;" t-out="format_amount(object.amount_residual, object.currency_id) or ''">$ 143,750.00</span>.
+                        We have sent previous reminders but have not yet received payment or a response.
+                        <br /><br />
+                        <p t-if="object.partner_id._show_pay_now_button()">
+                            <a t-att-href="'/my/invoices/%s' % object.id" style="padding: 8px 12px; font-size: 12px; color: #FFFFFF; text-decoration: none !important; font-weight: 400; background-color: #875A7B; border: 0px solid #875A7B; border-radius:3px">Pay now</a>
+                        </p>
+                        Please be advised that your account is now considered delinquent. We urge you to make payment immediately to settle this balance. The original invoice is attached.
+                        <br /><br />
+                        Please contact us to either confirm your payment or discuss this matter. If we do not receive payment or a response by within 10 days we will be forced to review the status of your account.
+                        <br /><br />
+                        We hope to resolve this amicably.
+                        <br /><br />
+                        Sincerely,
+                        <t t-if="not is_html_empty(object.invoice_user_id.signature)">
+                            <div>--<br/><t t-out="object.invoice_user_id.signature or ''">Mitchell Admin</t></div>
+                        </t>
+                    </p>
+                </div>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+
+        <record id="mail_template_partner_payment_kind_reminder" model="mail.template">
+            <field name="name">Kind Reminder</field>
+            <field name="model_id" ref="account.model_res_partner"/>
+            <field name="email_from">{{ object._get_followup_responsible().email_formatted }}</field>
+            <field name="partner_to" eval="False"/>
+            <field name="subject">{{ (object.company_id or object._get_followup_responsible().company_id).name }} Payment Reminder</field>
+            <field name="description">Send a kind payment reminder to customers with their invoices in attachment</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                        Dear
+                        <t t-out="object.name or ''">Brandon Freeman</t>,
+                        <br /><br />
+                        This is a kind reminder that we have not yet received payment for your recent invoices.
+                        <br />
+                        Currently, your account with <t t-out="object.company_id.name or ''">YourCompany</t> has an overdue balance of
+                        <b>
+                            <t t-if="ctx.get('amount_due')">
+                                <t t-out="format_amount(ctx.get('amount_due'), object.currency_id) or ''">$ 143,750.00</t>
+                            </t>
+                            <t t-elif="object.followup_single_currency_id">
+                                <t t-out="format_amount(object.total_overdue_currency_followup, object.followup_single_currency_id) or ''"/>
+                            </t>
+                            <t t-else="">
+                                <t t-out="format_amount(object.total_overdue_followup, object.currency_id) or ''"/>
+                            </t>
+                        </b>.
+                        <br /><br />
+                        <p t-if="object._show_pay_now_button()">
+                            <a t-att-href="'/my/invoices/overdue'" style="padding: 8px 12px; font-size: 12px; color: #FFFFFF; text-decoration: none !important; font-weight: 400; background-color: #875A7B; border: 0px solid #875A7B; border-radius:3px">Pay now</a>
+                        </p>
+                        You will find the report of your overdue invoices attached to this email.
+                        <br />
+                        If you've already sent the payment, please disregard this notice. If you have any questions or concerns, please don't hesitate to reply to this email.
+                        <br /><br />
+                        Thank you,
+                        <t t-if="not is_html_empty(object._get_followup_responsible().signature)">
+                            <t t-out="object._get_followup_responsible().signature"/>
+                        </t>
+                        <t t-else="">
+                            <t t-out="object._get_followup_responsible().name">
+                            Mitchell Admin
+                            </t>
+                        </t>
+                    </p>
+                </div>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+
+        <record id="mail_template_partner_payment_second_reminder" model="mail.template">
+            <field name="name">Second Reminder</field>
+            <field name="model_id" ref="account.model_res_partner"/>
+            <field name="email_from">{{ object._get_followup_responsible().email_formatted }}</field>
+            <field name="partner_to" eval="False"/>
+            <field name="subject">{{ (object.company_id or object._get_followup_responsible().company_id).name }} Payment Reminder</field>
+            <field name="description">Send a second payment reminder to customers with their invoices in attachment</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                        Dear
+                        <t t-out="object.name or ''">Brandon Freeman</t>,
+                        <br /><br />
+                        We are writing to follow up on our previous email regarding the overdue invoices amounting in
+                        <b>
+                            <t t-if="ctx.get('amount_due')">
+                                <t t-out="format_amount(ctx.get('amount_due'), object.currency_id) or ''">$ 143,750.00</t>
+                            </t>
+                            <t t-elif="object.followup_single_currency_id">
+                                <t t-out="format_amount(object.total_overdue_currency_followup, object.followup_single_currency_id) or ''"/>
+                            </t>
+                            <t t-else="">
+                                <t t-out="format_amount(object.total_overdue_followup, object.currency_id) or ''"/>
+                            </t>
+                        </b>. Our records indicate that these invoices remain unpaid. Please find attached the report again for your reference.
+                        <br /><br />
+                        <p t-if="object._show_pay_now_button()">
+                            <a t-att-href="'/my/invoices/overdue'" style="padding: 8px 12px; font-size: 12px; color: #FFFFFF; text-decoration: none !important; font-weight: 400; background-color: #875A7B; border: 0px solid #875A7B; border-radius:3px">Pay now</a>
+                        </p>
+                        We would appreciate it if you could let us know the status of these payments. If payment has already been made, please let us know the date and method so we can trace it.
+                        <br />
+                        If you are facing any issues with these payments, please contact us immediately so we can assist you.
+                        Thank you!
+                        <br /><br />
+                        Your prompt attention to this matter is greatly appreciated.
+                        <br /><br />
+                        Best regards,
+                        <t t-if="not is_html_empty(object._get_followup_responsible().signature)">
+                            <t t-out="object._get_followup_responsible().signature"/>
+                        </t>
+                        <t t-else="">
+                            <t t-out="object._get_followup_responsible().name">
+                            Mitchell Admin
+                            </t>
+                        </t>
+                    </p>
+                </div>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+
+        <record id="mail_template_partner_payment_last_reminder" model="mail.template">
+            <field name="name">Last Reminder</field>
+            <field name="model_id" ref="account.model_res_partner"/>
+            <field name="email_from">{{ object._get_followup_responsible().email_formatted }}</field>
+            <field name="partner_to" eval="False"/>
+            <field name="subject">{{ (object.company_id or object._get_followup_responsible().company_id).name }} Payment Reminder</field>
+            <field name="description">Send a last payment reminder to customers with their invoices in attachment</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                        Dear
+                        <t t-out="object.name or ''">Brandon Freeman</t>,
+                        <br /><br />
+                        This is our third and final reminder regarding the outstanding payments for your overdue invoices amounting in 
+                        <b>
+                            <t t-if="ctx.get('amount_due')">
+                                <t t-out="format_amount(ctx.get('amount_due'), object.currency_id) or ''">$ 143,750.00</t>
+                            </t>
+                            <t t-elif="object.followup_single_currency_id">
+                                <t t-out="format_amount(object.total_overdue_currency_followup, object.followup_single_currency_id) or ''"/>
+                            </t>
+                            <t t-else="">
+                                <t t-out="format_amount(object.total_overdue_followup, object.currency_id) or ''"/>
+                            </t>
+                        </b>. We have sent previous reminders but have not yet received payment or a response.
+                        <br /><br />
+                        <p t-if="object._show_pay_now_button()">
+                            <a t-att-href="'/my/invoices/overdue'" style="padding: 8px 12px; font-size: 12px; color: #FFFFFF; text-decoration: none !important; font-weight: 400; background-color: #875A7B; border: 0px solid #875A7B; border-radius:3px">Pay now</a>
+                        </p>
+                        Please be advised that your account is now considered delinquent. We urge you to make payment immediately to settle this balance.
+                        <br /><br />
+                        <b>Please contact us</b> to either confirm your payment or discuss this matter. If we do not receive payment or a response by within 10 days we will be forced to review the status of your account.
+                        <br /><br />
+                        We hope to resolve this amicably.
+                        <br /><br />
+                        Best regards,
+                        <t t-if="not is_html_empty(object._get_followup_responsible().signature)">
+                            <t t-out="object._get_followup_responsible().signature"/>
+                        </t>
+                        <t t-else="">
+                            <t t-out="object._get_followup_responsible().name">
+                            Mitchell Admin
+                            </t>
+                        </t>
+                    </p>
+                </div>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+
+        <record id="mail_template_payment_reminder_before_due" model="mail.template">
+            <field name="name">Payment Reminder before due date</field>
+            <field name="model_id" ref="account.model_res_partner"/>
+            <field name="email_from">{{ object._get_followup_responsible().email_formatted }}</field>
+            <field name="partner_to" eval="False"/>
+            <field name="subject">{{ (object.company_id or object._get_followup_responsible().company_id).name }} Payment Reminder</field>
+            <field name="description">Send a payment reminder before the due date to customer</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                        Dear
+                        <t t-out="object.name or ''">Brandon Freeman</t>,
+                        <br /><br />
+                        This is a kind reminder that you have outstanding invoices with a total amount of
+                        <b>
+                            <t t-if="object.followup_single_currency_id">
+                                <t t-out="format_amount(object.total_due_currency_followup, object.followup_single_currency_id) or ''">$ 143,750.00</t>
+                            </t>
+                            <t t-else="">
+                                <t t-out="format_amount(object.total_due_followup, object.currency_id) or ''"/>
+                            </t>
+                        </b>
+                        from <t t-out="object.company_id.name or ''">YourCompany</t> which will be due in the coming days.
+                        <br /><br />
+                        We wanted to send this over just to help you keep your accounts up to date.
+                        <br />
+                        If you've already sent the payment, please feel free to ignore this email and thank you!
+                        <br />
+                        You will find a copy of the original invoices attached to this email.
+                        <br /><br />
+                        Best Regards,
+                        <t t-if="not is_html_empty(object._get_followup_responsible().signature)">
+                            <t t-out="object._get_followup_responsible().signature"/>
+                        </t>
+                        <t t-else="">
+                            <t t-out="object._get_followup_responsible().name">
+                            Mitchell Admin
+                            </t>
+                        </t>
+                    </p>
+                </div>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo auto_sequence="1">
+    <record id="generic_ec_sales_report" model="account.report">
+        <field name="name">EC Sales List</field>
+        <field name="groupby">partner_id</field>
+        <field name="filter_show_draft" eval="True"/>
+        <field name="filter_period_comparison" eval="False"/>
+        <field name="filter_date_range" eval="True"/>
+        <field name="filter_journals" eval="False"/>
+        <field name="filter_unreconciled" eval="False"/>
+        <field name="filter_multi_company">selector</field>
+        <field name="default_opening_date_filter">previous_month</field>
+        <field name="load_more_limit" eval="80"/>
+        <field name="search_bar" eval="True"/>
+        <field name="custom_handler_model_id" ref="model_account_ec_sales_with_taxes_report_handler"/>
+        <field name="column_ids">
+            <record id="account_financial_report_ec_sales_country" model="account.report.column">
+                <field name="name">Country Code</field>
+                <field name="expression_label">country_code</field>
+                <field name="figure_type">string</field>
+                <field name="sortable" eval="True"/>
+            </record>
+            <record id="account_financial_report_ec_sales_vat" model="account.report.column">
+                <field name="name">VAT Number</field>
+                <field name="expression_label">vat_number</field>
+                <field name="figure_type">string</field>
+                <field name="sortable" eval="True"/>
+            </record>
+            <record id="account_financial_report_ec_sales_amount" model="account.report.column">
+                <field name="name">Amount</field>
+                <field name="expression_label">balance</field>
+                <field name="sortable" eval="True"/>
+            </record>
+        </field>
+        <field name="line_ids">
+            <record id="ec_sales_report_generic_line" model="account.report.line">
+                <field name="name">EC Sales Report</field>
+                <field name="code">EC</field>
+                <field name="foldability">always_unfolded</field>
+                <field name="expression_ids">
+                    <record id="ec_sales_report_generic_line_country_code" model="account.report.expression">
+                        <field name="label">country_code</field>
+                        <field name="engine">custom</field>
+                        <field name="auditable">True</field>
+                        <field name="formula">_report_engine_ec_sales_report</field>
+                        <field name="subformula">country_code</field>
+                    </record>
+                    <record id="ec_sales_report_generic_line_vat_number" model="account.report.expression">
+                        <field name="label">vat_number</field>
+                        <field name="engine">custom</field>
+                        <field name="auditable">True</field>
+                        <field name="formula">_report_engine_ec_sales_report</field>
+                        <field name="subformula">vat_number</field>
+                    </record>
+                    <record id="ec_sales_report_generic_line_balance" model="account.report.expression">
+                        <field name="label">balance</field>
+                        <field name="engine">custom</field>
+                        <field name="auditable">True</field>
+                        <field name="formula">_report_engine_ec_sales_report</field>
+                        <field name="subformula">balance</field>
+                    </record>
+                </field>
+            </record>
+        </field>
+    </record>
+</odoo>

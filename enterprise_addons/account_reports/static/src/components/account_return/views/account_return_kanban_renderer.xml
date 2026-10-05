@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<templates>
+    <t t-name="account_reports.account_return_kanban_renderer">
+
+        <div class="o_kanban_renderer o_renderer o_account-return-kanban mx-lg-2 mx-xl-auto mw-xl-75"
+             t-ref="this.rootRef"
+             t-attf-style="--kanban-max-states: #{this.maxStateCount};">
+            <div t-if="this.groups" class="py-2">
+                <t t-foreach="this.groups" t-as="group" t-key="group.key">
+                    <div t-if="group.count > 0" class="d-flex flex-column flex-xl-row gap-xl-3 py-2">
+                        <div
+                            class="o_account_return_padding d-xl-flex flex-column align-items-end flex-xl-grow-1 px-lg-0 pt-3 pb-2 fw-bold fs-4"
+                        >
+                            <div
+                                class="text-xl-end py-1"
+                                t-att-class="{'position-sticky top-0 z-1 bg-100': group.list.count &gt; 1}"
+                                t-out="group.displayName"
+                            />
+                            <div t-if="group.list.count &gt; 1"
+                                 class="d-none d-xl-block flex-grow-1 text-400 border-bottom pt-3 mb-4 pe-2 me-1"
+                            >
+                                <span class="vr h-100"/>
+                            </div>
+                        </div>
+                        <div class="col-xl-10 flex-grow-0 flex-shrink-0">
+                            <t t-call="account_reports.return_list" list="group.list"/>
+                        </div>
+                    </div>
+                </t>
+            </div>
+            <div t-else="" class="py-4">
+                <t t-call="account_reports.return_list" list="this.props.list"/>
+            </div>
+            <t t-if="this.showNoContentHelper">
+                <ActionHelper noContentHelp="this.props.noContentHelp"/>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="account_reports.return_list">
+        <t t-foreach="list.records" t-as="record" t-key="record.id">
+            <AccountReturnKanbanRecord
+                record="record"
+                archInfo="this.props.archInfo"
+                Compiler="this.props.Compiler"
+                readonly="false"
+                forceGlobalClick="false"
+                canOpenRecords="this.props.archInfo.canOpenRecords"
+                canResequence="false"
+                deleteRecord.bind="this.deleteRecord"
+                openAction="this.props.archInfo.openAction"
+                openRecord.bind="this.openRecord"
+            />
+        </t>
+    </t>
+</templates>

@@ -1,0 +1,588 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- Regulatory compliance  -->
+        <record id="account_return_check_template_audit_period_events" model="account.return.check.template">
+            <field name="name">Period Events</field>
+            <field name="description">Summarize main events that occurs in this fiscal period.</field>
+            <field name="type">file</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_regulatory_compliance"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_audit_period_events</field>
+        </record>
+
+        <record id="account_return_check_template_audit_assets_listing" model="account.return.check.template">
+            <field name="name">Assets Listing</field>
+            <field name="description">Summarize main events that occurs in this fiscal period.</field>
+            <field name="type">file</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_regulatory_compliance"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_audit_assets_listing</field>
+        </record>
+
+        <record id="account_return_check_template_audit_accounting_process" model="account.return.check.template">
+            <field name="name">Accounting Process</field>
+            <field name="description">Document current accounting processes (especially if done in-house).</field>
+            <field name="type">file</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_regulatory_compliance"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_audit_accounting_process</field>
+        </record>
+
+        <record id="account_return_check_template_audit_empty_suspense_accounts" model="account.return.check.template">
+            <field name="name">Empty Suspense accounts</field>
+            <field name="description">These accounts must be cleared regularly, as they represent unallocated or pending transactions.</field>
+            <field name="type">check</field>
+            <field name="model">account.bank.statement.line</field>
+            <field name="domain">[('is_reconciled', '=', False), ('state', '!=', 'cancel')]</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_regulatory_compliance"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_audit_empty_suspense_accounts</field>
+        </record>
+
+        <!-- Treasury and financing  -->
+        <record id="account_return_check_template_analytical_review" model="account.return.check.template">
+            <field name="name">Analytical Review</field>
+            <field name="description">Conduct a comparative account review to identify key variances, analyze trends, and assess performance versus prior periods.</field>
+            <field name="type">check</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_treasury_financing"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_analytical_review</field>
+            <field name="model">account.account</field>
+            <field name="domain">[('account_type', '=', 'asset_cash')]</field>
+        </record>
+
+        <record id="account_return_check_template_bank_statements" model="account.return.check.template">
+            <field name="name">Bank Statements</field>
+            <field name="description">Collect missing bank statements and reconcile them with internal records, resolving any discrepancies.</field>
+            <field name="type">check</field>
+            <field name="model">account.payment</field>
+            <field name="domain">[('is_matched', '=', False)]</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_treasury_financing"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_bank_statements</field>
+        </record>
+
+        <record id="account_return_check_template_bank_transaction_missing_document" model="account.return.check.template">
+            <field name="name">Bank Transaction Missing Document</field>
+            <field name="description">Review bank transactions not associated with any invoices. Ensure the corresponding documents are created in Odoo.</field>
+            <field name="type">check</field>
+            <field name="model">account.bank.statement.line</field>
+            <field name="domain">[('is_reconciled', '=', False), ('state', '!=', 'cancel')]</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_treasury_financing"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_bank_transaction_missing_document</field>
+        </record>
+
+        <record id="account_return_check_template_outstanding_checks" model="account.return.check.template">
+            <field name="name">Outstanding checks</field>
+            <field name="description">Identify checks that remain uncashed (lost, forgotten, or to be canceled)</field>
+            <field name="type">check</field>
+            <field name="model" eval="False"/>
+            <field name="cycle_id" ref="account_reports.audit_cycle_treasury_financing"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_outstanding_checks</field>
+            <field name="action_id" ref="account.action_account_payments"/>
+            <field name="additional_action_domain">[('is_matched', '=', False), ('payment_method_id', '=', ref('account.account_payment_method_manual_in'))]</field>
+        </record>
+
+        <record id="account_return_check_template_cash_inventory_reconciliation" model="account.return.check.template">
+            <field name="name">Cash inventory reconciliation</field>
+            <field name="description">Compare the general ledger cash account with the physical cash inventory provided by the client. Investigate and explain any discrepancies.</field>
+            <field name="type">check</field>
+            <field name="model" eval="False"/>
+            <field name="cycle_id" ref="account_reports.audit_cycle_treasury_financing"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_cash_inventory_reconciliation</field>
+            <field name="action_id" ref="account.action_move_journal_line"/>
+            <field name="additional_action_domain">[('date', '&gt;=', return_start_date), ('date', '&lt;=', return_end_date)]</field>
+            <field name="additional_action_context">{'search_default_cashoperations':1, 'search_default_journal':1 }</field>
+        </record>
+
+        <record id="account_return_check_template_no_negative_petty_cash_balances" model="account.return.check.template">
+            <field name="name">No Negative Petty Cash Balances</field>
+            <field name="description">Review petty cash accounts to ensure they do not have credit balances. Investigate and justify any anomalies.</field>
+            <field name="type">check</field>
+            <field name="model" eval="False"/>
+            <field name="cycle_id" ref="account_reports.audit_cycle_treasury_financing"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_no_negative_petty_cash_balances</field>
+            <field name="action_id" ref="account_reports.action_audit_report"/>
+            <field name="additional_action_context">{
+                'action_xml_id': 'account_reports.action_account_report_coa',
+                'working_file_id': active_id,
+                'additional_options': {
+                    'journals': cash_journal_options,
+                    'not_reset_journals_filter': True,  # Avoid journal group auto selection
+                }
+            }</field>
+        </record>
+
+        <!-- TODO: lost move this in l10n_be_reports and do a copy for FR with 1000 as threshold -->
+        <record id="account_return_check_template_no_unjustified_cash_payments_to_supplier" model="account.return.check.template">
+            <field name="name">No Unjustified Cash Payments to Suppliers</field>
+            <field name="description">Identify and verify any cash payments made to suppliers. Ensure all are properly justified.</field>
+            <field name="type">check</field>
+            <field name="model">account.payment</field>
+            <field name="domain">[('amount', '&gt;=', 3000.00)]</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_treasury_financing"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_no_unjustified_cash_payments_to_supplier</field>
+            <field name="country_ids" eval="[Command.set([ref('base.be')])]"/>
+        </record>
+
+        <record id="account_return_check_template_clear_internal_transfer_account" model="account.return.check.template">
+            <field name="name">Clear Internal Transfer Accounts</field>
+            <field name="description">Ensure all intercompany or internal bank transfer accounts are cleared and justified.</field>
+            <field name="type">check</field>
+            <field name="model" eval="False"/>
+            <field name="cycle_id" ref="account_reports.audit_cycle_treasury_financing"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_clear_internal_transfer_account</field>
+            <field name="action_id" ref="account.action_account_moves_all"/>
+            <field name="additional_action_domain">[('journal_id', '=', internal_transfer_account_id), ('date', '&gt;=', return_start_date), ('date', '&lt;=', return_end_date)]</field>
+        </record>
+
+        <record id="account_return_check_template_settlement_in_subsequent_period" model="account.return.check.template">
+            <field name="name">Settlement in Subsequent Period</field>
+            <field name="description">Verify that cash and card receipts recorded at period-end are actually settled in the following period. Also check the correct accounting treatment of discounting operations and factoring contracts*.
+
+*Factoring contracts involve a business selling its unpaid invoices (accounts receivable) to a third-party company, known as a factor, in exchange for immediate cash.
+            </field>
+            <field name="type">check</field>
+            <field name="model" eval="False"/>
+            <field name="cycle_id" ref="account_reports.audit_cycle_treasury_financing"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_settlement_in_subsequent_period</field>
+        </record>
+
+        <record id="account_return_check_template_marketable_securities_review" model="account.return.check.template">
+            <field name="name">Marketable Securities Review</field>
+            <field name="description">Confirm proper classification, fair value measurement, and disposal treatment of marketable securities.</field>
+            <field name="type">check</field>
+            <field name="model" eval="False"/>
+            <field name="cycle_id" ref="account_reports.audit_cycle_treasury_financing"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_marketable_securities_review</field>
+        </record>
+
+        <record id="account_return_check_template_review_of_guaranteed" model="account.return.check.template">
+            <field name="name">Review of Guarantees</field>
+            <field name="description">Compile a complete list of all guarantees received or granted (pledges, mortgages, collateral).</field>
+            <field name="type">file</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_treasury_financing"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_review_of_guaranteed</field>
+        </record>
+
+        <record id="account_return_check_template_provision_for_impairment" model="account.return.check.template">
+            <field name="name">Provision for Impairment</field>
+            <field name="description">Identify potential losses and record provisions where appropriate.</field>
+            <field name="type">check</field>
+            <field name="model" eval="False"/>
+            <field name="cycle_id" ref="account_reports.audit_cycle_treasury_financing"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_provision_for_impairment</field>
+            <field name="action_id" ref="account_reports.action_audit_report"/>
+            <field name="additional_action_context">{
+                'action_xml_id': 'account_reports.action_account_report_ar',
+                'working_file_id': active_id
+            }</field>
+        </record>
+
+        <record id="account_return_check_template_bank_fees_analytical_review" model="account.return.check.template">
+            <field name="name">Bank Fees Analytical Review</field>
+            <field name="description">Conduct an analytical review of banking fees. Ensure consistent accounting treatment and explain major changes.</field>
+            <field name="type">check</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_treasury_financing"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_bank_fees_analytical_review</field>
+            <field name="model">account.account</field>
+            <field name="domain">[('account_type', '=', 'expense')]</field>
+        </record>
+
+        <record id="account_return_check_template_financial_provisions_review" model="account.return.check.template">
+            <field name="name">Financial Provisions Review</field>
+            <field name="description">Validate recognition and classification of financial provisions and reversals. Ensure all entries are properly justified.</field>
+            <field name="type">check</field>
+            <field name="model" eval="False"/>
+            <field name="cycle_id" ref="account_reports.audit_cycle_treasury_financing"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_financial_provisions_review</field>
+        </record>
+
+        <record id="account_return_check_template_foreign_exchange_differences" model="account.return.check.template">
+            <field name="name">Foreign Exchange Differences</field>
+            <field name="description">Review FX rates used at year-end, compare with prior year, and verify appropriate recognition and presentation of currency adjustments.</field>
+            <field name="type">check</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_treasury_financing"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_foreign_exchange_differences</field>
+            <field name="model">account.account</field>
+            <field name="domain">[('id', 'in', currency_exchange_difference_account_ids)]</field>
+        </record>
+
+        <!-- Purchases -->
+        <record id="account_return_check_template_trade_payables_analytical_review" model="account.return.check.template">
+            <field name="name">Trade Payables Analytical Review</field>
+            <field name="description">Conduct a year-over-year analysis of trade payables and explain significant changes.</field>
+            <field name="type">check</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_purchases"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_trade_payables_analytical_review</field>
+            <field name="model">account.account</field>
+            <field name="domain">[('account_type', '=', 'liability_payable')]</field>
+        </record>
+
+        <record id="account_return_check_template_payables_settlement" model="account.return.check.template">
+            <field name="name">Payables Settlement</field>
+            <field name="description">Ensure all notes payable recorded at year-end were properly settled in the following period.</field>
+            <field name="type">check</field>
+            <field name="model">account.move.line</field>
+            <field name="domain">[('reconciled', '=', False), ('account_id.account_type', '=', 'liability_payable')]</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_purchases"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_payables_settlement</field>
+        </record>
+
+        <record id="account_return_check_template_aged_payable_review" model="account.return.check.template">
+            <field name="name">Aged Payables Review</field>
+            <field name="description">Check for payables overdue by more than 60 days and validate that all amounts due are properly recorded.</field>
+            <field name="type">check</field>
+            <field name="model" eval="False"/>
+            <field name="cycle_id" ref="account_reports.audit_cycle_purchases"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_aged_payable_review</field>
+            <field name="action_id" ref="account_reports.action_audit_report"/>
+            <field name="additional_action_context">{
+                'action_xml_id': 'account_reports.action_account_report_ap',
+                'working_file_id': active_id
+            }</field>
+        </record>
+
+        <record id="account_return_check_template_investigate_unusual_supplier_balances" model="account.return.check.template">
+            <field name="name">Investigate Unusual Supplier Balances</field>
+            <field name="description">Identify and explain any significant or unusual supplier balances, especially debit balances.</field>
+            <field name="type">check</field>
+            <field name="model" eval="False"/>
+            <field name="cycle_id" ref="account_reports.audit_cycle_purchases"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_investigate_unusual_supplier_balances</field>
+            <field name="action_id" ref="account_reports.action_audit_report"/>
+            <field name="additional_action_context">{
+                'action_xml_id': 'account_reports.action_account_report_ap',
+                'working_file_id': active_id
+            }</field>
+        </record>
+
+        <record id="account_return_check_template_foreign_currency_liabilities" model="account.return.check.template">
+            <field name="name">Foreign Currency Liabilities</field>
+            <field name="description">Ensure that foreign currency payables are revalued at year-end closing rate and that any unrealized exchange differences are properly recorded in profit or loss (accounts 654/754) under Belgian GAAP.</field>
+            <field name="type">check</field>
+            <field name="model" eval="False"/>
+            <field name="cycle_id" ref="account_reports.audit_cycle_purchases"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_foreign_currency_liabilities</field>
+            <field name="action_id" ref="account.action_move_in_invoice"/>
+            <field name="additional_action_domain">[('currency_id', '!=', company_currency_id)]</field>
+        </record>
+
+        <!-- Operating Expenses -->
+        <record id="account_return_check_template_operating_expenses_review" model="account.return.check.template">
+            <field name="name">Operating Expenses Review</field>
+            <field name="description">Compare current vs prior year expense trends and justify significant deviations.</field>
+            <field name="type">check</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_operating_expenses"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_operating_expenses_review</field>
+            <field name="model">account.account</field>
+            <field name="domain">[('account_type', 'in', ['expense', 'expense_other', 'expense_depreciation', 'expense_direct_cost'])]</field>
+        </record>
+
+        <record id="account_return_check_template_review_for_capitalizable_expenses" model="account.return.check.template">
+            <field name="name">Review for capitalizable expenses</field>
+            <field name="description">Identify expenses that should have been capitalized according to accounting standards.</field>
+            <field name="type">check</field>
+            <field name="model" eval="False"/>
+            <field name="cycle_id" ref="account_reports.audit_cycle_operating_expenses"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_review_for_capitalizable_expenses</field>
+            <field name="action_id" ref="account.action_account_moves_all"/>
+            <field name="additional_action_domain">[('date', '&gt;=', return_start_date), ('date', '&lt;=', return_end_date), ('account_id.internal_group', '=', 'expense'), ('balance', '&gt;', 500.00)]</field>
+        </record>
+
+
+        <record id="account_return_check_template_non_recoverable_vat_gross_accounting_view" model="ir.ui.view">
+            <field name="name">account.move.line.list</field>
+            <field name="model">account.move.line</field>
+            <field name="inherit_id" ref="account.view_move_line_tree"/>
+            <field name="mode">primary</field>
+            <field eval="10" name="priority"/>
+            <field name="arch" type="xml">
+                <field name="tax_ids" position="attributes">
+                    <attribute name="optional">show</attribute>
+                </field>
+            </field>
+        </record>
+        <record id="account_return_check_template_non_recoverable_vat_gross_accounting_action" model="ir.actions.act_window">
+            <field name="context">{'journal_type':'general', 'search_default_posted':1}</field>
+            <field name="name">Journal Items</field>
+            <field name="res_model">account.move.line</field>
+            <field name="domain">[
+                ('display_type', 'not in', ('line_section', 'line_note')),
+                ('parent_state', '!=', 'cancel'),
+                ('date', '&gt;=', return_start_date),
+                ('date', '&lt;=', return_end_date),
+                ('account_id.internal_group', '=', 'expense'),
+                ('balance', '&gt;', 500.00)
+            ]</field>
+            <field name="view_id" ref="account_return_check_template_non_recoverable_vat_gross_accounting_view"/>
+            <field name="view_mode">list,pivot,graph,kanban</field>
+        </record>
+        <record id="account_return_check_template_non_recoverable_vat_gross_accounting" model="account.return.check.template">
+            <field name="name">Non-recoverable VAT: gross accounting</field>
+            <field name="description">Ensure that non-deductible VAT expenses are recorded including VAT (gross amount).</field>
+            <field name="type">check</field>
+            <field name="model" eval="False"/>
+            <field name="cycle_id" ref="account_reports.audit_cycle_operating_expenses"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_non_recoverable_vat_gross_accounting</field>
+            <field name="action_id" ref="account_reports.account_return_check_template_non_recoverable_vat_gross_accounting_action"/>
+        </record>
+
+        <!-- Sales -->
+        <record id="account_return_check_template_revenue_receivables_review" model="account.return.check.template">
+            <field name="name">Revenue &amp; receivables Review</field>
+            <field name="description">Analyze the change in revenue and trade receivables between year N and year N-1.</field>
+            <field name="type">check</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_sales"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_revenue_receivables_review</field>
+            <field name="model">account.account</field>
+            <field name="domain">[('account_type', 'in', ['income', 'income_other'])]</field>
+        </record>
+
+        <record id="account_return_check_template_aged_receivable_followup" model="account.return.check.template">
+            <field name="name">Aged receivables and follow-up</field>
+            <field name="description">For each high risk receivables (>60 days), verify the following:
+- Is there documented follow-up?
+- Has a payment plan been negotiated?
+- Is a provision recorded if recovery is doubtful?</field>
+            <field name="type">check</field>
+            <field name="model" eval="False"/>
+            <field name="cycle_id" ref="account_reports.audit_cycle_sales"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_aged_receivable_followup</field>
+            <field name="action_id" ref="account_reports.action_audit_report"/>
+            <field name="additional_action_context">{
+                'action_xml_id': 'account_reports.action_account_report_ar',
+                'working_file_id': active_id,
+                'additional_options': {
+                    'aging_interval': 60,
+                }
+            }</field>
+        </record>
+
+        <record id="account_return_check_template_year_end_revenue_cutoff_analysis" model="account.return.check.template">
+            <field name="name">Year-end revenue cutoff analysis</field>
+            <field name="description">Review the sales recorded in the final month of the period, identify any services delivered in the next period, estimate the revenue that should be recognized later (accrued income), and document how this was determined.</field>
+            <field name="type">check</field>
+            <field name="model" eval="False"/>
+            <field name="cycle_id" ref="account_reports.audit_cycle_sales"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_year_end_revenue_cutoff_analysis</field>
+            <field name="action_id" ref="account.action_account_moves_all"/>
+            <field name="additional_action_domain">[('journal_id.type', '=', 'sale'), ('date', '&gt;=', return_last_month_start), ('date', '&lt;=', return_end_date)]</field>
+        </record>
+
+        <!-- Inventory -->
+        <record id="account_return_check_template_inventory_analytical_review" model="account.return.check.template">
+            <field name="name">Inventory Analytical Review</field>
+            <field name="description">Analyze the change in assets between year N and year N-1.</field>
+            <field name="type">check</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_inventory"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_inventory_analytical_review</field>
+            <field name="model">account.account</field>
+            <field name="domain">[('account_type', '=', 'asset_fixed')]</field>
+        </record>
+
+        <record id="account_return_check_template_obtain_signed_inventory_valuation" model="account.return.check.template">
+            <field name="name">Obtain signed inventory valuation</field>
+            <field name="description">Obtain a detailed physical inventory, valued and signed by the company manager.</field>
+            <field name="type">file</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_inventory"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_obtain_signed_inventory_valuation</field>
+        </record>
+
+        <!-- Fixed assets -->
+        <record id="account_return_check_template_fixed_assets_review" model="account.return.check.template">
+            <field name="name">Fixed Assets Review</field>
+            <field name="description">Analyze the evolution of fixed assets and depreciation between N and N-1.</field>
+            <field name="type">check</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_fixed_assets"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_fixed_assets_review</field>
+            <field name="model">account.account</field>
+            <field name="domain">[('account_type', '=', 'asset_non_current')]</field>
+        </record>
+
+        <record id="account_return_check_template_subsidaries_and_investments_summary" model="account.return.check.template">
+            <field name="name">Subsidiaries and investments summary</field>
+            <field name="description">Prepare a summary of subsidiaries and investments including ownership percentages, acquisition values, net equity, earnings, and dividends paid.</field>
+            <field name="type">file</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_fixed_assets"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_subsidaries_and_investments_summary</field>
+        </record>
+
+        <!-- Government -->
+
+        <record id="action_server_open_view_account_return_with_additional_params" model="ir.actions.server">
+            <field name="name">Open Tax Return</field>
+            <field name="model_id" ref="model_account_return"/>
+            <field name="state">code</field>
+            <field name="code">action = model.action_open_tax_return_view(env.context.get('sub_action_domain'), env.context.get('sub_action_context'))</field>
+        </record>
+
+        <record id="account_return_check_template_reconcile_payable_with_fillings" model="account.return.check.template">
+            <field name="name">Reconcile tax payables with tax filings</field>
+            <field name="description">Reconcile all tax-related payables with the latest official filings.
+Analyze discrepancies, verify post-period payments, and document the status of any unresolved amounts or ongoing disputes.</field>
+            <field name="type">check</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_state"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_reconcile_payable_with_fillings</field>
+            <field name="action_id" ref="account_reports.action_server_open_view_account_return_with_additional_params"/>
+            <field name="additional_action_context">{
+                    'sub_action_domain': ['|', ('type_id.report_id', '=', ref('account.generic_tax_report')), ('type_id.report_id.root_report_id', '=', ref('account.generic_tax_report'))],
+            }</field>
+        </record>
+
+        <record id="account_return_check_template_eligibility_tax_reductions_and_credits" model="account.return.check.template">
+            <field name="name">Eligibility for tax reductions and credits</field>
+            <field name="description">Identify applicable tax credit schemes, verify eligibility, compute benefits, validate supporting documentation, and monitor refund claims.</field>
+            <field name="type">check</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_state"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_eligibility_tax_reductions_and_credits</field>
+            <field name="action_id" ref="account_reports.action_server_open_view_account_return_with_additional_params"/>
+            <field name="additional_action_context">{
+                    'sub_action_domain': ['|', ('type_id.report_id', '=', ref('account.generic_tax_report')), ('type_id.report_id.root_report_id', '=', ref('account.generic_tax_report'))],
+            }</field>
+        </record>
+
+        <record id="account_return_check_template_vat_rate_compliance" model="account.return.check.template">
+            <field name="name">VAT rate compliance</field>
+            <field name="description">Ensure VAT rates applied are consistent with the company's activity.</field>
+            <field name="type">check</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_state"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_vat_rate_compliance</field>
+            <field name="action_id" ref="account_reports.action_account_report_ja"/>
+        </record>
+
+        <record id="account_return_check_template_foreign_operations" model="account.return.check.template">
+            <field name="name">Foreign operations</field>
+            <field name="description">Review and reconcile intra-EU and international (export/import) operations for compliance and completeness.</field>
+            <field name="type">check</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_state"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_foreign_operations</field>
+            <field name="action_id" ref="account.action_account_moves_all"/>
+            <field name="additional_action_domain">[('date', '&gt;=', return_start_date), ('date', '&lt;=', return_end_date), ('partner_id.country_code', '!=', company_country_code)]</field>
+        </record>
+
+        <!-- Equity -->
+
+        <record id="account_return_check_template_equity_account_movements_legal_documents" model="account.return.check.template">
+            <field name="name">Equity account movements vs legal documents</field>
+            <field name="description">Ensure accounting entries in capital accounts are consistent with supporting legal documents.</field>
+            <field name="type">check</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_equity"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_equity_account_movements_legal_documents</field>
+            <field name="model">account.account</field>
+            <field name="domain">[('account_type', '=', 'equity')]</field>
+        </record>
+
+        <record id="account_return_check_template_minimum_share_capital_compliance" model="account.return.check.template">
+            <field name="name">Minimum share capital compliance</field>
+            <field name="description">Verify that the company’s share capital meets or exceeds the legal minimum for its corporate form.</field>
+            <field name="type">check</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_equity"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_minimum_share_capital_compliance</field>
+            <field name="model">account.account</field>
+            <field name="domain">[('account_type', '=', 'equity')]</field>
+        </record>
+
+        <record id="account_return_check_template_intercompany_account_reconciliation" model="account.return.check.template">
+            <field name="name">Intercompany account reconciliation</field>
+            <field name="description">Intercompany reconciliation is vital for accurate group accounting. It ensures reciprocal balances between related entities match precisely, which is necessary for eliminating internal transactions during consolidation.</field>
+            <field name="type">check</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_equity"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_intercompany_account_reconciliation</field>
+            <field name="action_id" ref="account_reports.action_audit_report"/>
+            <field name="additional_action_context">{
+                'action_xml_id': 'account_reports.action_account_report_interco_comparison',
+                'working_file_id': active_id,
+            }</field>
+        </record>
+
+        <record id="account_return_check_template_legal_reserve_and_dividend_eligibility" model="account.return.check.template">
+            <field name="name">Legal reserve and dividend eligibility</field>
+            <field name="description">Check whether the legal reserve is properly funded and if dividend distributions meet legal conditions, especially in case of unamortized formation expenses.</field>
+            <field name="type">check</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_equity"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_legal_reserve_and_dividend_eligibility</field>
+            <field name="model">account.account</field>
+            <field name="domain">[('account_type', '=', 'equity')]</field>
+        </record>
+
+        <record id="account_return_check_template_dividend_payment_verification" model="account.return.check.template">
+            <field name="name">Dividend payment verification</field>
+            <field name="description">Confirm that the declared dividends were actually paid to the shareholders.</field>
+            <field name="type">check</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_equity"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_dividend_payment_verification</field>
+            <field name="model">account.account</field>
+            <field name="domain">[('account_type', '=', 'equity')]</field>
+        </record>
+
+        <record id="account_return_check_template_minutes_of_the_agm_on_profit_allocation" model="account.return.check.template">
+            <field name="name">Minutes of the AGM on profit allocation</field>
+            <field name="description">Ensure a signed copy of the AGM minutes allocating prior-year profit has been obtained and archived.</field>
+            <field name="type">file</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_equity"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_minutes_of_the_agm_on_profit_allocation</field>
+        </record>
+
+        <record id="account_return_check_template_allocation_of_prior_year_result_to_equity" model="account.return.check.template">
+            <field name="name">Allocation of prior-year result to equity</field>
+            <field name="description">Check how the prior year's result (N-1) was allocated, especially if reclassified into share capital or reserves.</field>
+            <field name="type">check</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_equity"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_allocation_of_prior_year_result_to_equity</field>
+            <field name="model">account.account</field>
+            <field name="domain">[('account_type', 'in', ['equity', 'equity_unaffected'])]</field>
+        </record>
+
+        <record id="account_return_check_template_risk_provisioning_and_provision_movement_schedule" model="account.return.check.template">
+            <field name="name">Risk provisioning and provision movement schedule</field>
+            <field name="description">Prepare a detailed provision schedule and ensure all risks are identified and properly provisioned.</field>
+            <field name="type">check</field>
+            <field name="cycle_id" ref="account_reports.audit_cycle_equity"/>
+            <field name="return_type" ref="account_reports.default_audit_return_type"/>
+            <field name="code">_account_return_check_template_risk_provisioning_and_provision_movement_schedule</field>
+                <field name="model">account.account</field>
+            <field name="domain">[('account_type', 'in', ['expense', 'expense_other'])]</field>
+        </record>
+    </data>
+</odoo>
